@@ -1,1 +1,1 @@
-Reference material for software and libraries.
+Reference material for software, libraries, and specifications.

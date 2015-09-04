@@ -35,4 +35,33 @@ between the network types (Figure 6).
 * Also examined a real HIV tree, but were only able to say that the contact
 structure was non-random.
 
+**[@colijn2014phylogenetic]**
+
+* Examine effect of transmission patterns on tree topology only (not branch
+lengths).
+* Use a "duration of infection" parameter rather than a recovery rate.
+* Define eleven tree summary metrics (Figure 3). Useful to supplement the
+kernel?
+* Reference 30 has information about degree distributions in real sexual
+contact networks.
+* Reduced sampling density has a strong effect on the ability to distinguish 
+tree shapes from different epidemic types.
+
+
+# Other Statistics
+
+**[@duchene2015evaluating]**
+
+* Traditional model selection can only indicate relative goodness of models,
+not tell us if a particular model fits well or not. This is a problem if all
+the models being tested explain the data poorly.
+* Compare simulated data sets from a model to real data to assess model fit.
+* Could be an effective method of model selection with ABC.
+* In a Bayesian setting, underparametrization is more damaging than
+overparametrization, due to integration over uncertainty in unnecessary
+parameters.
+* The accuracy statistic proposed by the authors doesn't give a hard "yes or
+no" answer to whether a model is a good fit. It's more like a tool to assist in
+model selection by eye.
+
 # References

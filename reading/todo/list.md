@@ -12,11 +12,6 @@ are informative about which nodes should be "targeted" for interventions.
 
 Same as above.
 
-## colijn2014phylogenetic
-
-Along the same lines as Leventhal, some more applications of tree shapes to 
-inferring epidemiological parameters.
-
 ## wang2014approximate
 
 ABC with exponential random graph models. Maybe we could adapt this.
