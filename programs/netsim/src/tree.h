@@ -6,6 +6,7 @@
 #define TREE_H
 
 #include <stdio.h>
+#include <gsl/gsl_rng.h>
 #include <igraph/igraph.h>
 
 typedef enum {
@@ -26,7 +27,7 @@ igraph_t *parse_newick(FILE *f);
  * \param[in] tree the tree to output
  * \param[in] f file handle open for writing
  */
-void write_tree_newick(igraph_t *tree, FILE *f);
+void write_tree_newick(const igraph_t *tree, FILE *f);
 
 /** Get the root of a tree.
  * 
@@ -85,4 +86,37 @@ void scale_branches(igraph_t *tree, scaling mode);
  * coalescence times
  */
 double kernel(const igraph_t *t1, const igraph_t *t2, double lambda, double sigma, int coal);
+
+/** Cut a tree at a specified time.
+ *
+ * Always deletes nodes which were born after the cutoff. Optionally, tips
+ * which were removed prior to the cutoff are also deleted.
+ *
+ * \param[in] tree the tree to shorten
+ * \param[in] t the time to cut the tree (measured forward from the root)
+ * \param[in] extant_only if true, only include tips which are extant at the
+ * cutoff time
+ */
+void cut_at_time(igraph_t *tree, double t, int extant_only);
+
+/** Collapse single nodes in a tree.
+ *
+ * This deletes nodes which have in-degree and out-degree both equal to 1, and
+ * connects their parents to their children.
+ *
+ * \param[in] tree tree to collapse singles in
+ */
+void collapse_singles(igraph_t *tree);
+
+/** Subsample tips from a tree.
+ * 
+ * Randomly deletes tips from a tree until there are only ntip tips remaining.
+ * If there are ntip or fewer tips in the tree already, nothing is done.
+ *
+ * \param[in] tree the tree to subsample
+ * \param[in] ntip number of tips to leave in the tree
+ * \param[in] rng GSL random number generator object
+ */
+void subsample_tips(igraph_t *tree, int ntip, const gsl_rng *rng);
+
 #endif

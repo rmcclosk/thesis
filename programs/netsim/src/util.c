@@ -4,8 +4,6 @@
 #include <igraph/igraph.h>
 #include "util.h"
 
-int compare_pairs(const void *a, const void *b);
-
 gsl_rng *set_seed(int seed)
 {
     gsl_rng *rng;
@@ -25,18 +23,33 @@ gsl_rng *set_seed(int seed)
     return rng;
 }
 
-void order(const int *x, int *order, int n)
+int compare_ints (const void * a, const void * b)
 {
-    int *buf = malloc(n*2*sizeof(int));
-    int i;
+    return ( *(int*)a - *(int*)b );
+}
 
-    for (i = 0; i < n; ++i) {
-        buf[2*i] = x[i];
-        buf[2*i+1] = i;
+int compare_doubles (const void * a, const void * b)
+{
+    if ( *(double*)a < *(double*)b ) return -1;
+    if ( *(double*)a > *(double*)b ) return 1;
+    return 0;
+}
+
+void order(const void *base, int *order, size_t size, int nitems,
+        int (*compar) (const void *, const void *))
+{
+    int i; 
+    size_t pair_size = size + sizeof(int);
+    char *buf = malloc(nitems * pair_size);
+
+    for (i = 0; i < nitems; ++i) {
+        memcpy(&buf[i * pair_size], &((char*) base)[i * size], size);
+        memcpy(&buf[i * pair_size + size], &i, sizeof(int));
     }
-    qsort(buf, n, 2*sizeof(int), compare_pairs);
-    for (i = 0; i < n; ++i)
-        order[i] = buf[2*i+1];
+
+    qsort(buf, nitems, pair_size, compar);
+    for (i = 0; i < nitems; ++i)
+        memcpy(&order[i], &buf[i * pair_size + size], sizeof(int));
 
     free(buf);
 }
@@ -48,19 +61,4 @@ void rotl(void *x, size_t nx, size_t n)
     memmove(x, x + n, nx - n); // shift x left by nx - n bytes
     memcpy(x + nx - n, tmp, n); // copy first n bytes into last n bytes
     free(tmp);
-}
-
-/* Private */
-
-int compare_pairs(const void *a, const void *b)
-{
-    int *x = (int*) a;
-    int *y = (int*) b;
-
-    if (x[0] < y[0])
-        return -1;
-    else if (x[0] > y[0])
-        return 1;
-    else
-        return x[1] < y[1] ? -1 : 1;
 }

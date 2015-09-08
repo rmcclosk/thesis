@@ -2,7 +2,7 @@
 
 # Create a random network of the specified type.
 
-library(igraph)
+suppressPackageStartupMessages(library(igraph))
 options(warn=-1)
 
 args <- commandArgs(trailingOnly=TRUE)

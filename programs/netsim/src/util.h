@@ -18,18 +18,44 @@
  */
 gsl_rng *set_seed(int seed);
 
-/** Get the sorting order of a list of integers.
+/** Compare two doubles.
+ *
+ * This is intended for use as a comparator in qsort and order.
+ * 
+ * \param[in] a,b doubles to compare
+ * \return an integer with the same sign as a - b, or zero if a == b
+ * \sa order()
+ * \sa http://man7.org/linux/man-pages/man3/qsort.3.html
+ */
+int compare_doubles (const void * a, const void * b);
+
+/** Compare two integers.
+ *
+ * This is intended for use as a comparator in qsort and order.
+ * 
+ * \param[in] a,b integers to compare
+ * \return an integer with the same sign as a - b, or zero if a == b
+ * \sa order()
+ * \sa http://man7.org/linux/man-pages/man3/qsort.3.html
+ */
+int compare_ints (const void * a, const void * b);
+
+/** Get the sorting order of an array.
  *
  * This function returns a permutation of x which would put x in sorted order.
- * It's like the order function in R, only zero-indexed.
+ * It's like the order function in R, only zero-indexed. The compar function is
+ * like one which is used for qsort.
  *
- * \param[in] x an array of integers to order
+ * \param[in] base an array of items to order
  * \param[out] order the result will be stored here
- * \param[in] n number of integers to order
+ * \param[in] nitems number of items to order
+ * \param[in] compar function which compares two elements of base
  *
  * \sa https://stat.ethz.ch/R-manual/R-devel/library/base/html/order.html
+ * \sa http://man7.org/linux/man-pages/man3/qsort.3.html
  */
-void order(const int *x, int *order, int n);
+void order(const void *base, int *order, size_t size, int nitems,
+        int (*compar) (const void *, const void *));
 
 /** Circular left shift a block of memory.
  *

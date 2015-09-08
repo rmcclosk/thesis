@@ -28,17 +28,19 @@ sackin.pdf: src/sackin_plot.R sackin.tsv
 sackin.tsv: src/sackin.R $(TREES)
 	src/sackin.R $(NET_TYPES) sackin.tsv
 
-kernel.tsv: $(foreach i, $(REPLICATES), $(foreach nettype, $(NET_TYPES),$(nettype)/0.9/$(i).nwk))
-	echo tree1\\ttree2\\tK > $@
-	for T1 in $^; do \
-		for T2 in $^; do \
-			K=`treekernel -d -b mean $$T1 $$T2`; \
+kernel.tsv: $(foreach i, $(REPLICATES), $(foreach nettype, $(NET_TYPES),$(nettype)/0.9/$(i).kernel.tsv))
+	cat $^ > $@
+
+%.kernel.tsv: %.nwk $(foreach i, $(REPLICATES), $(foreach nettype, $(NET_TYPES),$(nettype)/0.9/$(i).nwk))
+	for T in $(wordlist 2, $(words $^), $^); do \
+		if [[ $(word 1, $^) < $$T || $(word 1, $^) == $$T ]]; then \
+			K=`treekernel -d -b mean $(word 1, $^) $$T`; \
 			if [[ $$? -eq 0 ]]; then \
-				echo -e $$T1\\t$$T2\\t$$K >> $@; \
+				echo -e $(word 1, $^)\\t$$T\\t$$K >> $@; \
 			else \
-				echo -e $$T1\\t$$T2\\t0.0 >> $@; \
+				echo -e $(word 1, $^)\\t$$T\\t0.0 >> $@; \
 			fi \
-		done \
+		fi \
 	done
 
 %.nwk: %.gml

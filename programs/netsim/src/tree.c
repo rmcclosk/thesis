@@ -16,7 +16,13 @@
 void yyrestart(FILE *f);
 int _ladderize(igraph_t *tree, igraph_vector_t *work, int root, int *perm);
 double _height(const igraph_t *tree, igraph_vector_t *work, int root);
-int _write_tree_newick(igraph_t *tree, char *out, int root, igraph_vector_t *vec);
+int _write_tree_newick(const igraph_t *tree, char *out, int root, igraph_vector_t *vec);
+void _cut_at_time(igraph_t *tree, double t, int root, double troot, 
+        int extant_only, igraph_vector_t *work, igraph_vector_t *to_delete);
+int _collapse_singles(igraph_t *tree, int root, igraph_vector_t *vdel,
+        igraph_vector_t *eadd, igraph_vector_t *branch_length,
+        igraph_vector_t *work, double *bl);
+int *production(const igraph_t *tree, igraph_vector_t *vec);
 
 igraph_t *parse_newick(FILE *f)
 {
@@ -94,7 +100,7 @@ double height(const igraph_t *tree)
     return ht;
 }
 
-void write_tree_newick(igraph_t *tree, FILE *f)
+void write_tree_newick(const igraph_t *tree, FILE *f)
 {
     // TODO: should get a more accurate estimate of the space we need
     char *s = calloc(igraph_vcount(tree) * 100, sizeof(char));
@@ -119,11 +125,11 @@ void scale_branches(igraph_t *tree, scaling mode)
     switch (mode)
     {
         case MEAN:
-            scale = gsl_stats_mean(VECTOR(vec), 1, igraph_vcount(tree));
+            scale = gsl_stats_mean(VECTOR(vec), 1, igraph_ecount(tree));
             break;
         case MEDIAN:
             igraph_vector_sort(&vec);
-            scale = gsl_stats_median_from_sorted_data(VECTOR(vec), 1, igraph_vcount(tree));
+            scale = gsl_stats_median_from_sorted_data(VECTOR(vec), 1, igraph_ecount(tree));
             break;
         default:
             scale = 1.;
@@ -131,34 +137,106 @@ void scale_branches(igraph_t *tree, scaling mode)
     }
 
     for (i = 0; i < igraph_ecount(tree); ++i) {
-        SETEAN(tree, "length", i, EAN(tree, "length", i) * scale);
+        SETEAN(tree, "length", i, EAN(tree, "length", i) / scale);
     }
     igraph_vector_destroy(&vec);
 }
 
-int *production(const igraph_t *tree, igraph_vector_t *vec)
+void cut_at_time(igraph_t *tree, double t, int extant_only)
 {
-    int i, nnode = igraph_vcount(tree);
-    int *p = malloc(nnode * sizeof(int));
-    igraph_vector_t nbr;
-    igraph_vector_init(&nbr, 2);
+    int i;
+    igraph_vector_t work, to_delete;
+    igraph_vector_init(&work, 0);
+    igraph_vector_init(&to_delete, 0);
 
-    igraph_degree(tree, vec, igraph_vss_all(), IGRAPH_OUT, 0);
-    for (i = 0; i < nnode; ++i)
+    _cut_at_time(tree, t, root(tree), 0., extant_only, &work, &to_delete);
+    igraph_vector_sort(&to_delete);
+    igraph_delete_vertices(tree, igraph_vss_vector(&to_delete));
+    collapse_singles(tree);
+
+    igraph_vector_destroy(&work);
+    igraph_vector_destroy(&to_delete);
+}
+
+void collapse_singles(igraph_t *tree)
+{
+    int i, edge;
+    double bl = 0.;
+    igraph_vector_t vdel, eadd, work, branch_length;
+
+    igraph_vector_init(&vdel, 0);
+    igraph_vector_init(&eadd, 0);
+    igraph_vector_init(&work, 0);
+    igraph_vector_init(&branch_length, 0);
+
+    _collapse_singles(tree, root(tree), &vdel, &eadd, &branch_length, &work, &bl);
+    igraph_add_edges(tree, &eadd, 0);
+    for (i = 0; i < igraph_vector_size(&eadd)/2; ++i)
     {
-        if ((int) VECTOR(*vec)[i] == 0)
-        {
-            p[i] = 0;
-        }
-        else
-        {
-            igraph_neighbors(tree, &nbr, i, IGRAPH_OUT);
-            p[i] = ((int) VECTOR(*vec)[(int) VECTOR(nbr)[0]] == 0) +
-                   ((int) VECTOR(*vec)[(int) VECTOR(nbr)[1]] == 0) + 1;
+        igraph_get_eid(tree, &edge, VECTOR(eadd)[2*i], VECTOR(eadd)[2*i+1], 1, 1);
+        SETEAN(tree, "length", edge, VECTOR(branch_length)[i]);
+    }
+    igraph_delete_vertices(tree, igraph_vss_vector(&vdel));
+
+    igraph_vector_destroy(&branch_length);
+    igraph_vector_destroy(&vdel);
+    igraph_vector_destroy(&eadd);
+    igraph_vector_destroy(&work);
+}
+
+void subsample_tips(igraph_t *tree, int ntip, const gsl_rng *rng)
+{
+    int i, j, orig_ntip = (igraph_vcount(tree) + 1)/2;
+    igraph_vector_t tips, keep_tips, keep_all, drop, degree;
+    igraph_vector_ptr_t nbhd;
+    igraph_vector_t *elem;
+
+    if (orig_ntip <= ntip)
+        return;
+
+    igraph_vector_init(&tips, 0);
+    igraph_vector_init(&keep_tips, ntip);
+    igraph_vector_init(&keep_all, 0);
+    igraph_vector_init(&degree, 0);
+    igraph_vector_init(&drop, 0);
+    igraph_vector_ptr_init(&nbhd, 0);
+
+    igraph_degree(tree, &degree, igraph_vss_all(), IGRAPH_OUT, 0);
+
+    for (i = 0; i < igraph_vcount(tree); ++i)
+    {
+        if ((int) VECTOR(degree)[i] == 0) {
+            igraph_vector_push_back(&tips, i);
         }
     }
-    return p;
+    gsl_ran_choose(rng, VECTOR(keep_tips), ntip, VECTOR(tips), orig_ntip, sizeof(igraph_real_t));
+
+    igraph_neighborhood(tree, &nbhd, igraph_vss_vector(&keep_tips), INT_MAX, IGRAPH_IN, 0);
+
+    for (i = 0; i < igraph_vector_ptr_size(&nbhd); ++i) {
+        elem = (igraph_vector_t *) igraph_vector_ptr_e(&nbhd, i);
+        for (j = 0; j < igraph_vector_size(elem); ++j) {
+            igraph_vector_push_back(&keep_all, VECTOR(*elem)[j]);
+        }
+    }
+
+    igraph_vector_sort(&keep_all);
+    for (i = 0; i < igraph_vcount(tree); ++i) {
+        if (!igraph_vector_binsearch2(&keep_all, i))
+            igraph_vector_push_back(&drop, i);
+    }
+
+    igraph_delete_vertices(tree, igraph_vss_vector(&drop));
+    collapse_singles(tree);
+
+    igraph_vector_destroy(&tips);
+    igraph_vector_destroy(&keep_tips);
+    igraph_vector_destroy(&keep_all);
+    igraph_vector_destroy(&degree);
+    igraph_vector_destroy(&drop);
+    igraph_vector_ptr_destroy_all(&nbhd);
 }
+
 
 double kernel(const igraph_t *t1, const igraph_t *t2, double lambda, double sigma, int coal)
 {
@@ -181,7 +259,8 @@ double kernel(const igraph_t *t1, const igraph_t *t2, double lambda, double sigm
     igraph_vector_init(&v2, 2);
 
     production1 = production(t1, &vec); production2 = production(t2, &vec);
-    order(production1, order1, nnode1); order(production2, order2, nnode2);
+    order(production1, order1, sizeof(int), nnode1, compare_ints);
+    order(production2, order2, sizeof(int), nnode2, compare_ints);
 
     n1 = order1[0]; n2 = order2[0];
 
@@ -217,8 +296,7 @@ double kernel(const igraph_t *t1, const igraph_t *t2, double lambda, double sigm
                 coord = (n1 << 16) | n2;
 
                 // internal nodes
-                if (production1[n1] > 0)
-                {
+                if (production1[n1] > 0) {
                     JLI(Pvalue, pairs, coord);
                     if (Pvalue == PJERR) exit(EXIT_FAILURE); 
                     *Pvalue = coord;
@@ -255,8 +333,9 @@ double kernel(const igraph_t *t1, const igraph_t *t2, double lambda, double sigm
 
         tmp = 0;
         for (i = 0; i < 2; ++i)
-            tmp += pow(VECTOR(v1)[i] - VECTOR(v2)[i], 2);
-        val *= gsl_ran_gaussian_pdf(sqrt(tmp), sigma);
+            tmp += pow(EAN(t1, "length", VECTOR(v1)[i]) - 
+                       EAN(t2, "length", VECTOR(v2)[i]), 2);
+        val *= exp(-tmp/sigma);
 
         igraph_neighbors(t1, &v1, n1, IGRAPH_OUT);
         igraph_neighbors(t2, &v2, n2, IGRAPH_OUT);
@@ -304,6 +383,33 @@ double kernel(const igraph_t *t1, const igraph_t *t2, double lambda, double sigm
     JLFA(bytes, pairs);
     return K;
 }
+
+/* Private. */
+
+int *production(const igraph_t *tree, igraph_vector_t *vec)
+{
+    int i, nnode = igraph_vcount(tree);
+    int *p = malloc(nnode * sizeof(int));
+    igraph_vector_t nbr;
+    igraph_vector_init(&nbr, 2);
+
+    igraph_degree(tree, vec, igraph_vss_all(), IGRAPH_OUT, 0);
+    for (i = 0; i < nnode; ++i)
+    {
+        if ((int) VECTOR(*vec)[i] == 0)
+        {
+            p[i] = 0;
+        }
+        else
+        {
+            igraph_neighbors(tree, &nbr, i, IGRAPH_OUT);
+            p[i] = ((int) VECTOR(*vec)[(int) VECTOR(nbr)[0]] == 0) +
+                   ((int) VECTOR(*vec)[(int) VECTOR(nbr)[1]] == 0) + 1;
+        }
+    }
+    return p;
+}
+
 
 int _ladderize(igraph_t *tree, igraph_vector_t *work, int root, int *perm)
 {
@@ -367,7 +473,7 @@ double _height(const igraph_t *tree, igraph_vector_t *work, int root)
     return EAN(tree, "length", (int) VECTOR(*work)[0]) + height;
 }
 
-int _write_tree_newick(igraph_t *tree, char *out, int root, 
+int _write_tree_newick(const igraph_t *tree, char *out, int root,
         igraph_vector_t *work)
 {
     double length;
@@ -403,4 +509,98 @@ int _write_tree_newick(igraph_t *tree, char *out, int root,
     if (is_root)
         nchar += sprintf(&out[nchar], ";");
     return nchar;
+}
+
+void _cut_at_time(igraph_t *tree, double t, int root, double troot, 
+        int extant_only, igraph_vector_t *work, igraph_vector_t *to_delete)
+{
+    int i, lc, rc;
+    double tnode;
+
+    igraph_incident(tree, work, root, IGRAPH_IN);
+    if (igraph_vector_size(work) > 0)
+        tnode = EAN(tree, "length", VECTOR(*work)[0]);
+    else
+        tnode = 0.;
+
+    if (tnode + troot > t)
+    {
+        // adjust my branch length
+        SETEAN(tree, "length", VECTOR(*work)[0], t - troot);
+
+        // delete all descendents
+        igraph_subcomponent(tree, work, root, IGRAPH_OUT);
+        for (i = 0; i < igraph_vector_size(work); ++i) 
+        {
+            if ((int) VECTOR(*work)[i] != root)
+                igraph_vector_push_back(to_delete, VECTOR(*work)[i]);
+        }
+    }
+    else
+    {
+        igraph_neighbors(tree, work, root, IGRAPH_OUT);
+        if (igraph_vector_size(work) > 0)
+        {
+            lc = (int) VECTOR(*work)[0];
+            rc = (int) VECTOR(*work)[1];
+
+            _cut_at_time(tree, t, lc, troot + tnode, extant_only, work, to_delete);
+            _cut_at_time(tree, t, rc, troot + tnode, extant_only, work, to_delete);
+        }
+
+        else if (extant_only && troot + tnode < t)
+        {
+            igraph_vector_push_back(to_delete, (igraph_real_t) root);
+        }
+    }
+}
+
+int _collapse_singles(igraph_t *tree, int root, igraph_vector_t *vdel,
+        igraph_vector_t *eadd, igraph_vector_t *branch_length, 
+        igraph_vector_t *work, double *bl)
+{
+    int lc, rc, new_lc, new_rc;
+    double lbl, rbl;
+
+    igraph_incident(tree, work, root, IGRAPH_IN);
+    if (igraph_vector_size(work) > 0)
+        bl[0] = EAN(tree, "length", (int) VECTOR(*work)[0]);
+    else
+        bl[0] = 0;
+
+    igraph_neighbors(tree, work, root, IGRAPH_OUT);
+    if (igraph_vector_size(work) == 0)
+    {
+        return root;
+    }
+    else if (igraph_vector_size(work) == 1)
+    {
+        igraph_vector_push_back(vdel, root);
+        lc = (int) VECTOR(*work)[0];
+        new_lc = _collapse_singles(tree, lc, vdel, eadd, branch_length, work, &lbl);
+        bl[0] += lbl;
+        return new_lc;
+    }
+    else
+    {
+        lc = (int) VECTOR(*work)[0];
+        rc = (int) VECTOR(*work)[1];
+        new_lc = _collapse_singles(tree, lc, vdel, eadd, branch_length, work, &lbl);
+        new_rc = _collapse_singles(tree, rc, vdel, eadd, branch_length, work, &rbl);
+
+        if (new_lc != lc)
+        {
+            igraph_vector_push_back(eadd, root);
+            igraph_vector_push_back(eadd, new_lc);
+            igraph_vector_push_back(branch_length, lbl);
+        }
+        if (new_rc != rc)
+        {
+            igraph_vector_push_back(eadd, root);
+            igraph_vector_push_back(eadd, new_rc);
+            igraph_vector_push_back(branch_length, rbl);
+        }
+
+        return root;
+    }
 }
