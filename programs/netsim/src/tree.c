@@ -3,6 +3,7 @@
 #include <string.h>
 #include <assert.h>
 #include <gsl/gsl_randist.h>
+#include <gsl/gsl_statistics.h>
 #include <igraph/igraph.h>
 #include <Judy.h>
 
@@ -19,46 +20,34 @@ int _write_tree_newick(igraph_t *tree, char *out, int root, igraph_vector_t *vec
 
 igraph_t *parse_newick(FILE *f)
 {
-    igraph_t *tree = malloc(sizeof(igraph_t));
-    char buf[BUFSIZ];
-    char *cur;
-    int *size;
-    double *branch_length;
-    int i, error, nnode = 0;
-    igraph_vector_t *vec = malloc(sizeof(igraph_vector_t));
+    igraph_t *tree;
+    int i;
+    extern int yynode;
+    igraph_vector_t edge, branch_length, size;
 
-    // count the nodes in the tree
-    while (fgets(buf, BUFSIZ, f) != NULL) 
+    igraph_vector_init(&edge, 0);
+    igraph_vector_init(&size, 0);
+    igraph_vector_init(&branch_length, 0);
+
+    yynode = 0;
+    yyrestart(f);
+    yyparse(&edge, &size, &branch_length);
+
+    tree = malloc(sizeof(igraph_t));
+    igraph_empty(tree, igraph_vector_size(&size), 1);
+    igraph_add_edges(tree, &edge, 0);
+
+    for (i = 0; i < igraph_vector_size(&size); ++i)
     {
-        cur = buf;
-        while ((cur = strpbrk(cur, ",);")) != NULL)
-        {
-            ++nnode;
-            ++cur;
+        igraph_incident(tree, &edge, i, IGRAPH_IN);
+        if (igraph_vector_size(&edge) > 0) {
+            SETEAN(tree, "length", (int) VECTOR(edge)[0], VECTOR(branch_length)[i]);
         }
     }
 
-    error = igraph_empty(tree, nnode, 1);
-    igraph_vector_init(vec, 2*(nnode-1));
-    branch_length = calloc(nnode, sizeof(double));
-    size = calloc(nnode, sizeof(int));
-
-    fseek(f, 0, SEEK_SET);
-    yyrestart(f);
-    yyparse(vec, size, branch_length);
-
-    igraph_add_edges(tree, vec, 0);
-    for (i = 0; i < nnode-1; ++i)
-    {
-        error = igraph_incident(tree, vec, i, IGRAPH_IN);
-        SETEAN(tree, "length", (int) VECTOR(*vec)[0], branch_length[i]);
-        SETVAN(tree, "extant", i, (double) size[i] == 1);
-        SETVAN(tree, "size", i, (double) size[i]);
-    }
-
-    free(size);
-    free(branch_length);
-    igraph_vector_destroy(vec);
+    igraph_vector_destroy(&edge);
+    igraph_vector_destroy(&size);
+    igraph_vector_destroy(&branch_length);
     return tree;
 }
 
@@ -117,6 +106,34 @@ void write_tree_newick(igraph_t *tree, FILE *f)
 
     igraph_vector_destroy(&work);
     free(s);
+}
+
+void scale_branches(igraph_t *tree, scaling mode)
+{
+    int i;
+    double scale;
+    igraph_vector_t vec;
+    igraph_vector_init(&vec, igraph_vcount(tree));
+
+    EANV(tree, "length", &vec);
+    switch (mode)
+    {
+        case MEAN:
+            scale = gsl_stats_mean(VECTOR(vec), 1, igraph_vcount(tree));
+            break;
+        case MEDIAN:
+            igraph_vector_sort(&vec);
+            scale = gsl_stats_median_from_sorted_data(VECTOR(vec), 1, igraph_vcount(tree));
+            break;
+        default:
+            scale = 1.;
+            break;
+    }
+
+    for (i = 0; i < igraph_ecount(tree); ++i) {
+        SETEAN(tree, "length", i, EAN(tree, "length", i) * scale);
+    }
+    igraph_vector_destroy(&vec);
 }
 
 int *production(const igraph_t *tree, igraph_vector_t *vec)

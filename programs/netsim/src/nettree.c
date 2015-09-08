@@ -105,7 +105,7 @@ int net_ok(igraph_t *net)
 int main (int argc, char **argv)
 {
     struct nettree_options opts = get_options(argc, argv);
-    gsl_rng *rng = set_seed(opts.seed == -1 ? time(NULL) : opts.seed);
+    gsl_rng *rng = set_seed(opts.seed < 0 ? time(NULL) : opts.seed);
     igraph_t net, *tree;
 
     igraph_i_set_attribute_table(&igraph_cattribute_table);
@@ -114,7 +114,8 @@ int main (int argc, char **argv)
     if (net_ok(&net))
     {
         tree = simulate_phylogeny(&net, rng, opts.sim_time, opts.sim_nodes);
-        printf("tree has %d tips\n", (igraph_vcount(tree) + 1)/2);
+        fprintf(stderr, "Simulated a tree of height %.2f with %d tips\n", 
+                height(tree), (igraph_vcount(tree) + 1)/2);
         cut_at_time(tree, opts.tree_height, opts.extant_only);
         subsample_tips(tree, opts.ntip, rng);
         ladderize(tree);

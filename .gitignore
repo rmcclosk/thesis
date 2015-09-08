@@ -2,3 +2,12 @@
 .gd
 *.nwk
 *.gml
+*.zip
+*.tar.lz
+*.in
+*.gz
+*.tsv
+autom4te.cache
+config.log
+config.status
+configure

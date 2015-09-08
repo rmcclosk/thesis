@@ -117,7 +117,6 @@ igraph_t *simulate_phylogeny(igraph_t *net, gsl_rng *rng, double stop_time,
     long i;
     int inode, snode, e, v, head, tail, nnode_tree = 0;
     double t, trans_rate = 0., remove_rate = 0., time = 0.;
-    int tmp;
     igraph_t *tree = malloc(sizeof(igraph_t));
     igraph_vector_t discordant, incident, edges, branch_lengths, node_map;
     igraph_vector_int_t infected, removed;
@@ -162,6 +161,7 @@ igraph_t *simulate_phylogeny(igraph_t *net, gsl_rng *rng, double stop_time,
                 // choose the next edge
                 i = rand() % igraph_vector_size(&discordant);
                 igraph_edge(net, VECTOR(discordant)[i], &inode, &snode);
+                //printf("infect node %d->%d\n", inode, snode);
 
                 // mark the new node as infected
                 igraph_vector_int_binsearch(&infected, snode, &i);
@@ -189,6 +189,7 @@ igraph_t *simulate_phylogeny(igraph_t *net, gsl_rng *rng, double stop_time,
                     if (!igraph_vector_int_binsearch2(&removed, head) &&
                         !igraph_vector_int_binsearch2(&infected, head))
                     {
+                        //printf("add edge %d->%d\n", tail, head);
                         igraph_vector_binsearch(&discordant, VECTOR(incident)[e], &i);
                         igraph_vector_insert(&discordant, i, VECTOR(incident)[e]);
                         trans_rate += EAN(net, "transmit", (int) VECTOR(incident)[e]);
@@ -202,6 +203,7 @@ igraph_t *simulate_phylogeny(igraph_t *net, gsl_rng *rng, double stop_time,
                     igraph_edge(net, VECTOR(incident)[e], &tail, &head);
                     if (igraph_vector_binsearch(&discordant, VECTOR(incident)[e], &i))
                     {
+                        //printf("remove edge %d->%d\n", tail, head);
                         igraph_vector_remove(&discordant, i);
                         trans_rate -= EAN(net, "transmit", (int) VECTOR(incident)[e]);
                     }
@@ -218,6 +220,7 @@ igraph_t *simulate_phylogeny(igraph_t *net, gsl_rng *rng, double stop_time,
                 igraph_vector_int_binsearch(&removed, inode, &i);
                 igraph_vector_int_insert(&removed, i, inode);
                 remove_rate -= VAN(net, "remove", inode);
+                //printf("remove node %d\n", inode);
 
                 // outgoing discordant edges aren't discordant anymore
                 igraph_incident(net, &incident, inode, IGRAPH_OUT);
@@ -225,6 +228,8 @@ igraph_t *simulate_phylogeny(igraph_t *net, gsl_rng *rng, double stop_time,
                 {
                     if (igraph_vector_binsearch(&discordant, VECTOR(incident)[e], &i))
                     {
+                        igraph_edge(net, VECTOR(incident)[e], &tail, &head);
+                        //printf("remove edge %d->%d\n", tail, head);
                         igraph_vector_remove(&discordant, i);
                         trans_rate -= EAN(net, "transmit", (int) VECTOR(incident)[e]);
                     }

@@ -6,6 +6,13 @@
 #define TREE_H
 
 #include <stdio.h>
+#include <igraph/igraph.h>
+
+typedef enum {
+    MEAN,
+    MEDIAN,
+    NONE
+} scaling;
 
 /** Parse a Newick tree.
  *
@@ -53,6 +60,16 @@ double height(const igraph_t *tree);
  * \param[in,out] tree the tree to ladderize
  */
 void ladderize(igraph_t *tree);
+
+/** Scale the branches of a tree.
+ *
+ * Scale down the branches in a tree according to the specified scaling
+ * mode.
+ *
+ * \param[in,out] tree the tree to scale
+ * \param[in] mode how to scale the branches
+ */
+void scale_branches(igraph_t *tree, scaling mode);
 
 /** Calculate the tree kernel.
  *

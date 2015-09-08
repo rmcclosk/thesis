@@ -5,11 +5,10 @@
 #include "util.h"
 
 int yylex(void);
-void yyerror(igraph_vector_t *tree, int *size, double *branch_length, const char *str);
+void yyerror(igraph_vector_t *tree, igraph_vector_t *size, igraph_vector_t *branch_length, const char *str);
 int yywrap(void);
 
-int i, error, node = 0, cur = 0;
-double tmp;
+int yynode = 0;
 
 %}
 
@@ -22,29 +21,34 @@ double tmp;
 %token <string> STRING
 %token <number> NUMBER
 
-%parse-param {igraph_vector_t *edge} {int *size} {double *branch_length}
+%parse-param {igraph_vector_t *edge} {igraph_vector_t *size} {igraph_vector_t *branch_length}
 
 %start tree
 
 %%
 
 tree:
-    subtree SEMICOLON;
+    subtree SEMICOLON
+    {
+        YYACCEPT;
+    }
+    ;
 
 subtree:
     node
     {
-        size[node++] = 1;
+        igraph_vector_push_back(size, 1.0);
+        ++yynode;
     }
     |
     LPAREN subtree COMMA subtree RPAREN node
     {
-        VECTOR(*edge)[cur++] = node;
-        VECTOR(*edge)[cur++] = node - 1;
-        VECTOR(*edge)[cur++] = node;
-        VECTOR(*edge)[cur++] = node - 1 - size[node-1];
-        size[node] = size[node-1] + size[node-1-size[node-1]] + 1;
-        ++node;
+        igraph_vector_push_back(edge, yynode);
+        igraph_vector_push_back(edge, yynode-1);
+        igraph_vector_push_back(edge, yynode);
+        igraph_vector_push_back(edge, yynode-1-VECTOR(*size)[yynode-1]);
+        igraph_vector_push_back(size, VECTOR(*size)[yynode-1] + VECTOR(*size)[yynode-1-(int) VECTOR(*size)[yynode-1]] + 1);
+        ++yynode;
     }
     ;
 
@@ -59,18 +63,18 @@ label:
 
 length:
     {
-        branch_length[node] = 0.0;
+        igraph_vector_push_back(branch_length, 0.0);
     }
     |
     COLON NUMBER
     {
-        branch_length[node] = yylval.number;
+        igraph_vector_push_back(branch_length, yylval.number);
     }
     ;
 
 %%
 
-void yyerror(igraph_vector_t *edge, int *size, double *branch_length, const char *str)
+void yyerror(igraph_vector_t *tree, igraph_vector_t *size, igraph_vector_t *branch_length, const char *str)
 {
     fprintf(stderr, "invalid Newick format or non-binary tree: %s\n", str);
     exit(EXIT_FAILURE);
