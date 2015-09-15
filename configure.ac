@@ -28,6 +28,7 @@ AC_REQUIRE_R_PKG([igraph])
 AC_REQUIRE_R_PKG([ape])
 AC_REQUIRE_R_PKG([apTreeshape])
 AC_REQUIRE_R_PKG([ggplot2])
+AC_REQUIRE_R_PKG([kernlab])
 
 # Output files
 #AC_CONFIG_FILES([Makefile])

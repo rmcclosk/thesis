@@ -1,5 +1,5 @@
 CRAN_URL = "http://cran.stat.sfu.ca/"
-fetch = wget -N $(1) -nd -P $(2)
+fetch = curl -z $(2) -o $(2) $(1)
 
 .SECONDEXPANSION:
 
@@ -9,61 +9,74 @@ DOXYGEN_LATEST := $(basename $(shell wget ftp://ftp.stack.nl/pub/users/dimitri/ 
 AUTOCONF_ARCHIVE_LATEST := $(basename $(shell wget http://ftpmirror.gnu.org/autoconf-archive/ -O - \
 							 | grep -oP "autoconf.*?.tar" | sort -V | tail -n 1))
 
-all: bin/pandoc/README.pdf \
-	 C/igraph/igraph-docs.pdf \
-	 C/gsl/gsl-ref.pdf \
-	 R/igraph/igraph.pdf \
-	 R/apTreeshape/apTreeshape.pdf \
-	 bin/doxygen/$(DOXYGEN_LATEST).pdf \
-	 bin/autoconf/autoconf.pdf \
-	 bin/autoconf/autoconf-archive.pdf \
-	 bin/make/make.pdf \
-	 spec/gml/gml-technical-report.pdf
+.PHONY: dirs
 
-bin/doxygen/$(DOXYGEN_LATEST).pdf: arx/doxygen/$(DOXYGEN_LATEST).pdf.zip
-	unzip $^ -d $(dir $@)
+all: dirs \
+	 C/igraph-docs.pdf \
+	 C/gsl-ref.pdf \
+	 R/igraph.pdf \
+	 R/apTreeshape.pdf \
+	 R/kernlab.pdf \
+	 R/R-exts.pdf \
+	 bin/pandoc.pdf \
+	 bin/$(DOXYGEN_LATEST).pdf \
+	 bin/autoconf.pdf \
+	 bin/autoconf-archive.pdf \
+	 bin/make.pdf \
+	 spec/gml-technical-report.pdf \
+	 spec/MMformat.pdf
 
-arx/doxygen/$(DOXYGEN_LATEST).pdf.zip: FORCE
-	$(call fetch, ftp://ftp.stack.nl/pub/users/dimitri/$(notdir $@), $(dir $@))
+dirs:
+	mkdir -p bin C R spec arx
 
-bin/pandoc/README.pdf: FORCE
-	$(call fetch, http://pandoc.org/README.pdf, $(dir $@))
+bin/$(DOXYGEN_LATEST).pdf: arx/$(DOXYGEN_LATEST).pdf.zip
+	unzip -f $^ -d $(dir $@)
 
-bin/autoconf/autoconf.pdf: FORCE
-	$(call fetch, http://www.gnu.org/software/autoconf/manual/autoconf.pdf, $(dir $@))
+arx/$(DOXYGEN_LATEST).pdf.zip: FORCE
+	$(call fetch, ftp://ftp.stack.nl/pub/users/dimitri/$(notdir $@), $@)
 
-bin/autoconf/autoconf-archive.pdf: arx/autoconf/$(AUTOCONF_ARCHIVE_LATEST).tar.lz
+bin/pandoc.pdf: FORCE
+	$(call fetch, http://pandoc.org/README.pdf, $@)
+
+bin/autoconf.pdf: FORCE
+	$(call fetch, http://www.gnu.org/software/autoconf/manual/autoconf.pdf, $@)
+
+bin/autoconf-archive.pdf: arx/$(AUTOCONF_ARCHIVE_LATEST).tar.lz
 	tar xf $^ -C $(dir $^)
 	cd $(basename $(basename $^)) && ./configure
 	cd $(basename $(basename $^)) && make pdf
 	mv $(basename $(basename $^))/doc/$(notdir $@) $@
 	rm -rf $(basename $(basename $^))
 
-bin/make/make.pdf: FORCE
-	$(call fetch, https://www.gnu.org/software/make/manual/make.pdf, $(dir $@))
+bin/make.pdf: FORCE
+	$(call fetch, https://www.gnu.org/software/make/manual/make.pdf, $@)
 
-arx/autoconf/$(AUTOCONF_ARCHIVE_LATEST).tar.lz: FORCE
-	$(call fetch, http://ftpmirror.gnu.org/autoconf-archive/$(notdir $@), $(dir $@))
+arx/$(AUTOCONF_ARCHIVE_LATEST).tar.lz: FORCE
+	$(call fetch, http://gnu.mirror.iweb.com/autoconf-archive/$(notdir $@), $@)
 
-C/igraph/igraph-docs.pdf: FORCE
-	$(call fetch, http://igraph.org/c/doc/igraph-docs.pdf, $(dir $@))
+C/igraph-docs.pdf: FORCE
+	$(call fetch, http://igraph.org/c/doc/igraph-docs.pdf, $@)
 
-C/gsl/gsl-ref.pdf: arx/gsl/gsl-ref.ps.gz
+C/gsl-ref.pdf: arx/gsl-ref.ps.gz
 	gunzip -k $^
-	mkdir -p $(dir $@)
-	ps2pdf arx/gsl/gsl-ref.ps $@
-	rm arx/gsl/gsl-ref.ps
+	ps2pdf arx/gsl-ref.ps $@
+	rm arx/gsl-ref.ps
 
-arx/gsl/gsl-ref.ps.gz: FORCE
-	$(call fetch, http://www.gnu.org/software/gsl/manual/gsl-ref.ps.gz, $(dir $@))
+arx/gsl-ref.ps.gz: FORCE
+	$(call fetch, http://www.gnu.org/software/gsl/manual/gsl-ref.ps.gz, $@)
 
-R/igraph/igraph.pdf: FORCE
-	$(call fetch, http://igraph.org/r/doc/igraph.pdf, $(dir $@))
+R/R-%.pdf: FORCE
+	$(call fetch, $(CRAN_URL)/doc/manuals/r-release/R-$*.pdf, $@)
 
-R/apTreeshape/apTreeshape.pdf: FORCE
-	$(call fetch, $(CRAN_URL)/web/packages/apTreeshape/apTreeshape.pdf, $(dir $@))
-	
-spec/gml/gml-technical-report.pdf: FORCE
-	$(call fetch, http://www.fim.uni-passau.de/fileadmin/files/lehrstuhl/brandenburg/projekte/gml/gml-technical-report.pdf, $(dir $@))
+R/%.pdf: FORCE
+	$(call fetch, $(CRAN_URL)/web/packages/$*/$*.pdf, $@)
+
+spec/gml-technical-report.pdf: FORCE
+	$(call fetch, http://www.fim.uni-passau.de/fileadmin/files/lehrstuhl/brandenburg/projekte/gml/gml-technical-report.pdf, $@)
+
+spec/MMformat.pdf: FORCE
+	if test `curl -I -z $@ http://math.nist.gov/MatrixMarket/reports/MMformat.ps -w %{http_code} -o /dev/null` -eq 200; then \
+		curl http://math.nist.gov/MatrixMarket/reports/MMformat.ps | ps2pdf - $@; \
+	fi
 
 FORCE:
