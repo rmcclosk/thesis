@@ -2,10 +2,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <limits.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_statistics.h>
 #include <igraph/igraph.h>
-#include <Judy.h>
 
 #include "newick_parser.h"
 #include "tree.h"
@@ -14,6 +14,8 @@
 #define NDEBUG
 
 void yyrestart(FILE *f);
+
+/* recursive functions */
 int _ladderize(igraph_t *tree, igraph_vector_t *work, int root, int *perm);
 double _height(const igraph_t *tree, igraph_vector_t *work, int root);
 int _write_tree_newick(const igraph_t *tree, char *out, int root, igraph_vector_t *vec);
@@ -22,7 +24,6 @@ void _cut_at_time(igraph_t *tree, double t, int root, double troot,
 int _collapse_singles(igraph_t *tree, int root, igraph_vector_t *vdel,
         igraph_vector_t *eadd, igraph_vector_t *branch_length,
         igraph_vector_t *work, double *bl);
-int *production(const igraph_t *tree, igraph_vector_t *vec);
 
 igraph_t *parse_newick(FILE *f)
 {
@@ -236,180 +237,6 @@ void subsample_tips(igraph_t *tree, int ntip, const gsl_rng *rng)
     igraph_vector_destroy(&drop);
     igraph_vector_ptr_destroy_all(&nbhd);
 }
-
-
-double kernel(const igraph_t *t1, const igraph_t *t2, double lambda, double sigma, int coal)
-{
-    int i1 = 1, i2 = 1, start = 0, i, c1, c2, n1, n2;
-    double val, tmp, K = 0;
-    Pvoid_t delta = (Pvoid_t) NULL, pairs = (Pvoid_t) NULL;
-    PWord_t Pvalue, cdelta;
-    Word_t bytes = 0;
-    int coord, nnode1 = igraph_vcount(t1), nnode2 = igraph_vcount(t2);
-    int *production1, *production2;
-    int *order1 = malloc(nnode1 * sizeof(int)), *order2 = malloc(nnode2 * sizeof(int));
-    igraph_vector_t vec, v1, v2;
-
-    // preconditions
-    assert(lambda > 0.0 && lambda <= 1.0);
-    assert(sigma > 0.0);
-
-    igraph_vector_init(&vec, 2);
-    igraph_vector_init(&v1, 2);
-    igraph_vector_init(&v2, 2);
-
-    production1 = production(t1, &vec); production2 = production(t2, &vec);
-    order(production1, order1, sizeof(int), nnode1, compare_ints);
-    order(production2, order2, sizeof(int), nnode2, compare_ints);
-
-    n1 = order1[0]; n2 = order2[0];
-
-    // find pairs of nodes with equal productions
-    while (i1 < nnode1 || i2 < nnode2) 
-    {
-        while (production1[n1] != production2[n2])
-        {
-            if (production1[n1] > production2[n2])
-            {
-                if (i2 < nnode2)
-                    n2 = order2[i2++];
-                else
-                    break;
-            }
-            else if (production1[n1] < production2[n2])
-            {
-                if (i1 < nnode1)
-                    n1 = order1[i1++];
-                else
-                    break;
-            }
-        } 
-        start = i2 - 1;
-
-        if (production1[n1] != production2[n2])
-            break;
-
-        while (production1[n1] == production2[n2])
-        {
-            while (production1[n1] == production2[n2])
-            {
-                coord = (n1 << 16) | n2;
-
-                // internal nodes
-                if (production1[n1] > 0) {
-                    JLI(Pvalue, pairs, coord);
-                    if (Pvalue == PJERR) exit(EXIT_FAILURE); 
-                    *Pvalue = coord;
-                }
-
-                if (i2 < nnode2)
-                    n2 = order2[i2++];
-                else
-                    break;
-            }
-            if (i1 < nnode1)
-            {
-                n1 = order1[i1++];
-                i2 = start;
-                n2 = order2[i2++];
-            }
-            else
-            {
-                break;
-            }
-        }
-    }
-    
-    JLF(Pvalue, pairs, bytes);
-    while (Pvalue != NULL)
-    {
-        val = lambda;
-        n1 = *Pvalue >> 16;
-        n2 = *Pvalue & 65535;
-
-        // branch lengths
-        igraph_incident(t1, &v1, n1, IGRAPH_OUT);
-        igraph_incident(t2, &v2, n2, IGRAPH_OUT);
-
-        tmp = 0;
-        for (i = 0; i < 2; ++i)
-            tmp += pow(EAN(t1, "length", VECTOR(v1)[i]) - 
-                       EAN(t2, "length", VECTOR(v2)[i]), 2);
-        val *= exp(-tmp/sigma);
-
-        igraph_neighbors(t1, &v1, n1, IGRAPH_OUT);
-        igraph_neighbors(t2, &v2, n2, IGRAPH_OUT);
-
-        for (i = 0; i < 2; ++i)  // assume tree is binary
-        {
-
-            c1 = (int) VECTOR(v1)[i];
-            c2 = (int) VECTOR(v2)[i];
-
-            if (production1[c1] == production2[c2])
-            {
-                // children are leaves
-                if (production1[c1] == 0)
-                {
-                    val *= (1 + lambda);
-                }
-
-                // children are not leaves
-                else
-                {
-                    JLG(cdelta, delta, (c1 << 16) | c2);
-                    /* don't visit children before parents */
-                    assert(cdelta != NULL);
-                    memcpy(&tmp, cdelta, sizeof(double));
-                    val *= (1 + tmp);
-                }
-            }
-            fflush(stdout);
-        }
-
-        JLI(Pvalue, delta, *Pvalue);
-        if (Pvalue == PJERR) exit(EXIT_FAILURE); 
-        memcpy(Pvalue, &val, sizeof(double));
-
-        K += val;
-        JLN(Pvalue, pairs, bytes);
-    }
-
-    free(production1);
-    free(production2);
-    free(order1);
-    free(order2);
-    JLFA(bytes, delta);
-    JLFA(bytes, pairs);
-    return K;
-}
-
-/* Private. */
-
-int *production(const igraph_t *tree, igraph_vector_t *vec)
-{
-    int i, nnode = igraph_vcount(tree);
-    int *p = malloc(nnode * sizeof(int));
-    igraph_vector_t nbr;
-    igraph_vector_init(&nbr, 2);
-
-    igraph_degree(tree, vec, igraph_vss_all(), IGRAPH_OUT, 0);
-    for (i = 0; i < nnode; ++i)
-    {
-        if ((int) VECTOR(*vec)[i] == 0)
-        {
-            p[i] = 0;
-        }
-        else
-        {
-            igraph_neighbors(tree, &nbr, i, IGRAPH_OUT);
-            p[i] = ((int) VECTOR(*vec)[(int) VECTOR(nbr)[0]] == 0) +
-                   ((int) VECTOR(*vec)[(int) VECTOR(nbr)[1]] == 0) + 1;
-        }
-    }
-    return p;
-}
-
 
 int _ladderize(igraph_t *tree, igraph_vector_t *work, int root, int *perm)
 {

@@ -1,0 +1,10 @@
+Package: netabc
+Type: Package
+Title: Thesis Functions
+Version: 1.0
+Date: 2015-09-14
+Author: Rosemary McCloskey
+Maintainer: Rosemary McCloskey <rmccloskey@cfenet.ubc.ca>
+Description: Functions for my thesis.
+License: BSD-3
+Depends: Matrix, kernlab, ggplot2

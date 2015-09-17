@@ -5,6 +5,36 @@
 * Fast algorithm for computing the tree kernel by ordering nodes by production
 rule (Table 1).
 
+**[@poon2013mapping]**
+
+* Introduces the tree kernel.
+
+# ABC
+
+**[@sisson2007sequential]**
+
+* Introduces the sequential Monte Carlo approach to ABC.
+* I don't understand the backwards kernel thing, but the correction replaces it
+with a sum over the forward kernel.
+* If the forward and backward kernels are equal, and the prior is uniform, then
+all the weights are equal and the algorithm becomes quite trivial (end of
+Methods).
+
+**[@marin2012approximate]**
+
+* Overview of developed ABC algorithms.
+* Three main types: rejection, MCMC, and SMC.
+* There has been no observed advantage to simulating multiple data points from
+the same parameter vector.
+* Reference to Ratmann et al. 2009, who describe a method to use ABC for model
+selection.
+* Evidence from multiple groups that SMC seems to outperform MCMC.
+* Different regression-based approaches to estimating true parameters from the
+output.
+* Gibbs random fields? Something to look into.
+* It would be easier to directly simulate the summary statistics, rather than 
+simulate the data and then calculate them.
+
 # Kernel-ABC
 
 **[@poon2015phylodynamic]**
@@ -64,4 +94,22 @@ parameters.
 no" answer to whether a model is a good fit. It's more like a tool to assist in
 model selection by eye.
 
-# References
+# HIV Epidemiology
+
+**[@beyrer2012global]**
+
+* General information about prevalence and practices among MSM worldwide.
+* Different infection rates for insertive vs. receptive intercourse - edge
+attributes?
+* Fast spreading of HIV among MSM is mostly explained by high per-act infection
+rates, rather than network structure. Indicates broad applicability of method?
+
+**[@keener2014connectivity]**
+
+* Describes a recently developed transmission network score assigned to each
+person based on their viral DNA (presumably from a phylogeny-derived network).
+
+**[@centre2011mtrack]**
+
+* Surveillance data about MSM in Canada.
+* Tables 10, 11, 14, 18 give numbers of contacts.

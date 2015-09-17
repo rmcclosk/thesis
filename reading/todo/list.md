@@ -1,13 +1,3 @@
-## beyrer2012global
-
-Kalysha sent me this. It has some statistics about MSM clustering and numbers
-of partners.
-
-## keener2014connectivity
-
-Something we'd like to disprove: the idea that phylogenetic networks 
-are informative about which nodes should be "targeted" for interventions.
-
 ## little2014using
 
 Same as above.
@@ -15,3 +5,19 @@ Same as above.
 ## wang2014approximate
 
 ABC with exponential random graph models. Maybe we could adapt this.
+
+## fearnhead2012constructing
+
+Automatic computation of summary statistics for ABC.
+
+## beaumont2009adaptive
+
+Automatic tolerance schedule for ABC-SMC.
+
+## robert2011lack
+
+Problems with model selection within ABC, and steps to remedy (?).
+
+## beaumont2010approximate
+
+Review of ABC from pop-gen perspective.

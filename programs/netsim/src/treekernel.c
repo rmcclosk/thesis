@@ -3,6 +3,7 @@
 #include <getopt.h>
 
 #include "tree.h"
+#include "treestats.h"
 
 struct treekernel_options {
     double decay_factor;

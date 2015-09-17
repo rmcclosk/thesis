@@ -273,16 +273,6 @@ START_TEST(test_cut_at_time_extant)
 }
 END_TEST
 
-START_TEST(test_kernel_no_coal)
-{
-    igraph_t *t1 = tree_from_newick("((1:0.5,2:0.25)5:0.5,(3:0.25,4:0.25)6:0.5)7;");
-    igraph_t *t2 = tree_from_newick("(((1:0.25,2:0.25)5:0.5,3:0.25)6:0.5,4:0.25)7;");
-    ck_assert(kernel(t1, t2, 0.5, 1, 0) == 1.125 * (1 + exp(-0.0625)));
-    igraph_destroy(t1);
-    igraph_destroy(t2);
-}
-END_TEST
-
 START_TEST(test_subsample_tips)
 {
     igraph_t *tree = tree_from_newick("((1:0.5,2:0.25)5:0.5,(3:0.25,4:0.25)6:0.5)7;");
@@ -298,7 +288,7 @@ END_TEST
 Suite *tree_suite(void)
 {
     Suite *s;
-    TCase *tc_io, *tc_tree, *tc_kernel;
+    TCase *tc_io, *tc_tree;
 
     s = suite_create("tree");
 
@@ -319,10 +309,6 @@ Suite *tree_suite(void)
     tcase_add_test(tc_tree, test_cut_at_time_extant);
     tcase_add_test(tc_tree, test_subsample_tips);
     suite_add_tcase(s, tc_tree);
-
-    tc_kernel = tcase_create("Kernel");
-    tcase_add_test(tc_kernel, test_kernel_no_coal);
-    suite_add_tcase(s, tc_kernel);
 
     return s;
 }
