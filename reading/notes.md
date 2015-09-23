@@ -9,6 +9,18 @@ rule (Table 1).
 
 * Introduces the tree kernel.
 
+# Other Kernels
+
+**[@lodhi2002text]**
+
+* Kernel methods provide a way to avoid explicit feature extraction on complex
+data, by operating on dot-products of data points in a high-dimensional feature
+space.
+* This approach won't work on sequences of real numbers, since it considers the
+feature space to be all possible k-tuples, which is only countable when the
+alphabet itself is countable. I think I'm looking for something more similar to
+n-grams.
+
 # ABC
 
 **[@sisson2007sequential]**
@@ -34,6 +46,18 @@ output.
 * Gibbs random fields? Something to look into.
 * It would be easier to directly simulate the summary statistics, rather than 
 simulate the data and then calculate them.
+
+**[@wang2014approximate]**
+
+* An exponential random graph (ERG) model assigns a probability to each network
+as the exponential of a weighted sum of several network statistics.
+* Assumes the set of possible edge weights is finite, so that the number of
+possible networks is also finite.
+* There seems to be no methods to exactly sample from ERG probability
+distributions?
+* There is too much math in here.
+* Propose a M-H move on graphs, which either adds an edge, deletes an edge, or
+completes a triangle.
 
 # Kernel-ABC
 
@@ -77,6 +101,15 @@ contact networks.
 * Reduced sampling density has a strong effect on the ability to distinguish 
 tree shapes from different epidemic types.
 
+**[@o2010contact]**
+
+* Consider biases in epimediological parameter estimates caused by contact
+heterogeneity.
+* Can use this as the citation for how epidemics were simulated over networks.
+* Network heterogeneity tends to result in shorter transmission times near the
+root compared to near the tips.
+* Transmission bottlenecks increase the likelihood that the transmission tree
+is concordant with the virus phylogeny.
 
 # Other Statistics
 

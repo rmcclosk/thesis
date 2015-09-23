@@ -2,10 +2,6 @@
 
 Same as above.
 
-## wang2014approximate
-
-ABC with exponential random graph models. Maybe we could adapt this.
-
 ## fearnhead2012constructing
 
 Automatic computation of summary statistics for ABC.
@@ -21,3 +17,19 @@ Problems with model selection within ABC, and steps to remedy (?).
 ## beaumont2010approximate
 
 Review of ABC from pop-gen perspective.
+
+## volz2009phylodynamics
+
+Exact phylodynamic inference of SI/SIR model parameters.
+
+## hughes2009molecular
+
+Phylogenetic clustering in UK.
+
+## lewis2008episodic
+
+Phylogenetic clustering in UK.
+
+## volz2013viral
+
+Review paper of viral phylodynamics.

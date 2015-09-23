@@ -38,6 +38,7 @@ ksvm.cv <- function (kmat, y, n.cv=1000, stats=c("accuracy"), show.progress=TRUE
             setTxtProgressBar(pb, getTxtProgressBar(pb)+1)
         sapply(stat.functions[stats], do.call, list(pred, y[holdout]))
     }, simplify=FALSE))
+    colnames(result) <- stats
 
     if (show.progress)
         close(pb)

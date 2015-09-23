@@ -81,7 +81,9 @@ struct nettree_options get_options(int argc, char **argv)
     {
         opts.net_file = fopen(argv[optind++], "r");
         if (optind < argc)
+        {
             opts.tree_file = fopen(argv[optind++], "w");
+        }
     }
 
     return opts;

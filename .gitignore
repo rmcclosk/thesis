@@ -11,3 +11,14 @@
 *.log
 *.status
 configure
+*.aux
+*.auxlock
+*.bcf
+*.blg
+*.out
+*.nav
+*.run.xml
+*.snm
+*.bak
+*.toc
+*.bbl

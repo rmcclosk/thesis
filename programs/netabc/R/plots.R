@@ -11,12 +11,19 @@ kpca.plot <- function (kmat, color=NULL, shape=NULL)
     ggplot(plot.data, plot.aes) + geom_point() + theme_bw()
 }
 
-summary.plot <- function (data, x, y, group=NULL, fun="mean")
+summary.plot <- function (data, x, y, group=NULL, fun="mean", x.factor=TRUE,
+                          y.factor=FALSE, group.factor=TRUE)
 {
-    plot.data <- aggregate(y~x+group, data, fun)
-    if (!is.null(group) & !is.factor(plot.data[,group]))
+    agg.formula <- as.formula(paste0(y, "~", x, "+", group))
+    plot.data <- aggregate(agg.formula, data, fun)
+
+    if (y.factor)
+        plot.data[,y] <- as.factor(plot.data[,y])
+    if (x.factor)
+        plot.data[,x] <- as.factor(plot.data[,x])
+    if (!is.null(group) & group.factor)
         plot.data[,group] <- as.factor(plot.data[,group])
 
-    ggplot(plot.data, aes_string(x=x, y=y, color=group)) + 
+    ggplot(plot.data, aes_string(x=x, y=y, color=group, group=group)) + 
         geom_point() + geom_line() + theme_bw()
 }
