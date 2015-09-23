@@ -10,6 +10,7 @@
 
 %%
 [\n\t\r ] ;
+#[^\n]*\n   ;
 \(  return LPAREN;
 \)  return RPAREN;
 :   return COLON;

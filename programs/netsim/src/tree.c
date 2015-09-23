@@ -24,6 +24,8 @@ void _cut_at_time(igraph_t *tree, double t, int root, double troot,
 int _collapse_singles(igraph_t *tree, int root, igraph_vector_t *vdel,
         igraph_vector_t *eadd, igraph_vector_t *branch_length,
         igraph_vector_t *work, double *bl);
+void _depths(const igraph_t *tree, double *depths, igraph_vector_t *work, 
+        int root, double parent_depth);
 
 igraph_t *parse_newick(FILE *f)
 {
@@ -238,6 +240,35 @@ void subsample_tips(igraph_t *tree, int ntip, const gsl_rng *rng)
     igraph_vector_ptr_destroy_all(&nbhd);
 }
 
+void depths(const igraph_t *tree, double *depths)
+{
+    igraph_vector_t work;
+    igraph_vector_init(&work, 1);
+    _depths(tree, depths, &work, root(tree), 0.0);
+    igraph_vector_destroy(&work);
+}
+
+void _depths(const igraph_t *tree, double *depths, igraph_vector_t *work, 
+        int root, double parent_depth)
+
+{
+    int lc, rc;
+
+    igraph_incident(tree, work, root, IGRAPH_IN);
+    if (igraph_vector_size(work) > 0)
+        depths[root] = parent_depth + EAN(tree, "length", (int) VECTOR(*work)[0]);
+    else
+        depths[root] = parent_depth;
+
+    igraph_neighbors(tree, work, root, IGRAPH_OUT);
+    if (igraph_vector_size(work) > 0)
+    {
+        lc = (int) VECTOR(*work)[0]; rc = (int) VECTOR(*work)[1];
+        _depths(tree, depths, work, lc, depths[root]);
+        _depths(tree, depths, work, rc, depths[root]);
+    }
+}
+
 int _ladderize(igraph_t *tree, igraph_vector_t *work, int root, int *perm)
 {
     igraph_es_t es;
@@ -320,7 +351,12 @@ int _write_tree_newick(const igraph_t *tree, char *out, int root,
 
     igraph_degree(tree, work, igraph_vss_1(root), IGRAPH_OUT, 0);
     if ((int) VECTOR(*work)[0] == 0)
-        return sprintf(out, "%d:%f", root, length);
+    {
+        if (igraph_cattribute_has_attr(tree, IGRAPH_ATTRIBUTE_VERTEX, "id"))
+            return sprintf(out, "%d:%f", (int) VAN(tree, "id", root), length);
+        else
+            return sprintf(out, "%d:%f", root, length);
+    }
 
     igraph_neighbors(tree, work, root, IGRAPH_OUT);
 

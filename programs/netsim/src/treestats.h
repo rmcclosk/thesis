@@ -8,16 +8,17 @@
 /** Calculate the tree kernel.
  *
  * Uses the fast algorithm from \cite moschitti2006making.
- * See \cite poon2015phylodynamic for the meanings of the parameters lambda and
- * sigma. The dot product of coalescent times is currently not implemented, so
- * the coal parameter is ignored.
+ * See \cite poon2015phylodynamic for the meanings of the parameters decay_factor and
+ * rbf_variance.
  *
  * \param[in] t1,t2 trees to compare
- * \param[in] lambda decay factor in [0, 1] penalizing large matches
- * \param[in] sigma variance of Gaussian radial basis function of branch lengths
- * \param[in] coal if non-zero, multiply the kernel by a dot product of
- * coalescence times
+ * \param[in] decay_factor decay factor in [0, 1] penalizing large matches
+ * \param[in] rbf_variance variance of Gaussian radial basis function of branch lengths
+ * \param[in] sst_control between 0 and 1, where 0 is a pure subtree kernel and
+ * 1 is a pure subset tree kernel (see \cite moschitti2006making)
+ * \param[in] coal multiply the kernel by an L-p norm of coalescence times
  */
-double kernel(const igraph_t *t1, const igraph_t *t2, double lambda, double sigma, int coal);
+double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor,
+        double rbf_variance, double sst_control, double coal_power);
 
 #endif

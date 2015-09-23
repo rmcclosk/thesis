@@ -151,6 +151,10 @@ igraph_t *simulate_phylogeny(igraph_t *net, gsl_rng *rng, double stop_time,
         igraph_edge(tree, e, &head, &tail);
         SETEAN(tree, "length", e, VECTOR(branch_lengths)[tail]);
     }
+    for (v = 0; v < igraph_vector_int_size(&infected); ++v)
+    {
+        SETVAN(tree, "id", VECTOR(node_map)[v], VECTOR(infected)[v]);
+    }
 
     // clean up
     igraph_vector_int_destroy(&infected);

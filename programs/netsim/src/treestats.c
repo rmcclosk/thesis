@@ -17,8 +17,12 @@ int *get_node_pairs(const igraph_t *t1, const igraph_t *t2,
         int *production1, int *production2, int npairs);
 int *children(const igraph_t *tree);
 double *branch_lengths(const igraph_t *tree);
+double Lp_norm(const double *x1, const double *x2, const double *y1, 
+        const double *y2, int n1, int n2, double p);
+double coal_times_kernel(const igraph_t *t1, const igraph_t *t2, double p);
 
-double kernel(const igraph_t *t1, const igraph_t *t2, double lambda, double sigma, int coal)
+double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor, 
+        double rbf_variance, double sst_control, double coal_power)
 {
     int i, c1, c2, n1, n2, coord, npairs;
     int *production1, *production2, *children1, *children2;
@@ -30,8 +34,9 @@ double kernel(const igraph_t *t1, const igraph_t *t2, double lambda, double sigm
     Word_t bytes = 0;
 
     // preconditions
-    assert(lambda > 0.0 && lambda <= 1.0);
-    assert(sigma > 0.0);
+    assert(decay_factor > 0.0 && decay_factor <= 1.0);
+    assert(rbf_variance > 0.0);
+    assert(sst_control >= 0.0 && sst_control <= 1.0);
     assert(igraph_vcount(t1) < 65535);
 
     production1 = production(t1);
@@ -46,13 +51,13 @@ double kernel(const igraph_t *t1, const igraph_t *t2, double lambda, double sigm
     
     for (cur = 0; cur < npairs; ++cur)
     {
-        val = lambda;
+        val = decay_factor;
         n1 = pairs[cur] >> 16;
         n2 = pairs[cur] & 65535;
 
         // branch lengths
         tmp = pow(bl1[2*n1] - bl2[2*n2], 2) + pow(bl1[2*n1+1] - bl2[2*n2+1], 2);
-        val *= exp(-tmp/sigma);
+        val *= exp(-tmp/rbf_variance);
 
         for (i = 0; i < 2; ++i)  // assume tree is binary
         {
@@ -64,7 +69,7 @@ double kernel(const igraph_t *t1, const igraph_t *t2, double lambda, double sigm
                 // children are leaves
                 if (production1[c1] == 0)
                 {
-                    val *= (1 + lambda);
+                    val *= (sst_control + decay_factor);
                 }
 
                 // children are not leaves
@@ -74,7 +79,7 @@ double kernel(const igraph_t *t1, const igraph_t *t2, double lambda, double sigm
                     /* don't visit parents before children */
                     assert(Pvalue != NULL);
                     memcpy(&tmp, Pvalue, sizeof(double));
-                    val *= (1 + tmp);
+                    val *= (sst_control + tmp);
                 }
             }
         }
@@ -85,6 +90,8 @@ double kernel(const igraph_t *t1, const igraph_t *t2, double lambda, double sigm
 
         K += val;
     }
+
+    K *= coal_times_kernel(t1, t2, coal_power);
 
     free(production1);
     free(production2);
@@ -98,6 +105,111 @@ double kernel(const igraph_t *t1, const igraph_t *t2, double lambda, double sigm
 }
 
 /* Private. */
+
+double coal_times_kernel(const igraph_t *t1, const igraph_t *t2, double p)
+{
+    int n1 = (igraph_vcount(t1) + 1) / 2;
+    int n2 = (igraph_vcount(t2) + 1) / 2;
+    int i, cur;
+    double *x1 = malloc(n1 * sizeof(double));
+    double *x2 = malloc(n2 * sizeof(double));
+    double *y1 = malloc(n1 * sizeof(double));
+    double *y2 = malloc(n2 * sizeof(double));
+    double *buf = malloc(fmax(igraph_vcount(t1), igraph_vcount(t2)) * sizeof(double));
+    double k;
+    igraph_vector_t vec;
+    igraph_vector_init(&vec, igraph_vcount(t1));
+
+    for (i = 0; i < n1; ++i)
+        x1[i] = (double) i / (n1-1);
+    for (i = 0; i < n2; ++i)
+        x2[i] = (double) i / (n2-1);
+
+    depths(t1, buf);
+    cur = 0;
+    igraph_degree(t1, &vec, igraph_vss_all(), IGRAPH_OUT, 0);
+    for (i = 0; i < igraph_vcount(t1); ++i)
+    {
+        if (VECTOR(vec)[i] > 0)
+            y1[cur++] = buf[i];
+    }
+
+    depths(t2, buf);
+    cur = 0;
+    igraph_degree(t2, &vec, igraph_vss_all(), IGRAPH_OUT, 0);
+    for (i = 0; i < igraph_vcount(t2); ++i)
+    {
+        if (VECTOR(vec)[i] > 0)
+            y2[cur++] = buf[i];
+    }
+
+    qsort(y1, n1, sizeof(double), compare_doubles);
+    qsort(y2, n2, sizeof(double), compare_doubles);
+
+    k = Lp_norm(x1, x2, y1, y2, n1, n2, p);
+
+    free(x1);
+    free(x2);
+    free(y1);
+    free(y2);
+    free(buf);
+    igraph_vector_destroy(&vec);
+    return k;
+}
+
+double Lp_norm(const double *x1, const double *x2, const double *y1, 
+        const double *y2, int n1, int n2, double p)
+{
+    double a, b, fa1, fa2, fb1, fb2, norm = 0;
+    int i1 = 0, i2 = 0;
+
+    if (x1[0] < x2[0])
+    {
+        b = x1[0];
+        fb1 = y1[0];
+        fb2 = ((y2[1] - y2[0]) / (x2[1] - x2[0])) * (b - x2[0]);
+    }
+    else if (x1[0] == x2[0])
+    {
+        b = x1[0];
+        fb1 = y1[0];
+        fb2 = y2[0];
+    }
+    else
+    {
+        b = x2[0];
+        fb2 = y2[0];
+        fb1 = ((y1[1] - y1[0]) / (x1[1] - x1[0])) * (b - x1[0]);
+    }
+
+    while (i1 < n1 && i2 < n2)
+    {
+        a = b;
+        b = fmin(x1[i1], x2[i2]);
+        fa1 = fb1;
+        fa2 = fb2;
+
+        if (x1[i1] < x2[i2])
+        {
+            fb1 = y1[i1];
+            fb2 = (y2[i2] - fa2) / (x2[i2] - a) * (b-a);
+            ++i1;
+        }
+        else if (x1[i1] == x2[i2])
+        {
+            fb1 = y1[i1++];
+            fb2 = y2[i2++];
+        }
+        else
+        {
+            fb2 = y2[i2];
+            fb1 = (y1[i1] - fa1) / (x1[i1] - a) * (b-a);
+            ++i2;
+        }
+        norm += fabs((fa1 + fb1) / 2 - (fa2 + fb2) / 2) * (b-a);
+    }
+    return pow(norm, p);
+}
 
 /* get production rules for each node */
 int *production(const igraph_t *tree)

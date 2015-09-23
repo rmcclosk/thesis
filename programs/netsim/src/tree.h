@@ -49,6 +49,16 @@ int root(const igraph_t *tree);
  */
 double height(const igraph_t *tree);
 
+/** Get the depths of all nodes in a tree.
+ *
+ * If the tree has n nodes, the depths array must have enough space allocated
+ * for n doubles.
+ *
+ * \param[in] tree tree to find depths for
+ * \param[out] depths the result will be stored here
+ */
+void depths(const igraph_t *tree, double *depths);
+
 /** Ladderize a tree.
  *
  * This renumbers the vertices of the tree such that:
