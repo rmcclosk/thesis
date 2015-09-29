@@ -97,8 +97,10 @@ void ladderize(igraph_t *tree)
 double height(const igraph_t *tree)
 {
     igraph_vector_t work;
+    double ht;
+
     igraph_vector_init(&work, 2);
-    double ht = igraph_vcount(tree) > 1 ? _height(tree, &work, root(tree)) : 0.;
+    ht = _height(tree, &work, root(tree));
     igraph_vector_destroy(&work);
     return ht;
 }

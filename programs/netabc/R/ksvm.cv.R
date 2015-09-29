@@ -1,5 +1,5 @@
 # http://stackoverflow.com/questions/1753299/help-using-predict-for-kernlabs-svm-in-r
-ksvm.cv <- function (kmat, y, n.cv=1000, stats=c("accuracy"), show.progress=TRUE)
+ksvm.cv <- function (kmat, y, n.cv=1000, stats=c("accuracy"), show.progress=TRUE, nthread=1)
 {
     if (is.factor(y))
     {
@@ -26,7 +26,7 @@ ksvm.cv <- function (kmat, y, n.cv=1000, stats=c("accuracy"), show.progress=TRUE
     if (show.progress)
         pb <- txtProgressBar(max=n.cv-1, style=3, file=stderr())
 
-    result <- do.call(rbind, replicate(n.cv, {
+    result <- do.call(rbind, mclapply(1:n.cv, function (i) {
         holdout <- sample.int(nrow(kmat), nrow(kmat)/2)
         
         train <- as.kernelMatrix(kmat[-holdout,-holdout])
@@ -37,7 +37,7 @@ ksvm.cv <- function (kmat, y, n.cv=1000, stats=c("accuracy"), show.progress=TRUE
         if (show.progress)
             setTxtProgressBar(pb, getTxtProgressBar(pb)+1)
         sapply(stat.functions[stats], do.call, list(pred, y[holdout]))
-    }, simplify=FALSE))
+    }, mc.cores=nthread))
     colnames(result) <- stats
 
     if (show.progress)

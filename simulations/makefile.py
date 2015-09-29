@@ -23,19 +23,19 @@ def create_makefile(params, targets, target_dir):
 
     # if any of the parameters are all numeric, pad with zeroes so they are all
     # the same width
-    for k, v in params.items():
-        if all(isinstance(x, (int)) for x in v):
-            v = [str(x) for x in v]
-            width = max(len(x) for x in v)
-            params[k] = ["0"*(width - len(x)) + x for x in v]
-
-        elif all(isinstance(x, (float, int)) for x in v):
-            s = [str(x) for x in v]
-            left_width = max(len(x.split(".")[0]) for x in s)
-            right_width = max(len(x.split(".")[1]) if "." in x else 0 for x in s)
-            width = left_width + 1 + right_width
-            fmt = "{{:0{width}.{right_width}f}}".format(width=width, right_width=right_width)
-            params[k] = [fmt.format(x) for x in v]
+#    for k, v in params.items():
+#        if all(isinstance(x, (int)) for x in v):
+#            v = [str(x) for x in v]
+#            width = max(len(x) for x in v)
+#            params[k] = ["0"*(width - len(x)) + x for x in v]
+#
+#        elif all(isinstance(x, (float, int)) for x in v):
+#            s = [str(x) for x in v]
+#            left_width = max(len(x.split(".")[0]) for x in s)
+#            right_width = max(len(x.split(".")[1]) if "." in x else 0 for x in s)
+#            width = left_width + 1 + right_width
+#            fmt = "{{:0{width}.{right_width}f}}".format(width=width, right_width=right_width)
+#            params[k] = [fmt.format(x) for x in v]
 
     # keep track of a list of targets, and also the text for the Makefile
     to_make = []

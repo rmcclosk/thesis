@@ -26,7 +26,7 @@ struct option long_options[] =
 {
     {"sim-time", required_argument, 0, 's'},
     {"sim-nodes", required_argument, 0, 'n'},
-    {"tree-height", required_argument, 0, 'h'},
+    {"tree-height", required_argument, 0, 'r'},
     {"tree-tips", required_argument, 0, 't'},
     {"extant-only", no_argument, 0, 'e'},
     {"seed", required_argument, 0, 'd'},
@@ -49,7 +49,7 @@ struct nettree_options get_options(int argc, char **argv)
 
     while (c != -1)
     {
-        c = getopt_long(argc, argv, "s:n:h:t:ed:", long_options, &i);
+        c = getopt_long(argc, argv, "s:n:r:t:ed:", long_options, &i);
 
         switch (c)
         {
@@ -59,7 +59,7 @@ struct nettree_options get_options(int argc, char **argv)
             case 'n':
                 opts.sim_nodes = atoi(optarg);
                 break;
-            case 'h':
+            case 'r':
                 opts.tree_height = atof(optarg);
                 break;
             case 't':

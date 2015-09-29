@@ -1,5 +1,5 @@
 CRAN_URL = "http://cran.stat.sfu.ca/"
-fetch = curl -z $(2) -o $(2) $(1)
+fetch = curl -L -z $(2) -o $(2) $(1)
 
 .SECONDEXPANSION:
 
@@ -9,11 +9,15 @@ DOXYGEN_LATEST := $(basename $(shell wget ftp://ftp.stack.nl/pub/users/dimitri/ 
 AUTOCONF_ARCHIVE_LATEST := $(basename $(shell wget http://ftpmirror.gnu.org/autoconf-archive/ -O - \
 							 | grep -oP "autoconf.*?.tar" | sort -V | tail -n 1))
 
+JUDY_LATEST := $(basename $(shell wget http://sourceforge.net/projects/judy/files/ -O - \
+				 | grep -oP -m 1 "Judy-[0-9.]*?.tar"))
+
 .PHONY: dirs
 
 all: dirs \
 	 C/igraph-docs.pdf \
 	 C/gsl-ref.pdf \
+	 C/judy.pdf \
 	 R/igraph.pdf \
 	 R/apTreeshape.pdf \
 	 R/kernlab.pdf \
@@ -25,6 +29,7 @@ all: dirs \
 	 bin/make.pdf \
 	 spec/gml-technical-report.pdf \
 	 spec/MMformat.pdf
+	echo $(JUDY_LATEST)
 
 dirs:
 	mkdir -p bin C R spec arx
@@ -64,6 +69,15 @@ C/gsl-ref.pdf: arx/gsl-ref.ps.gz
 
 arx/gsl-ref.ps.gz: FORCE
 	$(call fetch, http://www.gnu.org/software/gsl/manual/gsl-ref.ps.gz, $@)
+
+C/judy.pdf: arx/$(JUDY_LATEST).tar.gz
+	tar xf $^ -C $(dir $^)
+	mv arx/$(shell echo $(JUDY_LATEST) | tr J j) arx/$(JUDY_LATEST)
+	ls -1d $(basename $(basename $^))/doc/ext/*.htm | sort -t_ -k1,1 | xargs pandoc -o$@
+	rm -rf $(basename $(basename $^))
+
+arx/$(JUDY_LATEST).tar.gz: FORCE
+	$(call fetch, http://sourceforge.net/projects/judy/files/latest/download, $@)
 
 R/R-%.pdf: FORCE
 	$(call fetch, $(CRAN_URL)/doc/manuals/r-release/R-$*.pdf, $@)

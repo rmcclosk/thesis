@@ -16,9 +16,9 @@
  * \param[in] rbf_variance variance of Gaussian radial basis function of branch lengths
  * \param[in] sst_control between 0 and 1, where 0 is a pure subtree kernel and
  * 1 is a pure subset tree kernel (see \cite moschitti2006making)
- * \param[in] coal multiply the kernel by an L-p norm of coalescence times
+ * \param[in] variance for RBF function of coalescence times
  */
 double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor,
-        double rbf_variance, double sst_control, double coal_power);
+        double rbf_variance, double sst_control, double coal_variance);
 
 #endif

@@ -4,6 +4,7 @@
 #include <igraph/igraph.h>
 #include <Judy.h>
 
+#include "tree.h"
 #include "util.h"
 #include "treestats.h"
 
@@ -19,10 +20,10 @@ int *children(const igraph_t *tree);
 double *branch_lengths(const igraph_t *tree);
 double Lp_norm(const double *x1, const double *x2, const double *y1, 
         const double *y2, int n1, int n2, double p);
-double coal_times_kernel(const igraph_t *t1, const igraph_t *t2, double p);
+double coal_times_kernel(const igraph_t *t1, const igraph_t *t2, double variance);
 
 double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor, 
-        double rbf_variance, double sst_control, double coal_power)
+        double rbf_variance, double sst_control, double coal_variance)
 {
     int i, c1, c2, n1, n2, coord, npairs;
     int *production1, *production2, *children1, *children2;
@@ -36,7 +37,6 @@ double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor,
     // preconditions
     assert(decay_factor > 0.0 && decay_factor <= 1.0);
     assert(rbf_variance > 0.0);
-    assert(sst_control >= 0.0 && sst_control <= 1.0);
     assert(igraph_vcount(t1) < 65535);
 
     production1 = production(t1);
@@ -91,7 +91,7 @@ double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor,
         K += val;
     }
 
-    K *= coal_times_kernel(t1, t2, coal_power);
+    K *= coal_times_kernel(t1, t2, coal_variance);
 
     free(production1);
     free(production2);
@@ -106,16 +106,18 @@ double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor,
 
 /* Private. */
 
-double coal_times_kernel(const igraph_t *t1, const igraph_t *t2, double p)
+double coal_times_kernel(const igraph_t *t1, const igraph_t *t2, double variance)
 {
-    int n1 = (igraph_vcount(t1) + 1) / 2;
-    int n2 = (igraph_vcount(t2) + 1) / 2;
+    int n1 = (igraph_vcount(t1) - 1) / 2;
+    int n2 = (igraph_vcount(t2) - 1) / 2;
     int i, cur;
     double *x1 = malloc(n1 * sizeof(double));
     double *x2 = malloc(n2 * sizeof(double));
     double *y1 = malloc(n1 * sizeof(double));
     double *y2 = malloc(n2 * sizeof(double));
     double *buf = malloc(fmax(igraph_vcount(t1), igraph_vcount(t2)) * sizeof(double));
+    double h1 = height(t1);
+    double h2 = height(t2);
     double k;
     igraph_vector_t vec;
     igraph_vector_init(&vec, igraph_vcount(t1));
@@ -131,7 +133,7 @@ double coal_times_kernel(const igraph_t *t1, const igraph_t *t2, double p)
     for (i = 0; i < igraph_vcount(t1); ++i)
     {
         if (VECTOR(vec)[i] > 0)
-            y1[cur++] = buf[i];
+            y1[cur++] = buf[i] / h1;
     }
 
     depths(t2, buf);
@@ -140,13 +142,13 @@ double coal_times_kernel(const igraph_t *t1, const igraph_t *t2, double p)
     for (i = 0; i < igraph_vcount(t2); ++i)
     {
         if (VECTOR(vec)[i] > 0)
-            y2[cur++] = buf[i];
+            y2[cur++] = buf[i] / h2;
     }
 
     qsort(y1, n1, sizeof(double), compare_doubles);
     qsort(y2, n2, sizeof(double), compare_doubles);
 
-    k = Lp_norm(x1, x2, y1, y2, n1, n2, p);
+    k = exp(-Lp_norm(x1, x2, y1, y2, n1, n2, 1.0)/variance);
 
     free(x1);
     free(x2);
@@ -160,7 +162,7 @@ double coal_times_kernel(const igraph_t *t1, const igraph_t *t2, double p)
 double Lp_norm(const double *x1, const double *x2, const double *y1, 
         const double *y2, int n1, int n2, double p)
 {
-    double a, b, fa1, fa2, fb1, fb2, norm = 0;
+    double a, b, fa1, fa2, fb1, fb2, m1, m2, intersect, fintersect, area, norm = 0;
     int i1 = 0, i2 = 0;
 
     if (x1[0] < x2[0])
@@ -191,9 +193,8 @@ double Lp_norm(const double *x1, const double *x2, const double *y1,
 
         if (x1[i1] < x2[i2])
         {
-            fb1 = y1[i1];
-            fb2 = (y2[i2] - fa2) / (x2[i2] - a) * (b-a);
-            ++i1;
+            fb1 = y1[i1++];
+            fb2 = fa2 + (y2[i2] - fa2) / (x2[i2] - a) * (b-a);
         }
         else if (x1[i1] == x2[i2])
         {
@@ -202,11 +203,33 @@ double Lp_norm(const double *x1, const double *x2, const double *y1,
         }
         else
         {
-            fb2 = y2[i2];
-            fb1 = (y1[i1] - fa1) / (x1[i1] - a) * (b-a);
-            ++i2;
+            fb2 = y2[i2++];
+            fb1 = fa1 + (y1[i1] - fa1) / (x1[i1] - a) * (b-a);
         }
-        norm += fabs((fa1 + fb1) / 2 - (fa2 + fb2) / 2) * (b-a);
+
+        m1 = (fb1 - fa1) / (b - a);
+        m2 = (fb2 - fa2) / (b - a);
+
+        if (m1 != m2)
+        {
+            intersect = a + (fa1 - fa2) / (m2 - m1);
+        }
+        else
+        {
+            intersect = a;
+        }
+
+        if (intersect > a && intersect < b)
+        {
+            fintersect = fa1 + m1 * intersect;
+            area  = fabs(((fa1 + fintersect) / 2 - (fa2 + fintersect) / 2) * (intersect-a));
+            area += fabs(((fintersect + fb1) / 2 - (fintersect + fb2) / 2) * (b-intersect));
+        }
+        else
+        {
+            area = fabs(((fa1 + fb1) / 2 - (fa2 + fb2) / 2) * (b-a));
+        }
+        norm += area;
     }
     return pow(norm, p);
 }
