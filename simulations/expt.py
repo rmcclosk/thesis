@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import shlex
 import subprocess
@@ -11,6 +11,7 @@ from pprint import pprint
 import random
 import sqlite3
 import hashlib
+import logging
 
 try:
     subprocess_run = subprocess.run
@@ -82,26 +83,36 @@ def get_dependencies(expt, step_name, parameters, cur):
 
 def needs_update(target, depends, cur):
     if not os.path.exists(target):
+        logging.info("File {} doesn't exist, remaking".format(target))
         return True
+
     for step in depends:
         for file_name in depends[step].split(" "):
             with open(file_name, "rb") as f:
                 checksum = hashlib.md5(f.read()).hexdigest()
-                cur.execute("SELECT checksum FROM md5 WHERE file = ?", (file_name,))
+                cur.execute("SELECT checksum FROM md5 WHERE path = ?", (file_name,))
                 row = cur.fetchone()
-                if row is None or row[0] != checksum:
+                if row is None:
+                    logging.error("Dependency {} doesn't exist".format(file_name))
+                    return False
+                if row[0] != checksum:
+                    logging.info("Checksum on dependency {} has changed, remaking file {}".format(file_name, target))
                     return True
+
+    logging.info("File {} doesn't need remaking".format(target))
     return False
 
 def run_step(expt, step_name, con, cur, nproc):
     step = expt["Steps"][step_name]
 
-    interpreter = shlex.split(step["Interpreter"])
+    #interpreter = shlex.split(step["Interpreter"])
+    interpreter = step["Interpreter"]
     try:
         startup = step["Startup"].rstrip() + "\n"
     except KeyError:
         startup = ""
-    startup = bytes(startup, "UTF-8")
+    if sys.version_info.major == 3:
+        startup = bytes(startup, "UTF-8")
 
     # steps are placed in expt_name/step_name
     expt_name = expt["Name"]
@@ -130,7 +141,10 @@ def run_step(expt, step_name, con, cur, nproc):
                 old_basename &= set([row[0] for row in cur.fetchall()])
 
         if len(old_basename) == 0:
-            basename = hashlib.md5(bytes(str(parameters), "UTF-8")).hexdigest()[:8]
+            if sys.version_info.major == 3:
+                basename = hashlib.md5(bytes(str(parameters), "UTF-8")).hexdigest()[:8]
+            else:
+                basename = hashlib.md5(str(parameters)).hexdigest()[:8]
         elif len(old_basename) == 1:
             basename = old_basename.pop()
         else:
@@ -148,7 +162,7 @@ def run_step(expt, step_name, con, cur, nproc):
 
             # start the interpreter if it's not already open
             if proc[proc_cur] == 0:
-                proc[proc_cur] = subprocess.Popen(interpreter, stdin=subprocess.PIPE)
+                proc[proc_cur] = subprocess.Popen(interpreter, shell=True, stdin=subprocess.PIPE)
                 proc[proc_cur].stdin.write(startup)
 
             # insert file and parameters into database
@@ -167,25 +181,39 @@ def run_step(expt, step_name, con, cur, nproc):
             command = step["Rule"].format(**parameters)
             if not command.endswith(os.linesep):
                 command = "{}\n".format(command)
-            proc[proc_cur].stdin.write(bytes(command, "UTF-8"))
-            files.append(target)
+            logging.debug(command)
+            if sys.version_info.major == 3:
+                proc[proc_cur].stdin.write(bytes(command, "UTF-8"))
+            else:
+                proc[proc_cur].stdin.write(command)
+            files.append((basename, target))
 
             proc_cur = (proc_cur + 1) % nproc
 
             # commit changes to the database
             con.commit()
 
+    ok = True
     for i in range(nproc):
         try:
             proc[i].communicate()
+            if proc[i].returncode != 0:
+                logging.warning("Process failed with return code {}".format(proc[i].returncode))
+                ok = False
         except AttributeError:
             pass
 
-    for target in files:
+    # add new files to DB
+    for basename, target in files:
+        if not os.path.exists(target):
+            logging.error("File {} was not created".format(target))
+            ok = False
+            continue
         with open(target, "rb") as f:
             checksum = hashlib.md5(f.read()).hexdigest()
-            cur.execute("INSERT OR REPLACE INTO md5 (file, checksum) VALUES (?, ?)", (target, checksum))
+            cur.execute("INSERT OR REPLACE INTO md5 (experiment, step, file, path, checksum) VALUES (?, ?, ?, ?, ?)", (expt_name, step_name, basename, target, checksum))
     con.commit()
+    return ok
 
 def setup_database(con, cur):
     cur.execute("""
@@ -198,8 +226,35 @@ def setup_database(con, cur):
             PRIMARY KEY (experiment, step, file, parameter))""")
     cur.execute("""
         CREATE TABLE IF NOT EXISTS md5 (
-            file TEXT PRIMARY KEY,
+            experiment TEXT, 
+            step TEXT, 
+            file TEXT,
+            path TEXT PRIMARY KEY,
             checksum TEXT)""")
+
+def sanitize(expt, con, cur):
+    # remove files which don't exist from the DB
+    cur.execute("SELECT path FROM md5 WHERE experiment = ?", (expt,))
+    for row in cur.fetchall():
+        if not os.path.exists(row[0]):
+            logging.info("Deleting file {}, which is not on the filesystem, from the DB".format(row[0]))
+            cur.execute("DELETE FROM md5 WHERE path = ?", row)
+    con.commit()
+
+    # remove files not in the DB from the filesystem
+    cur.execute("SELECT DISTINCT experiment, step FROM data WHERE experiment = ?", (expt,))
+    for row in cur.fetchall():
+        path = os.path.join(*row)
+        for f in os.listdir(path):
+            cur.execute("SELECT checksum FROM md5 WHERE path = ?", (os.path.join(path, f),))
+            if cur.fetchone() is None:
+                logging.info("Deleting file {}, which is not in the DB, from the filesystem".format(os.path.join(path, f)))
+                os.remove(os.path.join(path, f))
+
+    cur.execute("SELECT DISTINCT experiment, step, file FROM data NATURAL LEFT OUTER JOIN md5 WHERE path IS NULL AND experiment = ?", (expt,))
+    for row in cur.fetchall():
+        logging.info("Deleting file {}/{}/{}, which is not in md5 table, from data table".format(*row))
+        cur.execute("DELETE FROM data WHERE experiment = ? AND step = ? AND file = ?", row)
 
 def iter_steps(expt):
     dag = {step: expt["Steps"][step].get("Depends") for step in expt["Steps"]}
@@ -220,7 +275,9 @@ def iter_steps(expt):
         yield step
 
 if __name__ == "__main__":
+    # TODO: proper argument parsing
     yaml_file = sys.argv[1]
+    logging.getLogger().setLevel(logging.INFO)
 
     with open(yaml_file) as f:
         expt = yaml.load(f)
@@ -236,11 +293,19 @@ if __name__ == "__main__":
     except KeyError:
         nproc = 1
     
+    sanitize(expt["Name"], con, cur)
     for step_name in iter_steps(expt):
+        logging.info("Starting step {}".format(step_name))
         try:
             expt["Steps"][step_name]["Depends"] = expt["Steps"][step_name]["Depends"].split(" ")
         except AttributeError:
             pass
-        run_step(expt, step_name, con, cur, nproc)
+        except KeyError:
+            pass
+        if not run_step(expt, step_name, con, cur, nproc):
+            logging.error("Step {} falied".format(step_name))
+        else:
+            logging.info("Finished step {}".format(step_name))
+        sanitize(expt["Name"], con, cur)
 
     con.close()
