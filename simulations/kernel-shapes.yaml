@@ -1,0 +1,116 @@
+Name: kernel-shapes
+Processes: 8
+Steps:
+    network:
+        Extension: gml
+        Parameters:
+            nnode: 5000
+            mean_degree: 8
+            net_type: ["BA", "ER", "WS"],
+            ws_prob: 0.01,
+        Depends: 
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(igraph))
+            set.seed(0)
+        Rule: | 
+            if ("{net_type}" == "BA")
+                g <- barabasi.game({nnode}, m={mean_degree}/2, directed=F)
+            }
+            else if ("{net_type}" == "WS") {
+                g <- watts.strogatz.game(1, {nnode}, {mean_degree}/2, {ws_prob})
+            }
+            else if ("{net_type}" == "ER") {
+                g <- erdos.renyi.game({nnode}, {mean_degree}/{nnode})
+            }
+            graph_attr(g, "comment") <- "{yaml}"
+            write.graph(SI.net(g), "{network}", format="gml")
+
+    tree:
+        Extension: nwk
+        Parameters:
+            nnode: 5000
+            mean_degree: 8
+            net_type: ["BA", "ER", "WS"],
+            ws_prob: 0.01,
+            ntip: 100,
+            nsimnode: 1000
+            seed: !!python/object/apply:__builtin__.xrange [0, 100, 1]
+        Depends: network
+        Interpreter: bash
+        Rule: |
+            echo "#{yaml}" > {tree}
+            nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} {network} >> {tree}
+
+    kernel-matrix:
+        Extension: mtx
+        Parameters:
+            branch_scaling: mean
+            decay_factor: [0.1, 0.2, 0.4, 0.5]
+            rbf_variance: ["1e-2", 0.0625, 0.125, 1, 2]
+            sst_control: [0, 1]
+            coal_variance: ["INFINITY", 2]
+        Depends: tree
+        Interpreter: bash
+        Rule: |
+            echo "%%MatrixMarket matrix array real symmetric" > {kernel-matrix}
+            echo "%{yaml}" >> {kernel-matrix}
+            echo "{$#} {$#}" >> {kernel-matrix}
+            for T1 in {tree}; do
+                for T2 in {tree}; do
+                    if [[ "$T1" < "$T2" || "$T1" == "$T2" ]]; then
+                    treekernel -d -l {decay_factor} -g {rbf_variance} -b {branch_scaling} \
+                               -s {sst_control} -c {coal_variance} $T1 $T2 >> {kernel-matrix}
+                    fi
+                done
+            done
+
+    kpca-plot:
+        Extension: pdf
+        Parameters:
+            branch_scaling: mean
+            decay_factor: [0.1, 0.2, 0.4, 0.5]
+            rbf_variance: ["1e-2", 0.0625, 0.125, 1, 2]
+            sst_control: [0, 1]
+            coal_variance: ["INFINITY", 2]
+        Depends: kernel-matrix tree
+        Interpreter: R --vanilla --silent
+        Startup: library(netabc)
+        Rule: |
+            k <- read.mm("{kernel-matrix}")
+            y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"mean_degree"]
+            kpca.plot(k, color=list(mean.degree=y), yaml="{yaml}")
+            ggsave("{kpca-plot}")
+
+    classifier:
+        Extension: tsv
+        Parameters:
+            branch_scaling: mean
+            decay_factor: [0.1, 0.2, 0.4, 0.5]
+            rbf_variance: ["1e-2", 0.0625, 0.125, 1, 2]
+            sst_control: [0, 1]
+            coal_variance: ["INFINITY", 2]
+            ncrossv: 1000
+        Depends: kernel-matrix tree
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            k <- read.mm("{kernel-matrix}")
+            y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"net_type"]
+            results <- ksvm.cv(k, y, n.cv={ncrossv}, stats=c("accuracy"))
+            cat("#{yaml}\n", file="{classifier}")
+            write.tsv(results, "{classifier}", append=TRUE)
+
+    crossv-plot:
+        Extension: pdf
+        Parameters:
+            ncrossv: 1000
+        Depends: classifier 
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            d <- collect.data(strsplit("{classifier}", " ")[[1]])
+            summary.plot(d, x="rbf_variance", y="accuracy", group="decay_factor", 
+                         facet.x="sst_control", facet.y="coal_variance", fun="mean")
+            ggsave("{crossv-plot}", width=10)
