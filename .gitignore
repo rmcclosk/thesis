@@ -22,3 +22,7 @@ configure
 *.bak
 *.toc
 *.bbl
+arx
+*.old
+*.orig
+__pycache__

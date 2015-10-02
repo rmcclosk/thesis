@@ -111,6 +111,26 @@ root compared to near the tips.
 * Transmission bottlenecks increase the likelihood that the transmission tree
 is concordant with the virus phylogeny.
 
+**[@worby2014within]**
+
+* Transmission tree doesn't correspond to virus tree - check refs 27-29 for
+more.
+* See also refs 4, 6, 7, and 31 for other attempts to infer transmission
+networks.
+* This just says that genetic distance is a poor proxy for evolutionary
+distance - I think we knew this already.
+
+**[@little2014using]**
+
+* Develop a network-based score (TNS) to determine an individual's transmission
+risk.
+* This paper is a circlejerk. High network degree leads to high network degree
+in the future, says nothing about actual transmission.
+* Specifically targeting ART to high-risk people isn't any better than
+targeting people at random.
+* They don't say whether TNS was correlated with risk factors. I'm guessing
+not.
+
 # Other Statistics
 
 **[@duchene2015evaluating]**

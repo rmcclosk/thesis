@@ -1,0 +1,21 @@
+Phylogenetic clustering with a Markov-modulated Poisson process
+
+Most of the information that public health agencies and researchers have
+about emerging disease epidemics is obtained by "gumshoe epidemiology",
+that is, by asking infected people about where they went and who they
+contacted. _Phylodynamics_ is an emerging area of research which aims to
+enrich this information using viral genomic data and bioinformatic
+methods. One application of phylodynamics is the identification of
+groups of epidemiologically related individuals, termed phylogenetic
+clustering. Here, we develop a novel clustering method which uses a
+Markov-modulated Poisson process, applied to a "family tree" of viruses,
+to identify parts of the population experiencing elevated transmission
+rates. We applied this method to viral genomic data sampled from almost
+8000 HIV-infected individuals in British Columbia.
+
+Rosemary McCloskey is a second year Master's student in the
+CIHR Strategic Training Program in Bioinformatics at UBC, working in Dr.
+Art Poon's lab at the BC Centre for Excellence in HIV/AIDS. She has an
+undergraduate degree in Mathematics from Simon Fraser University, and is
+the inaguaral recipient of the Statistics Department Award in Data
+Science.

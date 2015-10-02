@@ -12,6 +12,9 @@ AUTOCONF_ARCHIVE_LATEST := $(basename $(shell wget http://ftpmirror.gnu.org/auto
 JUDY_LATEST := $(basename $(shell wget http://sourceforge.net/projects/judy/files/ -O - \
 				 | grep -oP -m 1 "Judy-[0-9.]*?.tar"))
 
+PYTHON_LATEST := $(basename $(shell wget https://docs.python.org/3/download.html -O - \
+				 | grep -oP -m 1 "python-.*?letter.tar"))
+
 .PHONY: dirs
 
 all: dirs \
@@ -22,6 +25,8 @@ all: dirs \
 	 R/apTreeshape.pdf \
 	 R/kernlab.pdf \
 	 R/R-exts.pdf \
+	 R/parallel.pdf \
+	 python/python-library.pdf \
 	 bin/pandoc.pdf \
 	 bin/$(DOXYGEN_LATEST).pdf \
 	 bin/autoconf.pdf \
@@ -29,7 +34,6 @@ all: dirs \
 	 bin/make.pdf \
 	 spec/gml-technical-report.pdf \
 	 spec/MMformat.pdf
-	echo $(JUDY_LATEST)
 
 dirs:
 	mkdir -p bin C R spec arx
@@ -46,18 +50,18 @@ bin/pandoc.pdf: FORCE
 bin/autoconf.pdf: FORCE
 	$(call fetch, http://www.gnu.org/software/autoconf/manual/autoconf.pdf, $@)
 
-bin/autoconf-archive.pdf: arx/$(AUTOCONF_ARCHIVE_LATEST).tar.lz
+bin/autoconf-archive.pdf: arx/$(AUTOCONF_ARCHIVE_LATEST).tar.xz
 	tar xf $^ -C $(dir $^)
 	cd $(basename $(basename $^)) && ./configure
 	cd $(basename $(basename $^)) && make pdf
 	mv $(basename $(basename $^))/doc/$(notdir $@) $@
 	rm -rf $(basename $(basename $^))
 
+arx/$(AUTOCONF_ARCHIVE_LATEST).tar.xz: FORCE
+	$(call fetch, http://gnu.mirror.iweb.com/autoconf-archive/$(notdir $@), $@)
+
 bin/make.pdf: FORCE
 	$(call fetch, https://www.gnu.org/software/make/manual/make.pdf, $@)
-
-arx/$(AUTOCONF_ARCHIVE_LATEST).tar.lz: FORCE
-	$(call fetch, http://gnu.mirror.iweb.com/autoconf-archive/$(notdir $@), $@)
 
 C/igraph-docs.pdf: FORCE
 	$(call fetch, http://igraph.org/c/doc/igraph-docs.pdf, $@)
@@ -78,6 +82,14 @@ C/judy.pdf: arx/$(JUDY_LATEST).tar.gz
 
 arx/$(JUDY_LATEST).tar.gz: FORCE
 	$(call fetch, http://sourceforge.net/projects/judy/files/latest/download, $@)
+
+python/python-library.pdf: arx/$(PYTHON_LATEST).tar.bz2
+	tar xf $^ -C $(dir $^)
+	mv arx/docs-pdf/library.pdf $@
+	rm -rf arx/docs-pdf
+
+arx/$(PYTHON_LATEST).tar.bz2: FORCE
+	$(call fetch, https://docs.python.org/3/archives/$(PYTHON_LATEST).tar.bz2, $@)
 
 R/R-%.pdf: FORCE
 	$(call fetch, $(CRAN_URL)/doc/manuals/r-release/R-$*.pdf, $@)
