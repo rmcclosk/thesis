@@ -9,7 +9,7 @@ ksvm.cv <- function (kmat, y, n.cv=1000, stats=c("accuracy"), show.progress=TRUE
     else 
     {
         allowed.stats <- c("rsquared")
-        ksvm.type <- "eps-bsvr"
+        ksvm.type <- "eps-svr"
     }
 
     if (!all(stats %in% allowed.stats))

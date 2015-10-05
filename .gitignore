@@ -26,3 +26,6 @@ arx
 *.old
 *.orig
 __pycache__
+*.mtx
+*.tsv
+*.sqlite

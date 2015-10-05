@@ -7,15 +7,15 @@
 #include <pll/pll.h>
 #include <math.h>
 #include <assert.h>
-#include <Rinternals.h>
-#include <Rembedded.h>
+//#include <Rinternals.h>
+//#include <Rembedded.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_odeiv2.h>
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_randist.h>
 #include "likelihood.h"
-#include "rwrapper.h"
+//#include "rwrapper.h"
 #include "util.h"
 
 // helpers for dynamic programming
@@ -146,15 +146,12 @@ int flatten(const pllStack *tree, int nnode, int *order, double *bl, int next)
 void guess_parameters(pcbr_workspace *w, double *args)
 {
     int nbranch = (w->nnode - 3)/2, nrates = w->nrates;
-    const char *tags[8] = {NULL, NULL, "consigma", "cov", NULL, NULL, "dist", "constr"};
     double intsum = 0;
     double *int_edges = malloc(nbranch * sizeof(double));
     double *guess = malloc(nrates * sizeof(double));
-    SEXP rargs[4];
-    SEXP edges_realsxp, guess_realsxp, lambda, res;
     int i, intcur = 0;
 
-    R_library("mixdist");
+    //R_library("mixdist");
 
     // collect the branch lengths
     int_edges = malloc(nbranch * sizeof(double));
@@ -169,53 +166,10 @@ void guess_parameters(pcbr_workspace *w, double *args)
     guess_means(int_edges, w->nrates, intcur, guess);
     for (i = 0; i < w->nrates; ++i)
         guess[i] = fmax(guess[i], 1e-4);
-    /*
-    guess_means(int_edges, 1, intcur, guess);
-    for (i = 0; i < w->nrates; ++i)
-        guess[i] = guess[0];
-    */
-
-    // copy int_edges and guess into R objects
-    guess_realsxp = PROTECT(allocVector(REALSXP, w->nrates));
-    edges_realsxp = PROTECT(allocVector(REALSXP, nbranch));
-    for (i = 0; i < nbranch; ++i)
-        REAL(edges_realsxp)[i] = int_edges[i];
-    for (i = 0; i < w->nrates; ++i)
-        REAL(guess_realsxp)[i] = guess[i];
-
-    // set up mixdist
-    /*
-    rargs[0] = edges_realsxp; rargs[1] = ScalarInteger(20);
-    mixdat = call_R("mixgroup", rargs, tags, 2);
-
-    rargs[0] = guess_realsxp; rargs[1] = guess_realsxp;
-    mixpar = call_R("mixparam", rargs, tags, 2);
-
-    rargs[0] = mkString("FCV"); rargs[1] = ScalarInteger(1);
-    constr = call_R("mixconstr", rargs, &tags[2], 2);
-
-    // fit the mixture model
-    rargs[0] = mixdat; rargs[1] = mixpar; rargs[2] = mkString("gamma"); rargs[3] = constr;
-    res = call_R("mix", rargs, &tags[4], 4);
-    */
-
-    // didn't work
-    // TODO: errors aren't being caught
-    //if (isNull(res)) {
-    if (1) {
-        lambda = guess_realsxp;
-    } else {
-        // get the fitted parameters back
-        rargs[0] = res; rargs[1] = mkString("parameters");
-        res = call_R("[[", rargs, tags, 2);
-    
-        rargs[0] = res; rargs[1] = mkString("mu");
-        lambda = call_R("[[", rargs, tags, 2);
-    }
 
     // branching rates are the inverses of the fitted means
     for (i = 0; i < nrates; ++i)
-        args[i] = 1.0/REAL(lambda)[nrates - i - 1];
+        args[i] = 1.0/guess[nrates - i - 1];
 
     // choose transition rates all equal such that the expected number of
     // transitions is 1% of the number of branches
@@ -223,7 +177,6 @@ void guess_parameters(pcbr_workspace *w, double *args)
     for (i = 0; i < nrates * (nrates - 1); ++i)
         args[nrates+i] = nbranch / w->nrates / intsum / 100;
 
-    UNPROTECT(2);
     free(int_edges);
     free(guess);
 }

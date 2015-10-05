@@ -10,7 +10,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include "likelihood.h"
-#include "rwrapper.h"
+//#include "rwrapper.h"
 #include "util.h"
 #include "tree.h"
 #include "thread.h"
@@ -298,7 +298,7 @@ int main(int argc, char *argv[])
 
     // start embedded R
     setenv("R_HOME", R_HOME, 0);
-    start_R();
+    //start_R();
 
     // remove R's SIGINT handler
     signal(SIGINT, SIG_DFL);
@@ -381,7 +381,7 @@ int main(int argc, char *argv[])
     }
 
 	// clean up
-    stop_R();
+    //stop_R();
 	pllNewickParseDestroy(&tree);
     pcbr_free(w);
     free(cur_args);

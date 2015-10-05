@@ -233,6 +233,22 @@ def setup_database(con, cur):
             checksum TEXT)""")
 
 def sanitize(expt, con, cur):
+
+    # add files which were missed before
+    for step in os.listdir(expt):
+        if not os.path.exists(os.path.join(expt, step)):
+            continue
+        for file in os.listdir(os.path.join(expt, step)):
+            path = os.path.join(expt, step, file)
+            cur.execute("SELECT * FROM md5 WHERE path = ?", (path,))
+            if cur.fetchone() is None:
+                logging.info("Adding checksum for file {} to DB".format(path))
+                basename = file.split(".")[0]
+                with open(path) as f:
+                    checksum = hashlib.md5(f.read()).hexdigest()
+                    cur.execute("INSERT OR REPLACE INTO md5 (experiment, step, file, path, checksum) VALUES (?, ?, ?, ?, ?)", (expt, step, basename, path, checksum))
+    con.commit()
+
     # remove files which don't exist from the DB
     cur.execute("SELECT path FROM md5 WHERE experiment = ?", (expt,))
     for row in cur.fetchall():
@@ -245,6 +261,8 @@ def sanitize(expt, con, cur):
     cur.execute("SELECT DISTINCT experiment, step FROM data WHERE experiment = ?", (expt,))
     for row in cur.fetchall():
         path = os.path.join(*row)
+        if not os.path.exists(path):
+            continue
         for f in os.listdir(path):
             cur.execute("SELECT checksum FROM md5 WHERE path = ?", (os.path.join(path, f),))
             if cur.fetchone() is None:
@@ -262,7 +280,7 @@ def iter_steps(expt):
         if not v:
             dag[k] = []
         elif isinstance(v, str):
-            dag[k] = [v]
+            dag[k] = v.split(" ")
 
     for i in range(len(dag)):
         step = sorted(dag.items(), key = lambda x: len(x[1]))[0][0]
@@ -277,11 +295,11 @@ def iter_steps(expt):
 if __name__ == "__main__":
     # TODO: proper argument parsing
     yaml_file = sys.argv[1]
-    logging.getLogger().setLevel(logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
 
     with open(yaml_file) as f:
         expt = yaml.load(f)
-    con = sqlite3.connect("expt.sqlite")
+    con = sqlite3.connect("{}.sqlite".format(expt["Name"]))
     cur = con.cursor()
     setup_database(con, cur)
     

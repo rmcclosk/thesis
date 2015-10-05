@@ -1,26 +1,19 @@
-Name: kernel-shapes
-Processes: 6
+Name: kernel-degree-variance
+Processes: 1
 Steps:
     network:
         Extension: gml
         Parameters:
             nnode: 5000
             mean_degree: 8
-            net_type: ["BA", "ER", "WS"]
-            ws_prob: 0.01
+            ba_power: [0.1, 0.5, 1.0]
         Interpreter: R --vanilla --silent
         Startup: |
             suppressPackageStartupMessages(library(netabc))
             suppressPackageStartupMessages(library(igraph))
             set.seed(0)
         Rule: | 
-            if ("{net_type}" == "BA") {{
-                g <- barabasi.game({nnode}, m={mean_degree}/2, directed=F)
-            }} else if ("{net_type}" == "WS") {{
-                g <- watts.strogatz.game(1, {nnode}, {mean_degree}/2, {ws_prob})
-            }} else if ("{net_type}" == "ER") {{
-                g <- erdos.renyi.game({nnode}, {mean_degree}/{nnode})
-            }}
+            g <- barabasi.game({nnode}, m={mean_degree}/2, power={ba_power}, directed=F)
             graph_attr(g, "comment") <- "{yaml}"
             write.graph(SI.net(g), "{network}", format="gml")
 
@@ -29,8 +22,7 @@ Steps:
         Parameters:
             nnode: 5000
             mean_degree: 8
-            net_type: ["BA", "ER", "WS"]
-            ws_prob: 0.01
+            ba_power: [0.1, 0.5, 1.0]
             ntip: 100
             nsimnode: 1000
             seed: !!python/object/apply:__builtin__.xrange [0, 100, 1]
@@ -76,8 +68,8 @@ Steps:
         Startup: library(netabc)
         Rule: |
             k <- read.mm("{kernel-matrix}")
-            y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"mean_degree"]
-            kpca.plot(k, color=list(mean.degree=y), yaml="{yaml}")
+            y <- as.factor(collect.metadata(strsplit("{tree}", " ")[[1]])[,"ba_power"])
+            kpca.plot(k, color=list(pref.attach.power=y), yaml="{yaml}")
             ggsave("{kpca-plot}")
 
     classifier:
@@ -94,8 +86,8 @@ Steps:
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
             k <- read.mm("{kernel-matrix}")
-            y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"net_type"]
-            results <- ksvm.cv(k, y, n.cv={ncrossv}, stats=c("accuracy"))
+            y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"ba_power"]
+            results <- ksvm.cv(k, y, n.cv={ncrossv}, stats=c("rsquared"))
             cat("#{yaml}\n", file="{classifier}")
             write.tsv(results, "{classifier}", append=TRUE)
 
@@ -108,6 +100,6 @@ Steps:
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
             d <- collect.data(strsplit("{classifier}", " ")[[1]])
-            summary.plot(d, x="rbf_variance", y="accuracy", group="decay_factor", 
+            summary.plot(d, x="rbf_variance", y="rsquared", group="decay_factor", 
                          facet.x="sst_control", facet.y="coal_variance", fun="mean")
             ggsave("{crossv-plot}", width=10)

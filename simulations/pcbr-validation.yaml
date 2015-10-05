@@ -1,5 +1,5 @@
 Name: pcbr-validation
-Processes: 16
+Processes: 1
 Steps:
     network:
         Extension: gml
@@ -60,10 +60,28 @@ Steps:
         Depends: tree
         Interpreter: bash
         Rule: |
-            pcbr --rates {nrates} --use-tips {use_tips} --trans-per-branch {trans_per_branch} \
-                 --tip-pdf {tip_pdf} --cheating {cheating} --newick-outfile /dev/null \
-                 --cluster-outfile {clustering} {tree}
-            TMPFILE=`tempfile`
+            if [[ "x{cheating}" == "xyes" ]]; then
+                if [[ "x{tip_pdf}" == "xyes" ]]; then
+                    pcbr --rates {nrates} --use-tips {use_tips} --trans-per-branch {trans_per_branch} \
+                         --tip-pdf --cheating --newick-outfile /dev/null \
+                         --cluster-outfile {clustering} {tree}
+                else
+                    pcbr --rates {nrates} --use-tips {use_tips} --trans-per-branch {trans_per_branch} \
+                         --cheating --newick-outfile /dev/null \
+                         --cluster-outfile {clustering} {tree}
+                fi
+            else
+                if [[ "x{tip_pdf}" == "xyes" ]]; then
+                    pcbr --rates {nrates} --use-tips {use_tips} --trans-per-branch {trans_per_branch} \
+                         --tip-pdf --newick-outfile /dev/null \
+                         --cluster-outfile {clustering} {tree}
+                else
+                    pcbr --rates {nrates} --use-tips {use_tips} --trans-per-branch {trans_per_branch} \
+                         --cheating --newick-outfile /dev/null \
+                         --cluster-outfile {clustering} {tree}
+                fi
+            fi
+            TMPFILE=/tmp/{clustering}
             echo "#{yaml}" > $TMPFILE
             cat {clustering} >> $TMPFILE
             mv $TMPFILE {clustering}

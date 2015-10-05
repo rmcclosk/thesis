@@ -57,7 +57,7 @@ AC_CHECK_LIB([gslcblas], [cblas_dgemm], [], [AC_MSG_ERROR([cblas is required])])
 AC_CHECK_LIB([gsl], [gsl_blas_dgemm], [], [AC_MSG_ERROR([gsl is required])])
 PKG_CHECK_MODULES([CHECK], [check >= 0.9.4])
 PKG_CHECK_MODULES([R], [libR >= 0.26])
-AC_SEARCH_LIBS(pllNewickParseFile, [pll-avx pll-sse3], [], [
+AC_SEARCH_LIBS(pllNewickParseFile, [pll-avx pll-sse3 pll-generic], [], [
     AC_MSG_ERROR([pll is required])                                      
 ])
 AX_PTHREAD()

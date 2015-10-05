@@ -1,12 +1,12 @@
 noinst_LTLIBRARIES = libpcbr.la
-libpcbr_la_SOURCES = likelihood.c rwrapper.c util.c tree.c thread.c
+libpcbr_la_SOURCES = likelihood.c util.c tree.c thread.c
 libpcbr_la_CFLAGS = $(WARN_CFLAGS) $(R_CFLAGS) $(GSL_CFLAGS)
 libpcbr_la_LIBADD = $(WARN_LDFLAGS) $(R_LIBS) $(GSL_LIBS)
 
 bin_PROGRAMS = pcbr
 pcbr_SOURCES = pcbr.c 
 pcbr_CFLAGS = $(WARN_CFLAGS) $(R_CFLAGS)
-pcbr_LDADD = $(WARN_LDFLAGS) $(R_LDFLAGS) libpcbr.la $(top_builddir)/c-cmaes/libcmaes.la $(top_builddir)/C-Thread-Pool/libcthreadpool.la
+pcbr_LDADD = $(WARN_LDFLAGS) $(R_LIBS) libpcbr.la $(top_builddir)/c-cmaes/libcmaes.la $(top_builddir)/C-Thread-Pool/libcthreadpool.la
 
 if HAVE_PYMOD_BIO
 if HAVE_PYMOD_PYX

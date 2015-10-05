@@ -216,7 +216,7 @@ void subsample_tips(igraph_t *tree, int ntip, const gsl_rng *rng)
     }
     gsl_ran_choose(rng, VECTOR(keep_tips), ntip, VECTOR(tips), orig_ntip, sizeof(igraph_real_t));
 
-    igraph_neighborhood(tree, &nbhd, igraph_vss_vector(&keep_tips), INT_MAX, IGRAPH_IN, 0);
+    igraph_neighborhood(tree, &nbhd, igraph_vss_vector(&keep_tips), INT_MAX, IGRAPH_IN);
 
     for (i = 0; i < igraph_vector_ptr_size(&nbhd); ++i) {
         elem = (igraph_vector_t *) igraph_vector_ptr_e(&nbhd, i);

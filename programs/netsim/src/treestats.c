@@ -386,17 +386,17 @@ double *branch_lengths(const igraph_t *tree)
 {
     igraph_inclist_t il;
     int i;
-    igraph_vector_int_t *edge;
+    igraph_vector_t *edge;
     double *branch_lengths = malloc(2 * igraph_vcount(tree) * sizeof(double));
 
     igraph_inclist_init(tree, &il, IGRAPH_OUT);
     for (i = 0; i < igraph_vcount(tree); ++i)
     {
         edge = igraph_inclist_get(&il, i);
-        if (igraph_vector_int_size(edge) > 0)
+        if (igraph_vector_size(edge) > 0)
         {
-            branch_lengths[2*i] = EAN(tree, "length", VECTOR(*edge)[0]);
-            branch_lengths[2*i+1] = EAN(tree, "length", VECTOR(*edge)[1]);
+            branch_lengths[2*i] = EAN(tree, "length", (int) VECTOR(*edge)[0]);
+            branch_lengths[2*i+1] = EAN(tree, "length", (int) VECTOR(*edge)[1]);
         }
     }
 
