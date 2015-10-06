@@ -9,8 +9,7 @@
 #include "../src/tree.h"
 #include "../src/mmpp.h"
 
-Suite *mmpp_suite(void);
-
+Suite *mmpp_suite(void); 
 // TODO: this is copypasta from check_tree
 FILE *newick_file(const char *newick)
 {
@@ -51,7 +50,17 @@ START_TEST(test_likelihood_toy)
 {
     igraph_t *tree = tree_from_newick("(t1:1,t2:1);");
     double theta[4] = {1, 2, 1, 3};
-    ck_assert(0);
+    ck_assert(fabs(pow(10, likelihood(tree, 2, theta)) - 0.0883478) < 1e-5);
+    igraph_destroy(tree);
+}
+END_TEST
+
+START_TEST(test_likelihood_toy3)
+{
+    igraph_t *tree = tree_from_newick("((t1:0.5,t2:1):0.75,t3:1);");
+    double theta[4] = {1, 2, 1, 3};
+    fprintf(stderr, "%f\n", pow(10, likelihood(tree, 2, theta)));
+    ck_assert(fabs(pow(10, likelihood(tree, 2, theta)) - 0.02248663) < 1e-5);
     igraph_destroy(tree);
 }
 END_TEST
@@ -66,6 +75,7 @@ Suite *mmpp_suite(void)
     tc_core = tcase_create("Core");
     tcase_add_test(tc_core, test_guess_parameters);
     tcase_add_test(tc_core, test_likelihood_toy);
+    tcase_add_test(tc_core, test_likelihood_toy3);
     suite_add_tcase(s, tc_core);
 
     return s;

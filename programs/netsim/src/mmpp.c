@@ -106,10 +106,10 @@ double likelihood(const igraph_t *tree, int nrates, const double *theta)
                 L[i * nrates + pstate] = 0;
                 for (cstate = 0; cstate < nrates; ++cstate) {
                     if (lchild == -1) {
-                        L[i * nrates + pstate] += P[pstate * nrates + cstate];
+                        L[i * nrates + pstate] += P[i * nrates * nrates + pstate * nrates + cstate];
                     }
                     else {
-                        L[i * nrates + pstate] += P[pstate * nrates + cstate] *
+                        L[i * nrates + pstate] += P[i * nrates * nrates + pstate * nrates + cstate] *
                                                   L[lchild * nrates + cstate] *
                                                   L[rchild * nrates + cstate] *
                                                   theta[cstate];
@@ -117,6 +117,7 @@ double likelihood(const igraph_t *tree, int nrates, const double *theta)
                 }
             }
         }
+        fprintf(stderr, "%d: %f, %f\n", i, L[i * nrates], L[i * nrates + 1]);
         new_scale = get_scale(&L[i * nrates], nrates);
         for (pstate = 0; pstate < nrates; ++pstate)
         {
@@ -180,9 +181,6 @@ void calculate_P(const igraph_t *tree, int nrates, const double *theta, double *
     EANV(tree, "length", &branch_lengths);
 
     order(VECTOR(branch_lengths), bl_order, sizeof(double), igraph_ecount(tree), compare_doubles);
-    for (i = 0; i < igraph_ecount(tree); ++i)
-        fprintf(stderr, "%d\t%f\n", bl_order[i], VECTOR(branch_lengths)[bl_order[i]]);
-    fprintf(stderr, "\n");
 
     // set the values at the root of the tree to the identity
     memcpy(&P[root(tree) * nrates * nrates], y, nrates * nrates * sizeof(double));
@@ -190,7 +188,6 @@ void calculate_P(const igraph_t *tree, int nrates, const double *theta, double *
     // calculate values for each branch
     for (i = 0; i < igraph_ecount(tree); ++i)
     {
-        fprintf(stderr, "%d\t%f\n", bl_order[i], VECTOR(branch_lengths)[bl_order[i]]);
         if (VECTOR(branch_lengths)[bl_order[i]] != t)
             gsl_odeiv2_driver_apply(d, &t, VECTOR(branch_lengths)[bl_order[i]], y);
         igraph_edge(tree, bl_order[i], &from, &to);
