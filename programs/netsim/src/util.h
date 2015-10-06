@@ -105,6 +105,6 @@ double max_doubles(double *x, int n);
  *  \param[in,out] ptr place to put new memory block
  *  \param[in] size amount of memory to allocate
  */
-void safe_realloc(void *ptr, size_t size);
+void *safe_realloc(void *ptr, size_t size);
 
 #endif

@@ -1,10 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <float.h>
-#include <igraph/igraph.h>
-#include <gsl/gsl_matrix.h>
-#include <gsl/gsl_eigen.h>
+#include <float.h> #include <igraph/igraph.h> #include <gsl/gsl_matrix.h> #include <gsl/gsl_eigen.h>
 #include <gsl/gsl_odeiv2.h>
 #include <gsl/gsl_cblas.h>
 #include "../c-cmaes/cmaes_interface.h"
@@ -15,7 +12,7 @@
 #include "stats.h"
 
 #define CMAES_POP_SIZE 100
-#define MAX_NRATES 5
+#define MAX_NRATES 2
 
 struct ck_params {
     int nrates;
@@ -59,10 +56,7 @@ int fit_mmpp(const igraph_t *tree, int nrates, double *theta, int trace,
     if (error) return error;
     for (i = 2; i <= MAX_NRATES; ++i)
     {
-        tmp = realloc(theta, nrates * nrates * sizeof(double));
-        if (tmp == NULL) return 1;
-        theta = tmp;
-
+        theta = safe_realloc(theta, nrates * nrates * sizeof(double));
         error = _fit_mmpp(tree, 1, theta, trace, cmaes_settings, states, &loglik);
         if (error) return error;
     }

@@ -84,7 +84,7 @@ struct mmpp_options get_options(int argc, char **argv)
         .cmaes_settings = NULL,
         .seed = -1,
         .trace = 0,
-        .nrates = 2,
+        .nrates = 0,
         .ms = LRT
     };
 

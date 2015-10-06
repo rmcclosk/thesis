@@ -123,7 +123,7 @@ double max_doubles(double *x, int n)
     return max;
 }
 
-void safe_realloc(void *ptr, size_t size)
+void *safe_realloc(void *ptr, size_t size)
 {
     void *tmp = realloc(ptr, size);
     if (tmp == NULL)
