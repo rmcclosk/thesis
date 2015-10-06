@@ -2,10 +2,8 @@
 #include <math.h>
 #include <float.h>
 #include <pll/pll.h>
-#include <Rinternals.h>
 #include <gsl/gsl_linalg.h>
 #include "../src/likelihood.h"
-#include "../src/rwrapper.h"
 #include "config.h"
 
 Suite *likelihood_suite(void);
@@ -629,14 +627,10 @@ int main(void)
     Suite *s;
     SRunner *sr;
 
-    setenv("R_HOME", R_HOME, 0);
-
     s = likelihood_suite();
     sr = srunner_create(s);
 
-    start_R();
     srunner_run_all(sr, CK_NORMAL);
-    stop_R();
     number_failed = srunner_ntests_failed(sr);
     srunner_free(sr);
     return number_failed;

@@ -2,9 +2,9 @@ AM_YFLAGS = -d
 BUILT_SOURCES = newick_parser.h
 
 noinst_LTLIBRARIES = libnetsim.la
-libnetsim_la_SOURCES = util.c tree.c treestats.c simulate.c newick_parser.y newick_lexer.l
-libnetsim_la_CFLAGS = $(WARN_CFLAGS)
-libnetsim_la_LIBADD = $(WARN_LDFLAGS)
+libnetsim_la_SOURCES = util.h util.c tree.h tree.c treestats.h treestats.c mmpp.h mmpp.c simulate.h simulate.c newick_parser.h newick_parser.y newick_lexer.l
+libnetsim_la_CFLAGS = $(GSL_CFLAGS) $(WARN_CFLAGS)
+libnetsim_la_LIBADD = $(GSL_LIBS) $(WARN_LDFLAGS)
 
 bin_PROGRAMS = nettree treekernel
 

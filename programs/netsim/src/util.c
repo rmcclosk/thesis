@@ -1,8 +1,11 @@
 #include <stdlib.h>
 #include <string.h>
+#include <float.h>
 #include <gsl/gsl_rng.h>
 #include <igraph/igraph.h>
 #include "util.h"
+
+#define LOG_ZERO DBL_MIN_10_EXP / 2
 
 gsl_rng *set_seed(int seed)
 {
@@ -61,4 +64,26 @@ void rotl(void *x, size_t nx, size_t n)
     memmove(x, x + n, nx - n); // shift x left by nx - n bytes
     memcpy(x + nx - n, tmp, n); // copy first n bytes into last n bytes
     free(tmp);
+}
+
+int get_scale(double *x, int n)
+{
+    int i, nkeep = 0;
+    double ilog, logsum = 0, logmax = LOG_ZERO;
+
+    for (i = 0; i < n; ++i)
+        logmax = fmax(x[i] == 0 ? LOG_ZERO : log10(x[i]), logmax);
+
+    for (i = 0; i < n; ++i) {
+        if (x[i] > 0) {
+            ilog = log10(x[i]);
+            if (ilog - logmax > LOG_ZERO) {
+                logsum += ilog;
+                nkeep += 1;
+            }
+        }
+    }
+    if (nkeep == 0)
+        return 0;
+    return (int) ceil(logsum / nkeep);
 }

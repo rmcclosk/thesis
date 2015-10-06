@@ -10,7 +10,6 @@
 #include <pthread.h>
 #include <signal.h>
 #include "likelihood.h"
-//#include "rwrapper.h"
 #include "util.h"
 #include "tree.h"
 #include "thread.h"
@@ -39,6 +38,7 @@ typedef struct {
 command_args parse_args(int argc, char *argv[]);
 double fit(pllNewickTree *tree, double *result, int nrates, threadpool thpool, int nthread, command_args *cmd_args);
 void print_rates(double *result, int nrates, double branch_scale);
+
 void usage(void)
 #if HAVE_FUNC_ATTRIBUTE_NORETURN
 __attribute ((noreturn))
@@ -74,6 +74,111 @@ void print_rates(double *result, int nrates, double branch_scale)
         else
             fprintf(stderr, " ]\n");
     }
+}
+
+void usage(void)
+{
+    fprintf(stderr, "Usage: %s [OPTIONS] TREE_FILE\n", PACKAGE_NAME);
+    fprintf(stderr, "Model-based phylogenetic clustering by branching rates\n");
+    fprintf(stderr, "Example: %s -n 3 -a rates.tsv -n out.nwk -c clusters.tsv tree.nwk\n\n", PACKAGE_NAME);
+    fprintf(stderr, "Options:\n");
+    fprintf(stderr, "  -h, --help                Show this message\n");
+    fprintf(stderr, "  -r, --rates               Number of branching rates to fit\n");
+    fprintf(stderr, "                            If not supplied, decide by likelihood ratio test\n");
+    fprintf(stderr, "  -a, --annot-outfile       File to write fitted branching rates for each node\n");
+    fprintf(stderr, "                            Default: no output\n");
+    fprintf(stderr, "  -f, --tip-pdf             Treat sampling as branching\n");
+    fprintf(stderr, "  -x, --cheating            Always assign tips same state as parents\n");
+    fprintf(stderr, "  -n, --newick-outfile      File to write annotated Newick tree\n");
+    fprintf(stderr, "                            Default: stdout\n");
+    fprintf(stderr, "  -u, --use-tips            Use tips for inference (yes/trans/no)\n");
+    fprintf(stderr, "  -p, --trans-per-branch    Allowed transitions per branch (one/any)\n");
+    fprintf(stderr, "  -c, --cluster-outfile     File to write cluster assignments for each node\n");
+    fprintf(stderr, "                            Default: no output\n");
+    fprintf(stderr, "  -t, --num-threads         Number of threads to use\n");
+    fprintf(stderr, "                            Default: 1\n");
+    exit(EXIT_FAILURE);
+}
+
+command_args parse_args(int argc, char *argv[])
+{
+    int i = 0, c = 0;
+    command_args args = {
+        .nrate = 0, 
+        .nthread = 1, 
+        .ut = YES,
+        .tpb = ANY,
+        .tip_pdf = 0,
+        .cheating = 0,
+        .newick_outfile = stdout, 
+        .annot_outfile = NULL, 
+        .cluster_outfile = NULL};
+
+	// read arguments
+    static struct option long_options[] = {
+        {"rates", required_argument, 0, 'r'},
+        {"use-tips", required_argument, 0, 'u'},
+        {"trans-per-branch", required_argument, 0, 'p'},
+        {"tip-pdf", no_argument, 0, 'f'},
+        {"cheating", no_argument, 0, 'x'},
+        {"annot-outfile", required_argument, 0, 'a'},
+        {"newick-outfile", required_argument, 0, 'n'},
+        {"cluster-outfile", required_argument, 0, 'c'},
+        {"num-threads", required_argument, 0, 't'},
+        {"help", no_argument, 0, 'h'},
+        {0, 0, 0, 0}
+    };
+
+    while ((c = getopt_long(argc, argv, "a:c:fn:p:r:t:u:hx", long_options, &i)) != -1) {
+        switch (c) {
+            case 0:
+                break;
+            case 'r':
+                args.nrate = atoi(optarg);
+                break;
+            case 'a':
+                args.annot_outfile = fopen(optarg, "w");
+                break;
+            case 'f':
+                args.tip_pdf = 1;
+                break;
+            case 'n':
+                args.newick_outfile = fopen(optarg, "w");
+                break;
+            case 'p':
+                if (strcmp(optarg, "one"))
+                    args.tpb = ONE;
+                else if (strcmp(optarg, "any"))
+                    args.tpb = ANY;
+            case 'c':
+                args.cluster_outfile = fopen(optarg, "w");
+                break;
+            case 't':
+                args.nthread = atoi(optarg);
+                break;
+            case 'u':
+                if (strcmp(optarg, "yes") == 0)
+                    args.ut = YES;
+                else if (strcmp(optarg, "trans") == 0)
+                    args.ut = TRANS_ONLY;
+                else if (strcmp(optarg, "no") == 0)
+                    args.ut = NO;
+                break;
+            case 'x':
+                args.cheating = 1;
+                break;
+            case 'h':
+                usage();
+            case '?':
+                break;
+            default:
+                usage();
+        }
+    }
+    if (optind == argc)
+        usage();
+
+    return args;
 }
 
 double fit(pllNewickTree *tree, double *result, int nrates, threadpool thpool, int nthread, command_args *cmd_args)
@@ -172,108 +277,6 @@ double fit(pllNewickTree *tree, double *result, int nrates, threadpool thpool, i
     return loglik;
 }
 
-void usage(void)
-{
-    fprintf(stderr, "Usage: %s [OPTIONS] TREE_FILE\n", PACKAGE_NAME);
-    fprintf(stderr, "Model-based phylogenetic clustering by branching rates\n");
-    fprintf(stderr, "Example: %s -n 3 -a rates.tsv -n out.nwk -c clusters.tsv tree.nwk\n\n", PACKAGE_NAME);
-    fprintf(stderr, "Options:\n");
-    fprintf(stderr, "  -h, --help                Show this message\n");
-    fprintf(stderr, "  -r, --rates               Number of branching rates to fit\n");
-    fprintf(stderr, "                            If not supplied, decide by likelihood ratio test\n");
-    fprintf(stderr, "  -a, --annot-outfile       File to write fitted branching rates for each node\n");
-    fprintf(stderr, "                            Default: no output\n");
-    fprintf(stderr, "  -f, --tip-pdf             Treat sampling as branching\n");
-    fprintf(stderr, "  -x, --cheating            Always assign tips same state as parents\n");
-    fprintf(stderr, "  -n, --newick-outfile      File to write annotated Newick tree\n");
-    fprintf(stderr, "                            Default: stdout\n");
-    fprintf(stderr, "  -u, --use-tips            Use tips for inference (yes/trans/no)\n");
-    fprintf(stderr, "  -p, --trans-per-branch    Allowed transitions per branch (one/any)\n");
-    fprintf(stderr, "  -c, --cluster-outfile     File to write cluster assignments for each node\n");
-    fprintf(stderr, "                            Default: no output\n");
-    fprintf(stderr, "  -t, --num-threads         Number of threads to use\n");
-    fprintf(stderr, "                            Default: 1\n");
-    exit(EXIT_FAILURE);
-}
-
-command_args parse_args(int argc, char *argv[])
-{
-    int i = 0, c = 0;
-    command_args args = {
-        .nrate = 0, 
-        .nthread = 1, 
-        .ut = YES,
-        .tpb = ANY,
-        .tip_pdf = 0,
-        .cheating = 0,
-        .newick_outfile = stdout, 
-        .annot_outfile = NULL, 
-        .cluster_outfile = NULL};
-
-	// read arguments
-    static struct option long_options[] = {
-        {"rates", required_argument, 0, 'r'},
-        {"use-tips", required_argument, 0, 'u'},
-        {"trans-per-branch", required_argument, 0, 'p'},
-        {"tip-pdf", no_argument, 0, 'f'},
-        {"cheating", no_argument, 0, 'x'},
-        {"annot-outfile", required_argument, 0, 'a'},
-        {"newick-outfile", required_argument, 0, 'n'},
-        {"cluster-outfile", required_argument, 0, 'c'},
-        {"num-threads", required_argument, 0, 't'},
-        {"help", no_argument, 0, 'h'},
-        {0, 0, 0, 0}
-    };
-
-    while ((c = getopt_long(argc, argv, "a:c:fn:p:r:t:u:hx", long_options, &i)) != -1) {
-        switch (c) {
-            case 0:
-                break;
-            case 'r':
-                args.nrate = atoi(optarg);
-                break;
-            case 'a':
-                args.annot_outfile = fopen(optarg, "w");
-                break;
-            case 'f':
-                args.tip_pdf = 1;
-                break;
-            case 'n':
-                args.newick_outfile = fopen(optarg, "w");
-                break;
-            case 'p':
-                if (strcmp(optarg, "one"))
-                    args.tpb = ONE;
-                else if (strcmp(optarg, "any"))
-                    args.tpb = ANY;
-            case 'c':
-                args.cluster_outfile = fopen(optarg, "w");
-                break;
-            case 't':
-                args.nthread = atoi(optarg);
-                break;
-            case 'u':
-                if (strcmp(optarg, "yes") == 0)
-                    args.ut = YES;
-                else if (strcmp(optarg, "trans") == 0)
-                    args.ut = TRANS_ONLY;
-                else if (strcmp(optarg, "no") == 0)
-                    args.ut = NO;
-                break;
-            case 'x':
-                args.cheating = 1;
-            case 'h':
-                usage();
-            default:
-                usage();
-        }
-    }
-    if (optind == argc)
-        usage();
-
-    return args;
-}
-
 int main(int argc, char *argv[])
 {
     int i = 0;
@@ -295,13 +298,6 @@ int main(int argc, char *argv[])
     // read tree
 	tree = pllNewickParseFile(argv[optind]);
     newick_out = malloc(tree->nodes * 100);
-
-    // start embedded R
-    setenv("R_HOME", R_HOME, 0);
-    //start_R();
-
-    // remove R's SIGINT handler
-    signal(SIGINT, SIG_DFL);
 
     // set initial standard deviations (could be better)
     for (i = 0; i < MAX_NRATES*MAX_NRATES+1; ++i)
@@ -381,7 +377,6 @@ int main(int argc, char *argv[])
     }
 
 	// clean up
-    //stop_R();
 	pllNewickParseDestroy(&tree);
     pcbr_free(w);
     free(cur_args);

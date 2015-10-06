@@ -65,4 +65,15 @@ void order(const void *base, int *order, size_t size, int nitems,
  */
 void rotl(void *x, size_t nx, size_t n);
 
+/** Get a log10 scale factor for some numbers.
+ *
+ * The numbers can be divided by 10 to the power of the returned value, to keep
+ * them in a reasonable range.
+ *
+ * \param[in] x the numbers to scale
+ * \param]in] n the length of x
+ * \return the base 10 logarithm of a scaling factor to divide both numbers by
+ */
+int get_scale(double *x, int n);
+
 #endif

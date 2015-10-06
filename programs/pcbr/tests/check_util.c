@@ -3,15 +3,6 @@
 
 Suite *util_suite(void);
 
-START_TEST (test_swap)
-{
-    double test[4] = {1, 2, 3, 4};
-    swap(test, 0, 2);
-    ck_assert(test[0] == 3);
-    ck_assert(test[2] == 1);
-}
-END_TEST
-
 START_TEST (test_get_scale_nonzero)
 {
     double x[2] = { 1e5, 1e-10 };
@@ -76,7 +67,6 @@ Suite *util_suite(void)
     s = suite_create("util");
 
     tc_core = tcase_create("Core");
-    tcase_add_test(tc_core, test_swap);
     tcase_add_test(tc_core, test_get_scale_zero);
     tcase_add_test(tc_core, test_get_scale_nonzero);
     tcase_add_test(tc_core, test_get_scale_tiny);

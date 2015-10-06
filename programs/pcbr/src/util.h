@@ -2,14 +2,6 @@
 
 #define LOG_ZERO DBL_MIN_10_EXP / 2
 
-/** Swap two values in a double array.
- *
- * \param x an array of doubles
- * \param i index of first variable to swap
- * \param j index of second variable to swap
- */
-void swap(double *x, int i, int j);
-
 /** Find the index of the maximum element in a double array.
  *
  * \param x an array of doubles

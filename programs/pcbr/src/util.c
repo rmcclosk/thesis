@@ -2,14 +2,6 @@
 #include <stdlib.h>
 #include "util.h"
 
-void swap(double *x, int i, int j)
-{
-    double tmp = x[i];
-
-    x[i] = x[j];
-    x[j] = tmp;
-}
-
 int which_max(double *x, int n)
 {
     double max = x[0];

@@ -3,19 +3,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <signal.h>
 #include <pll/pll.h>
+#include <igraph/igraph.h>
 #include <math.h>
 #include <assert.h>
-//#include <Rinternals.h>
-//#include <Rembedded.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_odeiv2.h>
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_randist.h>
 #include "likelihood.h"
-//#include "rwrapper.h"
 #include "util.h"
 
 // helpers for dynamic programming
@@ -29,11 +26,6 @@
 #define t(i) (w->t[ (i) ])
 
 #define ROOT w->nnode - 1
-
-#define USE_TIPS TRANS_ONLY
-#define TRANS_PER_BRANCH ONE
-#define CHEATING 0
-#define TIP_PDF 0
 
 void calculate_P(pcbr_workspace *w, double *lambda, trans_per_branch tpb, 
                  use_tips ut);
@@ -150,8 +142,6 @@ void guess_parameters(pcbr_workspace *w, double *args)
     double *int_edges = malloc(nbranch * sizeof(double));
     double *guess = malloc(nrates * sizeof(double));
     int i, intcur = 0;
-
-    //R_library("mixdist");
 
     // collect the branch lengths
     int_edges = malloc(nbranch * sizeof(double));

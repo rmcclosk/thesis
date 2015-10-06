@@ -76,6 +76,10 @@ struct treekernel_options get_options(int argc, char **argv)
                 else if (strcmp(optarg, "median") == 0) {
                     opts.scale_branches = MEDIAN;
                 }
+                else if (strcmp(optarg, "max") == 0) {
+                    opts.scale_branches = MAX;
+                }
+                break;
             default:
                 break;
         }

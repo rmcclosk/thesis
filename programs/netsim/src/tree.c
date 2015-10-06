@@ -136,6 +136,9 @@ void scale_branches(igraph_t *tree, scaling mode)
             igraph_vector_sort(&vec);
             scale = gsl_stats_median_from_sorted_data(VECTOR(vec), 1, igraph_ecount(tree));
             break;
+        case MAX:
+            scale = igraph_vector_max(&vec);
+            break;
         default:
             scale = 1.;
             break;
@@ -216,7 +219,7 @@ void subsample_tips(igraph_t *tree, int ntip, const gsl_rng *rng)
     }
     gsl_ran_choose(rng, VECTOR(keep_tips), ntip, VECTOR(tips), orig_ntip, sizeof(igraph_real_t));
 
-    igraph_neighborhood(tree, &nbhd, igraph_vss_vector(&keep_tips), INT_MAX, IGRAPH_IN);
+    igraph_neighborhood(tree, &nbhd, igraph_vss_vector(&keep_tips), INT_MAX, IGRAPH_IN, 0);
 
     for (i = 0; i < igraph_vector_ptr_size(&nbhd); ++i) {
         elem = (igraph_vector_t *) igraph_vector_ptr_e(&nbhd, i);

@@ -151,8 +151,6 @@ START_TEST(test_depths)
 
     depths(tree, calc_depths);
     qsort(calc_depths, 7, sizeof(double), compare_doubles);
-    for (i = 0; i < 7; ++i)
-        fprintf(stderr, "%f\n", calc_depths[i]);
 
     ck_assert(fabs(calc_depths[0] - 0.0) < 1e-5);
     ck_assert(fabs(calc_depths[1] - 0.4) < 1e-5);
@@ -253,6 +251,25 @@ START_TEST(test_scale_branches_median)
 }
 END_TEST
 
+START_TEST(test_scale_branches_max)
+{
+    igraph_t *tree = tree_from_newick("(t1:0.4,((t3:0.05,t2:0.8):0.8,t4:0.25):0.4);");
+    igraph_vector_t v1 = new_vector();
+    igraph_vector_t v2 = new_vector();
+
+    EANV(tree, "length", &v1);
+    igraph_vector_scale(&v1, 1./0.8);
+    scale_branches(tree, MAX);
+    EANV(tree, "length", &v2);
+
+    ck_assert(fabs(igraph_vector_maxdifference(&v1, &v2) < 1e-5));
+
+    igraph_vector_destroy(&v1);
+    igraph_vector_destroy(&v2);
+    igraph_destroy(tree);
+}
+END_TEST
+
 START_TEST(test_cut_at_time_extinct)
 {
     igraph_t *tree = tree_from_newick("(t1:0.4,((t3:0.05,t2:0.8):0.88,t4:0.25):0.46);");
@@ -328,6 +345,7 @@ Suite *tree_suite(void)
     tcase_add_test(tc_tree, test_scale_branches_none);
     tcase_add_test(tc_tree, test_scale_branches_mean);
     tcase_add_test(tc_tree, test_scale_branches_median);
+    tcase_add_test(tc_tree, test_scale_branches_max);
     tcase_add_test(tc_tree, test_cut_at_time_extinct);
     tcase_add_test(tc_tree, test_cut_at_time_extant);
     tcase_add_test(tc_tree, test_subsample_tips);

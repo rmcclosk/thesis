@@ -13,18 +13,6 @@ AC_PROG_CC
 AC_PROG_INSTALL
 AM_PROG_AR
 
-AC_PATH_PROG([R], [R], [yes], [no])
-if test "$R" = no; then 
-    AC_MSG_ERROR([R is required]) 
-fi
-
-# TODO: make an AX macro out of this
-AC_CACHE_CHECK([for R package mixdist], [pcbr_cv_prog_Rmixdist_have], [
-    AS_IF([R --silent -e "library(mixdist)" 2>&1 > /dev/null], [pcbr_cv_prog_Rmixdist_have=yes], [
-         AC_MSG_ERROR([the R package "mixdist" is required])
-    ])
-])
-
 # Checks for Python and Python packages.
 AM_PATH_PYTHON([3.4], [], [:])
 AS_IF([test "x$PYTHON" != x:], [
@@ -48,15 +36,13 @@ LT_INIT
 AX_COMPILER_FLAGS()
 AX_GCC_FUNC_ATTRIBUTE([noreturn])
 
-# Environment variables
-AC_DEFINE_UNQUOTED([R_HOME], ["$(R RHOME)"], [R home directory])
-
 # Checks for libraries.
 AC_CHECK_LIB([m], [cos], [], [AC_MSG_ERROR([math.h is required])])
 AC_CHECK_LIB([gslcblas], [cblas_dgemm], [], [AC_MSG_ERROR([cblas is required])])
 AC_CHECK_LIB([gsl], [gsl_blas_dgemm], [], [AC_MSG_ERROR([gsl is required])])
+AC_CHECK_LIB([netsim], [parse_newick], [], [AC_MSG_ERROR([netsim is required])])
+AC_CHECK_LIB([igraph], [igraph_empty], [], [AC_MSG_ERROR([igraph is required])])
 PKG_CHECK_MODULES([CHECK], [check >= 0.9.4])
-PKG_CHECK_MODULES([R], [libR >= 0.26])
 AC_SEARCH_LIBS(pllNewickParseFile, [pll-avx pll-sse3 pll-generic], [], [
     AC_MSG_ERROR([pll is required])                                      
 ])
@@ -65,6 +51,7 @@ AX_PTHREAD()
 # Checks for header files.
 AC_HEADER_STDC
 AC_CHECK_HEADERS([stdlib.h string.h stddef.h])
+AC_CHECK_HEADERS([netsim/tree.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SIZE_T

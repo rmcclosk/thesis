@@ -7,6 +7,36 @@
 
 Suite *util_suite(void);
 
+START_TEST (test_get_scale_nonzero)
+{
+    double x[2] = { 1e5, 1e-10 };
+    int scale = get_scale(x, 2);
+    ck_assert_int_eq(scale, -2);
+}
+END_TEST
+
+START_TEST (test_get_scale_zero)
+{
+    double x[2] = { 1e5, 0 };
+    int scale = get_scale((double *) &x, 2);
+    ck_assert_int_eq(scale, 5);
+    x[0] = 0; x[1] = 1e5;
+    scale = get_scale((double *) &x, 2);
+    ck_assert_int_eq(scale, 5);
+}
+END_TEST
+
+START_TEST (test_get_scale_tiny)
+{
+    double x[2] = { 1e5, 1e-200 };
+    int scale = get_scale(x, 2);
+    ck_assert_int_eq(scale, 5);
+    x[0] = 1e-200; x[1] = 1e5;
+    scale = get_scale(x, 2);
+    ck_assert_int_eq(scale, 5);
+}
+END_TEST
+
 START_TEST (test_set_seed)
 {
     gsl_rng *rng = set_seed(0);
@@ -76,6 +106,9 @@ Suite *util_suite(void)
     s = suite_create("util");
 
     tc_core = tcase_create("Core");
+    tcase_add_test(tc_core, test_get_scale_zero);
+    tcase_add_test(tc_core, test_get_scale_nonzero);
+    tcase_add_test(tc_core, test_get_scale_tiny);
     tcase_add_test(tc_core, test_set_seed);
     tcase_add_test(tc_core, test_order_ints);
     tcase_add_test(tc_core, test_order_doubles);
