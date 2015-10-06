@@ -131,6 +131,26 @@ targeting people at random.
 * They don't say whether TNS was correlated with risk factors. I'm guessing
 not.
 
+**[@robinson2013dynamics]**
+
+* Reference 5 has some information about the relationship between a long-term
+aggregated contact network and an instantaneous contact network.
+* 5 also has a method to create networks based on a real survey of sexual
+contacts.
+* Apparently the method of choosing infection times from an exponential
+distribution, and then choosing infected nodes at random, is called a Gillespie
+simulation.
+* Network structure influences the relationship between an LTT plot and the
+underlying prevalence plot: could affect using LTT plots in the kernel.
+* Distribution of phylogenetic cluster sizes does not line up with degree
+distribution in the contact network.
+* Sackin's index is pretty bad at distinguishing network types, especially if
+the networks are dynamic (Figure 8).
+* It's still possible to distinguish trees from realistic vs. random networks
+if the incidence nand prevalence curves are very closely matched.
+* Imbalance, or rather the relationship between epidemic dynamics and
+imbalance, is significantly affected by sampling schemes (Figure 11).
+
 # Other Statistics
 
 **[@duchene2015evaluating]**

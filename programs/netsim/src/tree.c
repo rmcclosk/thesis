@@ -119,7 +119,7 @@ void write_tree_newick(const igraph_t *tree, FILE *f)
     free(s);
 }
 
-void scale_branches(igraph_t *tree, scaling mode)
+double scale_branches(igraph_t *tree, scaling mode)
 {
     int i;
     double scale;
@@ -148,6 +148,7 @@ void scale_branches(igraph_t *tree, scaling mode)
         SETEAN(tree, "length", i, EAN(tree, "length", i) / scale);
     }
     igraph_vector_destroy(&vec);
+    return 1.0 / scale;
 }
 
 void cut_at_time(igraph_t *tree, double t, int extant_only)

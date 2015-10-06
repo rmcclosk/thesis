@@ -71,9 +71,40 @@ void rotl(void *x, size_t nx, size_t n);
  * them in a reasonable range.
  *
  * \param[in] x the numbers to scale
- * \param]in] n the length of x
+ * \param[in] n the length of x
  * \return the base 10 logarithm of a scaling factor to divide both numbers by
  */
 int get_scale(double *x, int n);
+
+/** Find the index of the maximum element in an array of doubles.
+ *
+ * \param[in] x an array of doubles
+ * \param[in] n the length of x
+ * \return the index of the largest element in x
+ */
+int which_max(double *x, int n);
+
+/** Sum the elements of a double array.
+ *
+ * \param[in] x an array of doubles
+ * \param[in] n the number of elements to sum, up to the length of x
+ * \return the sum of the first n elements of x
+ */
+double sum_doubles(double *x, int n);
+
+/** Find the maximum element in an array of doubles.
+ *
+ * \param[in] x an array of doubles
+ * \param[in] n the length of x
+ * \return the largest element in x
+ */
+double max_doubles(double *x, int n);
+
+/** Allocate a block of memory, or abort if out of memory.
+ *
+ *  \param[in,out] ptr place to put new memory block
+ *  \param[in] size amount of memory to allocate
+ */
+void safe_realloc(void *ptr, size_t size);
 
 #endif

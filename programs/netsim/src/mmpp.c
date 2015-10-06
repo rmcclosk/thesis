@@ -1,22 +1,127 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <float.h>
 #include <igraph/igraph.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_eigen.h>
 #include <gsl/gsl_odeiv2.h>
 #include <gsl/gsl_cblas.h>
+#include "../c-cmaes/cmaes_interface.h"
+#include "../c-cmaes/boundary_transformation.h"
 #include "mmpp.h"
 #include "tree.h"
 #include "util.h"
+#include "stats.h"
+
+#define CMAES_POP_SIZE 100
+#define MAX_NRATES 5
 
 struct ck_params {
     int nrates;
     double *Q_minus_Lambda;
 };
+struct mmpp_workspace {
+    struct ck_params ckpar;
+    double *y;
+    double *P;
+    double *L;
+    double *Li;
+    int *C;
+    double *pi;
+    double *branch_lengths;
+    int *scale;
+    int *bl_order;
+    gsl_matrix *Q;
+    gsl_vector_complex *eval;
+    gsl_matrix_complex *evec;
+    gsl_eigen_nonsymmv_workspace *ew;
+    igraph_adjlist_t al;
+};
+
 int ckdiff(double t, const double y[], double f[], void *params);
-void calculate_P(const igraph_t *tree, int nrates, const double *theta, double *P);
-void calculate_pi(const igraph_t *tree, int nrates, const double *theta, double *pi);
+void calculate_P(const igraph_t *tree, int nrates, const double *theta, mmpp_workspace *w);
+void calculate_pi(const igraph_t *tree, int nrates, const double *theta, mmpp_workspace *w);
+void mmpp_workspace_set_params(mmpp_workspace *w, const double *theta);
+int _fit_mmpp(const igraph_t *tree, int nrates, double *theta, int trace,
+             const char *cmaes_settings, int *states, double *loglik);
+
+int fit_mmpp(const igraph_t *tree, int nrates, double *theta, int trace,
+             const char *cmaes_settings, int *states)
+{
+    double loglik, prev_loglik, *prev_theta;
+    int i, error;
+
+    if (nrates > 0)
+        return _fit_mmpp(tree, nrates, theta, trace, cmaes_settings, states, &loglik);
+
+    error = _fit_mmpp(tree, 1, theta, trace, cmaes_settings, states, &prev_loglik);
+    if (error) return error;
+    for (i = 2; i <= MAX_NRATES; ++i)
+    {
+        tmp = realloc(theta, nrates * nrates * sizeof(double));
+        if (tmp == NULL) return 1;
+        theta = tmp;
+
+        error = _fit_mmpp(tree, 1, theta, trace, cmaes_settings, states, &loglik);
+        if (error) return error;
+    }
+
+    return 0;
+}
+
+mmpp_workspace *mmpp_workspace_create(const igraph_t *tree, int nrates)
+{
+    struct mmpp_workspace *w = malloc(sizeof(struct mmpp_workspace));
+    igraph_vector_t vec;
+
+    w->ckpar.nrates = nrates;
+    w->ckpar.Q_minus_Lambda = malloc(nrates * nrates * sizeof(double));
+    w->y = malloc(nrates * nrates * sizeof(double));
+    w->P = malloc(nrates * nrates * igraph_vcount(tree) * sizeof(double));
+    w->L = malloc(nrates * igraph_vcount(tree) * sizeof(double));
+    w->Li = malloc(nrates * sizeof(double));
+    w->C = malloc(nrates * igraph_vcount(tree) * sizeof(int));
+    w->scale = malloc(igraph_vcount(tree) * sizeof(int));
+    w->pi = malloc(nrates * sizeof(double));
+    w->branch_lengths = malloc(igraph_ecount(tree) * sizeof(double));
+    w->bl_order = malloc(igraph_ecount(tree) * sizeof(int));
+    igraph_adjlist_init(tree, &w->al, IGRAPH_OUT);
+
+    w->Q = gsl_matrix_alloc(nrates, nrates);
+    w->eval = gsl_vector_complex_alloc(nrates);
+    w->evec = gsl_matrix_complex_alloc(nrates, nrates);
+    w->ew = gsl_eigen_nonsymmv_alloc(nrates);
+
+    // collect and order branch lengths
+    igraph_vector_init(&vec, igraph_ecount(tree));
+    EANV(tree, "length", &vec);
+    order(VECTOR(vec), w->bl_order, sizeof(double), igraph_ecount(tree), compare_doubles);
+    memcpy(w->branch_lengths, VECTOR(vec), igraph_ecount(tree) * sizeof(double));
+
+    igraph_vector_destroy(&vec);
+    return w;
+}
+
+void mmpp_workspace_free(mmpp_workspace *w)
+{
+    free(w->ckpar.Q_minus_Lambda);
+    free(w->y);
+    free(w->P);
+    free(w->L);
+    free(w->Li);
+    free(w->C);
+    free(w->scale);
+    free(w->pi);
+    free(w->bl_order);
+    free(w->branch_lengths);
+    igraph_adjlist_destroy(&w->al);
+    gsl_matrix_free(w->Q);
+    gsl_vector_complex_free(w->eval);
+    gsl_matrix_complex_free(w->evec);
+    gsl_eigen_nonsymmv_free(w->ew);
+    free(w);
+}
 
 void guess_parameters(const igraph_t *tree, int nrates, double *theta)
 {
@@ -62,99 +167,169 @@ void guess_parameters(const igraph_t *tree, int nrates, double *theta)
     free(int_edges);
 }
 
-double likelihood(const igraph_t *tree, int nrates, const double *theta)
+double likelihood(const igraph_t *tree, int nrates, const double *theta,
+                  mmpp_workspace *w, int reconstruct)
 { 
-    // TODO: some of this stuff (malloc'ing, the adjacency list, ...) can be
-    // done once beforehand
     int i, rt = root(tree);
-    double *P = malloc(nrates * nrates * igraph_vcount(tree) * sizeof(double));
-    double *L = malloc(nrates * igraph_vcount(tree) * sizeof(double));
-    double *pi = malloc(nrates * sizeof(double));
     double lik = 0;
-    int *scale = malloc(igraph_vcount(tree) * sizeof(int));
     int lchild, rchild, pstate, cstate, new_scale;
-    igraph_adjlist_t al;
     igraph_vector_int_t *children;
 
-    igraph_adjlist_init(tree, &al, IGRAPH_OUT);
-    calculate_P(tree, nrates, theta, P);
-    calculate_pi(tree, nrates, theta, pi);
+    mmpp_workspace_set_params(w, theta);
+    calculate_P(tree, nrates, theta, w);
+    calculate_pi(tree, nrates, theta, w);
 
     for (i = 0; i < igraph_vcount(tree); ++i)
     {
-        children = igraph_adjlist_get(&al, i);
+        children = igraph_adjlist_get(&w->al, i);
         if (igraph_vector_int_size(children) == 0)
         {
             lchild = -1; rchild = -1;
-            scale[i] = 0;
+            w->scale[i] = 0;
         }
         else
         {
             lchild = VECTOR(*children)[0];
             rchild = VECTOR(*children)[1];
-            scale[i] = scale[lchild] + scale[rchild];
+            w->scale[i] = w->scale[lchild] + w->scale[rchild];
         }
 
         for (pstate = 0; pstate < nrates; ++pstate)
         {
             if (i == rt) {
-                L[i * nrates + pstate] = pi[pstate] *
-                                         L[rchild * nrates + pstate] *
-                                         L[lchild * nrates + pstate];
+                w->L[i * nrates + pstate] = w->pi[pstate] *
+                                            w->L[rchild * nrates + pstate] *
+                                            w->L[lchild * nrates + pstate];
+                w->C[i * nrates + pstate] = pstate;
             } 
             else {
-                L[i * nrates + pstate] = 0;
                 for (cstate = 0; cstate < nrates; ++cstate) {
-                    if (lchild == -1) {
-                        L[i * nrates + pstate] += P[i * nrates * nrates + pstate * nrates + cstate];
+                    w->Li[cstate] = w->P[i * nrates * nrates + pstate * nrates + cstate];
+                    if (lchild != -1) {
+                        w->Li[cstate] *= w->L[lchild * nrates + cstate] *
+                                         w->L[rchild * nrates + cstate] *
+                                         theta[cstate];
                     }
-                    else {
-                        L[i * nrates + pstate] += P[i * nrates * nrates + pstate * nrates + cstate] *
-                                                  L[lchild * nrates + cstate] *
-                                                  L[rchild * nrates + cstate] *
-                                                  theta[cstate];
-                    }
+                }
+
+                if (reconstruct) {
+                    w->C[i * nrates + pstate] = which_max(w->Li, nrates);
+                    w->L[i * nrates + pstate] = w->Li[w->C[i * nrates + pstate]];
+                }
+                else {
+                    w->L[i * nrates + pstate] = sum_doubles(w->Li, nrates);
                 }
             }
         }
-        fprintf(stderr, "%d: %f, %f\n", i, L[i * nrates], L[i * nrates + 1]);
-        new_scale = get_scale(&L[i * nrates], nrates);
-        for (pstate = 0; pstate < nrates; ++pstate)
-        {
-            L[i * nrates + pstate] /= pow(10, new_scale);
+        new_scale = get_scale(&w->L[i * nrates], nrates);
+        for (pstate = 0; pstate < nrates; ++pstate) {
+            w->L[i * nrates + pstate] /= pow(10, new_scale);
         }
-        scale[i] += new_scale;
+        w->scale[i] += new_scale;
     }
 
-    for (pstate = 0; pstate < nrates; ++pstate)
+    lik = (reconstruct ? max_doubles : sum_doubles)(&w->L[rt * nrates], nrates);
+    return log10(lik) + w->scale[rt];
+}
+
+double reconstruct(const igraph_t *tree, int nrates, const double *theta,
+        mmpp_workspace *w, int *A)
+{
+    int i, rt = root(tree), lchild, rchild;
+    double lik = likelihood(tree, nrates, theta, w, 1);
+    igraph_vector_int_t *children;
+
+    A[rt] = which_max(&w->L[rt * nrates], nrates);
+    for (i = rt; i >= 0; --i)
     {
-        lik += L[rt * nrates + pstate];
+        children = igraph_adjlist_get(&w->al, i);
+        if (igraph_vector_int_size(children) > 0)
+        {
+            lchild = VECTOR(*children)[0];
+            rchild = VECTOR(*children)[1];
+            A[lchild] = w->C[lchild * nrates + A[i]];
+            A[rchild] = w->C[rchild * nrates + A[i]];
+        }
+    }
+}
+
+int _fit_mmpp(const igraph_t *tree, int nrates, double *theta, int trace,
+             const char *cmaes_settings, int *states, double *loglik)
+{
+    int i, j, dimension = nrates * nrates, error = 0;
+    double *lbound = malloc(dimension * sizeof(double));
+    double *ubound = malloc(dimension * sizeof(double));
+    double *init_sd = malloc(dimension * sizeof(double));
+    double *funvals, *const *pop;
+    struct mmpp_workspace *w = mmpp_workspace_create(tree, nrates);
+    cmaes_t evo;
+    cmaes_boundary_transformation_t bounds;
+
+    for (i = 0; i < dimension; ++i)
+    {
+        lbound[i] = -100;
+        ubound[i] = 10;
+        init_sd[i] = 1;
     }
 
-    igraph_adjlist_destroy(&al);
-    free(L);
-    free(P);
-    free(scale);
-    free(pi);
-    return log10(lik) + scale[rt];
+    cmaes_boundary_transformation_init(&bounds, lbound, ubound, dimension);
+
+    guess_parameters(tree, nrates, theta);
+    for (i = 0; i < dimension; ++i)
+        theta[i] = log(theta[i]);
+
+    funvals = cmaes_init(&evo, dimension, theta, init_sd, 0, CMAES_POP_SIZE, cmaes_settings);
+
+	while (!cmaes_TestForTermination(&evo)) {
+
+		pop = cmaes_SamplePopulation(&evo);
+		for (i = 0; i < CMAES_POP_SIZE; ++i) {
+            cmaes_boundary_transformation(&bounds, pop[i], theta, dimension);
+            for (j = 0; j < dimension; ++j)
+            {
+                theta[j] = exp(theta[j]);
+                if (trace)
+                    fprintf(stderr, "%f\t", theta[j]);
+            }
+            funvals[i] = -likelihood(tree, nrates, theta, w, 0);
+            if (funvals[i] != funvals[i])
+                funvals[i] = FLT_MAX;
+            if (trace)
+                fprintf(stderr, "%f\n", -funvals[i]);
+        }
+		cmaes_UpdateDistribution(&evo, funvals);
+    }
+
+    if (strncmp(cmaes_TestForTermination(&evo), "TolFun", 6) != 0)
+    {
+        error = 1;
+        fprintf(stderr, "%s\n", cmaes_TestForTermination(&evo));
+        goto cleanup;
+    }
+
+    cmaes_boundary_transformation(&bounds, 
+        (double const *) cmaes_GetPtr(&evo, "xbestever"), theta, dimension);
+    for (i = 0; i < dimension; ++i)
+        theta[i] = exp(theta[i]);
+    loglik[0] = likelihood(tree, nrates, theta, w, 0);
+    if (states != NULL)
+        reconstruct(tree, nrates, theta, w, states);
+
+    cleanup: cmaes_exit(&evo);
+    cmaes_boundary_transformation_exit(&bounds);
+    free(lbound);
+    free(ubound);
+    free(init_sd);
+    mmpp_workspace_free(w);
+    return error;
 }
 
 /* Private. */
-
-void calculate_P(const igraph_t *tree, int nrates, const double *theta, double *P)
+void mmpp_workspace_set_params(mmpp_workspace *w, const double *theta)
 {
-    int i, j, from, to, cur = nrates; 
-    int *bl_order = malloc((igraph_vcount(tree)-1) * sizeof(int));
-    double rowsum, t = 0.0;
-    double y[nrates * nrates];
-    struct ck_params ckpar;
-    gsl_odeiv2_system sys;
-    gsl_odeiv2_driver *d;
-    igraph_vector_t branch_lengths;
+    double rowsum = 0;
+    int i, j, nrates = w->ckpar.nrates, cur = nrates;
 
-    // set up ODE
-    ckpar.nrates = nrates;
-    ckpar.Q_minus_Lambda = malloc(nrates * nrates * sizeof(double));
     for (i = 0; i < nrates; ++i)
     {
         rowsum = 0;
@@ -162,85 +337,76 @@ void calculate_P(const igraph_t *tree, int nrates, const double *theta, double *
         {
             if (j != i)
             {
-                y[i * nrates + j] = 0;
-                ckpar.Q_minus_Lambda[i * nrates + j] = theta[cur];
+                w->y[i * nrates + j] = 0;
+                w->ckpar.Q_minus_Lambda[i * nrates + j] = theta[cur];
                 rowsum += theta[cur++];
             }
         }
-        ckpar.Q_minus_Lambda[i * nrates + i] = -rowsum - theta[i];
-        y[i * nrates + i] = 1;
+        w->ckpar.Q_minus_Lambda[i * nrates + i] = -rowsum - theta[i];
+        w->y[i * nrates + i] = 1;
     }
+}
+
+void calculate_P(const igraph_t *tree, int nrates, const double *theta,
+        struct mmpp_workspace *w)
+{
+    int i, j, from, to, cur = nrates; 
+    double t = 0.0;
+    gsl_odeiv2_system sys;
+    gsl_odeiv2_driver *d;
+
+    // set up ODE
     sys.function = ckdiff;
     sys.jacobian = NULL;
     sys.dimension = nrates * nrates;
-    sys.params = &ckpar;
-    d = gsl_odeiv2_driver_alloc_y_new(&sys, gsl_odeiv2_step_rk8pd, 1e-6, 1e-6, 0.0);
-
-    // collect and order branch lengths
-    igraph_vector_init(&branch_lengths, igraph_vcount(tree)-1);
-    EANV(tree, "length", &branch_lengths);
-
-    order(VECTOR(branch_lengths), bl_order, sizeof(double), igraph_ecount(tree), compare_doubles);
+    sys.params = &w->ckpar;
+    d = gsl_odeiv2_driver_alloc_y_new(&sys, gsl_odeiv2_step_rkf45, 1e-6, 1e-6, 0.0);
 
     // set the values at the root of the tree to the identity
-    memcpy(&P[root(tree) * nrates * nrates], y, nrates * nrates * sizeof(double));
+    memcpy(&w->P[root(tree) * nrates * nrates], w->y, nrates * nrates * sizeof(double));
 
     // calculate values for each branch
     for (i = 0; i < igraph_ecount(tree); ++i)
     {
-        if (VECTOR(branch_lengths)[bl_order[i]] != t)
-            gsl_odeiv2_driver_apply(d, &t, VECTOR(branch_lengths)[bl_order[i]], y);
-        igraph_edge(tree, bl_order[i], &from, &to);
-        memcpy(&P[to * nrates * nrates], y, nrates * nrates * sizeof(double));
+        if (w->branch_lengths[w->bl_order[i]] != t)
+            gsl_odeiv2_driver_apply(d, &t, w->branch_lengths[w->bl_order[i]], w->y);
+        igraph_edge(tree, w->bl_order[i], &from, &to);
+        memcpy(&w->P[to * nrates * nrates], w->y, nrates * nrates * sizeof(double));
     }
 
-    // clean up
-    free(bl_order);
-    free(ckpar.Q_minus_Lambda);
-    igraph_vector_destroy(&branch_lengths);
     gsl_odeiv2_driver_free(d);
 }
 
-void calculate_pi(const igraph_t *tree, int nrates, const double *theta, double *pi)
+void calculate_pi(const igraph_t *tree, int nrates, const double *theta, mmpp_workspace *w)
 {
-    // TODO: malloc beforehand
-    gsl_matrix *Q = gsl_matrix_alloc(nrates, nrates);
     int i, j, cur = nrates;
     double sum;
-    gsl_vector_complex *eval = gsl_vector_complex_alloc(nrates);
-    gsl_matrix_complex *evec = gsl_matrix_complex_alloc(nrates, nrates);
-    gsl_eigen_nonsymmv_workspace *w = gsl_eigen_nonsymmv_alloc(nrates);
 
     // calculate Q
     for (i = 0; i < nrates; ++i) {
         sum = 0;
         for (j = 0; j < nrates; ++j) {
             if (i != j) {
-                gsl_matrix_set(Q, i, j, theta[cur]);
+                gsl_matrix_set(w->Q, i, j, theta[cur]);
                 sum += theta[cur++];
             }
         }
-        gsl_matrix_set(Q, i, i, -sum);
+        gsl_matrix_set(w->Q, i, i, -sum);
     }
 
     // calculate pi
-    gsl_matrix_transpose(Q);
-    gsl_eigen_nonsymmv(Q, eval, evec, w);
-    gsl_eigen_nonsymmv_sort(eval, evec, GSL_EIGEN_SORT_ABS_ASC);
+    gsl_matrix_transpose(w->Q);
+    gsl_eigen_nonsymmv(w->Q, w->eval, w->evec, w->ew);
+    gsl_eigen_nonsymmv_sort(w->eval, w->evec, GSL_EIGEN_SORT_ABS_ASC);
 
     sum = 0;
     for (i = 0; i < nrates; ++i)
     {
-        pi[i] = GSL_REAL(gsl_matrix_complex_get(evec, i, 0));
-        sum += pi[i];
+        w->pi[i] = GSL_REAL(gsl_matrix_complex_get(w->evec, i, 0));
+        sum += w->pi[i];
     }
     for (i = 0; i < nrates; ++i)
-        pi[i] /= sum;
-
-    gsl_matrix_free(Q);
-    gsl_vector_complex_free(eval);
-    gsl_matrix_complex_free(evec);
-    gsl_eigen_nonsymmv_free(w);
+        w->pi[i] /= sum;
 }
 
 int ckdiff(double t, const double y[], double f[], void *params)

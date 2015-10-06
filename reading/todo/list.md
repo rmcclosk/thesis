@@ -1,7 +1,3 @@
-## little2014using
-
-Same as above.
-
 ## fearnhead2012constructing
 
 Automatic computation of summary statistics for ABC.
@@ -34,9 +30,10 @@ Phylogenetic clustering in UK.
 
 Review paper of viral phylodynamics.
 
-## robinson2013dynamics
+## robinson2012dynamics
 
-Effect of contact network structure on phylogeny shape.
+Relationship between aggregated and instantaneous contact networks, and a way
+to simulate realistic (based on a demographic survey) networks.
 
 ## hohna2015tess
 

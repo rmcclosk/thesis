@@ -87,3 +87,46 @@ int get_scale(double *x, int n)
         return 0;
     return (int) ceil(logsum / nkeep);
 }
+
+int which_max(double *x, int n)
+{
+    double max = x[0];
+    int which_max = 0;
+    int i;
+
+    for (i = 1; i < n; ++i) {
+        if (max < x[i]) {
+            max = x[i];
+            which_max = i;
+        }
+    }
+    return which_max;
+}
+
+double sum_doubles(double *x, int n)
+{
+    int i;
+    double sum = 0;
+
+    for (i = 0; i < n; ++i)
+        sum += x[i];
+    return sum;
+}
+
+double max_doubles(double *x, int n)
+{
+    int i;
+    double max = x[0];
+
+    for (i = 1; i < n; ++i)
+        max = fmax(max, x[i]);
+    return max;
+}
+
+void safe_realloc(void *ptr, size_t size)
+{
+    void *tmp = realloc(ptr, size);
+    if (tmp == NULL)
+        abort();
+    return tmp;
+}

@@ -50,7 +50,8 @@ START_TEST(test_likelihood_toy)
 {
     igraph_t *tree = tree_from_newick("(t1:1,t2:1);");
     double theta[4] = {1, 2, 1, 3};
-    ck_assert(fabs(pow(10, likelihood(tree, 2, theta)) - 0.0883478) < 1e-5);
+    mmpp_workspace *w = mmpp_workspace_create(tree, 2);
+    ck_assert(fabs(pow(10, likelihood(tree, 2, theta, w, 0)) - 0.0883478) < 1e-5);
     igraph_destroy(tree);
 }
 END_TEST
@@ -59,8 +60,8 @@ START_TEST(test_likelihood_toy3)
 {
     igraph_t *tree = tree_from_newick("((t1:0.5,t2:1):0.75,t3:1);");
     double theta[4] = {1, 2, 1, 3};
-    fprintf(stderr, "%f\n", pow(10, likelihood(tree, 2, theta)));
-    ck_assert(fabs(pow(10, likelihood(tree, 2, theta)) - 0.02248663) < 1e-5);
+    mmpp_workspace *w = mmpp_workspace_create(tree, 2);
+    ck_assert(fabs(pow(10, likelihood(tree, 2, theta, w, 0)) - 0.02248663) < 1e-5);
     igraph_destroy(tree);
 }
 END_TEST

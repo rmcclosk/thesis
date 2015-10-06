@@ -80,8 +80,9 @@ void ladderize(igraph_t *tree);
  *
  * \param[in,out] tree the tree to scale
  * \param[in] mode how to scale the branches
+ * \return the scale factor which all the branch lengths were multiplied by
  */
-void scale_branches(igraph_t *tree, scaling mode);
+double scale_branches(igraph_t *tree, scaling mode);
 
 /** Cut a tree at a specified time.
  *
