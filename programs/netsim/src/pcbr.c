@@ -10,11 +10,13 @@
 
 struct mmpp_options {
     FILE *tree_file;
+    FILE *output;
     scaling scale_branches;
     char *cmaes_settings;
     int seed;
     int trace;
     int nrates;
+    int cluster_states;
     model_selector ms;
 };
 
@@ -27,6 +29,8 @@ struct option long_options[] =
     {"trace", no_argument, 0, 't'},
     {"rates", required_argument, 0, 'r'},
     {"model-selector", required_argument, 0, 'm'},
+    {"cluster-states", required_argument, 0, 'l'},
+    {"output", required_argument, 0, 'o'},
     {0, 0, 0, 0}
 };
 
@@ -42,6 +46,8 @@ void usage(void)
     fprintf(stderr, "  -r, --rates               number of rates to fit\n");
     fprintf(stderr, "  -m, --model-selector      test used to select number of rates\n");
     fprintf(stderr, "                            (lrt/aic/bic)\n");
+    fprintf(stderr, "  -l, --cluster-states      number of highest states to use for clustering\n");
+    fprintf(stderr, "  -o, --output              write clustering results and rates here\n");
 }
 
 void display_results(int nrates, double *theta, double branch_scale)
@@ -81,16 +87,18 @@ struct mmpp_options get_options(int argc, char **argv)
     struct mmpp_options opts = {
         .scale_branches = MAX,
         .tree_file = stdin,
+        .output = stdout,
         .cmaes_settings = NULL,
         .seed = -1,
         .trace = 0,
         .nrates = 0,
+        .cluster_states = 1,
         .ms = LRT
     };
 
     while (c != -1)
     {
-        c = getopt_long(argc, argv, "hs:b:c:tr:m:", long_options, &i);
+        c = getopt_long(argc, argv, "hs:b:c:tr:m:l:o:", long_options, &i);
 
         switch (c)
         {
@@ -111,6 +119,9 @@ struct mmpp_options get_options(int argc, char **argv)
             case 'c':
                 opts.cmaes_settings = optarg;
                 break;
+            case 'l':
+                opts.cluster_states = atoi(optarg);
+                break;
             case 'm':
                 if (strcmp(optarg, "aic") == 0) {
                     opts.ms = AIC;
@@ -118,6 +129,9 @@ struct mmpp_options get_options(int argc, char **argv)
                 else if (strcmp(optarg, "bic") == 0) {
                     opts.ms = BIC;
                 }
+            case 'o':
+                opts.output = fopen(optarg, "w");
+                break;
             case 's':
                 opts.seed = atoi(optarg);
                 break;
@@ -149,7 +163,7 @@ int main (int argc, char **argv)
     struct mmpp_options opts = get_options(argc, argv);
     double branch_scale;
     double *theta = malloc(opts.nrates * opts.nrates * sizeof(double));
-    int error, *states;
+    int i, error, *states, *clusters;
     igraph_t *tree;
 
     set_seed(opts.seed < 0 ? time(NULL) : opts.seed);
@@ -162,16 +176,24 @@ int main (int argc, char **argv)
 
     error = fit_mmpp(tree, &opts.nrates, &theta, opts.trace, opts.cmaes_settings,
             states, opts.ms);
-    if (!error) {
-        display_results(opts.nrates, theta, branch_scale);
+    display_results(opts.nrates, theta, branch_scale);
+
+    clusters = malloc(igraph_vcount(tree) * sizeof(int));
+    get_clusters(tree, states, clusters, opts.nrates - opts.cluster_states);
+
+    for (i = 0; i < igraph_vcount(tree); ++i)
+    {
+        fprintf(opts.output, "%s\t%f\t%d\n", VAS(tree, "id", i),
+                theta[states[i]], clusters[i]);
     }
 
     igraph_destroy(tree);
     free(theta);
     free(states);
+    free(clusters);
     if (opts.tree_file != stdin)
         fclose(opts.tree_file);
-    if (error)
-        fprintf(stderr, "Fitting failed\n");
+    if (opts.output != stdin)
+        fclose(opts.output);
     return error;
 }

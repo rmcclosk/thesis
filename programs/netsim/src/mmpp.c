@@ -55,7 +55,11 @@ int fit_mmpp(const igraph_t *tree, int *nrates, double **theta, int trace,
     double *prev_theta = malloc(MAX_NRATES * MAX_NRATES * sizeof(double));
 
     if (*nrates > 0)
-        return _fit_mmpp(tree, *nrates, *theta, trace, cmaes_settings, states, &loglik);
+    {
+        error = _fit_mmpp(tree, *nrates, *theta, trace, cmaes_settings, states, &loglik);
+        fprintf(stderr, "log likelihood for %d state model is %f\n", *nrates, loglik);
+        return error;
+    }
 
     error = _fit_mmpp(tree, 1, prev_theta, trace, cmaes_settings, states, &prev_loglik);
     fprintf(stderr, "log likelihood for 1 state model is %f\n", prev_loglik);
@@ -103,61 +107,44 @@ int fit_mmpp(const igraph_t *tree, int *nrates, double **theta, int trace,
     return error;
 }
 
-igraph_vector_ptr_t *_get_clusters(const igraph_t *tree, int nrates, const int
-        *states, int root, igraph_adjlist_t *al, igraph_vector_ptr_t *clusters,
-        igraph_vector_t *rates)
-
+void get_clusters(const igraph_t *tree, const int *states, int *clusters,
+        int cluster_state)
 {
-    igraph_vector_int_t *children = igraph_adjlist_get(al, root);
-    igraph_vector_ptr_t root_clusters;
-    igraph_vector_t root_rates, *elem;
-    int i, lchild, rchild;
-
-    // add current node to any clusters it goes in
-    for (i = 0; i < igraph_vector_size(rates); ++i)
-    {
-        if (states[root] >= VECTOR(*rates)[i])
-        {
-            elem = (igraph_vector_t *) igraph_vector_ptr_e(clusters, i);
-            igraph_vector_push_back(elem, root);
-        }
-    }
-
-    if (igraph_vector_int_size(children) > 0)
-    {
-        // consider only clusters the root fits in
-        igraph_vector_init(&root_rates, 0);
-        igraph_vector_ptr_init(&root_clusters, 0);
-        for (i = 0; i < igraph_vector_size(rates); ++i)
-        {
-            if (states[root] >= VECTOR(*rates)[i])
-            {
-                igraph_vector_push_back(&root_rates, VECTOR(*rates)[i]);
-                igraph_vector_push_back(&root_clusters, igraph_vector_ptr_e(clusters, i));
-            }
-        }
-    }
-    return clusters;
-}
-
-void get_clusters(const igraph_t *tree, const int *states, int ***membership, int **sizes, int cutoff)
-{
-    igraph_vector_ptr_t clusters;
-    igraph_vector_t rates;
     igraph_adjlist_t al;
-    int i, j, nrates;
-
-    for (i = 0; i < igraph_vcount(tree); ++i)
-        nrates = states[i] > nrates ? states[i] : nrates;
+    igraph_vector_int_t *children;
+    int i, lchild, rchild, ccount = 0;
 
     igraph_adjlist_init(tree, &al, IGRAPH_OUT);
-    igraph_vector_ptr_init(&clusters, 0);
-    igraph_vector_init(&rates, 0);
 
-    _get_clusters(tree, nrates, states, root(tree), &al, &clusters, &rates);
+    memset(clusters, 0, igraph_vcount(tree) * sizeof(int));
 
-    for (i = 0; i < nrates-1; ++i)
-        igraph_vector_ptr_destroy_all(clusters);
+    if (states[root(tree)] >= cluster_state) {
+        clusters[root(tree)] = ++ccount;
+    }
+
+    for (i = igraph_vcount(tree)-1; i >= 0; --i) {
+        children = igraph_adjlist_get(&al, i);
+        if (igraph_vector_int_size(children) > 0)
+        {
+            lchild = VECTOR(*children)[0];
+            rchild = VECTOR(*children)[1];
+
+            if (states[lchild] < cluster_state)
+                clusters[lchild] = 0;
+            else if (states[i] < cluster_state)
+                clusters[lchild] = ++ccount;
+            else
+                clusters[lchild] = clusters[i];
+
+            if (states[rchild] < cluster_state)
+                clusters[rchild] = 0;
+            else if (states[i] < cluster_state)
+                clusters[rchild] = ++ccount;
+            else
+                clusters[rchild] = clusters[i];
+        }
+    }
+
     igraph_adjlist_destroy(&al);
 }
 

@@ -5,11 +5,15 @@
 #include <igraph/igraph.h>
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_odeiv2.h>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_eigen.h>
+#include <gsl/gsl_linalg.h>
 
 #include "../src/tree.h"
 #include "../src/mmpp.h"
 
 Suite *mmpp_suite(void); 
+
 // TODO: this is copypasta from check_tree
 FILE *newick_file(const char *newick)
 {
@@ -32,6 +36,134 @@ igraph_t *tree_from_newick(const char *newick)
     igraph_t *tree = parse_newick(f);
     fclose(f);
     return tree;
+}
+
+void _calculate_pi(int nrates, const double *theta, double *pi)
+{
+    int i, j, cur = nrates;
+    double sum;
+
+    gsl_matrix *Q = gsl_matrix_alloc(nrates, nrates);
+    gsl_vector_complex *eval = gsl_vector_complex_alloc(nrates);
+    gsl_matrix_complex *evec = gsl_matrix_complex_alloc(nrates, nrates);
+    gsl_eigen_nonsymmv_workspace *ew = gsl_eigen_nonsymmv_alloc(nrates);
+
+    for (i = 0; i < nrates; ++i) {
+        sum = 0;
+        for (j = 0; j < nrates; ++j) {
+            if (i != j) {
+                gsl_matrix_set(Q, i, j, theta[cur]);
+                sum += theta[cur++];
+            }
+        }
+        gsl_matrix_set(Q, i, i, -sum);
+    }
+
+    gsl_matrix_transpose(Q);
+    gsl_eigen_nonsymmv(Q, eval, evec, ew);
+    gsl_eigen_nonsymmv_sort(eval, evec, GSL_EIGEN_SORT_ABS_ASC);
+
+    sum = 0;
+    for (i = 0; i < nrates; ++i)
+    {
+        pi[i] = GSL_REAL(gsl_matrix_complex_get(evec, i, 0));
+        sum += pi[i];
+    }
+    for (i = 0; i < nrates; ++i)
+        pi[i] /= sum;
+
+    gsl_eigen_nonsymmv_free(ew);
+    gsl_vector_complex_free(eval);
+    gsl_matrix_complex_free(evec);
+    gsl_matrix_free(Q);
+}
+
+double _calculate_P(int nrates, const double *theta, int pstate, int cstate, double t)
+{
+    gsl_matrix *Q = gsl_matrix_alloc(nrates, nrates);
+    gsl_matrix *expQt = gsl_matrix_alloc(nrates, nrates);
+    double sum, ans;
+    int i, j, cur = nrates;
+
+    for (i = 0; i < nrates; ++i) {
+        sum = 0;
+        for (j = 0; j < nrates; ++j) {
+            if (i != j) {
+                gsl_matrix_set(Q, i, j, t * theta[cur]);
+                sum += t * theta[cur++];
+            }
+        }
+        gsl_matrix_set(Q, i, i, -sum-t*theta[i]);
+    }
+    gsl_linalg_exponential_ss(Q, expQt, GSL_PREC_DOUBLE);
+    ans = gsl_matrix_get(expQt, pstate, cstate);
+    gsl_matrix_free(Q);
+    gsl_matrix_free(expQt);
+    return ans;
+}
+
+double lik_states(const igraph_t *tree, int nrates, int *states, double *theta, 
+        double *pi, igraph_adjlist_t *al)
+{
+    double lik = pi[states[root(tree)]];
+    int i, lc, rc, lterm, rterm, edge;
+    igraph_vector_int_t *children;
+
+    for (i = 0; i < igraph_vcount(tree); ++i) {
+        children = igraph_adjlist_get(al, i);
+        if (igraph_vector_int_size(children) > 0) {
+            lc = VECTOR(*children)[0];
+            rc = VECTOR(*children)[1];
+
+            igraph_get_eid(tree, &edge, i, lc, 1, 1);
+            lik *= _calculate_P(nrates, theta, states[i], states[lc], EAN(tree, "length", edge));
+            igraph_get_eid(tree, &edge, i, rc, 1, 1);
+            lik *= _calculate_P(nrates, theta, states[i], states[rc], EAN(tree, "length", edge));
+            children = igraph_adjlist_get(al, lc);
+            lterm = igraph_vector_int_size(children) == 0;
+            children = igraph_adjlist_get(al, rc);
+            rterm = igraph_vector_int_size(children) == 0;
+
+            if (!lterm)
+                lik *= theta[states[lc]];
+            if (!rterm)
+                lik *= theta[states[rc]];
+        }
+    }
+    return lik;
+}
+
+double reconstruct_long(const igraph_t *tree, int nrates, double *theta, int *states)
+{
+    mmpp_workspace *w = mmpp_workspace_create(tree, nrates);
+    igraph_adjlist_t al;
+
+    int i, j, icopy;
+    int *v = malloc(igraph_vcount(tree) * sizeof(int));
+    double lik = 0, likmax = 0;
+    double *pi = malloc(nrates * sizeof(double));
+
+    igraph_adjlist_init(tree, &al, IGRAPH_OUT);
+    _calculate_pi(nrates, theta, pi);
+
+    for (i = 0; i < (int) pow(nrates, igraph_vcount(tree)); ++i) {
+        icopy = i;
+        j = 0;
+        memset(v, 0, igraph_vcount(tree)*sizeof(int));
+        while (icopy > 0) {
+            v[j++] = icopy % nrates;
+            icopy /= nrates;
+        }
+        lik = lik_states(tree, nrates, v, theta, pi, &al);
+        if (likmax < lik) {
+            likmax = lik;
+            memcpy(states, v, igraph_vcount(tree)*sizeof(int));
+        }
+    }
+
+    igraph_adjlist_destroy(&al);
+    mmpp_workspace_free(w);
+    free(v);
 }
 
 START_TEST(test_guess_parameters)
@@ -70,10 +202,51 @@ START_TEST(test_get_clusters)
 {
     igraph_t *tree = tree_from_newick("(t1:1,((t5:5,t2:2),(t4:4,t3:3)));");
     int states[9] = {0, 2, 2, 2, 1, 1, 1, 1, 0};
-    int *sizes = NULL, **membership = NULL;
+    int clusters[9];
+    int i;
 
-    get_clusters(tree, states, &membership, &sizes, 1); 
+    // clustering on state 1
+    get_clusters(tree, states, clusters, 1);
+    ck_assert_int_eq(clusters[0], 0);
+    ck_assert_int_eq(clusters[8], 0);
+    for (i = 1; i < 8; ++i)
+        ck_assert_int_eq(clusters[i], 1);
+
+    // clustering on state 2
+    get_clusters(tree, states, clusters, 2);
+    ck_assert_int_eq(clusters[0], 0);
+    for (i = 1; i < 4; ++i)
+        ck_assert_int_eq(clusters[i], 1);
+    for (i = 4; i < 9; ++i)
+        ck_assert_int_eq(clusters[i], 0);
+
     igraph_destroy(tree);
+}
+END_TEST
+
+START_TEST(test_reconstruct)
+{
+    igraph_t *tree = tree_from_newick("(t2:10.94,(t4:0.04,(t1:0.75,(t3:0.29,t5:0.8):0.39):0.21):0.8);");
+    double theta[4] = {0.1, 1, 1, 2};
+    int states1[9];
+    int states2[9];
+    int i;
+    double pi[2];
+    igraph_adjlist_t al;
+    mmpp_workspace *w = mmpp_workspace_create(tree, 2);
+
+    _calculate_pi(2, theta, pi);
+    igraph_adjlist_init(tree, &al, IGRAPH_OUT);
+
+    reconstruct(tree, 2, theta, w, states1);
+    reconstruct_long(tree, 2, theta, states2);
+
+    for (i = 0; i < 9; ++i) {
+        ck_assert_int_eq(states1[i], states2[i]);
+    }
+    ck_assert(fabs(lik_states(tree, 2, states1, theta, pi, &al)) -
+                   pow(10, likelihood(tree, 2, theta, w, 1)) < 1e-5);
+    mmpp_workspace_free(w);
 }
 END_TEST
 
@@ -89,6 +262,8 @@ Suite *mmpp_suite(void)
     tcase_add_test(tc_core, test_likelihood_toy);
     tcase_add_test(tc_core, test_likelihood_toy3);
     tcase_add_test(tc_core, test_get_clusters);
+    tcase_add_test(tc_core, test_reconstruct);
+    tcase_set_timeout(tc_core, 10);
     suite_add_tcase(s, tc_core);
 
     return s;

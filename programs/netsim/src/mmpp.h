@@ -70,17 +70,15 @@ double reconstruct(const igraph_t *tree, int nrates, const double *theta,
 
 /** Find clusters in a phylogeny, given reconstructed branching rates.
  *
- * The membership and sizes vectors will be (re)allocated by this function and
- * must be free'd afterward.
+ * The cluster 0 indicates no cluster.
  *
  * \param[in] tree tree to find clusters for
  * \param[in] states reconstructed branching rate states at nodes and tips
- * \param[out] membership will be filled with cluster memberships
- * \param[out] sizes will be filled with cluster sizes
- * \param[in] cutoff only cluster states equal to cutoff or above
+ * \param[out] clusters will be filled with cluster assignments
+ * \param[in] cluster_state cluster nodes with states equal to this or above
  */
-void get_clusters(const igraph_t *tree, const int *states, int ***membership, int **sizes,
-        int cutoff);
+void get_clusters(const igraph_t *tree, const int *states, int *clusters,
+        int cluster_state);
 
 /** Create a workspace for MMPP likelihood calculations.
  *
