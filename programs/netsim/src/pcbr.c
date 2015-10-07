@@ -160,8 +160,8 @@ int main (int argc, char **argv)
     branch_scale = scale_branches(tree, opts.scale_branches);
     states = malloc(igraph_vcount(tree) * sizeof(int));
 
-    error = fit_mmpp(tree, opts.nrates, theta, opts.trace, opts.cmaes_settings,
-            states);
+    error = fit_mmpp(tree, &opts.nrates, &theta, opts.trace, opts.cmaes_settings,
+            states, opts.ms);
     if (!error) {
         display_results(opts.nrates, theta, branch_scale);
     }

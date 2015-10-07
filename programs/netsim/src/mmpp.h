@@ -7,21 +7,25 @@
 #define MMPP_H
 
 #include <igraph/igraph.h>
+#include "stats.h"
 
 typedef struct mmpp_workspace mmpp_workspace;
 
 /** Fit an MMPP.
  *
+ * If *nrates is non-zero, it indicates the number of rates to be
+ * fitted. Otherwise, the optimal number of rates will be placed there.
+ *
  * \param[in] tree tree to fit MMPP to
- * \param[in] nrates number of states in the Markov chain
+ * \param[in,out] nrates number of states in the Markov chain
  * \param[out] theta fitted parameters will be stored here
  * \param[in] trace if 1, display parameter values as they are tried
  * \param[in] cmaes_settings file containing CMAES settings
  * \param[out] states if non-NULL, perform ancestral reconstruction and put the result here
  * \return 0 if the fit was successful, 1 otherwise
  */
-int fit_mmpp(const igraph_t *tree, int nrates, double *theta, int trace,
-        const char *cmaes_settings, int *states);
+int fit_mmpp(const igraph_t *tree, int *nrates, double **theta, int trace,
+        const char *cmaes_settings, int *states, model_selector sel);
 
 /** Guess initial parameters for an MMPP.
  *

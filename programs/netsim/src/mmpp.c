@@ -1,7 +1,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <float.h> #include <igraph/igraph.h> #include <gsl/gsl_matrix.h> #include <gsl/gsl_eigen.h>
+#include <float.h> 
+#include <igraph/igraph.h> 
+#include <gsl/gsl_matrix.h> 
+#include <gsl/gsl_eigen.h>
 #include <gsl/gsl_odeiv2.h>
 #include <gsl/gsl_cblas.h>
 #include "../c-cmaes/cmaes_interface.h"
@@ -18,6 +21,7 @@ struct ck_params {
     int nrates;
     double *Q_minus_Lambda;
 };
+
 struct mmpp_workspace {
     struct ck_params ckpar;
     double *y;
@@ -43,25 +47,60 @@ void mmpp_workspace_set_params(mmpp_workspace *w, const double *theta);
 int _fit_mmpp(const igraph_t *tree, int nrates, double *theta, int trace,
              const char *cmaes_settings, int *states, double *loglik);
 
-int fit_mmpp(const igraph_t *tree, int nrates, double *theta, int trace,
-             const char *cmaes_settings, int *states)
+int fit_mmpp(const igraph_t *tree, int *nrates, double **theta, int trace,
+             const char *cmaes_settings, int *states, model_selector sel)
 {
-    double loglik, prev_loglik, *prev_theta;
-    int i, error;
+    int i, accept, error = 0;
+    double loglik, prev_loglik, test_stat;
+    double *prev_theta = malloc(MAX_NRATES * MAX_NRATES * sizeof(double));
 
-    if (nrates > 0)
-        return _fit_mmpp(tree, nrates, theta, trace, cmaes_settings, states, &loglik);
+    if (*nrates > 0)
+        return _fit_mmpp(tree, *nrates, *theta, trace, cmaes_settings, states, &loglik);
 
-    error = _fit_mmpp(tree, 1, theta, trace, cmaes_settings, states, &prev_loglik);
-    if (error) return error;
-    for (i = 2; i <= MAX_NRATES; ++i)
+    error = _fit_mmpp(tree, 1, prev_theta, trace, cmaes_settings, states, &prev_loglik);
+    fprintf(stderr, "log likelihood for 1 state model is %f\n", prev_loglik);
+    *nrates = 1;
+
+    for (i = 2; i <= MAX_NRATES && !error; ++i)
     {
-        theta = safe_realloc(theta, nrates * nrates * sizeof(double));
-        error = _fit_mmpp(tree, 1, theta, trace, cmaes_settings, states, &loglik);
-        if (error) return error;
+        *theta = safe_realloc(*theta, i * i * sizeof(double));
+
+        // if we failed to fit a model with more states, fall back to the previous one
+        if (_fit_mmpp(tree, i, *theta, trace, cmaes_settings, states, &loglik)) {
+            fprintf(stderr, "Warning: parameter estimates for %d state model did not converge\n", i);
+        }
+        fprintf(stderr, "log likelihood for %d state model is %f\n", i, prev_loglik);
+        
+        if (sel == LRT) {
+            test_stat = lrt(prev_loglik, loglik, (i-1)*(i-1), i*i);
+            fprintf(stderr, "P-value for %d state model is %f\n", i, test_stat);
+            accept = test_stat < 0.05;
+        }
+        else if (sel == AIC) {
+            test_stat = aic(loglik, i*i) - aic(prev_loglik, (i-1)*(i-1));
+            fprintf(stderr, "delta AIC for %d state model is %f\n", i, test_stat);
+            accept = test_stat <= -2;
+        }
+        else if (sel == BIC) {
+            test_stat = bic(loglik, i*i, igraph_ecount(tree)) - bic(prev_loglik, (i-1)*(i-1), igraph_ecount(tree));
+            fprintf(stderr, "delta BIC for %d state model is = %f\n", i, test_stat);
+            accept = test_stat <= -2;
+        }
+
+        if (!accept)
+        {
+            fprintf(stderr, "%d state model is not supported\n", i);
+            break;
+        }
+
+        memcpy(prev_theta, *theta, i * i * sizeof(double));
+        prev_loglik = loglik;
+        *nrates = i;
     }
 
-    return 0;
+    memcpy(*theta, prev_theta, *nrates * *nrates * sizeof(double));
+    free(prev_theta);
+    return error;
 }
 
 mmpp_workspace *mmpp_workspace_create(const igraph_t *tree, int nrates)
@@ -297,8 +336,7 @@ int _fit_mmpp(const igraph_t *tree, int nrates, double *theta, int trace,
     if (strncmp(cmaes_TestForTermination(&evo), "TolFun", 6) != 0)
     {
         error = 1;
-        fprintf(stderr, "%s\n", cmaes_TestForTermination(&evo));
-        goto cleanup;
+        fprintf(stderr, "%s", cmaes_TestForTermination(&evo));
     }
 
     cmaes_boundary_transformation(&bounds, 
@@ -309,7 +347,7 @@ int _fit_mmpp(const igraph_t *tree, int nrates, double *theta, int trace,
     if (states != NULL)
         reconstruct(tree, nrates, theta, w, states);
 
-    cleanup: cmaes_exit(&evo);
+    cmaes_exit(&evo);
     cmaes_boundary_transformation_exit(&bounds);
     free(lbound);
     free(ubound);

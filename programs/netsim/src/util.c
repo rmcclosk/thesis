@@ -127,6 +127,9 @@ void *safe_realloc(void *ptr, size_t size)
 {
     void *tmp = realloc(ptr, size);
     if (tmp == NULL)
+    {
+        fprintf(stderr, "Aborting: out of memory\n");
         abort();
+    }
     return tmp;
 }
