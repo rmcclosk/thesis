@@ -25,7 +25,8 @@ typedef struct mmpp_workspace mmpp_workspace;
  * \return 0 if the fit was successful, 1 otherwise
  */
 int fit_mmpp(const igraph_t *tree, int *nrates, double **theta, int trace,
-        const char *cmaes_settings, int *states, model_selector sel);
+        const char *cmaes_settings, int *states, model_selector sel,
+        int trans_at_nodes);
 
 /** Guess initial parameters for an MMPP.
  *
@@ -51,10 +52,12 @@ void guess_parameters(const igraph_t *tree, int nrates, double *theta);
  * \param[in] nrates number of rates of the MMPP
  * \param[in] theta MMPP parameters (see guess_parameters)
  * \param[in] w workspace for calculations, made by mmpp_workspace_create
+ * \param[in] trans_at_nodes if 1, assume transitions happen at nodes,
+ *                           otherwise along edges
  * \param[in] reconstruct if 1, perform ancestral reconstruction
  */
 double likelihood(const igraph_t *tree, int nrates, const double *theta,
-        mmpp_workspace *w, int reconstruct);
+        mmpp_workspace *w, int trans_at_nodes, int reconstruct);
 
 /** Perform ancestral reconstruction.
  *
@@ -62,11 +65,13 @@ double likelihood(const igraph_t *tree, int nrates, const double *theta,
  * \param[in] nrates number of states in MMPP
  * \param[in] theta fitted MMPP parameters
  * \param[in] w workspace created by mmpp_workspace_create
- * \param[out] A ancestral states will be stored here
+ * \param[out] states ancestral states will be stored here
+ * \param[in] trans_at_nodes if 1, assume transitions happen at nodes,
+ *                           otherwise along edges
  * \return the likelihood of the assignment of ancestral states to nodes
  */
 double reconstruct(const igraph_t *tree, int nrates, const double *theta,
-        mmpp_workspace *w, int *A);
+        mmpp_workspace *w, int *states, int trans_at_nodes);
 
 /** Find clusters in a phylogeny, given reconstructed branching rates.
  *

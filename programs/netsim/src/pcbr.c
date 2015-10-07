@@ -17,6 +17,7 @@ struct mmpp_options {
     int trace;
     int nrates;
     int cluster_states;
+    int trans_at_nodes;
     model_selector ms;
 };
 
@@ -31,6 +32,7 @@ struct option long_options[] =
     {"model-selector", required_argument, 0, 'm'},
     {"cluster-states", required_argument, 0, 'l'},
     {"output", required_argument, 0, 'o'},
+    {"trans-at-nodes", no_argument, 0, 'n'},
     {0, 0, 0, 0}
 };
 
@@ -48,6 +50,7 @@ void usage(void)
     fprintf(stderr, "                            (lrt/aic/bic)\n");
     fprintf(stderr, "  -l, --cluster-states      number of highest states to use for clustering\n");
     fprintf(stderr, "  -o, --output              write clustering results and rates here\n");
+    fprintf(stderr, "  -n, --trans-at-nodes      assume transitions happen at nodes, not along edges\n");
 }
 
 void display_results(int nrates, double *theta, double branch_scale)
@@ -93,6 +96,7 @@ struct mmpp_options get_options(int argc, char **argv)
         .trace = 0,
         .nrates = 0,
         .cluster_states = 1,
+        .trans_at_nodes = 0,
         .ms = LRT
     };
 
@@ -129,6 +133,9 @@ struct mmpp_options get_options(int argc, char **argv)
                 else if (strcmp(optarg, "bic") == 0) {
                     opts.ms = BIC;
                 }
+            case 'n':
+                opts.trans_at_nodes = 1;
+                break;
             case 'o':
                 opts.output = fopen(optarg, "w");
                 break;
@@ -175,7 +182,7 @@ int main (int argc, char **argv)
     states = malloc(igraph_vcount(tree) * sizeof(int));
 
     error = fit_mmpp(tree, &opts.nrates, &theta, opts.trace, opts.cmaes_settings,
-            states, opts.ms);
+            states, opts.ms, opts.trans_at_nodes);
     display_results(opts.nrates, theta, branch_scale);
 
     clusters = malloc(igraph_vcount(tree) * sizeof(int));
