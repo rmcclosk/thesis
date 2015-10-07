@@ -33,14 +33,16 @@ igraph_t *parse_newick(FILE *f)
     int i;
     extern int yynode;
     igraph_vector_t edge, branch_length, size;
+    igraph_strvector_t label;
 
     igraph_vector_init(&edge, 0);
     igraph_vector_init(&size, 0);
     igraph_vector_init(&branch_length, 0);
+    igraph_strvector_init(&label, 0);
 
     yynode = 0;
     yyrestart(f);
-    yyparse(&edge, &size, &branch_length);
+    yyparse(&edge, &size, &branch_length, &label);
 
     tree = malloc(sizeof(igraph_t));
     igraph_empty(tree, igraph_vector_size(&size), 1);
@@ -52,11 +54,13 @@ igraph_t *parse_newick(FILE *f)
         if (igraph_vector_size(&edge) > 0) {
             SETEAN(tree, "length", (int) VECTOR(edge)[0], VECTOR(branch_length)[i]);
         }
+        SETVAS(tree, "id", i, STR(label,i));
     }
 
     igraph_vector_destroy(&edge);
     igraph_vector_destroy(&size);
     igraph_vector_destroy(&branch_length);
+    igraph_strvector_destroy(&label);
     return tree;
 }
 

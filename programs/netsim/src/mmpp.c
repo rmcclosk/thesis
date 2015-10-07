@@ -103,6 +103,64 @@ int fit_mmpp(const igraph_t *tree, int *nrates, double **theta, int trace,
     return error;
 }
 
+igraph_vector_ptr_t *_get_clusters(const igraph_t *tree, int nrates, const int
+        *states, int root, igraph_adjlist_t *al, igraph_vector_ptr_t *clusters,
+        igraph_vector_t *rates)
+
+{
+    igraph_vector_int_t *children = igraph_adjlist_get(al, root);
+    igraph_vector_ptr_t root_clusters;
+    igraph_vector_t root_rates, *elem;
+    int i, lchild, rchild;
+
+    // add current node to any clusters it goes in
+    for (i = 0; i < igraph_vector_size(rates); ++i)
+    {
+        if (states[root] >= VECTOR(*rates)[i])
+        {
+            elem = (igraph_vector_t *) igraph_vector_ptr_e(clusters, i);
+            igraph_vector_push_back(elem, root);
+        }
+    }
+
+    if (igraph_vector_int_size(children) > 0)
+    {
+        // consider only clusters the root fits in
+        igraph_vector_init(&root_rates, 0);
+        igraph_vector_ptr_init(&root_clusters, 0);
+        for (i = 0; i < igraph_vector_size(rates); ++i)
+        {
+            if (states[root] >= VECTOR(*rates)[i])
+            {
+                igraph_vector_push_back(&root_rates, VECTOR(*rates)[i]);
+                igraph_vector_push_back(&root_clusters, igraph_vector_ptr_e(clusters, i));
+            }
+        }
+    }
+    return clusters;
+}
+
+void get_clusters(const igraph_t *tree, const int *states, int ***membership, int **sizes, int cutoff)
+{
+    igraph_vector_ptr_t clusters;
+    igraph_vector_t rates;
+    igraph_adjlist_t al;
+    int i, j, nrates;
+
+    for (i = 0; i < igraph_vcount(tree); ++i)
+        nrates = states[i] > nrates ? states[i] : nrates;
+
+    igraph_adjlist_init(tree, &al, IGRAPH_OUT);
+    igraph_vector_ptr_init(&clusters, 0);
+    igraph_vector_init(&rates, 0);
+
+    _get_clusters(tree, nrates, states, root(tree), &al, &clusters, &rates);
+
+    for (i = 0; i < nrates-1; ++i)
+        igraph_vector_ptr_destroy_all(clusters);
+    igraph_adjlist_destroy(&al);
+}
+
 mmpp_workspace *mmpp_workspace_create(const igraph_t *tree, int nrates)
 {
     struct mmpp_workspace *w = malloc(sizeof(struct mmpp_workspace));
@@ -289,11 +347,12 @@ double reconstruct(const igraph_t *tree, int nrates, const double *theta,
 int _fit_mmpp(const igraph_t *tree, int nrates, double *theta, int trace,
              const char *cmaes_settings, int *states, double *loglik)
 {
-    int i, j, dimension = nrates * nrates, error = 0;
+    int i, j, dimension = nrates * nrates, error = 0, cur = nrates;
+    int *state_order;
     double *lbound = malloc(dimension * sizeof(double));
     double *ubound = malloc(dimension * sizeof(double));
     double *init_sd = malloc(dimension * sizeof(double));
-    double *funvals, *const *pop;
+    double *funvals, *tmp, *const *pop;
     struct mmpp_workspace *w = mmpp_workspace_create(tree, nrates);
     cmaes_t evo;
     cmaes_boundary_transformation_t bounds;
@@ -341,8 +400,23 @@ int _fit_mmpp(const igraph_t *tree, int nrates, double *theta, int trace,
 
     cmaes_boundary_transformation(&bounds, 
         (double const *) cmaes_GetPtr(&evo, "xbestever"), theta, dimension);
+
+    state_order = malloc(nrates * sizeof(int));
+    tmp = malloc(dimension * sizeof(double));
     for (i = 0; i < dimension; ++i)
-        theta[i] = exp(theta[i]);
+        tmp[i] = exp(theta[i]);
+    order(tmp, state_order, sizeof(double), nrates, compare_doubles);
+    for (i = 0; i < nrates; ++i)
+    {
+        theta[i] = tmp[state_order[i]];
+        for (j = 0; j < nrates; ++j)
+        {
+            if (i > j)
+	            theta[cur++] = tmp[nrates + state_order[i]*(nrates-1) + state_order[j]];
+            else if (i < j)
+	            theta[cur++] = tmp[nrates + state_order[i]*(nrates-1) + state_order[j]-1];
+        }
+    }
     loglik[0] = likelihood(tree, nrates, theta, w, 0);
     if (states != NULL)
         reconstruct(tree, nrates, theta, w, states);
@@ -352,6 +426,8 @@ int _fit_mmpp(const igraph_t *tree, int nrates, double *theta, int trace,
     free(lbound);
     free(ubound);
     free(init_sd);
+    free(state_order);
+    free(tmp);
     mmpp_workspace_free(w);
     return error;
 }

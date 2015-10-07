@@ -66,6 +66,17 @@ START_TEST(test_likelihood_toy3)
 }
 END_TEST
 
+START_TEST(test_get_clusters)
+{
+    igraph_t *tree = tree_from_newick("(t1:1,((t5:5,t2:2),(t4:4,t3:3)));");
+    int states[9] = {0, 2, 2, 2, 1, 1, 1, 1, 0};
+    int *sizes = NULL, **membership = NULL;
+
+    get_clusters(tree, states, &membership, &sizes, 1); 
+    igraph_destroy(tree);
+}
+END_TEST
+
 Suite *mmpp_suite(void)
 {
     Suite *s;
@@ -77,6 +88,7 @@ Suite *mmpp_suite(void)
     tcase_add_test(tc_core, test_guess_parameters);
     tcase_add_test(tc_core, test_likelihood_toy);
     tcase_add_test(tc_core, test_likelihood_toy3);
+    tcase_add_test(tc_core, test_get_clusters);
     suite_add_tcase(s, tc_core);
 
     return s;

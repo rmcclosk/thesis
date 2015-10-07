@@ -1,14 +1,16 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <igraph/igraph.h>
 #include "util.h"
 
 int yylex(void);
-void yyerror(igraph_vector_t *tree, igraph_vector_t *size, igraph_vector_t *branch_length, const char *str);
+void yyerror(igraph_vector_t *tree, igraph_vector_t *size, igraph_vector_t *branch_length, igraph_strvector_t *label, const char *str);
 int yywrap(void);
 
 int yynode = 0;
+char buf[BUFSIZ];
 
 %}
 
@@ -21,7 +23,7 @@ int yynode = 0;
 %token <string> STRING
 %token <number> NUMBER
 
-%parse-param {igraph_vector_t *edge} {igraph_vector_t *size} {igraph_vector_t *branch_length}
+%parse-param {igraph_vector_t *edge} {igraph_vector_t *size} {igraph_vector_t *branch_length} {igraph_strvector_t *label}
 
 %start tree
 
@@ -56,10 +58,23 @@ node:
     label length;
 
 label:
+    {
+        igraph_strvector_add(label, "");
+    }
     |
     NUMBER
+    {
+        if (floor(yylval.number) == yylval.number)
+            sprintf(buf, "%d", (int) yylval.number);
+        else
+            sprintf(buf, "%f", yylval.number);
+        igraph_strvector_add(label, buf);
+    }
     |
-    STRING;
+    STRING
+    {
+        igraph_strvector_add(label, yylval.string);
+    };
 
 length:
     {
@@ -74,7 +89,7 @@ length:
 
 %%
 
-void yyerror(igraph_vector_t *tree, igraph_vector_t *size, igraph_vector_t *branch_length, const char *str)
+void yyerror(igraph_vector_t *tree, igraph_vector_t *size, igraph_vector_t *branch_length, igraph_strvector_t *label, const char *str)
 {
     fprintf(stderr, "invalid Newick format or non-binary tree: %s\n", str);
     exit(EXIT_FAILURE);

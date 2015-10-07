@@ -68,6 +68,20 @@ double likelihood(const igraph_t *tree, int nrates, const double *theta,
 double reconstruct(const igraph_t *tree, int nrates, const double *theta,
         mmpp_workspace *w, int *A);
 
+/** Find clusters in a phylogeny, given reconstructed branching rates.
+ *
+ * The membership and sizes vectors will be (re)allocated by this function and
+ * must be free'd afterward.
+ *
+ * \param[in] tree tree to find clusters for
+ * \param[in] states reconstructed branching rate states at nodes and tips
+ * \param[out] membership will be filled with cluster memberships
+ * \param[out] sizes will be filled with cluster sizes
+ * \param[in] cutoff only cluster states equal to cutoff or above
+ */
+void get_clusters(const igraph_t *tree, const int *states, int ***membership, int **sizes,
+        int cutoff);
+
 /** Create a workspace for MMPP likelihood calculations.
  *
  * This pre-allocates space and initializes structures needed to calculate MMPP
