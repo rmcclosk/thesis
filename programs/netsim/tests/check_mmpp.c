@@ -78,7 +78,8 @@ void _calculate_pi(int nrates, const double *theta, double *pi)
     gsl_matrix_free(Q);
 }
 
-double _calculate_P(int nrates, const double *theta, int pstate, int cstate, double t)
+double _calculate_P(int nrates, const double *theta, int pstate, int cstate,
+        double t, int trans_at_nodes)
 {
     gsl_matrix *Q = gsl_matrix_alloc(nrates, nrates);
     gsl_matrix *expQt = gsl_matrix_alloc(nrates, nrates);
@@ -93,7 +94,10 @@ double _calculate_P(int nrates, const double *theta, int pstate, int cstate, dou
                 sum += t * theta[cur++];
             }
         }
-        gsl_matrix_set(Q, i, i, -sum-t*theta[i]);
+        if (trans_at_nodes)
+            gsl_matrix_set(Q, i, i, -sum);
+        else
+            gsl_matrix_set(Q, i, i, -sum-t*theta[i]);
     }
     gsl_linalg_exponential_ss(Q, expQt, GSL_PREC_DOUBLE);
     ans = gsl_matrix_get(expQt, pstate, cstate);
@@ -103,9 +107,9 @@ double _calculate_P(int nrates, const double *theta, int pstate, int cstate, dou
 }
 
 double lik_states(const igraph_t *tree, int nrates, int *states, double *theta, 
-        double *pi, igraph_adjlist_t *al)
+        double *pi, igraph_adjlist_t *al, int trans_at_nodes)
 {
-    double lik = pi[states[root(tree)]];
+    double lik = pi[states[root(tree)]], lt, rt;
     int i, lc, rc, lterm, rterm, edge;
     igraph_vector_int_t *children;
 
@@ -116,24 +120,39 @@ double lik_states(const igraph_t *tree, int nrates, int *states, double *theta,
             rc = VECTOR(*children)[1];
 
             igraph_get_eid(tree, &edge, i, lc, 1, 1);
-            lik *= _calculate_P(nrates, theta, states[i], states[lc], EAN(tree, "length", edge));
+            lt = EAN(tree, "length", edge);
+            lik *= _calculate_P(nrates, theta, states[i], states[lc], lt, trans_at_nodes);
+
             igraph_get_eid(tree, &edge, i, rc, 1, 1);
-            lik *= _calculate_P(nrates, theta, states[i], states[rc], EAN(tree, "length", edge));
+            rt = EAN(tree, "length", edge);
+            lik *= _calculate_P(nrates, theta, states[i], states[rc], rt, trans_at_nodes);
+
             children = igraph_adjlist_get(al, lc);
             lterm = igraph_vector_int_size(children) == 0;
             children = igraph_adjlist_get(al, rc);
             rterm = igraph_vector_int_size(children) == 0;
 
-            if (!lterm)
-                lik *= theta[states[lc]];
-            if (!rterm)
-                lik *= theta[states[rc]];
+            if (trans_at_nodes) {
+                lik *= exp(-theta[states[i]] * lt);
+                lik *= exp(-theta[states[i]] * rt);
+                if (!lterm)
+                    lik *= theta[states[i]];
+                if (!rterm)
+                    lik *= theta[states[i]];
+            }
+            else {
+                if (!lterm)
+                    lik *= theta[states[lc]];
+                if (!rterm)
+                    lik *= theta[states[rc]];
+            }
         }
     }
     return lik;
 }
 
-double reconstruct_long(const igraph_t *tree, int nrates, double *theta, int *states)
+double reconstruct_long(const igraph_t *tree, int nrates, double *theta, 
+        int *states, int trans_at_nodes)
 {
     mmpp_workspace *w = mmpp_workspace_create(tree, nrates);
     igraph_adjlist_t al;
@@ -154,7 +173,10 @@ double reconstruct_long(const igraph_t *tree, int nrates, double *theta, int *st
             v[j++] = icopy % nrates;
             icopy /= nrates;
         }
-        lik = lik_states(tree, nrates, v, theta, pi, &al);
+        if (trans_at_nodes)
+            lik = lik_states(tree, nrates, v, theta, pi, &al, trans_at_nodes);
+        else
+            lik = lik_states(tree, nrates, v, theta, pi, &al, trans_at_nodes);
         if (likmax < lik) {
             likmax = lik;
             memcpy(states, v, igraph_vcount(tree)*sizeof(int));
@@ -203,8 +225,17 @@ START_TEST(test_likelihood_nodes_toy)
     igraph_t *tree = tree_from_newick("(t1:1,t2:1);");
     double theta[4] = {1, 2, 1, 3};
     mmpp_workspace *w = mmpp_workspace_create(tree, 2);
-    fprintf(stderr, "%f\n", pow(10, likelihood(tree, 2, theta, w, 1, 0)));
-    ck_assert(fabs(pow(10, likelihood(tree, 2, theta, w, 1, 0)) - 0.1598014) < 1e-5);
+    ck_assert(fabs(pow(10, likelihood(tree, 2, theta, w, 1, 0)) - 0.1060804) < 1e-5);
+    igraph_destroy(tree);
+}
+END_TEST
+
+START_TEST(test_likelihood_nodes_toy3)
+{
+    igraph_t *tree = tree_from_newick("((t1:0.5,t2:1):0.75,t3:1);");
+    double theta[4] = {1, 2, 1, 3};
+    mmpp_workspace *w = mmpp_workspace_create(tree, 2);
+    ck_assert(fabs(pow(10, likelihood(tree, 2, theta, w, 1, 0)) - 0.02633081) < 1e-5);
     igraph_destroy(tree);
 }
 END_TEST
@@ -250,13 +281,75 @@ START_TEST(test_reconstruct)
     igraph_adjlist_init(tree, &al, IGRAPH_OUT);
 
     reconstruct(tree, 2, theta, w, states1, 0);
-    reconstruct_long(tree, 2, theta, states2);
+    reconstruct_long(tree, 2, theta, states2, 0);
 
     for (i = 0; i < 9; ++i) {
         ck_assert_int_eq(states1[i], states2[i]);
     }
-    ck_assert(fabs(lik_states(tree, 2, states1, theta, pi, &al)) -
+    ck_assert(fabs(lik_states(tree, 2, states1, theta, pi, &al, 0)) -
                    pow(10, likelihood(tree, 2, theta, w, 0, 1)) < 1e-5);
+    igraph_adjlist_destroy(&al);
+    mmpp_workspace_free(w);
+}
+END_TEST
+
+START_TEST(test_node_assignment)
+{
+    igraph_t *tree = tree_from_newick("(t1:1,t2:1);");
+    double theta[4] = {1, 2, 1, 3};
+    int states[3] = {0, 0, 0};
+    double pi[2];
+    igraph_adjlist_t al;
+    mmpp_workspace *w = mmpp_workspace_create(tree, 2);
+
+    igraph_adjlist_init(tree, &al, IGRAPH_OUT);
+    _calculate_pi(2, theta, pi);
+    ck_assert(fabs(lik_states(tree, 2, states, theta, pi, &al, 1) -
+                   0.05779385) < 1e-5);
+
+    states[2] = 1;
+    fprintf(stderr, "%f\n", lik_states(tree, 2, states, theta, pi, &al, 1));
+    ck_assert(fabs(lik_states(tree, 2, states, theta, pi, &al, 1) -
+              0.002482152) < 1e-6);
+
+    states[1] = 1;
+    ck_assert(fabs(lik_states(tree, 2, states, theta, pi, &al, 1) -
+                   0.0008891312) < 1e-7);
+
+    ck_assert(fabs(pow(10, reconstruct(tree, 2, theta, w, states, 1)) -
+              0.05779385) < 1e-6);
+    ck_assert_int_eq(states[0], 0);
+    ck_assert_int_eq(states[1], 0);
+    ck_assert_int_eq(states[2], 0);
+
+    igraph_adjlist_destroy(&al);
+    igraph_destroy(tree);
+    mmpp_workspace_free(w);
+}
+END_TEST
+
+START_TEST(test_reconstruct_nodes)
+{
+    igraph_t *tree = tree_from_newick("(t2:10.94,(t4:0.04,(t1:0.75,(t3:0.29,t5:0.8):0.39):0.21):0.8);");
+    double theta[4] = {0.1, 1, 1, 2};
+    int states1[9];
+    int states2[9];
+    int i;
+    double pi[2];
+    igraph_adjlist_t al;
+    mmpp_workspace *w = mmpp_workspace_create(tree, 2);
+
+    _calculate_pi(2, theta, pi);
+    igraph_adjlist_init(tree, &al, IGRAPH_OUT);
+
+    pow(10, reconstruct(tree, 2, theta, w, states1, 1));
+    reconstruct_long(tree, 2, theta, states2, 1);
+
+    for (i = 0; i < 9; ++i) {
+        fprintf(stderr, "%d\t%d\n", states1[i], states2[i]);
+    }
+    ck_assert(fabs(lik_states(tree, 2, states1, theta, pi, &al, 1) -
+                   pow(10, likelihood(tree, 2, theta, w, 1, 1))) < 1e-8);
     mmpp_workspace_free(w);
 }
 END_TEST
@@ -269,12 +362,15 @@ Suite *mmpp_suite(void)
     s = suite_create("mmpp");
 
     tc_core = tcase_create("Core");
-    tcase_add_test(tc_core, test_guess_parameters);
-    tcase_add_test(tc_core, test_likelihood_toy);
-    tcase_add_test(tc_core, test_likelihood_toy3);
+    tcase_add_test(tc_core, test_likelihood_nodes_toy3);
     tcase_add_test(tc_core, test_likelihood_nodes_toy);
+    tcase_add_test(tc_core, test_likelihood_toy);
+    tcase_add_test(tc_core, test_guess_parameters);
+    tcase_add_test(tc_core, test_likelihood_toy3);
     tcase_add_test(tc_core, test_get_clusters);
     tcase_add_test(tc_core, test_reconstruct);
+    tcase_add_test(tc_core, test_node_assignment);
+    tcase_add_test(tc_core, test_reconstruct_nodes);
     tcase_set_timeout(tc_core, 10);
     suite_add_tcase(s, tc_core);
 
