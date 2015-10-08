@@ -12,6 +12,16 @@ read.mm.symmetric <- function (file)
     m
 }
 
+read.mm.general <- function (file)
+{
+    dim <- scan(file, what=integer(0), n=2, comment.char="%", quiet=TRUE)
+    nelem <- dim[1] * dim[2]
+    data <- scan(file, what=numeric(0), n=2+nelem, comment.char="%", quiet=TRUE)
+    data <- data[3:(nelem+2)]
+
+    matrix(data, nrow=dim, ncol=dim)
+}
+
 # read a matrix in MatrixMarket format
 read.mm <- function (file.name)
 {
@@ -30,7 +40,13 @@ read.mm <- function (file.name)
     if (grepl("coordinate", mm.spec))
         result <- readMM(f)
     if (mm.spec == "%%MatrixMarket matrix array real symmetric")
+    {
         result <- read.mm.symmetric(f)
+    }
+    else if (mm.spec == "%%MatrixMarket matrix array real general")
+    {
+        result <- read.mm.general(f)
+    }
 
     close(f)
     if (is.null(result))
