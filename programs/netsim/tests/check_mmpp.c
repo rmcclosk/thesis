@@ -205,7 +205,7 @@ START_TEST(test_likelihood_toy)
     igraph_t *tree = tree_from_newick("(t1:1,t2:1);");
     double theta[4] = {1, 2, 1, 3};
     mmpp_workspace *w = mmpp_workspace_create(tree, 2);
-    ck_assert(fabs(pow(10, likelihood(tree, 2, theta, w, 0, 0)) - 0.0883478) < 1e-5);
+    ck_assert(fabs(pow(10, likelihood(tree, 2, theta, w, 0, 1, 0)) - 0.0883478) < 1e-5);
     igraph_destroy(tree);
 }
 END_TEST
@@ -215,7 +215,7 @@ START_TEST(test_likelihood_toy3)
     igraph_t *tree = tree_from_newick("((t1:0.5,t2:1):0.75,t3:1);");
     double theta[4] = {1, 2, 1, 3};
     mmpp_workspace *w = mmpp_workspace_create(tree, 2);
-    ck_assert(fabs(pow(10, likelihood(tree, 2, theta, w, 0, 0)) - 0.02248663) < 1e-5);
+    ck_assert(fabs(pow(10, likelihood(tree, 2, theta, w, 0, 1, 0)) - 0.02248663) < 1e-5);
     igraph_destroy(tree);
 }
 END_TEST
@@ -225,7 +225,7 @@ START_TEST(test_likelihood_nodes_toy)
     igraph_t *tree = tree_from_newick("(t1:1,t2:1);");
     double theta[4] = {1, 2, 1, 3};
     mmpp_workspace *w = mmpp_workspace_create(tree, 2);
-    ck_assert(fabs(pow(10, likelihood(tree, 2, theta, w, 1, 0)) - 0.1060804) < 1e-5);
+    ck_assert(fabs(pow(10, likelihood(tree, 2, theta, w, 1, 1, 0)) - 0.1060804) < 1e-5);
     igraph_destroy(tree);
 }
 END_TEST
@@ -235,7 +235,7 @@ START_TEST(test_likelihood_nodes_toy3)
     igraph_t *tree = tree_from_newick("((t1:0.5,t2:1):0.75,t3:1);");
     double theta[4] = {1, 2, 1, 3};
     mmpp_workspace *w = mmpp_workspace_create(tree, 2);
-    ck_assert(fabs(pow(10, likelihood(tree, 2, theta, w, 1, 0)) - 0.02633081) < 1e-5);
+    ck_assert(fabs(pow(10, likelihood(tree, 2, theta, w, 1, 1, 0)) - 0.02633081) < 1e-5);
     igraph_destroy(tree);
 }
 END_TEST
@@ -280,14 +280,14 @@ START_TEST(test_reconstruct)
     _calculate_pi(2, theta, pi);
     igraph_adjlist_init(tree, &al, IGRAPH_OUT);
 
-    reconstruct(tree, 2, theta, w, states1, 0);
+    reconstruct(tree, 2, theta, w, states1, 1, 0);
     reconstruct_long(tree, 2, theta, states2, 0);
 
     for (i = 0; i < 9; ++i) {
         ck_assert_int_eq(states1[i], states2[i]);
     }
     ck_assert(fabs(lik_states(tree, 2, states1, theta, pi, &al, 0)) -
-                   pow(10, likelihood(tree, 2, theta, w, 0, 1)) < 1e-5);
+                   pow(10, likelihood(tree, 2, theta, w, 0, 1, 1)) < 1e-5);
     igraph_adjlist_destroy(&al);
     mmpp_workspace_free(w);
 }
@@ -316,7 +316,7 @@ START_TEST(test_node_assignment)
     ck_assert(fabs(lik_states(tree, 2, states, theta, pi, &al, 1) -
                    0.0008891312) < 1e-7);
 
-    ck_assert(fabs(pow(10, reconstruct(tree, 2, theta, w, states, 1)) -
+    ck_assert(fabs(pow(10, reconstruct(tree, 2, theta, w, states, 1, 1)) -
               0.05779385) < 1e-6);
     ck_assert_int_eq(states[0], 0);
     ck_assert_int_eq(states[1], 0);
@@ -342,14 +342,14 @@ START_TEST(test_reconstruct_nodes)
     _calculate_pi(2, theta, pi);
     igraph_adjlist_init(tree, &al, IGRAPH_OUT);
 
-    pow(10, reconstruct(tree, 2, theta, w, states1, 1));
+    pow(10, reconstruct(tree, 2, theta, w, states1, 1, 1));
     reconstruct_long(tree, 2, theta, states2, 1);
 
     for (i = 0; i < 9; ++i) {
         fprintf(stderr, "%d\t%d\n", states1[i], states2[i]);
     }
     ck_assert(fabs(lik_states(tree, 2, states1, theta, pi, &al, 1) -
-                   pow(10, likelihood(tree, 2, theta, w, 1, 1))) < 1e-8);
+                   pow(10, likelihood(tree, 2, theta, w, 1, 1, 1))) < 1e-8);
     mmpp_workspace_free(w);
 }
 END_TEST

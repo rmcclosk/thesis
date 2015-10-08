@@ -18,6 +18,11 @@ struct mmpp_options {
     int nrates;
     int cluster_states;
     int trans_at_nodes;
+    int use_tips;
+    double lbound_branch;
+    double ubound_branch;
+    double lbound_trans;
+    double ubound_trans;
     model_selector ms;
 };
 
@@ -33,6 +38,11 @@ struct option long_options[] =
     {"cluster-states", required_argument, 0, 'l'},
     {"output", required_argument, 0, 'o'},
     {"trans-at-nodes", no_argument, 0, 'n'},
+    {"ignore-tips", no_argument, 0, 'i'},
+    {"lbound-branch", required_argument, 0, '1'},
+    {"ubound-branch", required_argument, 0, '2'},
+    {"lbound-trans", required_argument, 0, '3'},
+    {"ubound-trans", required_argument, 0, '4'},
     {0, 0, 0, 0}
 };
 
@@ -51,6 +61,11 @@ void usage(void)
     fprintf(stderr, "  -l, --cluster-states      number of highest states to use for clustering\n");
     fprintf(stderr, "  -o, --output              write clustering results and rates here\n");
     fprintf(stderr, "  -n, --trans-at-nodes      assume transitions happen at nodes, not along edges\n");
+    fprintf(stderr, "  -i, --ignore-tips         do not factor in terminal branches\n");
+    fprintf(stderr, "  -1, --lbound-branch       lower bound for branching rates\n");
+    fprintf(stderr, "  -2, --ubound-branch       upper bound for branching rates\n");
+    fprintf(stderr, "  -3, --lbound-trans        lower bound for transition rates\n");
+    fprintf(stderr, "  -4, --ubound-trans        upper bound for transition rates\n");
 }
 
 void display_results(int nrates, double *theta, double branch_scale)
@@ -97,17 +112,34 @@ struct mmpp_options get_options(int argc, char **argv)
         .nrates = 0,
         .cluster_states = 1,
         .trans_at_nodes = 0,
+        .use_tips = 1,
+        .lbound_branch = 1e-10,
+        .ubound_branch = 1e10,
+        .lbound_trans = 1e-10,
+        .ubound_trans = 1e10,
         .ms = LRT
     };
 
     while (c != -1)
     {
-        c = getopt_long(argc, argv, "hs:b:c:tr:m:nl:o:", long_options, &i);
+        c = getopt_long(argc, argv, "hs:b:c:itr:m:nl:o:1234", long_options, &i);
 
         switch (c)
         {
             case 0:
             case -1:
+                break;
+            case '1':
+                opts.lbound_branch = atof(optarg);
+                break;
+            case '2':
+                opts.ubound_branch = atof(optarg);
+                break;
+            case '3':
+                opts.lbound_trans = atof(optarg);
+                break;
+            case '4':
+                opts.ubound_trans = atof(optarg);
                 break;
             case 'b':
                 if (strcmp(optarg, "mean") == 0) {
@@ -122,6 +154,9 @@ struct mmpp_options get_options(int argc, char **argv)
                 break;
             case 'c':
                 opts.cmaes_settings = optarg;
+                break;
+            case 'i':
+                opts.use_tips = 0;
                 break;
             case 'l':
                 opts.cluster_states = atoi(optarg);
@@ -170,6 +205,7 @@ int main (int argc, char **argv)
     struct mmpp_options opts = get_options(argc, argv);
     double branch_scale;
     double *theta = malloc(opts.nrates * opts.nrates * sizeof(double));
+    double bounds[4] = {opts.lbound_branch, opts.ubound_branch, opts.lbound_trans, opts.ubound_trans};
     int i, error, *states, *clusters;
     igraph_t *tree;
 
@@ -180,9 +216,11 @@ int main (int argc, char **argv)
     ladderize(tree);
     branch_scale = scale_branches(tree, opts.scale_branches);
     states = malloc(igraph_vcount(tree) * sizeof(int));
+    for (i = 0; i < 4; ++i)
+        bounds[i] *= branch_scale;
 
     error = fit_mmpp(tree, &opts.nrates, &theta, opts.trace, opts.cmaes_settings,
-            states, opts.ms, opts.trans_at_nodes);
+            states, opts.ms, opts.use_tips, opts.trans_at_nodes, bounds);
     display_results(opts.nrates, theta, branch_scale);
 
     clusters = malloc(igraph_vcount(tree) * sizeof(int));
