@@ -183,7 +183,7 @@ START_TEST(test_likelihood_toy)
     igraph_t *tree = tree_from_newick("(t1:1,t2:1);");
     double theta[4] = {1, 2, 1, 3};
     mmpp_workspace *w = mmpp_workspace_create(tree, 2);
-    ck_assert(fabs(pow(10, likelihood(tree, 2, theta, w, 0)) - 0.0883478) < 1e-5);
+    ck_assert(fabs(pow(10, likelihood(tree, 2, theta, w, 0, 0)) - 0.0883478) < 1e-5);
     igraph_destroy(tree);
 }
 END_TEST
@@ -193,7 +193,18 @@ START_TEST(test_likelihood_toy3)
     igraph_t *tree = tree_from_newick("((t1:0.5,t2:1):0.75,t3:1);");
     double theta[4] = {1, 2, 1, 3};
     mmpp_workspace *w = mmpp_workspace_create(tree, 2);
-    ck_assert(fabs(pow(10, likelihood(tree, 2, theta, w, 0)) - 0.02248663) < 1e-5);
+    ck_assert(fabs(pow(10, likelihood(tree, 2, theta, w, 0, 0)) - 0.02248663) < 1e-5);
+    igraph_destroy(tree);
+}
+END_TEST
+
+START_TEST(test_likelihood_nodes_toy)
+{
+    igraph_t *tree = tree_from_newick("(t1:1,t2:1);");
+    double theta[4] = {1, 2, 1, 3};
+    mmpp_workspace *w = mmpp_workspace_create(tree, 2);
+    fprintf(stderr, "%f\n", pow(10, likelihood(tree, 2, theta, w, 1, 0)));
+    ck_assert(fabs(pow(10, likelihood(tree, 2, theta, w, 1, 0)) - 0.1598014) < 1e-5);
     igraph_destroy(tree);
 }
 END_TEST
@@ -238,14 +249,14 @@ START_TEST(test_reconstruct)
     _calculate_pi(2, theta, pi);
     igraph_adjlist_init(tree, &al, IGRAPH_OUT);
 
-    reconstruct(tree, 2, theta, w, states1);
+    reconstruct(tree, 2, theta, w, states1, 0);
     reconstruct_long(tree, 2, theta, states2);
 
     for (i = 0; i < 9; ++i) {
         ck_assert_int_eq(states1[i], states2[i]);
     }
     ck_assert(fabs(lik_states(tree, 2, states1, theta, pi, &al)) -
-                   pow(10, likelihood(tree, 2, theta, w, 1)) < 1e-5);
+                   pow(10, likelihood(tree, 2, theta, w, 0, 1)) < 1e-5);
     mmpp_workspace_free(w);
 }
 END_TEST
@@ -261,6 +272,7 @@ Suite *mmpp_suite(void)
     tcase_add_test(tc_core, test_guess_parameters);
     tcase_add_test(tc_core, test_likelihood_toy);
     tcase_add_test(tc_core, test_likelihood_toy3);
+    tcase_add_test(tc_core, test_likelihood_nodes_toy);
     tcase_add_test(tc_core, test_get_clusters);
     tcase_add_test(tc_core, test_reconstruct);
     tcase_set_timeout(tc_core, 10);

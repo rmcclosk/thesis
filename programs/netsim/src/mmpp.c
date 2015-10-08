@@ -267,12 +267,6 @@ double likelihood(const igraph_t *tree, int nrates, const double *theta,
 
     for (i = 0; i < igraph_vcount(tree); ++i)
     {
-        if(trans_at_nodes)
-            fprintf(stderr, "%d, %f, %f, %f, %f\n", i,
-                    w->P[i * nrates * nrates],
-                    w->P[i * nrates * nrates + 1],
-                    w->P[i * nrates * nrates + 2],
-                    w->P[i * nrates * nrates + 3]);
         children = igraph_adjlist_get(&w->al, i);
         if (igraph_vector_int_size(children) == 0)
         {
@@ -292,7 +286,6 @@ double likelihood(const igraph_t *tree, int nrates, const double *theta,
                 w->L[i * nrates + pstate] = 0;
                 for (cstate = 0; cstate < nrates; ++cstate)
                 {
-                if (trans_at_nodes)
                     w->L[i * nrates + pstate] += w->L[lchild * nrates + pstate] *
                                                  w->L[rchild * nrates + cstate] *
                                                  w->T[pstate * nrates + cstate];

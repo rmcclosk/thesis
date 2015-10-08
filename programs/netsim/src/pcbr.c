@@ -102,7 +102,7 @@ struct mmpp_options get_options(int argc, char **argv)
 
     while (c != -1)
     {
-        c = getopt_long(argc, argv, "hs:b:c:tr:m:l:o:", long_options, &i);
+        c = getopt_long(argc, argv, "hs:b:c:tr:m:nl:o:", long_options, &i);
 
         switch (c)
         {
