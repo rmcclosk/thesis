@@ -164,7 +164,7 @@ mmpp_workspace *mmpp_workspace_create(const igraph_t *tree, int nrates)
     w->y = malloc(nrates * nrates * sizeof(double));
     w->P = malloc(nrates * nrates * igraph_vcount(tree) * sizeof(double));
     w->L = malloc(nrates * igraph_vcount(tree) * sizeof(double));
-    w->Li = malloc(nrates * sizeof(double));
+    w->Li = malloc(nrates * nrates * sizeof(double));
     w->C = malloc(nrates * igraph_vcount(tree) * sizeof(int));
     w->T = malloc(nrates * nrates * sizeof(double));
     w->scale = malloc(igraph_vcount(tree) * sizeof(int));
@@ -263,7 +263,6 @@ double likelihood(const igraph_t *tree, int nrates, const double *theta,
 
     mmpp_workspace_set_params(w, theta, trans_at_nodes);
     calculate_P(tree, nrates, theta, w, trans_at_nodes);
-    calculate_pi(tree, nrates, theta, w);
 
     for (i = 0; i < igraph_vcount(tree); ++i)
     {
@@ -282,47 +281,31 @@ double likelihood(const igraph_t *tree, int nrates, const double *theta,
 
         for (pstate = 0; pstate < nrates; ++pstate)
         {
-            if (i == rt) {
-                w->L[i * nrates + pstate] = 0;
-                for (cstate = 0; cstate < nrates; ++cstate)
-                {
-                    w->L[i * nrates + pstate] += w->L[lchild * nrates + pstate] *
-                                                 w->L[rchild * nrates + cstate] *
-                                                 w->T[pstate * nrates + cstate];
-                    w->L[i * nrates + pstate] += w->L[lchild * nrates + cstate] *
-                                                 w->L[rchild * nrates + pstate] *
-                                                 w->T[pstate * nrates + cstate];
-                }
-                w->L[i * nrates + pstate] *= w->pi[pstate];
-                w->C[i * nrates + pstate] = pstate;
-            } 
-            else {
-                for (cstate = 0; cstate < nrates; ++cstate) {
-                    if (lchild != -1) {
-                        w->Li[cstate] = 0;
-                        for (j = 0; j < nrates; ++j)
-                        {
-                            w->Li[cstate] += w->L[lchild * nrates + cstate] *
-                                             w->L[rchild * nrates + j] *
-                                             w->T[cstate * nrates + j];
-                            w->Li[cstate] += w->L[rchild * nrates + j] *
-                                             w->L[lchild * nrates + cstate] *
-                                             w->T[cstate * nrates + j];
-                        }
-                        w->Li[cstate] *= w->P[i * nrates * nrates + pstate * nrates + cstate];
+            for (cstate = 0; cstate < nrates; ++cstate) {
+                if (lchild != -1) {
+                    w->Li[cstate] = 0;
+                    for (j = 0; j < nrates; ++j)
+                    {
+                        w->Li[cstate] += w->L[lchild * nrates + cstate] *
+                                         w->L[rchild * nrates + j] *
+                                         w->T[cstate * nrates + j];
+                        w->Li[cstate] += w->L[rchild * nrates + j] *
+                                         w->L[lchild * nrates + cstate] *
+                                         w->T[cstate * nrates + j];
                     }
-                    else {
-                        w->Li[cstate] = w->P[i * nrates * nrates + pstate * nrates + cstate];
-                    }
-                }
-
-                if (reconstruct) {
-                    w->C[i * nrates + pstate] = which_max(w->Li, nrates);
-                    w->L[i * nrates + pstate] = w->Li[w->C[i * nrates + pstate]];
+                    w->Li[cstate] *= w->P[i * nrates * nrates + pstate * nrates + cstate];
                 }
                 else {
-                    w->L[i * nrates + pstate] = sum_doubles(w->Li, nrates);
+                    w->Li[cstate] = w->P[i * nrates * nrates + pstate * nrates + cstate];
                 }
+            }
+
+            if (reconstruct) {
+                w->C[i * nrates + pstate] = which_max(w->Li, nrates);
+                w->L[i * nrates + pstate] = w->Li[w->C[i * nrates + pstate]];
+            }
+            else {
+                w->L[i * nrates + pstate] = sum_doubles(w->Li, nrates);
             }
         }
         new_scale = get_scale(&w->L[i * nrates], nrates);
@@ -332,7 +315,8 @@ double likelihood(const igraph_t *tree, int nrates, const double *theta,
         w->scale[i] += new_scale;
     }
 
-    lik = (reconstruct ? max_doubles : sum_doubles)(&w->L[rt * nrates], nrates);
+    //lik = (reconstruct ? max_doubles : sum_doubles)(&w->L[rt * nrates], nrates);
+    lik = w->L[rt * nrates];
     return log10(lik) + w->scale[rt];
 }
 
@@ -355,6 +339,7 @@ double reconstruct(const igraph_t *tree, int nrates, const double *theta,
             states[rchild] = w->C[rchild * nrates + states[i]];
         }
     }
+    return lik;
 }
 
 int _fit_mmpp(const igraph_t *tree, int nrates, double *theta, int trace,
@@ -503,8 +488,15 @@ void calculate_P(const igraph_t *tree, int nrates, const double *theta,
     gsl_odeiv2_system sys;
     gsl_odeiv2_driver *d;
 
-    // set the values at the root of the tree to the identity
-    memcpy(&w->P[root(tree) * nrates * nrates], w->y, nrates * nrates * sizeof(double));
+    calculate_pi(tree, nrates, theta, w);
+    // set the values at the root of the tree to the equilibrium frequencies
+    for (i = 0; i < nrates; ++i)
+    {
+        for (j = 0; j < nrates; ++j)
+        {
+            w->P[root(tree) * nrates * nrates + i * nrates + j] = w->pi[j];
+        }
+    }
 
     if (trans_at_nodes)
     {

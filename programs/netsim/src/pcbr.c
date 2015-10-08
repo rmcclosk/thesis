@@ -62,7 +62,7 @@ void display_results(int nrates, double *theta, double branch_scale)
 
     fprintf(stderr, "rates: ");
     for (i = 0; i < nrates; ++i)
-	    fprintf(stderr, "%f ", theta[rate_order[i]] / branch_scale);
+	    fprintf(stderr, "%f ", theta[rate_order[i]] * branch_scale);
     fprintf(stderr, "\n");
 
     fprintf(stderr, "Q: ");
@@ -72,9 +72,9 @@ void display_results(int nrates, double *theta, double branch_scale)
             if (i == j)
                 fprintf(stderr, "   *   ");
             else if (i > j)
-	            fprintf(stderr, "%f", theta[nrates + rate_order[i]*(nrates-1) + rate_order[j]] / branch_scale);
+	            fprintf(stderr, "%f", theta[nrates + rate_order[i]*(nrates-1) + rate_order[j]] * branch_scale);
             else
-	            fprintf(stderr, "%f", theta[nrates + rate_order[i]*(nrates-1) + rate_order[j] - 1] / branch_scale);
+	            fprintf(stderr, "%f", theta[nrates + rate_order[i]*(nrates-1) + rate_order[j] - 1] * branch_scale);
         }
         if (i < nrates - 1)
             fprintf(stderr, " ]\n   ");
