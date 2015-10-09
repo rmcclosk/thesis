@@ -16,7 +16,7 @@ struct mmpp_options {
     int seed;
     int trace;
     int nrates;
-    int cluster_states;
+    int bg_states;
     int trans_at_nodes;
     int use_tips;
     double lbound_branch;
@@ -35,7 +35,7 @@ struct option long_options[] =
     {"trace", no_argument, 0, 't'},
     {"rates", required_argument, 0, 'r'},
     {"model-selector", required_argument, 0, 'm'},
-    {"cluster-states", required_argument, 0, 'l'},
+    {"bg-states", required_argument, 0, 'l'},
     {"output", required_argument, 0, 'o'},
     {"trans-at-nodes", no_argument, 0, 'n'},
     {"ignore-tips", no_argument, 0, 'i'},
@@ -58,7 +58,7 @@ void usage(void)
     fprintf(stderr, "  -r, --rates               number of rates to fit\n");
     fprintf(stderr, "  -m, --model-selector      test used to select number of rates\n");
     fprintf(stderr, "                            (lrt/aic/bic)\n");
-    fprintf(stderr, "  -l, --cluster-states      number of highest states to use for clustering\n");
+    fprintf(stderr, "  -l, --bg-states           number of lowest states to use for background\n");
     fprintf(stderr, "  -o, --output              write clustering results and rates here\n");
     fprintf(stderr, "  -n, --trans-at-nodes      assume transitions happen at nodes, not along edges\n");
     fprintf(stderr, "  -i, --ignore-tips         do not factor in terminal branches\n");
@@ -110,7 +110,7 @@ struct mmpp_options get_options(int argc, char **argv)
         .seed = -1,
         .trace = 0,
         .nrates = 0,
-        .cluster_states = 1,
+        .bg_states = 1,
         .trans_at_nodes = 0,
         .use_tips = 1,
         .lbound_branch = 1e-10,
@@ -159,7 +159,7 @@ struct mmpp_options get_options(int argc, char **argv)
                 opts.use_tips = 0;
                 break;
             case 'l':
-                opts.cluster_states = atoi(optarg);
+                opts.bg_states = atoi(optarg);
                 break;
             case 'm':
                 if (strcmp(optarg, "aic") == 0) {
@@ -224,7 +224,7 @@ int main (int argc, char **argv)
     display_results(opts.nrates, theta, branch_scale);
 
     clusters = malloc(igraph_vcount(tree) * sizeof(int));
-    get_clusters(tree, states, clusters, opts.nrates - opts.cluster_states);
+    get_clusters(tree, states, clusters, opts.bg_states);
 
     for (i = 0; i < igraph_vcount(tree); ++i)
     {
