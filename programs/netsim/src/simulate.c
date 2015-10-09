@@ -8,19 +8,24 @@
 
 #include "simulate.h"
 
+void add_vertex_id(const igraph_t *net, igraph_strvector_t *v, int node, int numeric_ids);
+
 igraph_t *simulate_phylogeny(igraph_t *net, gsl_rng *rng, double stop_time, 
-        int stop_nodes)
+        int stop_nodes, int numeric_ids)
 {
     long i;
     int inode, snode, e, v, head, tail, nnode_tree = 0;
     double t, trans_rate = 0., remove_rate = 0., time = 0.;
+    char buf[128];
     igraph_t *tree = malloc(sizeof(igraph_t));
-    igraph_vector_t discordant, incident, edges, branch_lengths, node_map;
-    igraph_vector_int_t infected, removed;
+    igraph_vector_t discordant, incident, edges, branch_lengths, tip_map;
+    igraph_vector_int_t infected, removed; 
+    igraph_strvector_t node_map;
 
     igraph_vector_int_init(&infected, 0);
     igraph_vector_int_init(&removed, 0);
-    igraph_vector_init(&node_map, 0);
+    igraph_vector_init(&tip_map, 0);
+    igraph_strvector_init(&node_map, 0);
     igraph_vector_init(&discordant, 0);
     igraph_vector_init(&incident, 0);
     igraph_vector_init(&edges, 0);
@@ -30,7 +35,8 @@ igraph_t *simulate_phylogeny(igraph_t *net, gsl_rng *rng, double stop_time,
     inode = rand() % igraph_vcount(net);
     igraph_vector_int_push_back(&infected, inode);
     igraph_vector_push_back(&branch_lengths, 0.);
-    igraph_vector_push_back(&node_map, nnode_tree++);
+    igraph_vector_push_back(&tip_map, nnode_tree++);
+    add_vertex_id(net, &node_map, inode, numeric_ids);
 
     // the initial node's incident edges are the discordant edges now
     igraph_incident(net, &discordant, inode, IGRAPH_OUT);
@@ -50,7 +56,7 @@ igraph_t *simulate_phylogeny(igraph_t *net, gsl_rng *rng, double stop_time,
         {
             // increase all extant branch lengths by t
             for (v = 0; v < igraph_vector_int_size(&infected); ++v)
-                VECTOR(branch_lengths)[(int) VECTOR(node_map)[v]] += t;
+                VECTOR(branch_lengths)[(int) VECTOR(tip_map)[v]] += t;
 
             // next event is a transmission
             if ((double) rand() / (double) RAND_MAX < trans_rate / (trans_rate + remove_rate))
@@ -58,21 +64,24 @@ igraph_t *simulate_phylogeny(igraph_t *net, gsl_rng *rng, double stop_time,
                 // choose the next edge
                 i = rand() % igraph_vector_size(&discordant);
                 igraph_edge(net, VECTOR(discordant)[i], &inode, &snode);
-                //printf("infect node %d->%d\n", inode, snode);
+                //fprintf(stderr, "infect node %s->%s\n", VAS(net, "id", inode), 
+                                //VAS(net, "id", snode));
 
                 // mark the new node as infected
                 igraph_vector_int_binsearch(&infected, snode, &i);
                 igraph_vector_int_insert(&infected, i, snode);
-                igraph_vector_insert(&node_map, i, nnode_tree++);
+                igraph_vector_insert(&tip_map, i, nnode_tree++);
+                add_vertex_id(net, &node_map, snode, numeric_ids);
 
                 // add edges in the tree for the new transmission
                 igraph_vector_int_binsearch(&infected, inode, &i);
-                igraph_vector_push_back(&edges, VECTOR(node_map)[i]);
+                igraph_vector_push_back(&edges, VECTOR(tip_map)[i]);
                 igraph_vector_push_back(&edges, nnode_tree-1);
-                igraph_vector_push_back(&edges, VECTOR(node_map)[i]);
-                igraph_vector_set(&node_map, i, nnode_tree++);
+                igraph_vector_push_back(&edges, VECTOR(tip_map)[i]);
+                igraph_vector_set(&tip_map, i, nnode_tree++);
                 igraph_vector_push_back(&edges, nnode_tree-1);
                 remove_rate += VAN(net, "remove", snode);
+                add_vertex_id(net, &node_map, inode, numeric_ids);
     
                 // the new edges get branch length zero
                 igraph_vector_push_back(&branch_lengths, 0.);
@@ -138,7 +147,7 @@ igraph_t *simulate_phylogeny(igraph_t *net, gsl_rng *rng, double stop_time,
         {
             // increase all extant branch lengths up to stop_time
             for (v = 0; v < igraph_vector_int_size(&infected); ++v)
-                VECTOR(branch_lengths)[(int) VECTOR(node_map)[v]] += (stop_time - time);
+                VECTOR(branch_lengths)[(int) VECTOR(tip_map)[v]] += (stop_time - time);
             time = stop_time;
         }
     }
@@ -151,19 +160,37 @@ igraph_t *simulate_phylogeny(igraph_t *net, gsl_rng *rng, double stop_time,
         igraph_edge(tree, e, &head, &tail);
         SETEAN(tree, "length", e, VECTOR(branch_lengths)[tail]);
     }
-    for (v = 0; v < igraph_vector_int_size(&infected); ++v)
+    for (v = 0; v < igraph_strvector_size(&node_map); ++v)
     {
-        SETVAN(tree, "id", VECTOR(node_map)[v], VECTOR(infected)[v]);
+        SETVAS(tree, "id", v, STR(node_map, v));
     }
 
     // clean up
     igraph_vector_int_destroy(&infected);
     igraph_vector_int_destroy(&removed);
-    igraph_vector_destroy(&node_map);
+    igraph_strvector_destroy(&node_map);
+    igraph_vector_destroy(&tip_map);
     igraph_vector_destroy(&discordant);
     igraph_vector_destroy(&incident);
     igraph_vector_destroy(&edges);
     igraph_vector_destroy(&branch_lengths);
 
     return tree;
+}
+
+/* Private */
+
+void add_vertex_id(const igraph_t *net, igraph_strvector_t *v, int node, int numeric_ids)
+{
+    char buf[128];
+    if (igraph_cattribute_has_attr(net, IGRAPH_ATTRIBUTE_VERTEX, "id")) {
+        if (numeric_ids)
+            sprintf(buf, "%d", (int) VAN(net, "id", node));
+        else
+            sprintf(buf, "%s", VAS(net, "id", node));
+    }
+    else {
+        sprintf(buf, "%d", node);
+    }
+    igraph_strvector_add(v, buf);
 }

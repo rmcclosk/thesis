@@ -45,6 +45,8 @@ add.transmission.clusters <- function (net, cluster.size, num.clusters,
     cluster.edges <- unique(cluster.edges[cluster.edges != 0])
     E(g)[cluster.edges]$transmit <- cluster.rate
     V(g)$cluster <- 0
-    V(g)[unique(unlist(pairs))]$cluster <- 1
+    for (i in 1:length(clusters)) {
+        V(g)[clusters[[i]]]$cluster <- i
+    }
     g
 }

@@ -122,7 +122,7 @@ struct mmpp_options get_options(int argc, char **argv)
 
     while (c != -1)
     {
-        c = getopt_long(argc, argv, "hs:b:c:itr:m:nl:o:1234", long_options, &i);
+        c = getopt_long(argc, argv, "hs:b:c:itr:m:nl:o:1:2:3:4:", long_options, &i);
 
         switch (c)
         {
@@ -217,7 +217,7 @@ int main (int argc, char **argv)
     branch_scale = scale_branches(tree, opts.scale_branches);
     states = malloc(igraph_vcount(tree) * sizeof(int));
     for (i = 0; i < 4; ++i)
-        bounds[i] *= branch_scale;
+        bounds[i] /= branch_scale;
 
     error = fit_mmpp(tree, &opts.nrates, &theta, opts.trace, opts.cmaes_settings,
             states, opts.ms, opts.use_tips, opts.trans_at_nodes, bounds);
@@ -228,8 +228,8 @@ int main (int argc, char **argv)
 
     for (i = 0; i < igraph_vcount(tree); ++i)
     {
-        fprintf(opts.output, "%s\t%f\t%d\n", VAS(tree, "id", i),
-                theta[states[i]], clusters[i]);
+        fprintf(opts.output, "%s\t%e\t%d\n", VAS(tree, "id", i),
+                theta[states[i]] * branch_scale, clusters[i]);
     }
 
     igraph_destroy(tree);

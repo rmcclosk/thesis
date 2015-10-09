@@ -24,13 +24,20 @@ def mkdir_p(path):
     except os.error:
         pass
 
-def iter_parameters(param_dict):
+def iter_parameters(param_dict, exclusions):
     for k, v in param_dict.items():
         if isinstance(v, (str, int, float)):
             param_dict[k] = [v]
 
     for param_values in itertools.product(*param_dict.values()):
-        yield dict(zip(param_dict.keys(), param_values))
+        pdict = dict(zip(param_dict.keys(), param_values))
+        keep = True
+        for excl in exclusions:
+            shared_items = set(pdict.items()) & set(excl.items())
+            if len(shared_items) == len(excl.items()):
+                keep = False
+        if keep:
+            yield pdict
 
 def get_dependencies(expt, step_name, parameters, cur):
 
@@ -49,12 +56,15 @@ def get_dependencies(expt, step_name, parameters, cur):
 
     for prev_step_name in prev_steps:
         prev_step = expt["Steps"][prev_step_name]
-        common_parameters = set(prev_step["Parameters"].keys()) & set(parameters.keys())
+        try:
+            common_parameters = set(prev_step["Parameters"].keys()) & set(parameters.keys())
+        except KeyError:
+            common_parameters = []
 
         # if the current step has no parameters in common with the previous step,
         # assume it depends on every file
         if (len(common_parameters) == 0):
-            cur.execute("SELECT file FROM data WHERE experiment = ? AND step = ?",
+            cur.execute("SELECT file FROM md5 WHERE experiment = ? AND step = ?",
                         (expt["Name"], prev_step_name))
             depends[prev_step_name] = list(set(row[0] for row in cur.fetchall()))
 
@@ -82,6 +92,11 @@ def get_dependencies(expt, step_name, parameters, cur):
     return depends
 
 def needs_update(target, depends, cur):
+    for step in depends:
+        if depends[step] == "":
+            logging.info("Prerequisites of step {} for file {} are missing".format(step_name, target))
+            return False
+
     if not os.path.exists(target):
         logging.info("File {} doesn't exist, remaking".format(target))
         return True
@@ -105,8 +120,12 @@ def needs_update(target, depends, cur):
 def run_step(expt, step_name, con, cur, nproc):
     step = expt["Steps"][step_name]
 
-    #interpreter = shlex.split(step["Interpreter"])
-    interpreter = step["Interpreter"]
+    # if there's no interpreter, nothing to do
+    try:
+        interpreter = step["Interpreter"]
+    except KeyError:
+        return True
+
     try:
         startup = step["Startup"].rstrip() + "\n"
     except KeyError:
@@ -126,7 +145,14 @@ def run_step(expt, step_name, con, cur, nproc):
     proc = [0] * nproc
     proc_cur = 0
 
-    for parameters in iter_parameters(step["Parameters"]):
+    exclusions = []
+    try:
+        for excl in step["Exclusions"]:
+            exclusions.extend(list(iter_parameters(excl, [])))
+    except KeyError:
+        pass
+
+    for parameters in iter_parameters(step.get("Parameters"), exclusions):
 
         # check if a file with these parameters is there already
         old_basename = None
@@ -139,6 +165,13 @@ def run_step(expt, step_name, con, cur, nproc):
                 old_basename = set([row[0] for row in cur.fetchall()])
             else:
                 old_basename &= set([row[0] for row in cur.fetchall()])
+
+        # no parameters, should be an external file
+        if old_basename is None:
+            try:
+                old_basename = [step["ExternalFile"]]
+            except KeyError:
+                raise RuntimeError("No parameters and no external file for step {}\n".format(step_name))
 
         if len(old_basename) == 0:
             if sys.version_info.major == 3:
