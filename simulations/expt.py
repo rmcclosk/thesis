@@ -40,7 +40,6 @@ def iter_parameters(param_dict, exclusions):
             yield pdict
 
 def get_dependencies(expt, step_name, parameters, cur):
-
     step = expt["Steps"][step_name]
     depends = {}
 
@@ -266,7 +265,6 @@ def setup_database(con, cur):
             checksum TEXT)""")
 
 def sanitize(expt, con, cur):
-
     # add files which were missed before
     for step in os.listdir(expt):
         if not os.path.exists(os.path.join(expt, step)):
