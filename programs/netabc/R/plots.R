@@ -35,3 +35,12 @@ summary.plot <- function (data, x, y, facet.x=".", facet.y=".", group=NULL,
         geom_point() + geom_line() + theme_bw() +
         theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
 }
+
+cluster.plot <- function (net, tree, yaml="", ...)
+{
+    cluster.nodes <- V(net)[V(net)$cluster == 1]
+    cluster.edge <- tree$edge[,1] %in% cluster.nodes & tree$edge[,2] %in% cluster.nodes
+    edge.col <- ifelse(cluster.edge, "red", "black")
+    plot.phylo(tree, edge.color=edge.col, ...)
+    title(paste(strwrap(as.yaml(yaml.load(yaml)), 60), collapse="\n"))
+}
