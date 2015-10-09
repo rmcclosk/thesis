@@ -363,7 +363,7 @@ int _write_tree_newick(const igraph_t *tree, char *out, int root,
     if ((int) VECTOR(*work)[0] == 0)
     {
         if (igraph_cattribute_has_attr(tree, IGRAPH_ATTRIBUTE_VERTEX, "id"))
-            return sprintf(out, "%d:%f", (int) VAN(tree, "id", root), length);
+            return sprintf(out, "%s:%f", VAS(tree, "id", root), length);
         else
             return sprintf(out, "%d:%f", root, length);
     }
@@ -378,7 +378,11 @@ int _write_tree_newick(const igraph_t *tree, char *out, int root,
     nchar += sprintf(&out[nchar], ",");
     nchar += _write_tree_newick(tree, &out[nchar], right_child, work);
     nchar += sprintf(&out[nchar], ")");
-    nchar += sprintf(&out[nchar], "%d:%f", root, length);
+
+    if (igraph_cattribute_has_attr(tree, IGRAPH_ATTRIBUTE_VERTEX, "id"))
+        nchar += sprintf(&out[nchar], "%s:%f", VAS(tree, "id", root), length);
+    else
+        nchar += sprintf(&out[nchar], "%d:%f", root, length);
     if (is_root)
         nchar += sprintf(&out[nchar], ";");
     return nchar;

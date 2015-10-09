@@ -96,6 +96,11 @@ int net_ok(igraph_t *net)
         fprintf(stderr, "Vertices must have the 'remove' attribute\n");
         return 0;
     }
+    if (!igraph_cattribute_has_attr(net, IGRAPH_ATTRIBUTE_VERTEX, "id"))
+    {
+        fprintf(stderr, "Vertices must have the 'id' attribute\n");
+        return 0;
+    }
     if (!igraph_cattribute_has_attr(net, IGRAPH_ATTRIBUTE_EDGE, "transmit"))
     {
         fprintf(stderr, "Edges must have the 'transmit' attribute\n");
@@ -106,16 +111,36 @@ int net_ok(igraph_t *net)
 
 int main (int argc, char **argv)
 {
+    int i, numeric_ids = 0;
+    char buf[128];
     struct nettree_options opts = get_options(argc, argv);
     gsl_rng *rng = set_seed(opts.seed < 0 ? time(NULL) : opts.seed);
     igraph_t net, *tree;
 
+    igraph_strvector_t gnames, vnames, enames;
+    igraph_vector_t gtypes, vtypes, etypes;
+
+    igraph_strvector_init(&gnames, 0);
+    igraph_strvector_init(&vnames, 0);
+    igraph_strvector_init(&enames, 0);
+    igraph_vector_init(&gtypes, 0);
+    igraph_vector_init(&vtypes, 0);
+    igraph_vector_init(&etypes, 0);
+
     igraph_i_set_attribute_table(&igraph_cattribute_table);
     igraph_read_graph_gml(&net, opts.net_file);
+    igraph_cattribute_list(&net, &gnames, &gtypes, &vnames, &vtypes, &enames, &etypes);
+
+    for (i = 0; i < igraph_strvector_size(&vnames); ++i) {
+        if (strcmp(STR(vnames, i), "id") == 0 && VECTOR(vtypes)[i] == 1) {
+            numeric_ids = 1;
+            break;
+        }
+    }
 
     if (net_ok(&net))
     {
-        tree = simulate_phylogeny(&net, rng, opts.sim_time, opts.sim_nodes);
+        tree = simulate_phylogeny(&net, rng, opts.sim_time, opts.sim_nodes, numeric_ids);
         fprintf(stderr, "Simulated a tree of height %.2f with %d tips\n", 
                 height(tree), (igraph_vcount(tree) + 1)/2);
         cut_at_time(tree, opts.tree_height, opts.extant_only);
@@ -131,5 +156,11 @@ int main (int argc, char **argv)
         fclose(opts.tree_file);
     gsl_rng_free(rng);
     igraph_destroy(&net);
+    igraph_strvector_destroy(&gnames);
+    igraph_strvector_destroy(&vnames);
+    igraph_strvector_destroy(&enames);
+    igraph_vector_destroy(&gtypes);
+    igraph_vector_destroy(&vtypes);
+    igraph_vector_destroy(&etypes);
     return EXIT_SUCCESS;
 }

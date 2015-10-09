@@ -334,6 +334,7 @@ double reconstruct(const igraph_t *tree, int nrates, const double *theta,
     return lik;
 }
 
+/* Private. */
 int _fit_mmpp(const igraph_t *tree, int nrates, double *theta, int trace,
              const char *cmaes_settings, int *states, double *loglik, 
              int use_tips, int trans_at_nodes, double bounds[4])
@@ -359,6 +360,7 @@ int _fit_mmpp(const igraph_t *tree, int nrates, double *theta, int trace,
     {
         lbound[i] = log(bounds[2]);
         ubound[i] = log(bounds[3]);
+        fprintf(stderr, "%f, %f\n", lbound[i], ubound[i]);
         init_sd[i] = 1;
     }
 
@@ -430,7 +432,6 @@ int _fit_mmpp(const igraph_t *tree, int nrates, double *theta, int trace,
     return error;
 }
 
-/* Private. */
 void mmpp_workspace_set_params(mmpp_workspace *w, const double *theta, 
         int trans_at_nodes)
 {
