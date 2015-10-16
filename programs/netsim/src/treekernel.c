@@ -20,6 +20,7 @@ struct treekernel_options {
 
 struct option long_options[] =
 {
+    {"help", no_argument, 0, 'h'},
     {"decay-factor", required_argument, 0, 'l'},
     {"gauss-factor", required_argument, 0, 'g'},
     {"sst-control", required_argument, 0, 's'},
@@ -29,6 +30,22 @@ struct option long_options[] =
     {"scale-branches", required_argument, 0, 'b'},
     {0, 0, 0, 0}
 };
+
+void usage(void)
+{
+    fprintf(stderr, "Usage: treekernel [options] [tree1] [tree2]\n\n");
+    fprintf(stderr, "Options:\n");
+    fprintf(stderr, "  -h, --help                display this message\n");
+    fprintf(stderr, "  -l, --decay-factor        penalty for large matches (default 0.2)\n");
+    fprintf(stderr, "  -g, --gauss-factor        variance for Gaussian RBF (default 2)\n");
+    fprintf(stderr, "  -c, --coal-variance       variance for coalescence times kernel (default infinity)\n");
+    fprintf(stderr, "  -s, --sst-control         0 for subtree kernel, 1 for subset-tree kernel (default 1)\n");
+    fprintf(stderr, "  -n, --normalize           divide output by square-root of product of\n");
+    fprintf(stderr, "                            kernels of trees with themselves\n");
+    fprintf(stderr, "  -d, --ladderize           ladderize trees before computing kernel\n");
+    fprintf(stderr, "  -b, --scale-branches      type of branch scaling to apply (mean/median/max/none, default none)\n");
+}
+
 
 struct treekernel_options get_options(int argc, char **argv)
 {
@@ -47,10 +64,17 @@ struct treekernel_options get_options(int argc, char **argv)
 
     while (c != -1)
     {
-        c = getopt_long(argc, argv, "l:g:s:c:ndb:", long_options, &i);
+        c = getopt_long(argc, argv, "hl:g:s:c:ndb:", long_options, &i);
+        if (c == -1)
+            break;
 
         switch (c)
         {
+            case 0:
+                break;
+            case 'h':
+                usage();
+                exit(EXIT_SUCCESS);
             case 'l':
                 opts.decay_factor = atof(optarg);
                 break;
@@ -80,8 +104,11 @@ struct treekernel_options get_options(int argc, char **argv)
                     opts.scale_branches = MAX;
                 }
                 break;
-            default:
+            case '?':
                 break;
+            default:
+                usage();
+                exit(EXIT_FAILURE);
         }
     }
 
