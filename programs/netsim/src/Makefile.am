@@ -6,7 +6,11 @@ libnetsim_la_SOURCES = util.h util.c stats.c stats.h smc.c smc.h tree.h tree.c t
 libnetsim_la_CFLAGS = $(GSL_CFLAGS) $(WARN_CFLAGS)
 libnetsim_la_LIBADD = $(GSL_LIBS) $(WARN_LDFLAGS) $(top_builddir)/c-cmaes/libcmaes.la
 
-bin_PROGRAMS = nettree treekernel pcbr
+bin_PROGRAMS = nettree treekernel pcbr netabc
+
+netabc_SOURCES = netabc.c
+netabc_CFLAGS = $(WARN_CFLAGS)
+netabc_LDADD = $(WARN_LDFLAGS) libnetsim.la
 
 pcbr_SOURCES = pcbr.c
 pcbr_CFLAGS = $(WARN_CFLAGS)

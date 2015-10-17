@@ -38,3 +38,15 @@ to simulate realistic (based on a demographic survey) networks.
 ## hohna2015tess
 
 Art sent me this in an email.
+
+## minin2008fast
+
+Stochastic mapping, from Alex.
+
+## nielsen2002mapping
+
+Stochastic mapping, from Alex.
+
+## del2012adaptive
+
+Adaptive tolerance schedules for ABC-SMC, from Alex.

@@ -10,14 +10,13 @@
 
 void add_vertex_id(const igraph_t *net, igraph_strvector_t *v, int node, int numeric_ids);
 
-igraph_t *simulate_phylogeny(igraph_t *net, gsl_rng *rng, double stop_time, 
-        int stop_nodes, int numeric_ids)
+void simulate_phylogeny(igraph_t *tree, igraph_t *net, gsl_rng *rng,
+        double stop_time, int stop_nodes, int numeric_ids)
 {
     long i;
     int inode, snode, e, v, head, tail, nnode_tree = 0;
     double t, trans_rate = 0., remove_rate = 0., time = 0.;
     char buf[128];
-    igraph_t *tree = malloc(sizeof(igraph_t));
     igraph_vector_t discordant, incident, edges, branch_lengths, tip_map;
     igraph_vector_int_t infected, removed; 
     igraph_strvector_t node_map;
@@ -174,8 +173,6 @@ igraph_t *simulate_phylogeny(igraph_t *net, gsl_rng *rng, double stop_time,
     igraph_vector_destroy(&incident);
     igraph_vector_destroy(&edges);
     igraph_vector_destroy(&branch_lengths);
-
-    return tree;
 }
 
 /* Private */

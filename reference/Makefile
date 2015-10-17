@@ -26,6 +26,8 @@ all: dirs \
 	 R/kernlab.pdf \
 	 R/R-exts.pdf \
 	 R/parallel.pdf \
+	 R/ape.pdf \
+	 R/yaml.pdf \
 	 python/python-library.pdf \
 	 bin/pandoc.pdf \
 	 bin/$(DOXYGEN_LATEST).pdf \

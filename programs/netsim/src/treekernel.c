@@ -46,7 +46,6 @@ void usage(void)
     fprintf(stderr, "  -b, --scale-branches      type of branch scaling to apply (mean/median/max/none, default none)\n");
 }
 
-
 struct treekernel_options get_options(int argc, char **argv)
 {
     int i, c = 0;

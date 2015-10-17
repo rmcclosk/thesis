@@ -24,6 +24,7 @@ struct nettree_options {
 
 struct option long_options[] =
 {
+    {"help", no_argument, 0, 'h'},
     {"sim-time", required_argument, 0, 's'},
     {"sim-nodes", required_argument, 0, 'n'},
     {"tree-height", required_argument, 0, 'r'},
@@ -32,6 +33,19 @@ struct option long_options[] =
     {"seed", required_argument, 0, 'd'},
     {0, 0, 0, 0}
 };
+
+void usage(void)
+{
+    fprintf(stderr, "Usage: nettree [options] [graph]\n\n");
+    fprintf(stderr, "Options:\n");
+    fprintf(stderr, "  -h, --help                display this message\n");
+    fprintf(stderr, "  -s, --sim-time            amount of epidemic time to simulate (default infinity)\n");
+    fprintf(stderr, "  -n, --sim-nodes           stop simulation after this many nodes are infected (default infinity)\n");
+    fprintf(stderr, "  -r, --tree-height         cut the tree at this height (default infinity)\n");
+    fprintf(stderr, "  -t, --tree-tips           sample this many tips from the tree (default infinity)\n");
+    fprintf(stderr, "  -e, --extant-only         sample only extant tips (default false)\n");
+    fprintf(stderr, "  -d, --seed                random seed\n");
+}
 
 struct nettree_options get_options(int argc, char **argv)
 {
@@ -49,10 +63,15 @@ struct nettree_options get_options(int argc, char **argv)
 
     while (c != -1)
     {
-        c = getopt_long(argc, argv, "s:n:r:t:ed:", long_options, &i);
+        c = getopt_long(argc, argv, "hs:n:r:t:ed:", long_options, &i);
+        if (c == -1)
+            break;
 
         switch (c)
         {
+            case 'h':
+                usage();
+                exit(EXIT_SUCCESS);
             case 's':
                 opts.sim_time = atof(optarg);
                 break;
@@ -71,8 +90,12 @@ struct nettree_options get_options(int argc, char **argv)
             case 'd':
                 opts.seed = atoi(optarg);
                 break;
-            default:
+            case '?':
+            case 0:
                 break;
+            default:
+                usage();
+                exit(EXIT_FAILURE);
         }
     }
 
@@ -115,7 +138,7 @@ int main (int argc, char **argv)
     char buf[128];
     struct nettree_options opts = get_options(argc, argv);
     gsl_rng *rng = set_seed(opts.seed < 0 ? time(NULL) : opts.seed);
-    igraph_t net, *tree;
+    igraph_t net, tree;
 
     igraph_strvector_t gnames, vnames, enames;
     igraph_vector_t gtypes, vtypes, etypes;
@@ -140,14 +163,14 @@ int main (int argc, char **argv)
 
     if (net_ok(&net))
     {
-        tree = simulate_phylogeny(&net, rng, opts.sim_time, opts.sim_nodes, numeric_ids);
+        simulate_phylogeny(&tree, &net, rng, opts.sim_time, opts.sim_nodes, numeric_ids);
         fprintf(stderr, "Simulated a tree of height %.2f with %d tips\n", 
-                height(tree), (igraph_vcount(tree) + 1)/2);
-        cut_at_time(tree, opts.tree_height, opts.extant_only);
-        subsample_tips(tree, opts.ntip, rng);
-        ladderize(tree);
-        write_tree_newick(tree, opts.tree_file);
-        igraph_destroy(tree);
+                height(&tree), (igraph_vcount(&tree) + 1)/2);
+        cut_at_time(&tree, opts.tree_height, opts.extant_only);
+        subsample_tips(&tree, opts.ntip, rng);
+        ladderize(&tree);
+        write_tree_newick(&tree, opts.tree_file);
+        igraph_destroy(&tree);
     }
 
     if (opts.net_file != stdin)

@@ -40,9 +40,10 @@
  * \param[in] stop_time maximum amount of time to run the simulation for
  * \param[in] stop_nodes maximum number of nodes to infect
  * \param[in] numeric_ids 1 if the "id" attribute of the network is numeric
+ * \param[in] tree an uninitialized igraph_t object
  * \return a phylogeny simulated over the contact network
  */
-igraph_t *simulate_phylogeny(igraph_t *net, gsl_rng *rng, double stop_time, 
-        int stop_nodes, int numeric_ids);
+void simulate_phylogeny(igraph_t *tree, igraph_t *net, gsl_rng *rng, double
+        stop_time, int stop_nodes, int numeric_ids);
 
 #endif
