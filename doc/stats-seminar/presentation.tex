@@ -724,10 +724,73 @@
     (http://www.gnu.org/copyleft/fdl.html)], via Wikimedia Commons\par
 \end{frame}
 
-\begin{frame}{Making an HIV phylogeny}
+\begin{frame}{Population-level HIV sequencing}
     \begin{tikzpicture}
-
+        \node (a) {\includegraphics[height=1.5cm]{person7}};
+        \node (b) [right=of a] {\includegraphics[height=1.5cm]{blood_testing}};
+        \draw [->, >=stealth, thick] (a) -- (b);
+        \uncover<2->{
+        \node (c) [below=of b] {\includegraphics[height=1.5cm]{hiv}\includegraphics[height=1.5cm]{alignment}};
+        \draw [->, >=stealth, thick] (b) -- (c);
+        }
+        \uncover<3->{
+        \node (d) [right=of c, rectangle, draw, inner ysep=12pt] {\includegraphics[height=1.5cm]{medical}};
+        \draw [->, >=stealth, thick] (c) -- (d);
+        }
+        \uncover<4->{
+        \node (e) [below=of c] {\includegraphics[height=0.25cm]{sequence1}};
+        \draw [->, >=stealth, thick] (c) -- (e);
+        }
     \end{tikzpicture}
+\end{frame}
+
+\begin{frame}{Maximum likelihood HIV phylogeny}
+    \begin{columns}
+        \begin{column}{0.5\textwidth}
+            \includegraphics[height=1cm]{person7}\includegraphics[height=0.25cm]{sequence1}
+
+            \includegraphics[height=1cm]{person8}\includegraphics[height=0.25cm]{sequence2}
+
+            \includegraphics[height=1cm]{person9}\includegraphics[height=0.25cm]{sequence4}
+
+            \includegraphics[height=1cm]{person10}\includegraphics[height=0.25cm]{sequence5}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \centering
+            \uncover<2->{
+            \includegraphics[width=\textwidth]{unrooted}
+
+            FastTree 2
+            }
+        \end{column}
+    \end{columns}
+
+    \tiny
+    Price, Morgan N., Paramvir S. Dehal, and Adam P. Arkin. ``FastTree
+    2 -- approximately maximum-likelihood trees for large alignments.'' PloS one
+    5.3 (2010): e9490.\par
+\end{frame}
+
+\begin{frame}{Time scaling the phylogeny}
+
+    \begin{columns}
+        \begin{column}{0.5\textwidth}
+            \centering
+            \includegraphics[height=1cm]{unrooted}
+
+            \includegraphics[width=\textwidth]{rtt}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \uncover<2->{
+            \includegraphics[width=\textwidth]{rooted}
+            }
+        \end{column}
+    \end{columns}
+
+    \tiny
+    Drummond, Alexei, G. Oliver, and Andrew Rambaut. ``Inference of viral
+    evolutionary rates from molecular sequences.'' Advances in parasitology 54
+    (2003): 331-358.\par
 \end{frame}
 
 \begin{frame}{HIV subtype B in British Columbia}
@@ -747,72 +810,123 @@
     \end{description}
 \end{frame}
 
-\begin{frame}{3 rates, upper bounds = \nicefrac17}
-    \includegraphics[width=\textwidth, trim=0 0 0 0.8in, clip=true]{pcbr1}
-\end{frame}
-
 \begin{frame}{4 rates, upper bounds = \nicefrac17, rate changes at nodes}
     \includegraphics[width=\textwidth, trim=0 0 0 0.8in, clip=true]{pcbr2}
 \end{frame}
 
-\section{Challenges: validation}
+\begin{frame}{3 rates, upper bounds = \nicefrac17}
+    \includegraphics[width=\textwidth, trim=0 0 0 0.8in, clip=true]{pcbr1}
+\end{frame}
 
-\end{document}
+\section{Challenges}
 
-\begin{frame}
-    \frametitle{Genetic distance based clustering}
-    \tikz[remember picture,overlay] \node [anchor=north east, inner sep=1.5 cm] at (current page.north east) {\includegraphics[width=0.3\textwidth]{timetree-riskgroup-legend}};
+\section{Previous projects}
 
-    \tikz[remember picture,overlay] \node [anchor=north west, inner ysep=1 cm] at (current page.north west) {\includegraphics[width=0.6\textwidth]{timetree-pd-polar}};
+\begin{frame}{Phylogenetic estimation of transmitted/founder viruses}
+    \begin{center}
+    \begin{tikzpicture}
+        [scale=1.7, every node/.style={inner sep=0pt}]
+        \node (root) at (1, 2) {\includegraphics[width=1cm]{hiv}};
+        \node (lc) at (0.5, 1) {\includegraphics[width=1cm]{hiv}};
+        \node (t1) at (0, 0) {\includegraphics[width=1cm]{hiv}};
+        \node (t2) at (1, 0) {\includegraphics[width=1cm]{hiv}};
+        \node (t3) at (2, 0) {\includegraphics[width=1cm]{hiv}};
+        \draw (root) -- (lc) -- (t1);
+        \draw (lc) -- (t2);
+        \draw (root) -- (t3);
 
-    \tikz[remember picture,overlay] \node [anchor=south east, inner ysep=0 cm] at (current page.south east) {\includegraphics[width=0.6\textwidth]{timetree-riskgroup-polar}};
+        \node at (3, 2) {$\longrightarrow$ transmitted/founder};
+        \node at (3, 0) {$\longrightarrow$ sampled};
+    \end{tikzpicture}
+\end{center}
+
+    Find patients with known early sequences; try to reconstruct with
+    phylogenetic methods.
+
+    \tiny
+    McCloskey, Rosemary M., et al. ``An Evaluation of Phylogenetic Methods for
+    Reconstructing Transmitted HIV Variants using Longitudinal Clonal HIV
+    Sequence Data.'' Journal of virology 88.11 (2014): 6181-6194.\par
+\end{frame}
+
+\begin{frame}{Phylogenetic estimation of transmitted/founder viruses}
+    \begin{description}
+        \setlength{\itemsep}{16pt}
+        \item [{\Huge55}] publications with early and late sequences
+        \item [{\Huge232}] patients
+        \item [{\Huge335}] gene data sets
+        \item [{\Huge19,486}] total HIV sequences
+    \end{description}
+\end{frame}
+
+\begin{frame}{Phylogenetic estimation of transmitted/founder viruses}
+    \includegraphics[width=\textwidth]{mccloskey2014evaluation_f1}
+\end{frame}
+
+\begin{frame}{Phylogenetic methods are informative}
+    \includegraphics[height=\textheight]{mccloskey2014evaluation_f2}
+\end{frame}
+
+\begin{frame}{Single origin of Hepatitis C virus Q80K polymorphism}
+    \begin{itemize}
+        \setlength{\itemsep}{12pt}
+        \item The Q80K polymorphism occurs in 5-47\% of HCV cases
+        \item Confers mild resistance to some therapies 
+        \item We investigated the origin and transmissibility of Q80K using
+            publicly available sequence data
+    \end{itemize}
+
+    \vspace{1cm}
+    \tiny Lin, M. Valerie, and Raymond Chung. ``Recent FDA approval of sofosbuvir and simeprevir. Implications for current HCV treatment.'' Clinical Liver Disease 3.3 (2014): 65-68. \par
+    \tiny McCloskey, Rosemary M., et al. ``Global origin and transmission of hepatitis C virus NS3 Q80 K polymorphism.'' Journal of Infectious Diseases (2014): jiu613. \par
+\end{frame}
+
+\begin{frame}{Single origin of Hepatitis C virus Q80K polymorphism}
+    \begin{description}
+        \setlength{\itemsep}{16pt}
+        \item [{\Huge160 071}] unfiltered sequences
+        \item [{\Huge13}] countries of origin
+        \item [{\Huge4}] filtering steps
+        \item [{\Huge724}] filtered sequences
+    \end{description}
+\end{frame}
+
+\begin{frame}{Single origin of Hepatitis C virus Q80K polymorphism}
+    \includegraphics[width=\textwidth]{mccloskey2015global_f1}
+
+    \includegraphics[width=\textwidth]{mccloskey2015global_supp}
 \end{frame}
 
 \begin{frame}
-    \frametitle{Model-based clustering}
-    \tikz[remember picture,overlay] \node [anchor=north east, inner sep=1.5 cm] at (current page.north east) {\includegraphics[width=0.3\textwidth]{timetree-riskgroup-legend}};
+    \frametitle{Thanks}
+    \begin{columns}
+        \begin{column}{0.5\textwidth}
+            \textbf{BC Centre for Excellence in HIV/AIDS} \\
+            $\qquad$ Art Poon \\
+            $\qquad$ Richard Liang \\
+            $\qquad$ P. Richard Harrigan \\
+            $\qquad$ Jeffrey Joy \\
+            $\qquad$ Thuy Nguyen
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \textbf{UBC} \\
+            $\qquad$ Sarah Otto \\
+            $\qquad$ Alexandre Bouchard-C\^ot\'e \\
+            $\qquad$ Wayne Maddison \\
+            $\qquad$ Sara Mostafavi \\
+            \textbf{SFU} \\
+            $\qquad$ Ryan Morin \\
+            $\qquad$ Marni Mishna \\
+            $\qquad$ Cedric Chauve
+        \end{column}
+    \end{columns}
 
-    \tikz[remember picture,overlay] \node [anchor=north west, inner ysep=1 cm] at (current page.north west) {\includegraphics[width=0.6\textwidth]{timetree_4}};
-
-    \tikz[remember picture,overlay] \node [anchor=south east, inner ysep=0 cm] at (current page.south east) {\includegraphics[width=0.6\textwidth]{timetree-riskgroup-polar}};
-\end{frame}
-
-\begin{frame}
-    \frametitle{Preliminary comparison}
-    \tikz[remember picture,overlay] \node [anchor=north east, inner ysep=1.5 cm, inner xsep=0.5 cm, text width=6cm] at (current page.north east) {$\longleftarrow$ 79 clusters \\ median [IQR] 29 [16-56] individuals};
-
-    \tikz[remember picture,overlay] \node [anchor=north west, inner ysep=1 cm] at (current page.north west) {\includegraphics[width=0.6\textwidth]{cluster4}};
-
-    \tikz[remember picture,overlay] \node [anchor=south west, inner xsep=0.5 cm, inner ysep=1 cm, text width=6cm] at (current page.south west) {\hfill 221 clusters $\longrightarrow$ \\ \hfill median [IQR] 5 [8-15] individuals};
-
-    \tikz[remember picture,overlay] \node [anchor=south east, inner ysep=0 cm] at (current page.south east) {\includegraphics[width=0.6\textwidth]{timetree-pd-polar}};
-\end{frame}
-
-\begin{frame}
-    \frametitle{Challenges}
-    \tikz[remember picture,overlay] \node [anchor=north east, inner ysep=1.5 cm, inner xsep=0.5 cm, text width=6.5cm] at (current page.north east) {$\longleftarrow$ likelihood ratio test doesn't work? \\ $\qquad$ how to define clusters?};
-
-    \tikz[remember picture,overlay] \node [anchor=north west, inner ysep=1 cm] at (current page.north west) {\includegraphics[width=0.6\textwidth]{timetree_6}};
-
-    \tikz[remember picture,overlay] \node [anchor=south west, inner xsep=1.5 cm, inner ysep=1 cm] at (current page.south west) {scaling tip branches $\longrightarrow$};
-
-    \tikz[remember picture,overlay] \node [anchor=south east, inner ysep=0 cm] at (current page.south east) {\includegraphics[width=0.6\textwidth]{timetree-qnorm_3}};
-\end{frame}
-
-\begin{frame}
-    \frametitle{Acknowledgements}
-
-    \textbf{BC Centre for Excellence in HIV/AIDS} \\
-    $\qquad$ Art Poon \\
-    $\qquad$ Richard Liang \\
-    $\qquad$ Jeffrey Joy \\
-    $\qquad$ T. Nguyen \\
-
-    \vspace{3cm}
-    \includegraphics[width=0.2\textwidth]{logos/nserc}
-    \includegraphics[width=0.35\textwidth]{logos/cfe}
-    \includegraphics[width=0.35\textwidth]{logos/btp}
-    \includegraphics[width=0.1\textwidth]{logos/ubc}
+    \vspace{1cm}
+    \includegraphics[width=0.35\textwidth]{cfe}
+    \includegraphics[width=0.35\textwidth]{btp}
+    \includegraphics[width=0.1\textwidth]{ubc}
+    \hspace{0.5cm}
+    \includegraphics[width=0.1\textwidth]{ubcstats}
 \end{frame}
 
 \end{document}
