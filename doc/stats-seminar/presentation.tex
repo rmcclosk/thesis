@@ -166,7 +166,7 @@
     \end{center}
 \end{frame}
 
-\section{Motivation: more informed phylogenetic clustering}
+\section{Motivation: phylogenetic clustering}
 
 \begin{frame}{Phylogenetic clustering}
     \begin{tikzpicture}
@@ -305,26 +305,26 @@
     \end{tikzpicture}
 \end{frame}
 
-\begin{frame}{Popular problems}
-    \begin{columns}
-        \begin{column}{0.5\textwidth}
-            \includegraphics[width=\textwidth, trim=0 11in 0 0, clip=true]{hughes2009molecular-f1}
-        \end{column}
-        \begin{column}{0.5\textwidth}
-            \includegraphics[width=\textwidth]{lewis2008episodic-f2}
-        \end{column}
-    \end{columns}
-    \begin{columns}
-        \begin{column}{0.5\textwidth}
-            \tiny
-            Hughes, Gareth J., et al. ``Molecular phylodynamics of the heterosexual HIV epidemic in the United Kingdom.'' PLoS Pathog 5.9 (2009): e1000590.
-        \end{column}
-        \begin{column}{0.5\textwidth}
-            \tiny
-            Lewis, Fraser, et al. ``Episodic sexual transmission of HIV revealed by molecular phylodynamics.'' PLoS Med 5.3 (2008): e50.
-        \end{column}
-    \end{columns}
-\end{frame}
+%\begin{frame}{Popular problems}
+%    \begin{columns}
+%        \begin{column}{0.5\textwidth}
+%            \includegraphics[width=\textwidth, trim=0 11in 0 0, clip=true]{hughes2009molecular-f1}
+%        \end{column}
+%        \begin{column}{0.5\textwidth}
+%            \includegraphics[width=\textwidth]{lewis2008episodic-f2}
+%        \end{column}
+%    \end{columns}
+%    \begin{columns}
+%        \begin{column}{0.5\textwidth}
+%            \tiny
+%            Hughes, Gareth J., et al. ``Molecular phylodynamics of the heterosexual HIV epidemic in the United Kingdom.'' PLoS Pathog 5.9 (2009): e1000590.
+%        \end{column}
+%        \begin{column}{0.5\textwidth}
+%            \tiny
+%            Lewis, Fraser, et al. ``Episodic sexual transmission of HIV revealed by molecular phylodynamics.'' PLoS Med 5.3 (2008): e50.
+%        \end{column}
+%    \end{columns}
+%\end{frame}
 
 \begin{frame}{Genetic distance can be misleading}
     \begin{columns}
@@ -344,6 +344,10 @@
                 \draw (a) -- (c);
                 \draw (a) -- (d);
                 \draw (a) -- (e);
+                \draw (b) -- (e);
+                \draw (c) -- (e);
+                \draw (c) -- (d);
+                \draw (d) -- (e);
             \end{tikzpicture}
             }
         \end{column}
@@ -407,7 +411,7 @@
 \end{frame}
 
 
-\section{A Markov-modulated Poisson process on phylogenies}
+\section{Methods: a Markov-modulated Poisson process on phylogenies}
 
 \begin{frame}{Modelling branching rates}
     \begin{tikzpicture}
@@ -430,7 +434,7 @@
         }
         \uncover<4->{
             \draw [blue] (a) -- node [auto, text=black] {
-                $T \sim $ Exponential(?)
+                $T \sim $ Exponential($\cdots$)
             } (b);
         }
         \uncover<3->{
@@ -457,13 +461,13 @@
     \end{center}
 \end{frame}
 
-\begin{frame}{Markov-modulated Poisson processes}
-    \includegraphics[width=\textwidth]{muscariello2004mmpp}
-
-    \includegraphics[width=\textwidth]{ching1997markov}
-
-    \includegraphics[width=\textwidth]{lu2012markov}
-\end{frame}
+%\begin{frame}{Markov-modulated Poisson processes}
+%    \includegraphics[width=\textwidth]{muscariello2004mmpp}
+%
+%    \includegraphics[width=\textwidth]{ching1997markov}
+%
+%    \includegraphics[width=\textwidth]{lu2012markov}
+%\end{frame}
 
 \newcommand{\ls}{\lambda_{\text{slow}}}
 \newcommand{\lf}{\lambda_{\text{fast}}}
@@ -625,6 +629,10 @@
         L_0(T) = &\left[P_{00}(t_1)\,\lambda_0\,L_0(T_L) + P_{01}(t_1)\,\lambda_1\,L_1(T_L)\right] \\
         \times &\left[P_{00}(t_1)\,\lambda_0\,L_0(T_R) + P_{01}(t_1)\,\lambda_1\,L_1(T_R)\right].
     \end{align*}
+
+    \tiny
+    Felsenstein, Joseph. ``Evolutionary trees from DNA sequences: a maximum
+    likelihood approach.'' Journal of molecular evolution 17.6 (1981): 368-376.\par
 \end{frame}
 
 \begin{frame}{Calculating $P_{ij}(t)$}
@@ -698,6 +706,11 @@
         &\uncover<2->{\alert{\max}}\left(P_{00}(t_1)\,\lambda_0\,L_0(T_R)
         \uncover<2->{,}\uncover<1>{\alert{+}} P_{01}(t_1)\,\lambda_1\,L_1(T_R)\right).
     \end{align*}
+
+    \tiny
+    Pupko, Tal, et al. ``A fast algorithm for joint reconstruction of ancestral
+    amino acid sequences.'' Molecular Biology and Evolution 17.6 (2000):
+    890-896.\par
 \end{frame}
 
 \section{Application: HIV in British Columbia}
@@ -820,6 +833,21 @@
 
 \section{Challenges}
 
+\begin{frame}{Long terminal branches}
+    todo
+\end{frame}
+
+\begin{frame}{Phylogenetic clusters $\neq$ contact network clusters}
+    \begin{columns}
+        \begin{column}{0.5\textwidth}
+            \includegraphics[width=\textwidth]{ba-net}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \includegraphics[width=\textwidth]{ba-tree}
+        \end{column}
+    \end{columns}
+\end{frame}
+
 \section{Previous projects}
 
 \begin{frame}{Phylogenetic estimation of transmitted/founder viruses}
@@ -860,7 +888,9 @@
 \end{frame}
 
 \begin{frame}{Phylogenetic estimation of transmitted/founder viruses}
-    \includegraphics[width=\textwidth]{mccloskey2014evaluation_f1}
+    \begin{center}
+        \includegraphics[width=0.9\textwidth]{mccloskey2014evaluation_f1}
+    \end{center}
 \end{frame}
 
 \begin{frame}{Phylogenetic methods are informative}
@@ -921,7 +951,10 @@
         \end{column}
     \end{columns}
 
-    \vspace{1cm}
+    \includegraphics[width=0.2\textwidth]{nserc}
+    \hspace{0.2cm}
+    \includegraphics[width=0.15\textwidth]{sfu}
+
     \includegraphics[width=0.35\textwidth]{cfe}
     \includegraphics[width=0.35\textwidth]{btp}
     \includegraphics[width=0.1\textwidth]{ubc}
