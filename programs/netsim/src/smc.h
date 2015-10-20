@@ -41,13 +41,14 @@ typedef struct {
  *
  * \param[in] config control parameters for the algorithm
  * \param[in] functions functions to use in the algorithm
- * \param[in] seed random seed (or NULL)
+ * \param[in] seed random seed (if negative, use time)
+ * \panam[in] nthread number of threads to use
  * \param[in] data true data
  * \return an smc_result object with the posterior distribution (theta) and
  * other information about the run
  */
 smc_result *abc_smc(const smc_config config, const smc_functions functions,
-                    int seed, const void *data);
+                    int seed, int nthread, const void *data);
 
 /** Free an smc_result object.
  *

@@ -17,7 +17,7 @@
 
 #define NNODE 5000
 #define NSIMNODE 1000
-#define NTIP 200
+#define NTIP 1000
 #define MEAN_DEGREE 8
 #define PA_POWER_MIN 0.1
 #define PA_POWER_MAX 1.0
@@ -26,11 +26,15 @@
 
 struct netabc_options {
     FILE *tree_file;
+    int nthread;
+    int seed;
 };
 
 struct option long_options[] =
 {
     {"help", no_argument, 0, 'h'},
+    {"num-threads", required_argument, 0, 't'},
+    {"seed", required_argument, 0, 's'},
     {0, 0, 0, 0}
 };
 
@@ -39,18 +43,22 @@ void usage(void)
     fprintf(stderr, "Usage: netabc [options] [tree]\n\n");
     fprintf(stderr, "Options:\n");
     fprintf(stderr, "  -h, --help                display this message\n");
+    fprintf(stderr, "  -t, --num-threads         number of threads\n");
+    fprintf(stderr, "  -s, --seed                random seed\n");
 }
 
 struct netabc_options get_options(int argc, char **argv)
 {
     int i, c = 0;
     struct netabc_options opts = {
-        .tree_file = stdin
+        .tree_file = stdin,
+        .nthread = 1,
+        .seed = -1
     };
 
     while (c != -1)
     {
-        c = getopt_long(argc, argv, "hl:g:s:c:ndb:", long_options, &i);
+        c = getopt_long(argc, argv, "hs:t:", long_options, &i);
         if (c == -1)
             break;
 
@@ -61,6 +69,12 @@ struct netabc_options get_options(int argc, char **argv)
             case 'h':
                 usage();
                 exit(EXIT_SUCCESS);
+            case 's':
+                opts.seed = atoi(optarg);
+                break;
+            case 't':
+                opts.nthread = atoi(optarg);
+                break;
             case '?':
                 break;
             default:
@@ -188,6 +202,16 @@ int main (int argc, char **argv)
     igraph_t *tree;
     smc_result *ba_result;
 
+#if IGRAPH_THREAD_SAFE == 0
+    if (opts.nthread > 1)
+    {
+        fprintf(stderr, "Warning: igraph is not thread-safe\n");
+        fprintf(stderr, "Disabling multithreading\n");
+        fprintf(stderr, "To fix this, install a recent igraph compiled with thread-local storage\n");
+        opts.nthread = 1;
+    }
+#endif
+
     igraph_i_set_attribute_table(&igraph_cattribute_table);
     tree = parse_newick(opts.tree_file);
     ladderize(tree);
@@ -195,7 +219,7 @@ int main (int argc, char **argv)
     SETGAN(tree, "kernel", 
            kernel(tree, tree, DECAY_FACTOR, RBF_VARIANCE, 1, INFINITY));
     
-    ba_result = abc_smc(ba_config, ba_functions, 0, tree);
+    ba_result = abc_smc(ba_config, ba_functions, opts.seed, opts.nthread, tree);
     for (i = 0; i < ba_config.nparticle; ++i)
         printf("%f\n", ba_result->theta[i]);
 

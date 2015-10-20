@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <float.h>
+#include <time.h>
 #include <gsl/gsl_rng.h>
 #include <igraph/igraph.h>
 #include "util.h"
@@ -10,6 +11,8 @@
 gsl_rng *set_seed(int seed)
 {
     gsl_rng *rng;
+    if (seed > 0)
+        seed = time(NULL);
 
     // C
     srand(seed);
