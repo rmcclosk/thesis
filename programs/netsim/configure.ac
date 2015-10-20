@@ -32,6 +32,7 @@ AX_COMPILER_FLAGS()
 AX_GCC_FUNC_ATTRIBUTE([noreturn])
 
 # Checks for libraries.
+AX_PTHREAD([], [AC_MSG_ERROR([pthtreads is required])])
 AC_CHECK_LIB([m], [cos], [], [AC_MSG_ERROR([math.h is required])])
 AC_CHECK_LIB([gslcblas], [cblas_dgemm], [], [AC_MSG_ERROR([GSL CBLAS is required])])
 AC_CHECK_LIB([igraph], [igraph_empty], [], [AC_MSG_ERROR([igraph is required])])

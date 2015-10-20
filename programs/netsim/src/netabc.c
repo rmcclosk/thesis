@@ -79,7 +79,7 @@ struct netabc_options get_options(int argc, char **argv)
 
 void ba_sample_from_prior(gsl_rng *rng, double *theta)
 {
-    *theta = gsl_ran_flat(rng, 0.1, 1.0);
+    *theta = gsl_ran_flat(rng, PA_POWER_MIN, PA_POWER_MAX);
 }
 
 double ba_prior_density(const double *theta)
@@ -99,10 +99,11 @@ void ba_propose(gsl_rng *rng, double *theta, const void *params)
 double ba_proposal_density(const double *from, const double *to, const void *params)
 {
     double var = * (double *) params;
+    if (*to < PA_POWER_MIN || *to > PA_POWER_MAX)
+        return 0.;
     return gsl_ran_gaussian_pdf(*to - *from, sqrt(2*var));
 }
 
-// TODO: I think this leaks memory
 void ba_sample_dataset(gsl_rng *rng, const double *theta, void *X)
 {
     int i;
@@ -111,8 +112,8 @@ void ba_sample_dataset(gsl_rng *rng, const double *theta, void *X)
     igraph_vector_t v;
 
     igraph_vector_init(&v, NNODE);
-    igraph_barabasi_game(&net, NNODE, *theta, MEAN_DEGREE/2, NULL, 0, 1, 0, 
-                         IGRAPH_BARABASI_PSUMTREE, NULL);
+    igraph_barabasi_game(&net, NNODE, *theta, MEAN_DEGREE/2, NULL, 0,
+            1, 0, IGRAPH_BARABASI_PSUMTREE, NULL);
     igraph_to_directed(&net, IGRAPH_TO_DIRECTED_MUTUAL);
 
     igraph_vector_fill(&v, 0);
@@ -143,13 +144,18 @@ double ba_distance(const void *x, const void *y)
     double kx = GAN(gx, "kernel");
     double ky = GAN(gy, "kernel");
     double kxy = kernel(gx, gy, DECAY_FACTOR, RBF_VARIANCE, 1, INFINITY);
-    return 1 - kxy / sqrt(kx * ky);
+    return 1. - kxy / sqrt(kx * ky);
 }
 
 void ba_feedback(const double *theta, int nparticle, void *params)
 {
     double var = gsl_stats_variance(theta, 1, nparticle);
     memcpy(params, &var, sizeof(double));
+}
+
+void ba_destroy_dataset(void *z)
+{
+    igraph_destroy((igraph_t *) z);
 }
 
 smc_functions ba_functions = {
@@ -159,14 +165,15 @@ smc_functions ba_functions = {
     .proposal_density = ba_proposal_density,
     .sample_dataset = ba_sample_dataset,
     .distance = ba_distance,
-    .feedback = ba_feedback
+    .feedback = ba_feedback,
+    .destroy_dataset = ba_destroy_dataset
 };
 
 smc_config ba_config = {
     .nparam = 1,
-    .nparticle = 1000,
-    .nsample = 1,
-    .ess_tolerance = 500,
+    .nparticle = 100,
+    .nsample = 5,
+    .ess_tolerance = 50,
     .final_epsilon = 0.01,
     .quality = 0.9,
     .step_tolerance = 1e-5,

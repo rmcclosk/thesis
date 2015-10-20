@@ -20,6 +20,8 @@ void toy_sample_from_prior (gsl_rng *rng, double *theta)
 
 double toy_prior_density(const double *theta)
 {
+    if (*theta < -10 || *theta > 10)
+        return 0.;
     return 1./20.;
 }
 
@@ -58,6 +60,11 @@ void toy_feedback(const double *theta, int nparticle, void *params)
     memcpy(params, &var, sizeof(double));
 }
 
+void toy_destroy_dataset(void *z)
+{
+    return;
+}
+
 smc_functions toy_functions = {
     .sample_from_prior = toy_sample_from_prior,
     .prior_density = toy_prior_density,
@@ -65,7 +72,8 @@ smc_functions toy_functions = {
     .proposal_density = toy_proposal_density,
     .sample_dataset = toy_sample_dataset,
     .distance = toy_distance,
-    .feedback = toy_feedback
+    .feedback = toy_feedback,
+    .destroy_dataset = toy_destroy_dataset
 };
 
 void plot(const double *x, const double *y, int nx, const char *pdf, 
@@ -99,7 +107,6 @@ START_TEST (test_smc_toy_steps)
 {
     int i;
     double y = 0;
-    gsl_rng *rng = set_seed(0);
     smc_config toy_config = {
         .nparam = 1,
         .nparticle = 10000,
@@ -111,7 +118,8 @@ START_TEST (test_smc_toy_steps)
         .dataset_size = sizeof(double),
         .feedback_size = sizeof(double)
     };
-    smc_result *res = abc_smc(toy_config, toy_functions, rng, (void *) &y);
+
+    smc_result *res = abc_smc(toy_config, toy_functions, 0, (void *) &y);
 
     fprintf(stderr, "%d steps\n", res->niter);
     plot(&res->epsilon[1], NULL, res->niter-1, "check_smc_epsilon.pdf", 
@@ -125,7 +133,6 @@ END_TEST
 START_TEST (test_smc_toy)
 {
     double y = 0;
-    gsl_rng *rng = set_seed(0);
     int i, fd;
 
     smc_config config = {
@@ -140,10 +147,15 @@ START_TEST (test_smc_toy)
         .feedback_size = sizeof(double)
     };
 
-    smc_result *res = abc_smc(config, toy_functions, rng, (void *) &y);
+    smc_result *res = abc_smc(config, toy_functions, 0, (void *) &y);
+
+    for (i = 0; i < config.nparticle; ++i) {
+        ck_assert(res->theta[i] > -10 && res->theta[i] < 10);
+    }
 
     plot(res->theta, NULL, config.nparticle, "check_smc_hist.pdf",
          "hist(d[,1], xlim=c(-3, 3), xlab=\"theta\", ylab=\"density\", main=NA, breaks=200)");
+    smc_result_free(res);
 }
 END_TEST
 
@@ -152,7 +164,7 @@ Suite *smc_suite(void)
     Suite *s;
     TCase *tc_io, *tc_smc;
 
-    s = suite_create("simulate");
+    s = suite_create("smc");
 
     tc_smc = tcase_create("Core");
     tcase_add_test(tc_smc, test_smc_toy_steps);

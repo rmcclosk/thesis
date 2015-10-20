@@ -2,155 +2,219 @@
 #include <string.h>
 #include <math.h>
 #include <float.h>
+#include <pthread.h>
 #include <gsl/gsl_roots.h>
 #include "smc.h"
 #include "util.h"
 
 #define RESIZE_AMOUNT 100
+#define BISECTION_MAX_ITER 10000
 #define NTHREAD 1
 
-struct objfun_params {
-    double *X;
-    double *W;
-    double *new_W;
-    double epsilon;
-    const smc_config *config;
-};
+/** All the data used for SMC.
+ *
+ * Because the SMC algorithm is parallelizable, we store all the data in a
+ * global structure which is accessed by each thread.
+ */
+typedef struct {
+    const smc_config *config;       /**< configuration parameters */
+    const smc_functions *functions; /**< user-supplied functions */
 
-struct perturb_workspace {
-    gsl_rng *rng;
-    const smc_config *config;
-    const smc_functions *functions;
-    double *W;
-    double *theta;
-    double *X;
-    double epsilon;
-    const void *data;
-    char *fdbk;
-    double *new_theta;
-    double *new_X;
-    char *z;
-    int nparticle;
-};
+    const void *data;               /**< input data */
+    char *z;                        /**< simulated datasets */
+    char *fdbk;                     /**< feedback from current particles */
 
-void resample(const smc_config config, double *W, double *theta);
-double next_epsilon(struct objfun_params *objpar);
+    double *theta;                  /**< current particles */
+    double *new_theta;              /**< storage space for proposed particles */
+
+    double *W;                      /**< current weights */
+    double *new_W;                  /**< storage space for proposed new weights */
+
+    double *X;                      /**< distances of simulated datasets */
+    double *new_X;                  /**< storage space for proposed new dataset distances */
+
+    double epsilon;                 /**< current tolerance */
+
+    int accept;                     /**< number of accepted proposals */
+    int alive;                      /**< number of alive particles */
+} smc_workspace;
+
+/** Arguments to the perturb function.
+ *
+ * One of these objects is created for each thread.
+ */
+typedef struct {
+    int start;        /**< index of first particle (inclusive) */
+    int end;          /**< index of last particle (exclusive) */
+    int thread_index; /**< thread number */
+    gsl_rng *rng;     /**< individual random number generator for this thread */
+} thread_data;
+
+/* Use a global workspace instance. */
+smc_workspace smc_work;
+
+/* Mutexes for data which will be accessed by many threads. */
+pthread_mutex_t smc_accept_mutex;
+pthread_mutex_t smc_alive_mutex;
+
+void resample(void);
+double next_epsilon(void);
 double epsilon_objfun(double epsilon, void *params);
 double ess(const double *W, int n);
-double perturb(struct perturb_workspace *ws);
+void *perturb(void *arg);
 
 // see Del Moral et al. 2012: An adaptive sequential Monte Carlo method for
 // approximate Bayesian computation
 smc_result *abc_smc(const smc_config config, const smc_functions functions,
                     int seed, const void *data)
 {
-    int i, j;
+    // allocate space for the data in the workspace
+    char *z = malloc(config.dataset_size * NTHREAD);
+    char *fdbk = malloc(config.feedback_size);
+    double *theta = malloc(config.nparticle * config.nparam * sizeof(double));
+    double *new_theta = malloc(config.nparticle * config.nparam * sizeof(double));
     double *X = malloc(config.nsample * config.nparticle * sizeof(double));
+    double *new_X = malloc(config.nsample * NTHREAD * sizeof(double));
     double *W = malloc(config.nparticle * sizeof(double));
-    char *z = malloc(config.dataset_size);
-    double epsilon = 1;
+    double *new_W = malloc(config.nparticle * sizeof(double));
+
+    // space for returned values
+    double *accept_rate = malloc(RESIZE_AMOUNT * sizeof(double));
+    double *epsilons = malloc(RESIZE_AMOUNT * sizeof(double));
+
+    int i, j, niter, status;
     size_t new_size;
     gsl_rng *rng = set_seed(seed);
+    pthread_t threads[NTHREAD];
+    thread_data thread_args[NTHREAD];
+    pthread_attr_t attr;
 
-    struct objfun_params objpar = { 
-        .X = X, 
-        .W = W,
-        .new_W = malloc(config.nparticle * sizeof(double)),
-        .epsilon = epsilon, 
-        .config = &config 
-    };
+    smc_result *result = malloc(sizeof(smc_result));
 
-    smc_result *res = malloc(sizeof(smc_result));
-    res->epsilon = malloc(RESIZE_AMOUNT * sizeof(double));
-    res->acceptance_rate = malloc(RESIZE_AMOUNT * sizeof(double));
-    res->theta = malloc(config.nparticle * config.nparam * sizeof(double));
-    res->epsilon[0] = epsilon;
+    // initialize pthread things
+    pthread_mutex_init(&smc_accept_mutex, NULL);
+    pthread_mutex_init(&smc_alive_mutex, NULL);
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-    struct perturb_workspace ws = {
-        .config = &config,
-        .functions = &functions,
-        .epsilon = epsilon,
-        .data = data,
-        .nparticle = config.nparticle
-    };
+    // set up the workspace
+    smc_work.config = &config;
+    smc_work.functions = &functions;
+    smc_work.data = data;
+    smc_work.z = z;
+    smc_work.fdbk = fdbk;
+    smc_work.theta = theta;
+    smc_work.new_theta = new_theta;
+    smc_work.W = W;
+    smc_work.new_W = new_W;
+    smc_work.X = X;
+    smc_work.new_X = new_X;
+    smc_work.epsilon = DBL_MAX;
 
-    struct perturb_workspace *ws2 = malloc(NTHREAD * sizeof(struct perturb_workspace));
+    // give each of the threads its own random number generator
     for (i = 0; i < NTHREAD; ++i)
     {
-        memcpy(&ws2[i], &ws, sizeof(struct perturb_workspace));
-        ws2[i].rng = set_seed(seed+i+1);
-        ws2[i].W = &W[config.nparticle * i / NTHREAD];
-        ws2[i].theta = &res->theta[config.nparticle * config.nparam * i / NTHREAD];
-        ws2[i].X = &X[config.nparticle * config.nsample * config.dataset_size * i / NTHREAD];
-        ws2[i].new_theta = malloc(config.nparticle * config.nparam * sizeof(double));
-        ws2[i].fdbk = malloc(config.feedback_size);
-        ws2[i].new_X = malloc(config.nsample * sizeof(double));
-        ws2[i].z = malloc(config.dataset_size);
+        thread_args[i].rng = gsl_rng_alloc(gsl_rng_default);
+        gsl_rng_set(thread_args[i].rng, seed + i + 1);
     }
 
     // step 0: sample particles from prior
     for (i = 0; i < config.nparticle; ++i)
     {
-        functions.sample_from_prior(rng, &res->theta[i * config.nparam]);
+        functions.sample_from_prior(rng, &smc_work.theta[i * config.nparam]);
         W[i] = 1. / config.nparticle;
         for (j = 0; j < config.nsample; ++j)
         {
-            functions.sample_dataset(rng, &res->theta[i * config.nparam], z);
+            functions.sample_dataset(rng, &smc_work.theta[i * config.nparam], z);
             X[i * config.nsample + j] = functions.distance(z, data);
+            functions.destroy_dataset(z);
         }
     }
 
-    res->niter = 1;
-    while (epsilon != config.final_epsilon)
+    niter = 0;
+    while (smc_work.epsilon != config.final_epsilon)
     {
-        fprintf(stderr, "%d\t%f\n", res->niter, epsilon);
+        fprintf(stderr, "%d\t%f\n", niter, smc_work.epsilon);
+
+        for (i = 0; i < 10; ++i) {
+            fprintf(stderr, "%f\t%f\n", smc_work.theta[i], X[i * config.nsample + j]);
+        }
+
+        smc_work.accept = 0;
+        smc_work.alive = 0;
 
         // step 1: update epsilon
-        epsilon = fmax(next_epsilon(&objpar), config.final_epsilon);
-        objpar.epsilon = epsilon;
-        for (i = 0; i < NTHREAD; ++i)
-            ws2[i].epsilon = epsilon;
-        res->epsilon[res->niter] = epsilon;
+        smc_work.epsilon = next_epsilon();
     
         // step 2: resample particles according to their weights
-        if (ess(W, config.nparticle) < config.ess_tolerance) {
-            resample(config, W, res->theta);
+        if (ess(smc_work.W, config.nparticle) < config.ess_tolerance) {
+            resample();
         }
     
         // step 3: perturb particles
-        functions.feedback(res->theta, config.nparticle, ws2[0].fdbk);
-        for (i = 1; i < NTHREAD; ++i)
-            memcpy(ws2[i].fdbk, ws2[0].fdbk, config.feedback_size);
-        res->acceptance_rate[res->niter] = perturb(&ws2[0]);
-        ++res->niter;
+        memcpy(smc_work.new_theta, smc_work.theta, config.nparam * config.nparticle * sizeof(double));
+        functions.feedback(smc_work.theta, config.nparticle, fdbk);
+        smc_work.accept = 0;
+        smc_work.alive = 0;
 
-        // allocate more space
-        if (res->niter % RESIZE_AMOUNT == 0)
+        for (i = 0; i < NTHREAD; ++i) {
+            // we pass start particle (inclusive), end particle (exclusive), and 
+            // thread index into each thread
+            thread_args[i].start = i * config.nparticle / NTHREAD;
+            if (i == NTHREAD - 1) {
+                thread_args[i].end = config.nparticle;
+            }
+            else {
+                thread_args[i].end = (i + 1) * config.nparticle / NTHREAD;
+            }
+            thread_args[i].thread_index = i;
+
+            // TODO: handle errors properly
+            status = pthread_create(&threads[i], &attr, perturb, (void *) &thread_args[i]);
+        }
+
+        for (i = 0; i < NTHREAD; ++i) {
+            status = pthread_join(threads[i], NULL);
+        }
+
+        // trace tolerance and acceptance rates
+        epsilons[niter] = smc_work.epsilon;
+        accept_rate[niter++] = (double) smc_work.accept / (double) smc_work.alive;
+
+        // allocate more space if necessary
+        if (niter % RESIZE_AMOUNT == 0)
         {
-            new_size = RESIZE_AMOUNT * (res->niter / RESIZE_AMOUNT + 1) * sizeof(double);
-            res->epsilon = safe_realloc(res->epsilon, new_size);
-            res->acceptance_rate = safe_realloc(res->acceptance_rate, new_size);
+            new_size = RESIZE_AMOUNT * (niter / RESIZE_AMOUNT + 1) * sizeof(double);
+            epsilons = safe_realloc(epsilons, new_size);
+            accept_rate = safe_realloc(accept_rate, new_size);
         }
     }
 
     // finally, sample from the estitmated posterior
-    resample(config, W, res->theta);
+    resample();
 
-    // clean up
-    free(W);
-    free(X);
-    free(z);
+    // keep the trace information and final population
+    result->niter = niter;
+    result->epsilon = epsilons;
+    result->acceptance_rate = accept_rate;
+    result->theta = theta;
 
-    for (i = 0; i < NTHREAD; ++i)
-    {
-        free(ws2[i].new_theta);
-        free(ws2[i].fdbk);
-        free(ws2[i].new_X);
-        free(ws2[i].z);
+    // clean up everything else
+    pthread_mutex_destroy(&smc_accept_mutex);
+    pthread_mutex_destroy(&smc_alive_mutex);
+    pthread_attr_destroy(&attr);
+    for (i = 0; i < NTHREAD; ++i) {
+        gsl_rng_free(thread_args[i].rng);
     }
-    free(ws2);
-
-    return res;
+    gsl_rng_free(rng);
+    free(z);
+    free(fdbk);
+    free(new_theta);
+    free(X);
+    free(new_X);
+    free(W);
+    free(new_W);
+    return result;
 }
 
 void smc_result_free(smc_result *r)
@@ -158,82 +222,113 @@ void smc_result_free(smc_result *r)
     free(r->epsilon);
     free(r->acceptance_rate);
     free(r->theta);
+    free(r);
 }
 
 /* Private. */
 
-double next_epsilon(struct objfun_params *objpar)
+double next_epsilon(void)
 {
-    int status, iter = 0, max_iter = 10000;
-    double r, x_lo = 0, x_hi = objpar->epsilon;
+    int status, iter = 0;
+    double r, x_lo, x_hi;
+    double tol = smc_work.config->step_tolerance;
+    double prev_epsilon = smc_work.epsilon;
+    double alpha = smc_work.config->quality;
+    double *tmp;
+
+    // create a bisection solver
     gsl_root_fsolver *s = gsl_root_fsolver_alloc (gsl_root_fsolver_bisection);
-    gsl_function F = { .function = &epsilon_objfun, .params = objpar };
+    gsl_function F = { .function = &epsilon_objfun, .params = NULL };
+
+    // new epsilon is bounded between 0 and old epsilon
+    x_lo = 0;
+    x_hi = prev_epsilon;
     gsl_root_fsolver_set(s, &F, x_lo, x_hi);
 
-    do
-    {
+    // solve for next epsilon by bisection
+    do {
         status = gsl_root_fsolver_iterate (s);
         r = gsl_root_fsolver_root (s);
         x_lo = gsl_root_fsolver_x_lower (s);
         x_hi = gsl_root_fsolver_x_upper (s);
-        status = gsl_root_test_interval (x_lo, x_hi, 0, objpar->config->step_tolerance);
+        status = gsl_root_test_interval (x_lo, x_hi, 0, tol);
         ++iter;
     }
-    while (status == GSL_CONTINUE && iter < max_iter);
+    while (status == GSL_CONTINUE && iter < BISECTION_MAX_ITER);
 
     // TODO: handle running out of iterations?
-    if (iter == max_iter) {
+    if (iter == BISECTION_MAX_ITER) {
         fprintf(stderr, "Warning: hit max iterations solving for next epsilon\n");
-        epsilon_objfun(objpar->epsilon * objpar->config->quality, objpar);
+        r = smc_work.config->final_epsilon;
     }
-    memcpy(objpar->W, objpar->new_W, objpar->config->nparticle * sizeof(double));
 
+    // if epsilon went below the final tolerance or finding the new epsilon
+    // failed, then we use the final tolerance
+    // we have to call the objective function explicitly to get the new weights
+    if (r <= smc_work.config->final_epsilon) {
+        r = smc_work.config->final_epsilon;
+        epsilon_objfun(r, NULL);
+    }
+
+    // use the new weights by swapping pointers
+    tmp = smc_work.W;
+    smc_work.W = smc_work.new_W;
+    smc_work.new_W = tmp;
+
+    // clean up and return the new epsilon
     gsl_root_fsolver_free(s);
     return r;
 }
 
 double epsilon_objfun(double epsilon, void *params)
 {
-    int i, j; 
-    double num, denom;
-    struct objfun_params *par = (struct objfun_params *) params;
-    const smc_config *config = par->config;
-    double obj, sum = 0;
+    // reference some of the workspace from global variables for convenience
+    double *X = smc_work.X;
+    double *W = smc_work.W;
+    double *new_W = smc_work.new_W;
+    int nparticle = smc_work.config->nparticle;
+    int nsample = smc_work.config->nsample;
+    double prev_epsilon = smc_work.epsilon;
+    double alpha = smc_work.config->quality;
 
-    for (i = 0; i < config->nparticle; ++i)
+    int i, j; 
+    double num, denom, wsum = 0;
+
+    // calculate the new weights (equation 14)
+    for (i = 0; i < nparticle; ++i)
     {
-        num = 0; denom = 0;
-        for (j = 0; j < config->nsample; ++j)
+        num = 0; 
+        denom = 0;
+        for (j = 0; j < nsample; ++j)
         {
-            num += par->X[i * config->nsample + j] < epsilon;
-            denom += par->X[i * config->nsample + j] < par->epsilon;
+            num += X[i * nsample + j] < epsilon;
+            denom += X[i * nsample + j] < prev_epsilon;
         }
+        
+        // catch the case when numerator and denominator are both zero
+        // TODO: not sure if I should update in that case, or set the weight to zero
         if (num == denom) {
-            par->new_W[i] = par->W[i];
+            new_W[i] = W[i];
         }
         else {
-            par->new_W[i] = par->W[i] * num / denom;
+            new_W[i] = W[i] * num / denom;
         }
-        sum += par->new_W[i];
-    }
-    for (i = 0; i < config->nparticle; ++i) 
-    {
-        if (sum == 0) {
-            num = 0; denom = 0;
-            for (j = 0; j < config->nsample; ++j)
-            {
-                num += par->X[i * config->nsample + j] < epsilon;
-                denom += par->X[i * config->nsample + j] < par->epsilon;
-            }
-        }
-        par->new_W[i] /= sum;
+        wsum += new_W[i];
     }
 
-    if (epsilon == 0 || sum == 0)
-        obj = -1;
-    else
-        obj = ess(par->new_W, config->nparticle) - par->config->quality * ess(par->W, config->nparticle);
-    return obj;
+    // normalize the weights so their sum is 1
+    for (i = 0; i < nparticle; ++i) {
+        new_W[i] /= wsum;
+    }
+
+    // if epsilon is too small, the new weights will be undefined
+    if (epsilon == 0 || wsum == 0) {
+        return -1;
+    }
+
+    // equation 12
+    // we're trying to minimize ESS(W') - alpha * ESS(W)
+    return ess(new_W, nparticle) - alpha * ess(W, nparticle);
 }
 
 double ess(const double *W, int n)
@@ -246,89 +341,118 @@ double ess(const double *W, int n)
     return 1.0 / sum;
 }
 
-void resample(const smc_config config, double *W, double *theta)
+void resample(void)
 {
     int i, wcur;
+    int nparticle = smc_work.config->nparticle;
+    int nparam = smc_work.config->nparam;
     double r, wsum;
-    double *new_theta = malloc(config.nparticle * config.nparam * sizeof(double));
+    double *W = smc_work.W;
+    double *theta = smc_work.theta;
+    double *new_theta = smc_work.new_theta;
+    double *tmp;
 
-    for (i = 0; i < config.nparticle; ++i)
+    // sample particles according to their weights
+    for (i = 0; i < nparticle; ++i)
     {
-        wcur = 0;
-        wsum = W[wcur];
+        wcur = -1;
+        wsum = 0;
         r = (double) rand() / (double) RAND_MAX;
-        while (r > wsum && wcur < config.nparticle) {
+        while (r > wsum && wcur < nparticle) {
             wsum += W[++wcur];
         }
-        memcpy(&new_theta[i * config.nparam], 
-               &theta[wcur * config.nparam], 
-               config.nparam * sizeof(double));
+        memcpy(&new_theta[i * nparam], &theta[wcur * nparam], nparam * sizeof(double));
     }
 
-    for (i = 0; i < config.nparticle; ++i) {
-        W[i] = 1.0 / config.nparticle;
+    // reset all the weights
+    for (i = 0; i < nparticle; ++i) {
+        W[i] = 1.0 / nparticle;
     }
 
-    memcpy(theta, new_theta, config.nparticle * config.nparam * sizeof(double));
-    free(new_theta);
+    // use the new particles by swapping pointers
+    tmp = smc_work.theta;
+    smc_work.theta = smc_work.new_theta;
+    smc_work.new_theta = tmp;
 }
 
-double perturb(struct perturb_workspace *ws)
+void *perturb(void *args)
 {
     int i, j;
     double mh_ratio, old_nbhd, new_nbhd;
     double *cur_theta, *prev_theta;
-    double accept = 0, alive = 0;
+    int nparticle = smc_work.config->nparticle;
+    int nparam = smc_work.config->nparam;
+    int nsample = smc_work.config->nsample;
+    size_t dataset_size = smc_work.config->dataset_size;
+    char *fdbk = smc_work.fdbk;
+    double epsilon = smc_work.epsilon;
 
-    // gather feedback from current particle population
-    memcpy(ws->new_theta, ws->theta, ws->nparticle * ws->config->nparam * sizeof(double));
+    // get arguments for this thread
+    thread_data *tdata = (thread_data *) args;
+    int start = tdata->start;
+    int end = tdata->end;
+    int thread_index = tdata->thread_index;
+    gsl_rng *rng = tdata->rng;
 
-    for (i = 0; i < ws->nparticle; ++i)
+    double *W = smc_work.W;
+    double *X = smc_work.X;
+    double *new_X = &smc_work.new_X[nsample * thread_index];
+    char *z = &smc_work.z[dataset_size * thread_index];
+
+    for (i = start; i < end; ++i)
     {
-        if (ws->W[i] == 0)
+        // ignore dead particles
+        if (W[i] == 0)
             continue;
-        ++alive;
 
-        cur_theta = &ws->new_theta[i * ws->config->nparam];
-        prev_theta = &ws->theta[i * ws->config->nparam];
+        pthread_mutex_lock(&smc_alive_mutex);
+        ++smc_work.alive;
+        pthread_mutex_unlock(&smc_alive_mutex);
+
+        cur_theta = &smc_work.new_theta[i * nparam];
+        prev_theta = &smc_work.theta[i * nparam];
 
         // perturb the particle
-        ws->functions->propose(ws->rng, cur_theta, ws->fdbk);
+        smc_work.functions->propose(rng, cur_theta, fdbk);
 
         // proposal ratio
-        mh_ratio = ws->functions->proposal_density(cur_theta, prev_theta, ws->fdbk) /
-                   ws->functions->proposal_density(prev_theta, cur_theta, ws->fdbk);
+        mh_ratio = smc_work.functions->proposal_density(cur_theta, prev_theta, fdbk) /
+                   smc_work.functions->proposal_density(prev_theta, cur_theta, fdbk);
 
         // prior ratio
-        mh_ratio *= ws->functions->prior_density(cur_theta) / 
-                    ws->functions->prior_density(prev_theta);
+        mh_ratio *= smc_work.functions->prior_density(cur_theta) / 
+                    smc_work.functions->prior_density(prev_theta);
 
         if (mh_ratio == 0)
             continue;
 
         // sample new datasets
-        for (j = 0; j < ws->config->nsample; ++j)
+        for (j = 0; j < nsample; ++j)
         {
-            ws->functions->sample_dataset(ws->rng, cur_theta, ws->z);
-            ws->new_X[j] = ws->functions->distance(ws->z, ws->data);
+            smc_work.functions->sample_dataset(rng, cur_theta, z);
+            new_X[j] = smc_work.functions->distance(z, smc_work.data);
+            smc_work.functions->destroy_dataset(z);
         }
 
         // SMC approximation to likelihood ratio
-        old_nbhd = 0; new_nbhd = 0;
-        for (j = 0; j < ws->config->nsample; ++j) {
-            old_nbhd += ws->X[i * ws->config->nsample + j] < ws->epsilon;
-            new_nbhd += ws->new_X[j] < ws->epsilon;
+        old_nbhd = 0; 
+        new_nbhd = 0;
+        for (j = 0; j < nsample; ++j) {
+            old_nbhd += X[i * nsample + j] < epsilon;
+            new_nbhd += new_X[j] < epsilon;
         }
         mh_ratio *= new_nbhd / old_nbhd;
 
         // accept or reject the proposal
         if ((double) rand() / (double) RAND_MAX < mh_ratio)
         {
-            ++accept;
-            memcpy(prev_theta, cur_theta, ws->config->nparam * sizeof(double));
-            memcpy(&ws->X[i * ws->config->nsample], ws->new_X, 
-                   ws->config->nsample * sizeof(double));
+            pthread_mutex_lock(&smc_accept_mutex);
+            ++smc_work.accept;
+            pthread_mutex_unlock(&smc_accept_mutex);
+
+            memcpy(prev_theta, cur_theta, nparam * sizeof(double));
+            memcpy(&X[i * nsample], new_X, nsample * sizeof(double));
         }
     }
-    return accept / alive;
+    return NULL;
 }

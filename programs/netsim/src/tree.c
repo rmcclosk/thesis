@@ -90,8 +90,8 @@ void ladderize(igraph_t *tree)
         igraph_vector_set(&permvec, perm[i], (double) i);
     igraph_permute_vertices(tree, &new_tree, &permvec);
 
-    // this maybe is questionable
-    memcpy(tree, &new_tree, sizeof(*tree));
+    igraph_destroy(tree);
+    memcpy(tree, &new_tree, sizeof(igraph_t));
 
     free(perm);
     igraph_vector_destroy(&work);
@@ -231,6 +231,7 @@ void subsample_tips(igraph_t *tree, int ntip, const gsl_rng *rng)
         for (j = 0; j < igraph_vector_size(elem); ++j) {
             igraph_vector_push_back(&keep_all, VECTOR(*elem)[j]);
         }
+        igraph_vector_destroy(elem);
     }
 
     igraph_vector_sort(&keep_all);

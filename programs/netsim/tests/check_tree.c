@@ -39,6 +39,7 @@ START_TEST (test_parse_newick_topology)
 
     igraph_t *tree = parse_newick(f);
 
+    fprintf(stderr, "test_parse_newick_topology\n");
     ck_assert_int_eq(igraph_vcount(tree), 7);
     ck_assert_int_eq(igraph_ecount(tree), 6);
 
@@ -58,6 +59,7 @@ START_TEST (test_parse_newick_topology)
 
     igraph_vector_destroy(&vec);
     igraph_destroy(tree);
+    free(tree);
     fclose(f);
 }
 END_TEST
@@ -71,6 +73,7 @@ START_TEST (test_parse_newick_branch_lengths)
     igraph_vector_t size = new_vector();
     igraph_vector_t edge = new_vector();
 
+    fprintf(stderr, "test_parse_newick_branch_lengths\n");
     EANV(tree, "length", &bl);
     ck_assert(igraph_vector_sum(&bl) == 2.84);
 
@@ -93,6 +96,10 @@ START_TEST (test_parse_newick_branch_lengths)
 
     fclose(f);
     igraph_destroy(tree);
+    free(tree);
+    igraph_vector_destroy(&bl);
+    igraph_vector_destroy(&size);
+    igraph_vector_destroy(&edge);
 }
 END_TEST
 
@@ -102,6 +109,7 @@ START_TEST (test_write_newick)
     FILE *f = newick_file("(t1:0.4,((t3:0.05,t2:0.8):0.88,t4:0.25):0.46);");
     igraph_t *tree = parse_newick(f), *copy;
 
+    fprintf(stderr, "test_write_newick\n");
     fseek(f, 0, SEEK_SET);
     write_tree_newick(tree, f);
 
@@ -113,6 +121,9 @@ START_TEST (test_write_newick)
 
     fclose(f);
     igraph_destroy(tree);
+    igraph_destroy(copy);
+    free(tree);
+    free(copy);
 }
 END_TEST
 
@@ -122,6 +133,7 @@ START_TEST (test_root)
     int rt = root(tree);
     igraph_vector_t v = new_vector();
 
+    fprintf(stderr, "test_root\n");
     igraph_degree(tree, &v, igraph_vss_1(rt), IGRAPH_OUT, 1);
     ck_assert_int_eq((int) VECTOR(v)[0], 2);
     igraph_degree(tree, &v, igraph_vss_1(rt), IGRAPH_IN, 1);
@@ -132,14 +144,17 @@ START_TEST (test_root)
 
     igraph_vector_destroy(&v);
     igraph_destroy(tree);
+    free(tree);
 }
 END_TEST
 
 START_TEST(test_height)
 {
     igraph_t *tree = tree_from_newick("(t1:0.4,((t3:0.05,t2:0.8):0.88,t4:0.25):0.46);");
+    fprintf(stderr, "test_height\n");
     ck_assert(height(tree) == 2.14);
     igraph_destroy(tree);
+    free(tree);
 }
 END_TEST
 
@@ -149,6 +164,7 @@ START_TEST(test_depths)
     double calc_depths[7]; 
     int i;
 
+    fprintf(stderr, "test_depths\n");
     depths(tree, calc_depths);
     qsort(calc_depths, 7, sizeof(double), compare_doubles);
 
@@ -160,6 +176,7 @@ START_TEST(test_depths)
     ck_assert(fabs(calc_depths[5] - 1.39) < 1e-5);
     ck_assert(fabs(calc_depths[6] - 2.14) < 1e-5);
     igraph_destroy(tree);
+    free(tree);
 }
 END_TEST
 
@@ -170,6 +187,7 @@ START_TEST(test_ladderize)
     igraph_vector_t v = new_vector();
     int i;
 
+    fprintf(stderr, "test_ladderize\n");
     ladderize(tree);
     for (i = 0; i < 7; ++i)
     {
@@ -192,6 +210,7 @@ START_TEST(test_ladderize)
     igraph_vs_destroy(&vs);
     igraph_vector_destroy(&v);
     igraph_destroy(tree);
+    free(tree);
 }
 END_TEST
 
@@ -201,6 +220,7 @@ START_TEST(test_scale_branches_none)
     igraph_vector_t v1 = new_vector();
     igraph_vector_t v2 = new_vector();
 
+    fprintf(stderr, "test_scale_branches_none\n");
     EANV(tree, "length", &v1);
     scale_branches(tree, NONE);
     EANV(tree, "length", &v2);
@@ -210,6 +230,7 @@ START_TEST(test_scale_branches_none)
     igraph_vector_destroy(&v1);
     igraph_vector_destroy(&v2);
     igraph_destroy(tree);
+    free(tree);
 }
 END_TEST
 
@@ -219,6 +240,7 @@ START_TEST(test_scale_branches_mean)
     igraph_vector_t v1 = new_vector();
     igraph_vector_t v2 = new_vector();
 
+    fprintf(stderr, "test_scale_branches_mean\n");
     EANV(tree, "length", &v1);
     igraph_vector_scale(&v1, 1./0.45);
     scale_branches(tree, MEAN);
@@ -229,6 +251,7 @@ START_TEST(test_scale_branches_mean)
     igraph_vector_destroy(&v1);
     igraph_vector_destroy(&v2);
     igraph_destroy(tree);
+    free(tree);
 }
 END_TEST
 
@@ -238,6 +261,7 @@ START_TEST(test_scale_branches_median)
     igraph_vector_t v1 = new_vector();
     igraph_vector_t v2 = new_vector();
 
+    fprintf(stderr, "test_scale_branches_median\n");
     EANV(tree, "length", &v1);
     igraph_vector_scale(&v1, 1./0.4);
     scale_branches(tree, MEDIAN);
@@ -248,6 +272,7 @@ START_TEST(test_scale_branches_median)
     igraph_vector_destroy(&v1);
     igraph_vector_destroy(&v2);
     igraph_destroy(tree);
+    free(tree);
 }
 END_TEST
 
@@ -257,6 +282,7 @@ START_TEST(test_scale_branches_max)
     igraph_vector_t v1 = new_vector();
     igraph_vector_t v2 = new_vector();
 
+    fprintf(stderr, "test_scale_branches_max\n");
     EANV(tree, "length", &v1);
     igraph_vector_scale(&v1, 1./0.8);
     scale_branches(tree, MAX);
@@ -267,12 +293,14 @@ START_TEST(test_scale_branches_max)
     igraph_vector_destroy(&v1);
     igraph_vector_destroy(&v2);
     igraph_destroy(tree);
+    free(tree);
 }
 END_TEST
 
 START_TEST(test_cut_at_time_extinct)
 {
     igraph_t *tree = tree_from_newick("(t1:0.4,((t3:0.05,t2:0.8):0.88,t4:0.25):0.46);");
+    fprintf(stderr, "test_cut_at_time_extinct\n");
     igraph_vector_t v = new_vector();
     cut_at_time(tree, 0.6, 0);
 
@@ -289,6 +317,7 @@ START_TEST(test_cut_at_time_extinct)
 
     igraph_vector_destroy(&v);
     igraph_destroy(tree);
+    free(tree);
 }
 END_TEST
 
@@ -297,6 +326,7 @@ START_TEST(test_cut_at_time_extant)
     igraph_t *tree = tree_from_newick("(t1:0.4,((t3:0.05,t2:0.8):0.88,t4:0.25):0.46);");
     igraph_vector_t v = new_vector();
     cut_at_time(tree, 0.6, 1);
+    fprintf(stderr, "test_cut_at_time_extant\n");
 
     ck_assert_int_eq(igraph_vcount(tree), 3);
     ck_assert_int_eq(igraph_ecount(tree), 2);
@@ -309,6 +339,7 @@ START_TEST(test_cut_at_time_extant)
 
     igraph_vector_destroy(&v);
     igraph_destroy(tree);
+    free(tree);
 }
 END_TEST
 
@@ -317,10 +348,13 @@ START_TEST(test_subsample_tips)
     igraph_t *tree = tree_from_newick("((1:0.5,2:0.25)5:0.5,(3:0.25,4:0.25)6:0.5)7;");
     gsl_rng *rng = set_seed(2);
 
+    fprintf(stderr, "test_subsample_tips\n");
     subsample_tips(tree, 2, rng);
     ck_assert_int_eq(igraph_vcount(tree), 3);
     ck_assert_int_eq(igraph_ecount(tree), 2);
+    gsl_rng_free(rng);
     igraph_destroy(tree);
+    free(tree);
 }
 END_TEST
 

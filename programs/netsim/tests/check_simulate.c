@@ -34,7 +34,7 @@ igraph_t *tree_from_newick(const char *newick)
 
 START_TEST (test_simulate_chain)
 {
-    igraph_t net, *tree;
+    igraph_t net, tree;
     char buf[2];
     int i, from, to;
     double diff;
@@ -56,19 +56,19 @@ START_TEST (test_simulate_chain)
     {
         SETEAN(&net, "transmit", i, 1);
     }
-    tree = simulate_phylogeny(&net, rng, 100, 100, 0);
+    simulate_phylogeny(&tree, &net, rng, 100, 100, 0);
 
-    ck_assert_int_eq(igraph_vcount(tree), 9);
-    ck_assert_int_eq(igraph_ecount(tree), 8);
-    for (i = 0; i < igraph_ecount(tree); ++i)
+    ck_assert_int_eq(igraph_vcount(&tree), 9);
+    ck_assert_int_eq(igraph_ecount(&tree), 8);
+    for (i = 0; i < igraph_ecount(&tree); ++i)
     {
-        igraph_edge(tree, i, &from, &to);
-        diff = fabs(atoi(VAS(tree, "id", from)) - atoi(VAS(tree, "id", to)));
+        igraph_edge(&tree, i, &from, &to);
+        diff = fabs(atoi(VAS(&tree, "id", from)) - atoi(VAS(&tree, "id", to)));
         ck_assert(diff == 0.0 || diff == 1.0);
     }
 
     igraph_destroy(&net);
-    igraph_destroy(tree);
+    igraph_destroy(&tree);
 }
 END_TEST
 

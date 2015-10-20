@@ -23,6 +23,7 @@ typedef struct {
     void   (*sample_dataset)    (gsl_rng *rng, const double *, void *);
     double (*distance)          (const void *, const void *);
     void   (*feedback)          (const double *, int, void *);
+    void   (*destroy_dataset)   (void *);
 } smc_functions;
 
 typedef struct {
