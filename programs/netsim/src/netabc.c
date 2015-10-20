@@ -185,9 +185,9 @@ smc_functions ba_functions = {
 
 smc_config ba_config = {
     .nparam = 1,
-    .nparticle = 100,
-    .nsample = 5,
-    .ess_tolerance = 50,
+    .nparticle = 1000,
+    .nsample = 10,
+    .ess_tolerance = 500,
     .final_epsilon = 0.01,
     .quality = 0.9,
     .step_tolerance = 1e-5,

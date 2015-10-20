@@ -144,13 +144,10 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
     {
         fprintf(stderr, "%d\t%f\n", niter, smc_work.epsilon);
 
-        for (i = 0; i < 10; ++i) {
+        for (i = 0; i < config.nparticle; ++i) {
             fprintf(stderr, "%f\t", smc_work.theta[i]);
-            for (j = 0; j < config.nsample; ++j) {
-                fprintf(stderr, "%f\t", X[i * config.nsample + j]);
-            }
-            fprintf(stderr, "\n");
         }
+        fprintf(stderr, "\n");
 
         smc_work.accept = 0;
         smc_work.alive = 0;
