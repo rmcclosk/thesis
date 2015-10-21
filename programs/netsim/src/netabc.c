@@ -19,9 +19,9 @@
 #define NSIMNODE 1000
 #define NTIP 1000
 #define MEAN_DEGREE 8
-#define PA_POWER_MIN 0.1
+#define PA_POWER_MIN 0.05
 #define PA_POWER_MAX 1.0
-#define DECAY_FACTOR 0.4
+#define DECAY_FACTOR 0.2
 #define RBF_VARIANCE 2
 
 struct netabc_options {
@@ -158,7 +158,7 @@ double ba_distance(const void *x, const void *y)
     double kx = GAN(gx, "kernel");
     double ky = GAN(gy, "kernel");
     double kxy = kernel(gx, gy, DECAY_FACTOR, RBF_VARIANCE, 1, INFINITY);
-    return 1. - kxy / sqrt(kx * ky);
+    return sqrt(kx) * sqrt(ky) - kxy;
 }
 
 void ba_feedback(const double *theta, int nparticle, void *params)
@@ -185,9 +185,9 @@ smc_functions ba_functions = {
 
 smc_config ba_config = {
     .nparam = 1,
-    .nparticle = 1000,
+    .nparticle = 10,
     .nsample = 10,
-    .ess_tolerance = 500,
+    .ess_tolerance = 5,
     .final_epsilon = 0.01,
     .quality = 0.9,
     .step_tolerance = 1e-5,

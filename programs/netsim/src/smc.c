@@ -145,7 +145,7 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
         fprintf(stderr, "%d\t%f\n", niter, smc_work.epsilon);
 
         for (i = 0; i < config.nparticle; ++i) {
-            fprintf(stderr, "%f\t", smc_work.theta[i]);
+            fprintf(stderr, "%f\t%f\t%f\n", smc_work.theta[i], smc_work.X[i * config.nsample], smc_work.W[i]);
         }
         fprintf(stderr, "\n");
 
