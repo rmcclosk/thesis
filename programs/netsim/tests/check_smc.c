@@ -119,7 +119,7 @@ START_TEST (test_smc_toy_steps)
         .feedback_size = sizeof(double)
     };
 
-    smc_result *res = abc_smc(toy_config, toy_functions, 0, (void *) &y);
+    smc_result *res = abc_smc(toy_config, toy_functions, 0, 1, (void *) &y);
 
     fprintf(stderr, "%d steps\n", res->niter);
     plot(&res->epsilon[1], NULL, res->niter-1, "check_smc_epsilon.pdf", 
@@ -147,7 +147,7 @@ START_TEST (test_smc_toy)
         .feedback_size = sizeof(double)
     };
 
-    smc_result *res = abc_smc(config, toy_functions, 0, (void *) &y);
+    smc_result *res = abc_smc(config, toy_functions, 0, 1, (void *) &y);
 
     for (i = 0; i < config.nparticle; ++i) {
         ck_assert(res->theta[i] > -10 && res->theta[i] < 10);
