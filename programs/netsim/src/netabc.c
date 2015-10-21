@@ -152,7 +152,7 @@ void ba_sample_dataset(gsl_rng *rng, const double *theta, void *X)
     subsample_tips(tree, NTIP, rng);
     ladderize(tree);
     scale_branches(tree, MEAN);
-    SETGAN(tree, "kernel", kernel(tree, tree, DECAY_FACTOR, RBF_VARIANCE, 1, INFINITY));
+    SETGAN(tree, "kernel", kernel(tree, tree, DECAY_FACTOR, RBF_VARIANCE, 1, 0));
 
     igraph_rng_set_default(igraph_rng_default());
     igraph_rng_destroy(&igraph_rng);
@@ -166,7 +166,7 @@ double ba_distance(const void *x, const void *y)
     igraph_t *gy = (igraph_t *) y;
     double kx = GAN(gx, "kernel");
     double ky = GAN(gy, "kernel");
-    double kxy = kernel(gx, gy, DECAY_FACTOR, RBF_VARIANCE, 1, INFINITY);
+    double kxy = kernel(gx, gy, DECAY_FACTOR, RBF_VARIANCE, 1, 0);
     return sqrt(kx) * sqrt(ky) - kxy;
 }
 
@@ -226,7 +226,7 @@ int main (int argc, char **argv)
     ladderize(tree);
     scale_branches(tree, MEAN);
     SETGAN(tree, "kernel", 
-           kernel(tree, tree, DECAY_FACTOR, RBF_VARIANCE, 1, INFINITY));
+           kernel(tree, tree, DECAY_FACTOR, RBF_VARIANCE, 1, 0));
     
     ba_result = abc_smc(ba_config, ba_functions, opts.seed, opts.nthread, tree);
     for (i = 0; i < ba_config.nparticle; ++i)

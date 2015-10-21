@@ -213,6 +213,7 @@ void simulate_phylogeny(igraph_t *tree, igraph_t *net, gsl_rng *rng,
     JLFA(Bytes, node_map);
     J1FA(Bytes, infected);
     J1FA(Bytes, discordant);
+    J1FA(Bytes, removed);
     igraph_vector_destroy(&edges);
     igraph_vector_destroy(&branch_lengths);
     igraph_inclist_destroy(&inclist_in);

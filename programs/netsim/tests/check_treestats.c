@@ -37,17 +37,9 @@ START_TEST(test_kernel_no_coal)
     igraph_t *t1 = tree_from_newick("((1:0.5,2:0.25)5:0.5,(3:0.25,4:0.25)6:0.5)7;");
     igraph_t *t2 = tree_from_newick("(((1:0.25,2:0.25)5:0.5,3:0.25)6:0.5,4:0.25)7;");
 
-    ck_assert(fabs(kernel(t1, t2, 0.5, 1, 1, INFINITY) - 1.125 * (1 + exp(-0.0625))) < 1e-5);
+    ck_assert(fabs(kernel(t1, t2, 0.5, 1, 1, 0) - 1.125 * (1 + exp(-0.0625))) < 1e-5);
     igraph_destroy(t1);
     igraph_destroy(t2);
-}
-END_TEST
-
-START_TEST(test_kernel_coal_self)
-{
-    igraph_t *t1 = tree_from_newick("((1:0.5,2:0.25)5:0.5,(3:0.25,4:0.25)6:0.5)7;");
-    ck_assert(fabs(kernel(t1, t1, 0.5, 1, 1, 1) - kernel(t1, t1, 0.5, 1, 1, INFINITY)) < 1e-5);
-    igraph_destroy(t1);
 }
 END_TEST
 
@@ -55,7 +47,7 @@ START_TEST(test_kernel_coal)
 {
     igraph_t *t1 = tree_from_newick("((1:0.5,2:0.25)5:0.5,(3:0.25,4:0.25)6:0.5)7;");
     igraph_t *t2 = tree_from_newick("(((1:0.25,2:0.25)5:0.5,3:0.25)6:0.5,4:0.25)7;");
-    ck_assert(fabs(kernel(t1, t2, 0.5, 1, 1, 1) - 1.125 * exp(-7 / 80.0) * (1 + exp(-0.0625))) < 1e-5);
+    ck_assert(fabs(kernel(t1, t2, 0.5, 1, 1, 1) - 1.125 * (1.0 - 7 / 80.0) * (1 + exp(-0.0625))) < 1e-5);
     igraph_destroy(t1);
     igraph_destroy(t2);
 }
@@ -65,7 +57,8 @@ START_TEST(test_kernel_coal_staggered)
 {
     igraph_t *t1 = tree_from_newick("((1:0.5,2:0.25)5:0.5,(3:0.25,4:0.25)6:0.5)7;");
     igraph_t *t2 = tree_from_newick("((((1:0.4,2:0.4)6:0.2,3:0.4)7:0.2,4:0.4)8:0.2,5:0.4)9;");
-    ck_assert(fabs(kernel(t1, t2, 0.5, 1, 1, 1) - 0.9124092 * 2.164522) < 1e-5);
+    fprintf(stderr, "%f\n", kernel(t1, t2, 0.5, 1, 1, 1));
+    ck_assert(fabs(kernel(t1, t2, 0.5, 1, 1, 1) - 1.966108) < 1e-5);
     igraph_destroy(t1);
     igraph_destroy(t2);
 }
@@ -80,7 +73,6 @@ Suite *tree_suite(void)
 
     tc_core = tcase_create("Core");
     tcase_add_test(tc_core, test_kernel_no_coal);
-    tcase_add_test(tc_core, test_kernel_coal_self);
     tcase_add_test(tc_core, test_kernel_coal);
     tcase_add_test(tc_core, test_kernel_coal_staggered);
     suite_add_tcase(s, tc_core);

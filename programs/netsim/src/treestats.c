@@ -20,10 +20,10 @@ int *children(const igraph_t *tree);
 double *branch_lengths(const igraph_t *tree);
 double Lp_norm(const double *x1, const double *x2, const double *y1, 
         const double *y2, int n1, int n2, double p);
-double coal_times_kernel(const igraph_t *t1, const igraph_t *t2, double variance);
+double coal_times_kernel(const igraph_t *t1, const igraph_t *t2);
 
 double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor, 
-        double rbf_variance, double sst_control, double coal_variance)
+        double rbf_variance, double sst_control, int coal)
 {
     int i, c1, c2, n1, n2, coord, npairs;
     int *production1, *production2, *children1, *children2;
@@ -91,7 +91,9 @@ double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor,
         K += val;
     }
 
-    K *= coal_times_kernel(t1, t2, coal_variance);
+    if (coal) {
+        K *= 1.0 - coal_times_kernel(t1, t2);
+    }
 
     free(production1);
     free(production2);
@@ -106,7 +108,7 @@ double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor,
 
 /* Private. */
 
-double coal_times_kernel(const igraph_t *t1, const igraph_t *t2, double variance)
+double coal_times_kernel(const igraph_t *t1, const igraph_t *t2)
 {
     int n1 = (igraph_vcount(t1) - 1) / 2;
     int n2 = (igraph_vcount(t2) - 1) / 2;
@@ -148,7 +150,7 @@ double coal_times_kernel(const igraph_t *t1, const igraph_t *t2, double variance
     qsort(y1, n1, sizeof(double), compare_doubles);
     qsort(y2, n2, sizeof(double), compare_doubles);
 
-    k = exp(-Lp_norm(x1, x2, y1, y2, n1, n2, 1.0)/variance);
+    k = Lp_norm(x1, x2, y1, y2, n1, n2, 1.0);
 
     free(x1);
     free(x2);
