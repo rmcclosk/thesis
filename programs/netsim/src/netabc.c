@@ -124,6 +124,13 @@ void ba_sample_dataset(gsl_rng *rng, const double *theta, void *X)
     igraph_t net;
     igraph_t *tree = (igraph_t *) X;
     igraph_vector_t v;
+    igraph_rng_t igraph_rng;
+    unsigned long int igraph_seed = gsl_rng_get(rng);
+
+    // because of thread-local storage this might work?
+    igraph_rng_init(&igraph_rng, &igraph_rngtype_mt19937);
+    igraph_rng_seed(&igraph_rng, igraph_seed);
+    igraph_rng_set_default(&igraph_rng);
 
     igraph_vector_init(&v, NNODE);
     igraph_barabasi_game(&net, NNODE, *theta, MEAN_DEGREE/2, NULL, 0,
@@ -147,6 +154,8 @@ void ba_sample_dataset(gsl_rng *rng, const double *theta, void *X)
     scale_branches(tree, MEAN);
     SETGAN(tree, "kernel", kernel(tree, tree, DECAY_FACTOR, RBF_VARIANCE, 1, INFINITY));
 
+    igraph_rng_set_default(igraph_rng_default());
+    igraph_rng_destroy(&igraph_rng);
     igraph_vector_destroy(&v);
     igraph_destroy(&net);
 }
