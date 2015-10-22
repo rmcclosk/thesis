@@ -10,8 +10,8 @@ Steps:
         Parameters:
             nrates: [2, 3, 4]
             bg_rates: [1, 2, 3]
-            ubound_branch: [1, 0.143, 0.0333]
-            ubound_trans: [1, 0.143, 0.0333]
+            ubound_branch: [1000, 1, 0.143, 0.0333]
+            ubound_trans: [1000, 1, 0.143, 0.0333]
             use_tips: ["no", "yes"]
             trans_at_nodes: ["no", "yes"]
         Exclusions:
@@ -59,6 +59,6 @@ Steps:
             library(netabc)
             t <- read.tree("{tree}")
             d <- read.table("{clustering}")
-            pdf("{pcbr-plot}")
+            pdf("{pcbr-plot}", width=10)
             par(mar=c(0, 0, 4, 0) + 0.1)
             pcbr.plot(t, d, yaml="{yaml}", direction="down", show.tip.label=FALSE)

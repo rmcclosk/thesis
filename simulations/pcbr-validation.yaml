@@ -127,3 +127,43 @@ Steps:
                     pcbr -c cmaes.par --ubound-branch {ubound_branch} --ubound-trans {ubound_trans} --trans-at-nodes --rates {nrates} --bg-states {bg_rates} --ignore-tips {tree} >> {clustering}
                 fi
             fi
+
+    confusion-matrix:
+        Extension: tsv
+        Parameters:
+            nnode: 5000
+            mean_degree: 8
+            seed: !!python/object/apply:__builtin__.xrange [0, 10, 1]
+            num_clusters: [2, 10, 20, 50, 100, 200]
+            cluster_size: [5, 10, 50, 100]
+            cluster_rate: 4
+            attach_power: [0.1, 0.5, 1]
+            connect: "TRUE"
+            nsimnode: 1000
+            tree_tips: 200
+            nrates: [2, 3, 4]
+            bg_rates: [1, 2, 3]
+            ubound_branch: [1, 0.143, 0.0333]
+            ubound_trans: [1, 0.143, 0.0333]
+            use_tips: ["no", "yes"]
+            trans_at_nodes: ["no", "yes"]
+        Exclusions:
+            -
+                nrates: 2
+                bg_rates: [2, 3, 4]
+            -
+                nrates: 3
+                bg_rates: [3, 4]
+            -
+                nrates: 4
+                bg_rates: 4
+        Depends: tree network clustering
+        Interpreter: R --vanilla --silent
+        Rule: |
+            library(netabc)
+            tree <- read.tree("{tree}")
+            net <- read.graph("{network}", "gml")
+            pcbr.out <- read.table("{clustering}")
+            node.numbers <- as.integer(c(tree$tip.label, tree$node.label))
+            tree.clusters <- V(net)$cluster[node.numbers]
+            pcbr.out[,2]
