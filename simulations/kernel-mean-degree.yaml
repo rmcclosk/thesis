@@ -6,12 +6,13 @@ Steps:
         Parameters:
             nnode: 5000
             mean_degree: [2, 4, 8, 16]
+            seed: !!python/object/apply:__builtin__.xrange [0, 100, 1]
         Interpreter: R --vanilla --silent
         Startup: |
             suppressPackageStartupMessages(library(netabc))
             suppressPackageStartupMessages(library(igraph))
-            set.seed(0)
         Rule: | 
+            set.seed({seed})
             g <- barabasi.game({nnode}, m={mean_degree}/2, directed=F)
             graph_attr(g, "comment") <- "{yaml}"
             write.graph(SI.net(g), "{network}", format="gml")
@@ -37,7 +38,7 @@ Steps:
             decay_factor: [0.1, 0.2, 0.4, 0.5]
             rbf_variance: ["1e-2", 0.0625, 0.125, 1, 2]
             sst_control: [0, 1]
-            coal_variance: ["INFINITY", 2]
+            coal: ["yes", "no"]
         Depends: tree
         Interpreter: bash
         Rule: |
@@ -47,8 +48,13 @@ Steps:
             for T1 in {tree}; do
                 for T2 in {tree}; do
                     if [[ "$T1" < "$T2" || "$T1" == "$T2" ]]; then
-                    treekernel -d -l {decay_factor} -g {rbf_variance} -b {branch_scaling} \
-                               -s {sst_control} -c {coal_variance} $T1 $T2 >> {kernel-matrix}
+                        if [[ "x{coal}" == "xyes" ]]; then
+                            treekernel -d -l {decay_factor} -g {rbf_variance} -b {branch_scaling} \
+                                       -s {sst_control} -c $T1 $T2 >> {kernel-matrix}
+                        else
+                            treekernel -d -l {decay_factor} -g {rbf_variance} -b {branch_scaling} \
+                                       -s {sst_control} $T1 $T2 >> {kernel-matrix}
+                        fi
                     fi
                 done
             done
@@ -60,7 +66,7 @@ Steps:
             decay_factor: [0.1, 0.2, 0.4, 0.5]
             rbf_variance: ["1e-2", 0.0625, 0.125, 1, 2]
             sst_control: [0, 1]
-            coal_variance: ["INFINITY", 2]
+            coal: ["yes", "no"]
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
         Startup: library(netabc)
@@ -77,7 +83,7 @@ Steps:
             decay_factor: [0.1, 0.2, 0.4, 0.5]
             rbf_variance: ["1e-2", 0.0625, 0.125, 1, 2]
             sst_control: [0, 1]
-            coal_variance: ["INFINITY", 2]
+            coal: ["yes", "no"]
             ncrossv: 1000
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
@@ -99,5 +105,5 @@ Steps:
         Rule: |
             d <- collect.data(strsplit("{classifier}", " ")[[1]])
             summary.plot(d, x="rbf_variance", y="rsquared", group="decay_factor", 
-                         facet.x="sst_control", facet.y="coal_variance", fun="mean")
+                         facet.x="sst_control", facet.y="coal", fun="mean")
             ggsave("{crossv-plot}", width=10)
