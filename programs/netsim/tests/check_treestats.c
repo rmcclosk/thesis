@@ -47,10 +47,41 @@ START_TEST(test_nLTT)
 {
     igraph_t *t1 = tree_from_newick("((1:0.5,2:0.25)5:0.5,(3:0.25,4:0.25)6:0.5)7;");
     igraph_t *t2 = tree_from_newick("((((1:0.4,2:0.4)6:0.3,3:0.4)7:0.2,4:0.4)8:0.1,5:0.4)9;");
-    fprintf(stderr, "%f\n", nLTT(t1, t2));
     ck_assert(fabs(nLTT(t1, t2) - 0.03095142) < 1e-5);
     igraph_destroy(t1);
     igraph_destroy(t2);
+}
+END_TEST
+
+START_TEST(test_sackin)
+{
+    igraph_t *tree = tree_from_newick("(((t2:0.53,t3:0.33):0.09,(t1:0.9,t4:0.31):0.08):0.77,t5:0.32);");
+    ck_assert(sackin(tree, 0, SACKIN_NORM_NONE) == 13);
+    igraph_destroy(tree);
+}
+END_TEST
+
+START_TEST(test_sackin_yule)
+{
+    igraph_t *tree = tree_from_newick("(((t2:0.53,t3:0.33):0.09,(t1:0.9,t4:0.31):0.08):0.77,t5:0.32);");
+    ck_assert(fabs(sackin(tree, 0, SACKIN_NORM_YULE) - 0.0333333) < 1e-5);
+    igraph_destroy(tree);
+}
+END_TEST
+
+START_TEST(test_sackin_pda)
+{
+    igraph_t *tree = tree_from_newick("(((t2:0.53,t3:0.33):0.09,(t1:0.9,t4:0.31):0.08):0.77,t5:0.32);");
+    ck_assert(fabs(sackin(tree, 0, SACKIN_NORM_PDA) - 1.162755) < 1e-5);
+    igraph_destroy(tree);
+}
+END_TEST
+
+START_TEST(test_sackin_branch_lengths)
+{
+    igraph_t *tree = tree_from_newick("(((t2:0.53,t3:0.33):0.09,(t1:0.9,t4:0.31):0.08):0.77,t5:0.32);");
+    ck_assert(sackin(tree, 1, SACKIN_NORM_NONE) == 5.81);
+    igraph_destroy(tree);
 }
 END_TEST
 
@@ -64,6 +95,9 @@ Suite *tree_suite(void)
     tc_core = tcase_create("Core");
     tcase_add_test(tc_core, test_kernel);
     tcase_add_test(tc_core, test_nLTT);
+    tcase_add_test(tc_core, test_sackin);
+    tcase_add_test(tc_core, test_sackin_yule);
+    tcase_add_test(tc_core, test_sackin_pda);
     suite_add_tcase(s, tc_core);
 
     return s;

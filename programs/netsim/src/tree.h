@@ -56,9 +56,11 @@ double height(const igraph_t *tree);
  * for n doubles.
  *
  * \param[in] tree tree to find depths for
+ * \param[in] use_branch_lengths if 1, report depths in branch lengths,
+ * otherwise in number of branches
  * \param[out] depths the result will be stored here
  */
-void depths(const igraph_t *tree, double *depths);
+void depths(const igraph_t *tree, int use_branch_lengths, double *depths);
 
 /** Ladderize a tree.
  *

@@ -31,4 +31,25 @@ double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor,
  */
 double nLTT(const igraph_t *t1, const igraph_t *t2);
 
+typedef enum {
+    SACKIN_NORM_NONE,
+    SACKIN_NORM_YULE,
+    SACKIN_NORM_PDA
+} sackin_norm;
+
+/** Compute Sackin's index.
+ *
+ * The norm parameter specifies a null model. The result will be divided by the
+ * Sackin's index of the null model (see the sackin function in the apTreeshape
+ * R package). It doesn't really make sense to use normalization other than
+ * NONE with use_branch_lengths = 1, but it's allowed.
+ *
+ * \param[in] t tree to compute Sackin's index for
+ * \param[in] use_branch_lengths if 0, treat all branches as if they had unit
+ * length
+ * \param[in] norm how to normalize the result
+ * \return the average path length from tips to the root
+ */
+double sackin(const igraph_t *t, int use_branch_lengths, sackin_norm norm);
+
 #endif

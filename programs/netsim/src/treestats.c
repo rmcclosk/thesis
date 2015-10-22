@@ -3,6 +3,8 @@
 #include <string.h>
 #include <igraph/igraph.h>
 #include <Judy.h>
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_sf_psi.h>
 
 #include "tree.h"
 #include "util.h"
@@ -118,7 +120,7 @@ double nLTT(const igraph_t *t1, const igraph_t *t2)
 
     for (itree = 0; itree < 2; ++itree)
     {
-        depths(trees[itree], buf);
+        depths(trees[itree], 1, buf);
         order(buf, node_order, sizeof(double), igraph_vcount(trees[itree]),
                 compare_doubles);
         igraph_degree(trees[itree], &vec, igraph_vss_all(), IGRAPH_OUT, 0);
@@ -129,11 +131,9 @@ double nLTT(const igraph_t *t1, const igraph_t *t2)
         {
             if (VECTOR(vec)[node_order[i]] > 0) {
                 if (buf[node_order[i]] == prev) {
-                    fprintf(stderr, "%f same as prev\n", buf[node_order[i]]);
                     y[itree][cur] += 1.0 / n[itree];
                 }
                 else {
-                    fprintf(stderr, "%f different from prev\n", buf[node_order[i]]);
                     x[itree][++cur] = buf[node_order[i]];
                     y[itree][cur] = y[itree][cur-1] + 1.0 / n[itree];
                     h = fmax(h, buf[node_order[i]]);
@@ -157,6 +157,39 @@ double nLTT(const igraph_t *t1, const igraph_t *t2)
     free(node_order);
     igraph_vector_destroy(&vec);
     return k;
+}
+
+double sackin(const igraph_t *t, int use_branch_lengths, sackin_norm norm)
+{
+    int i, ntip = (igraph_vcount(t) + 1) / 2;
+    double s = 0, h;
+    double *buf = malloc(igraph_vcount(t) * sizeof(double));
+    igraph_vector_t out_degree;
+
+    igraph_vector_init(&out_degree, igraph_vcount(t));
+    depths(t, use_branch_lengths, buf);
+    igraph_degree(t, &out_degree, igraph_vss_all(), IGRAPH_OUT, 0);
+
+    for (i = 0; i < igraph_vcount(t); ++i)
+    {
+        if (VECTOR(out_degree)[i] == 0) {
+            s += buf[i];
+        }
+    }
+
+    if (norm == SACKIN_NORM_YULE)
+    {
+        h = M_EULER + gsl_sf_psi_int(ntip + 1);
+        s = (s - 2 * ntip * (h - 1)) / ntip;
+    }
+    else if (norm == SACKIN_NORM_PDA)
+    {
+        s = s / pow(ntip, 1.5);
+    }
+
+    free(buf);
+    igraph_vector_destroy(&out_degree);
+    return s;
 }
 
 /* Private. */

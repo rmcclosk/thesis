@@ -25,7 +25,7 @@ int _collapse_singles(igraph_t *tree, int root, igraph_vector_t *vdel,
         igraph_vector_t *eadd, igraph_vector_t *branch_length,
         igraph_vector_t *work, double *bl);
 void _depths(const igraph_t *tree, double *depths, igraph_vector_t *work, 
-        int root, double parent_depth);
+        int root, double parent_depth, int use_branch_lengths);
 
 igraph_t *parse_newick(FILE *f)
 {
@@ -251,32 +251,41 @@ void subsample_tips(igraph_t *tree, int ntip, const gsl_rng *rng)
     igraph_vector_ptr_destroy_all(&nbhd);
 }
 
-void depths(const igraph_t *tree, double *depths)
+void depths(const igraph_t *tree, int use_branch_lengths, double *depths)
 {
     igraph_vector_t work;
     igraph_vector_init(&work, 1);
-    _depths(tree, depths, &work, root(tree), 0.0);
+    _depths(tree, depths, &work, root(tree), 0.0, use_branch_lengths);
     igraph_vector_destroy(&work);
 }
 
+/* Private */
+
 void _depths(const igraph_t *tree, double *depths, igraph_vector_t *work, 
-        int root, double parent_depth)
+        int root, double parent_depth, int use_branch_lengths)
 
 {
     int lc, rc;
 
     igraph_incident(tree, work, root, IGRAPH_IN);
-    if (igraph_vector_size(work) > 0)
-        depths[root] = parent_depth + EAN(tree, "length", (int) VECTOR(*work)[0]);
-    else
+    if (igraph_vector_size(work) > 0) {
+        if (use_branch_lengths) {
+            depths[root] = parent_depth + EAN(tree, "length", (int) VECTOR(*work)[0]);
+        }
+        else {
+            depths[root] = parent_depth + 1;
+        }
+    }
+    else {
         depths[root] = parent_depth;
+    }
 
     igraph_neighbors(tree, work, root, IGRAPH_OUT);
     if (igraph_vector_size(work) > 0)
     {
         lc = (int) VECTOR(*work)[0]; rc = (int) VECTOR(*work)[1];
-        _depths(tree, depths, work, lc, depths[root]);
-        _depths(tree, depths, work, rc, depths[root]);
+        _depths(tree, depths, work, lc, depths[root], use_branch_lengths);
+        _depths(tree, depths, work, rc, depths[root], use_branch_lengths);
     }
 }
 

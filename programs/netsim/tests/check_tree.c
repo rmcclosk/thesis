@@ -165,7 +165,7 @@ START_TEST(test_depths)
     int i;
 
     fprintf(stderr, "test_depths\n");
-    depths(tree, calc_depths);
+    depths(tree, 1, calc_depths);
     qsort(calc_depths, 7, sizeof(double), compare_doubles);
 
     ck_assert(fabs(calc_depths[0] - 0.0) < 1e-5);
@@ -175,6 +175,28 @@ START_TEST(test_depths)
     ck_assert(fabs(calc_depths[4] - 1.34) < 1e-5);
     ck_assert(fabs(calc_depths[5] - 1.39) < 1e-5);
     ck_assert(fabs(calc_depths[6] - 2.14) < 1e-5);
+    igraph_destroy(tree);
+    free(tree);
+}
+END_TEST
+
+START_TEST(test_depths_nobl)
+{
+    igraph_t *tree = tree_from_newick("(t1:0.4,((t3:0.05,t2:0.8):0.88,t4:0.25):0.46);");
+    double calc_depths[7]; 
+    int i;
+
+    fprintf(stderr, "test_depths\n");
+    depths(tree, 0, calc_depths);
+    qsort(calc_depths, 7, sizeof(double), compare_doubles);
+
+    ck_assert(calc_depths[0] == 0);
+    ck_assert(calc_depths[1] == 1);
+    ck_assert(calc_depths[2] == 1);
+    ck_assert(calc_depths[3] == 2);
+    ck_assert(calc_depths[4] == 2);
+    ck_assert(calc_depths[5] == 3);
+    ck_assert(calc_depths[6] == 3);
     igraph_destroy(tree);
     free(tree);
 }
@@ -375,6 +397,7 @@ Suite *tree_suite(void)
     tcase_add_test(tc_tree, test_root);
     tcase_add_test(tc_tree, test_height);
     tcase_add_test(tc_tree, test_depths);
+    tcase_add_test(tc_tree, test_depths_nobl);
     tcase_add_test(tc_tree, test_ladderize);
     tcase_add_test(tc_tree, test_scale_branches_none);
     tcase_add_test(tc_tree, test_scale_branches_mean);
