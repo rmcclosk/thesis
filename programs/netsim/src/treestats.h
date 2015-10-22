@@ -32,10 +32,10 @@ double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor,
 double nLTT(const igraph_t *t1, const igraph_t *t2);
 
 typedef enum {
-    SACKIN_NORM_NONE,
-    SACKIN_NORM_YULE,
-    SACKIN_NORM_PDA
-} sackin_norm;
+    TREESHAPE_NORM_NONE,
+    TREESHAPE_NORM_YULE,
+    TREESHAPE_NORM_PDA
+} treeshape_norm;
 
 /** Compute Sackin's index.
  *
@@ -47,9 +47,17 @@ typedef enum {
  * \param[in] t tree to compute Sackin's index for
  * \param[in] use_branch_lengths if 0, treat all branches as if they had unit
  * length
- * \param[in] norm how to normalize the result
+ * \param[in] norm null model to use for normalizing the result
  * \return the average path length from tips to the root
  */
-double sackin(const igraph_t *t, int use_branch_lengths, sackin_norm norm);
+double sackin(const igraph_t *t, int use_branch_lengths, treeshape_norm norm);
+
+/** Compute Colless' index.
+ *
+ * \param[in] t tree t compute Colless' index for
+ * \param[in] norm null model to use for normalizing the result
+ * \return Colless' index
+ */
+double colless(const igraph_t *t, treeshape_norm norm);
 
 #endif
