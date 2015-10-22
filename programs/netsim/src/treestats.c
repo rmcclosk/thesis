@@ -20,10 +20,9 @@ int *children(const igraph_t *tree);
 double *branch_lengths(const igraph_t *tree);
 double Lp_norm(const double *x1, const double *x2, const double *y1, 
         const double *y2, int n1, int n2, double p);
-double coal_times_kernel(const igraph_t *t1, const igraph_t *t2);
 
 double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor, 
-        double rbf_variance, double sst_control, int coal)
+        double rbf_variance, double sst_control)
 {
     int i, c1, c2, n1, n2, coord, npairs;
     int *production1, *production2, *children1, *children2;
@@ -91,10 +90,6 @@ double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor,
         K += val;
     }
 
-    if (coal) {
-        K *= 1.0 - coal_times_kernel(t1, t2);
-    }
-
     free(production1);
     free(production2);
     free(children1);
@@ -106,60 +101,65 @@ double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor,
     return K;
 }
 
-/* Private. */
-
-double coal_times_kernel(const igraph_t *t1, const igraph_t *t2)
+double nLTT(const igraph_t *t1, const igraph_t *t2)
 {
-    int n1 = (igraph_vcount(t1) - 1) / 2;
-    int n2 = (igraph_vcount(t2) - 1) / 2;
-    int i, cur;
-    double *x1 = malloc(n1 * sizeof(double));
-    double *x2 = malloc(n2 * sizeof(double));
-    double *y1 = malloc(n1 * sizeof(double));
-    double *y2 = malloc(n2 * sizeof(double));
+    int itree, i, cur;
+    double h, k, prev;
+    const igraph_t *trees[2] = {t1, t2};
+
+    int n[2] = {(igraph_vcount(t1) + 1) / 2, (igraph_vcount(t2) + 1) / 2};
+    double *x[2] = {calloc(n[0], sizeof(double)), calloc(n[1], sizeof(double))};
+    double *y[2] = {calloc(n[0], sizeof(double)), calloc(n[1], sizeof(double))};
     double *buf = malloc(fmax(igraph_vcount(t1), igraph_vcount(t2)) * sizeof(double));
-    double h1 = height(t1);
-    double h2 = height(t2);
-    double k;
+    int *node_order = malloc(fmax(igraph_vcount(t1), igraph_vcount(t2)) * sizeof(int));
+
     igraph_vector_t vec;
     igraph_vector_init(&vec, igraph_vcount(t1));
 
-    for (i = 0; i < n1; ++i)
-        x1[i] = (double) i / (n1-1);
-    for (i = 0; i < n2; ++i)
-        x2[i] = (double) i / (n2-1);
-
-    depths(t1, buf);
-    cur = 0;
-    igraph_degree(t1, &vec, igraph_vss_all(), IGRAPH_OUT, 0);
-    for (i = 0; i < igraph_vcount(t1); ++i)
+    for (itree = 0; itree < 2; ++itree)
     {
-        if (VECTOR(vec)[i] > 0)
-            y1[cur++] = buf[i] / h1;
+        depths(trees[itree], buf);
+        order(buf, node_order, sizeof(double), igraph_vcount(trees[itree]),
+                compare_doubles);
+        igraph_degree(trees[itree], &vec, igraph_vss_all(), IGRAPH_OUT, 0);
+
+        prev = 0; cur = 0; h = 0;
+        y[itree][0] = 1.0 / n[itree];
+        for (i = 0; i < igraph_vcount(trees[itree]); ++i)
+        {
+            if (VECTOR(vec)[node_order[i]] > 0) {
+                if (buf[node_order[i]] == prev) {
+                    fprintf(stderr, "%f same as prev\n", buf[node_order[i]]);
+                    y[itree][cur] += 1.0 / n[itree];
+                }
+                else {
+                    fprintf(stderr, "%f different from prev\n", buf[node_order[i]]);
+                    x[itree][++cur] = buf[node_order[i]];
+                    y[itree][cur] = y[itree][cur-1] + 1.0 / n[itree];
+                    h = fmax(h, buf[node_order[i]]);
+                    prev = buf[node_order[i]];
+                }
+            }
+        }
+
+        for (i = 0; i < n[itree]; ++i) {
+            x[itree][i] /= h;
+        }
     }
 
-    depths(t2, buf);
-    cur = 0;
-    igraph_degree(t2, &vec, igraph_vss_all(), IGRAPH_OUT, 0);
-    for (i = 0; i < igraph_vcount(t2); ++i)
-    {
-        if (VECTOR(vec)[i] > 0)
-            y2[cur++] = buf[i] / h2;
-    }
+    k = Lp_norm(x[0], x[1], y[0], y[1], n[0], n[1], 1.0);
 
-    qsort(y1, n1, sizeof(double), compare_doubles);
-    qsort(y2, n2, sizeof(double), compare_doubles);
-
-    k = Lp_norm(x1, x2, y1, y2, n1, n2, 1.0);
-
-    free(x1);
-    free(x2);
-    free(y1);
-    free(y2);
+    free(x[0]);
+    free(x[1]);
+    free(y[0]);
+    free(y[1]);
     free(buf);
+    free(node_order);
     igraph_vector_destroy(&vec);
     return k;
 }
+
+/* Private. */
 
 double Lp_norm(const double *x1, const double *x2, const double *y1, 
         const double *y2, int n1, int n2, double p)

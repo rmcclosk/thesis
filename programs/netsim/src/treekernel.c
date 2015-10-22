@@ -10,7 +10,7 @@ struct treekernel_options {
     double decay_factor;
     double gauss_factor;
     double sst_control;
-    int coal;
+    int nLTT;
     int normalize;
     int ladderize;
     scaling scale_branches;
@@ -24,7 +24,7 @@ struct option long_options[] =
     {"decay-factor", required_argument, 0, 'l'},
     {"gauss-factor", required_argument, 0, 'g'},
     {"sst-control", required_argument, 0, 's'},
-    {"coal", no_argument, 0, 'c'},
+    {"nLTT", no_argument, 0, 'c'},
     {"normalize", no_argument, 0, 'n'},
     {"ladderize", no_argument, 0, 'd'},
     {"scale-branches", required_argument, 0, 'b'},
@@ -38,7 +38,7 @@ void usage(void)
     fprintf(stderr, "  -h, --help                display this message\n");
     fprintf(stderr, "  -l, --decay-factor        penalty for large matches (default 0.2)\n");
     fprintf(stderr, "  -g, --gauss-factor        variance for Gaussian RBF (default 2)\n");
-    fprintf(stderr, "  -c, --coal                multiply by nLTT (default no)\n");
+    fprintf(stderr, "  -c, --nLTT                multiply by nLTT (default no)\n");
     fprintf(stderr, "  -s, --sst-control         0 for subtree kernel, 1 for subset-tree kernel (default 1)\n");
     fprintf(stderr, "  -n, --normalize           divide output by square-root of product of\n");
     fprintf(stderr, "                            kernels of trees with themselves\n");
@@ -53,7 +53,7 @@ struct treekernel_options get_options(int argc, char **argv)
         .decay_factor = 0.2,
         .gauss_factor = 2,
         .sst_control = 1.0,
-        .coal = 0,
+        .nLTT = 0,
         .normalize = 0,
         .ladderize = 0,
         .scale_branches = NONE,
@@ -84,7 +84,7 @@ struct treekernel_options get_options(int argc, char **argv)
                 opts.sst_control = atof(optarg);
                 break;
             case 'c':
-                opts.coal = 1;
+                opts.nLTT = 1;
                 break;
             case 'n':
                 opts.normalize = 1;
@@ -125,7 +125,7 @@ struct treekernel_options get_options(int argc, char **argv)
 int main (int argc, char **argv)
 {
     struct treekernel_options opts = get_options(argc, argv);
-    double kdenom = 1;
+    double knum, kdenom = 1;
 
     igraph_i_set_attribute_table(&igraph_cattribute_table);
     igraph_t *t1 = parse_newick(opts.tree1_file);
@@ -140,12 +140,19 @@ int main (int argc, char **argv)
     scale_branches(t2, opts.scale_branches);
 
     if (opts.normalize) {
-        kdenom = sqrt(kernel(t1, t1, opts.decay_factor, opts.gauss_factor, opts.sst_control, opts.coal)) *
-                 sqrt(kernel(t2, t2, opts.decay_factor, opts.gauss_factor, opts.sst_control, opts.coal));
+        kdenom = sqrt(kernel(t1, t1, opts.decay_factor, opts.gauss_factor, opts.sst_control)) *
+                 sqrt(kernel(t2, t2, opts.decay_factor, opts.gauss_factor, opts.sst_control));
+    }
+    if (opts.nLTT) {
+        kdenom *= sqrt(1.0 - nLTT(t1, t1)) * sqrt(1.0 - nLTT(t2, t2));
     }
 
-    printf("%f\n", kernel(t1, t2, opts.decay_factor, opts.gauss_factor,
-                opts.sst_control, opts.coal) / kdenom);
+    knum = kernel(t1, t2, opts.decay_factor, opts.gauss_factor, opts.sst_control);
+    if (opts.nLTT) {
+        knum *= 1.0 - nLTT(t1, t2);
+    }
+
+    printf("%f\n", knum / kdenom);
 
     igraph_destroy(t1);
     igraph_destroy(t2);
