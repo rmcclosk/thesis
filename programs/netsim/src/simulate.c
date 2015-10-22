@@ -8,6 +8,7 @@
 #include <gsl/gsl_randist.h>
 
 #include "simulate.h"
+#define NDEBUG
 
 void print_node(const igraph_t *net, char *buf, int node, int numeric_ids);
 
@@ -48,6 +49,7 @@ void simulate_phylogeny(igraph_t *tree, igraph_t *net, gsl_rng *rng,
     // start the epidemic
     inode = rand() % igraph_vcount(net);
     J1S(Rc_int, infected, inode);
+    //fprintf(stderr, "start epidemic at node %d\n", inode);
     igraph_vector_push_back(&branch_lengths, 0.);
     JLI(PValue, tip_map, inode); *PValue = nnode_tree++;
     JLI(PValue, node_map, nnode_tree-1); *PValue = inode;
@@ -68,8 +70,7 @@ void simulate_phylogeny(igraph_t *tree, igraph_t *net, gsl_rng *rng,
     remove_rate = VAN(net, "remove", inode);
 
     // simulate until either we reach the time goal, or everybody is infected
-    while (ndiscordant > 0 && time < stop_time &&
-            (nnode_tree + 1) / 2 < stop_nodes)
+    while (ndiscordant > 0 && time < stop_time && (nnode_tree + 1) / 2 < stop_nodes)
     {
         // choose the next event time
         t = gsl_ran_exponential(rng, 1. / (trans_rate + remove_rate));
@@ -90,8 +91,7 @@ void simulate_phylogeny(igraph_t *tree, igraph_t *net, gsl_rng *rng,
                 i = rand() % ndiscordant;
                 J1BC(Rc_int, discordant, i+1, Index);
                 igraph_edge(net, Index, &inode, &snode);
-                //fprintf(stderr, "infect node %s->%s\n", VAS(net, "id", inode), 
-                                //VAS(net, "id", snode));
+                //fprintf(stderr, "infect node %d->%d\n", inode, snode);
 
                 // mark the new node as infected
                 ++ninfected;
@@ -101,6 +101,7 @@ void simulate_phylogeny(igraph_t *tree, igraph_t *net, gsl_rng *rng,
 
                 // add edges in the tree for the new transmission
                 JLG(PValue, tip_map, inode);
+                assert(PValue != NULL);
                 igraph_vector_push_back(&edges, *PValue);
                 igraph_vector_push_back(&edges, nnode_tree-1);
                 igraph_vector_push_back(&edges, *PValue);
@@ -157,7 +158,7 @@ void simulate_phylogeny(igraph_t *tree, igraph_t *net, gsl_rng *rng,
                 // choose and remove node
                 i = rand() % ninfected;
                 J1BC(Rc_int, infected, i+1, Index);
-                J1U(Rc_int, infected, i);
+                J1U(Rc_int, infected, Index);
                 J1S(Rc_int, removed, Index);
                 remove_rate -= VAN(net, "remove", Index);
                 --ninfected;

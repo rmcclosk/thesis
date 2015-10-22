@@ -164,8 +164,6 @@ int main (int argc, char **argv)
     if (net_ok(&net))
     {
         simulate_phylogeny(&tree, &net, rng, opts.sim_time, opts.sim_nodes, numeric_ids);
-        fprintf(stderr, "Simulated a tree of height %.2f with %d tips\n", 
-                height(&tree), (igraph_vcount(&tree) + 1)/2);
         cut_at_time(&tree, opts.tree_height, opts.extant_only);
         subsample_tips(&tree, opts.ntip, rng);
         ladderize(&tree);
