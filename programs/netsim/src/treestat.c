@@ -9,12 +9,13 @@
 typedef enum {
     TREESTAT_HEIGHT,
     TREESTAT_NTIP,
-    TREESTAT_SACKIN
+    TREESTAT_SACKIN,
+    TREESTAT_COLLESS
 } tree_statistic;
 
 struct treestat_options {
     tree_statistic stat;
-    sackin_norm sackin_norm_type;
+    treeshape_norm norm_type;
     int ladderize;
     int use_branch_lengths;
     scaling scale_branches;
@@ -25,7 +26,7 @@ struct option long_options[] =
 {
     {"help", no_argument, 0, 'h'},
     {"statistic", required_argument, 0, 's'},
-    {"sackin-norm", required_argument, 0, 'k'},
+    {"treeshape-norm", required_argument, 0, 'k'},
     {"ignore-branch-lengths", no_argument, 0, 'i'},
     {"ladderize", no_argument, 0, 'd'},
     {"scale-branches", required_argument, 0, 'b'},
@@ -38,7 +39,7 @@ void usage(void)
     fprintf(stderr, "Options:\n");
     fprintf(stderr, "  -h, --help                display this message\n");
     fprintf(stderr, "  -s, --statistic           statistic to compute (see options below)\n");
-    fprintf(stderr, "  -k, --sackin-norm         null model for Sackin's index (yule/pda/none)\n");
+    fprintf(stderr, "  -k, --treeshape-norm      null model for index statistics (yule/pda/none)\n");
     fprintf(stderr, "  -d, --ladderize           ladderize the tree before computing the statistic\n");
     fprintf(stderr, "  -b, --scale-branches      type of branch scaling to apply (mean/median/max/none, default none)\n");
     fprintf(stderr, "  -i, --ignore-branch-lengths  treat all branches as if they have unit length\n\n");
@@ -46,6 +47,7 @@ void usage(void)
     fprintf(stderr, "  height                    tree height\n");
     fprintf(stderr, "  ntip                      number of tips\n");
     fprintf(stderr, "  sackin                    Sackin's index\n");
+    fprintf(stderr, "  colless                   Colless' index\n");
 }
 
 struct treestat_options get_options(int argc, char **argv)
@@ -53,7 +55,7 @@ struct treestat_options get_options(int argc, char **argv)
     int i, c = 0;
     struct treestat_options opts = {
         .stat = TREESTAT_NTIP,
-        .sackin_norm_type = SACKIN_NORM_NONE,
+        .norm_type = TREESHAPE_NORM_NONE,
         .ladderize = 0,
         .use_branch_lengths = 1,
         .scale_branches = NONE,
@@ -80,16 +82,23 @@ struct treestat_options get_options(int argc, char **argv)
                 else if (strcmp(optarg, "sackin") == 0) {
                     opts.stat = TREESTAT_SACKIN;
                 }
+                else if (strcmp(optarg, "colless") == 0) {
+                    opts.stat = TREESTAT_COLLESS;
+                }
                 else if (strcmp(optarg, "ntip") == 0) {
                     opts.stat = TREESTAT_NTIP;
+                }
+                else {
+                    fprintf(stderr, "Unrecognized tree statistic \"%s\"\n", optarg);
+                    exit(EXIT_FAILURE);
                 }
                 break;
             case 'k':
                 if (strcmp(optarg, "yule") == 0) {
-                    opts.sackin_norm_type = SACKIN_NORM_YULE;
+                    opts.norm_type = TREESHAPE_NORM_YULE;
                 }
                 else if (strcmp(optarg, "pda") == 0) {
-                    opts.sackin_norm_type = SACKIN_NORM_PDA;
+                    opts.norm_type = TREESHAPE_NORM_PDA;
                 }
                 break;
             case 'i':
@@ -124,7 +133,7 @@ struct treestat_options get_options(int argc, char **argv)
 int main (int argc, char **argv)
 {
     int i;
-    double s;
+    double s = 0;
     struct treestat_options opts = get_options(argc, argv);
 
     igraph_i_set_attribute_table(&igraph_cattribute_table);
@@ -152,8 +161,14 @@ int main (int argc, char **argv)
             s = height(t);
             break;
         case TREESTAT_SACKIN:
-            s = sackin(t, 1, opts.sackin_norm_type);
+            s = sackin(t, 1, opts.norm_type);
             break;
+        case TREESTAT_COLLESS:
+            s = colless(t, opts.norm_type);
+            break;
+        default:
+            fprintf(stderr, "Unrecognized tree statistic\n");
+            return 1;
     }
 
     if (s == (int) s) {
