@@ -25,6 +25,8 @@ struct netabc_options {
     FILE *tree_file;
     int nthread;
     int seed;
+    int nparticle;
+    int nsample;
     double decay_factor;
     double rbf_variance;
 };
@@ -34,8 +36,10 @@ struct option long_options[] =
     {"help", no_argument, 0, 'h'},
     {"num-threads", required_argument, 0, 't'},
     {"seed", required_argument, 0, 's'},
-    {"decay_factor", required_argument, 0, 'l'},
-    {"rbf_variance", required_argument, 0, 'g'},
+    {"decay-factor", required_argument, 0, 'l'},
+    {"rbf-variance", required_argument, 0, 'g'},
+    {"num-particles", required_argument, 0, 'n'},
+    {"num-samples", required_argument, 0, 'p'},
     {0, 0, 0, 0}
 };
 
@@ -47,6 +51,9 @@ void usage(void)
     fprintf(stderr, "  -t, --num-threads         number of threads\n");
     fprintf(stderr, "  -s, --seed                random seed\n");
     fprintf(stderr, "  -l, --decay-factor        decay factor for tree kernel\n");
+    fprintf(stderr, "  -g, --rbf-variance        variance for tree kernel radial basis function\n");
+    fprintf(stderr, "  -n, --num-particles       number of particles for SMC\n");
+    fprintf(stderr, "  -p, --num-samples         number of sampled datasets per particle\n");
 }
 
 struct netabc_options get_options(int argc, char **argv)
@@ -57,12 +64,14 @@ struct netabc_options get_options(int argc, char **argv)
         .nthread = 1,
         .seed = -1,
         .decay_factor = 0.2,
-        .rbf_variance = 2
+        .rbf_variance = 2,
+        .nparticle = 1000,
+        .nsample = 5
     };
 
     while (c != -1)
     {
-        c = getopt_long(argc, argv, "hg:l:s:t:", long_options, &i);
+        c = getopt_long(argc, argv, "hg:l:n:p:s:t:", long_options, &i);
         if (c == -1)
             break;
 
@@ -78,6 +87,12 @@ struct netabc_options get_options(int argc, char **argv)
                 break;
             case 'l':
                 opts.decay_factor = atof(optarg);
+                break;
+            case 'n':
+                opts.nparticle = atoi(optarg);
+                break;
+            case 'p':
+                opts.nsample = atoi(optarg);
                 break;
             case 's':
                 opts.seed = atoi(optarg);
@@ -194,9 +209,6 @@ smc_functions ba_functions = {
 
 smc_config ba_config = {
     .nparam = 1,
-    .nparticle = 10,
-    .nsample = 2,
-    .ess_tolerance = 5,
     .final_epsilon = 0.01,
     .quality = 0.9,
     .step_tolerance = 1e-5,
@@ -232,6 +244,11 @@ int main (int argc, char **argv)
 
     ntip = (igraph_vcount(tree) + 1) / 2;
     
+    // set up SMC configuration
+    ba_config.nparticle = opts.nparticle;
+    ba_config.ess_tolerance = opts.nparticle / 2;
+    ba_config.nsample = opts.nsample;
+
     ba_config.priors = malloc(sizeof(smc_distribution));
     ba_config.priors[0] = UNIFORM;
     ba_config.prior_params = malloc(2 * sizeof(double));
