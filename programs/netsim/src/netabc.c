@@ -27,6 +27,7 @@ struct netabc_options {
     int seed;
     int nparticle;
     int nsample;
+    int use_nltt;
     double decay_factor;
     double rbf_variance;
     double quality;
@@ -42,6 +43,7 @@ struct option long_options[] =
     {"num-particles", required_argument, 0, 'n'},
     {"num-samples", required_argument, 0, 'p'},
     {"quality", required_argument, 0, 'q'},
+    {"nltt", no_argument, 0, 'c'},
     {0, 0, 0, 0}
 };
 
@@ -57,6 +59,7 @@ void usage(void)
     fprintf(stderr, "  -n, --num-particles       number of particles for SMC\n");
     fprintf(stderr, "  -p, --num-samples         number of sampled datasets per particle\n");
     fprintf(stderr, "  -q, --quality             tradeoff between speed and accuracy (0.9=fast, 0.99=accurate)\n");
+    fprintf(stderr, "  -c, --nltt                multiply the kernel by the nLTT statistic\n");
 }
 
 struct netabc_options get_options(int argc, char **argv)
@@ -70,12 +73,13 @@ struct netabc_options get_options(int argc, char **argv)
         .rbf_variance = 2,
         .nparticle = 1000,
         .nsample = 5,
-        .quality = 0.95
+        .quality = 0.95,
+        .use_nltt = 0
     };
 
     while (c != -1)
     {
-        c = getopt_long(argc, argv, "hg:l:n:p:q:s:t:", long_options, &i);
+        c = getopt_long(argc, argv, "hcg:l:n:p:q:s:t:", long_options, &i);
         if (c == -1)
             break;
 
@@ -86,6 +90,9 @@ struct netabc_options get_options(int argc, char **argv)
             case 'h':
                 usage();
                 exit(EXIT_SUCCESS);
+            case 'c':
+                opts.use_nltt = 1;
+                break;
             case 'g':
                 opts.rbf_variance = atof(optarg);
                 break;
@@ -190,7 +197,11 @@ double ba_distance(const void *x, const void *y, const void *arg)
     double ky = GAN(gy, "kernel");
     double decay_factor = ((double *) arg)[0];
     double rbf_variance = ((double *) arg)[1];
+    int use_nltt = (int) ((double *) arg)[2];
     double kxy = kernel(gx, gy, decay_factor, rbf_variance, 1);
+    if (use_nltt) {
+        kxy *= (1.0 - nLTT(gx, gy));
+    }
     return sqrt(kx) * sqrt(ky) - kxy;
 }
 
@@ -228,7 +239,7 @@ int main (int argc, char **argv)
     struct netabc_options opts = get_options(argc, argv);
     igraph_t *tree;
     smc_result *ba_result;
-    double distance_arg[2];
+    double distance_arg[3];
     double sample_dataset_arg[3];
 
 #if IGRAPH_THREAD_SAFE == 0
@@ -269,6 +280,7 @@ int main (int argc, char **argv)
 
     distance_arg[0] = opts.decay_factor;
     distance_arg[1] = opts.rbf_variance;
+    distance_arg[2] = opts.use_nltt;
     ba_config.distance_arg = &distance_arg;
 
     ba_result = abc_smc(ba_config, ba_functions, opts.seed, opts.nthread, tree);
