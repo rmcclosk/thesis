@@ -21,7 +21,7 @@
 #define MEAN_DEGREE 8
 #define PA_POWER_MIN 0.05
 #define PA_POWER_MAX 1.0
-#define DECAY_FACTOR 0.2
+#define DECAY_FACTOR 0.4
 #define RBF_VARIANCE 2
 
 struct netabc_options {
@@ -194,9 +194,9 @@ smc_functions ba_functions = {
 
 smc_config ba_config = {
     .nparam = 1,
-    .nparticle = 10,
+    .nparticle = 1000,
     .nsample = 10,
-    .ess_tolerance = 5,
+    .ess_tolerance = 500,
     .final_epsilon = 0.01,
     .quality = 0.9,
     .step_tolerance = 1e-5,
