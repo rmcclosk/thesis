@@ -3,25 +3,36 @@
 
 #include <gsl/gsl_rng.h>
 
+typedef enum {
+    UNIFORM,
+    GAUSSIAN
+} smc_distribution;
+
 typedef struct {
     int nparam; /**< number of parameters in the model */
     int nparticle; /**< number of particles used to approximate the posterior */
     int nsample; /**< number of sampled data points per particle */
     int ess_tolerance; /**< ESS below this value triggers resampling */
+
     double final_epsilon; /**< tolerance level to end at */
     double quality; /**< between 0 and 1, where 0 is fast and coarse, 1 is slow and accurate */
     double step_tolerance; /**< tolerance for bisection solution of next epsilon */
+
     size_t dataset_size; /**< size of data objects */
     size_t feedback_size; /**< size of feedback objects */
+
+    smc_distribution *priors; /**< prior distributions */
+    double *prior_params; /**< parameters for priors */
+
+    void *sample_dataset_arg; /**< extra argument for sample_dataset function */
+    void *distance_arg; /**< extra argument for distance function */
 } smc_config;
 
 typedef struct {
-    void   (*sample_from_prior) (gsl_rng *rng, double *);
-    double (*prior_density)     (const double *);
     void   (*propose)           (gsl_rng *rng, double *, const void *);
     double (*proposal_density)  (const double *, const double *, const void *);
-    void   (*sample_dataset)    (gsl_rng *rng, const double *, void *);
-    double (*distance)          (const void *, const void *);
+    void   (*sample_dataset)    (gsl_rng *rng, const double *, const void *, void *);
+    double (*distance)          (const void *, const void *, const void *);
     void   (*feedback)          (const double *, int, void *);
     void   (*destroy_dataset)   (void *);
 } smc_functions;

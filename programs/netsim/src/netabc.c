@@ -17,17 +17,16 @@
 
 #define NNODE 5000
 #define NSIMNODE 1000
-#define NTIP 1000
 #define MEAN_DEGREE 8
-#define PA_POWER_MIN 0.05
+#define PA_POWER_MIN 0.0
 #define PA_POWER_MAX 1.0
-#define DECAY_FACTOR 0.4
-#define RBF_VARIANCE 2
 
 struct netabc_options {
     FILE *tree_file;
     int nthread;
     int seed;
+    double decay_factor;
+    double rbf_variance;
 };
 
 struct option long_options[] =
@@ -35,6 +34,8 @@ struct option long_options[] =
     {"help", no_argument, 0, 'h'},
     {"num-threads", required_argument, 0, 't'},
     {"seed", required_argument, 0, 's'},
+    {"decay_factor", required_argument, 0, 'l'},
+    {"rbf_variance", required_argument, 0, 'g'},
     {0, 0, 0, 0}
 };
 
@@ -45,6 +46,7 @@ void usage(void)
     fprintf(stderr, "  -h, --help                display this message\n");
     fprintf(stderr, "  -t, --num-threads         number of threads\n");
     fprintf(stderr, "  -s, --seed                random seed\n");
+    fprintf(stderr, "  -l, --decay-factor        decay factor for tree kernel\n");
 }
 
 struct netabc_options get_options(int argc, char **argv)
@@ -53,12 +55,14 @@ struct netabc_options get_options(int argc, char **argv)
     struct netabc_options opts = {
         .tree_file = stdin,
         .nthread = 1,
-        .seed = -1
+        .seed = -1,
+        .decay_factor = 0.2,
+        .rbf_variance = 2
     };
 
     while (c != -1)
     {
-        c = getopt_long(argc, argv, "hs:t:", long_options, &i);
+        c = getopt_long(argc, argv, "hg:l:s:t:", long_options, &i);
         if (c == -1)
             break;
 
@@ -69,6 +73,12 @@ struct netabc_options get_options(int argc, char **argv)
             case 'h':
                 usage();
                 exit(EXIT_SUCCESS);
+            case 'g':
+                opts.rbf_variance = atof(optarg);
+                break;
+            case 'l':
+                opts.decay_factor = atof(optarg);
+                break;
             case 's':
                 opts.seed = atoi(optarg);
                 break;
@@ -91,19 +101,6 @@ struct netabc_options get_options(int argc, char **argv)
     return opts;
 }
 
-void ba_sample_from_prior(gsl_rng *rng, double *theta)
-{
-    *theta = gsl_ran_flat(rng, PA_POWER_MIN, PA_POWER_MAX);
-}
-
-double ba_prior_density(const double *theta)
-{
-    if (*theta < PA_POWER_MIN || *theta > PA_POWER_MAX) {
-        return 0;
-    }
-    return 1. / (PA_POWER_MAX - PA_POWER_MIN);
-}
-
 void ba_propose(gsl_rng *rng, double *theta, const void *params)
 {
     double var = * (double *) params;
@@ -118,7 +115,7 @@ double ba_proposal_density(const double *from, const double *to, const void *par
     return gsl_ran_gaussian_pdf(*to - *from, sqrt(2*var));
 }
 
-void ba_sample_dataset(gsl_rng *rng, const double *theta, void *X)
+void ba_sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void *X)
 {
     int i;
     igraph_t net;
@@ -126,6 +123,9 @@ void ba_sample_dataset(gsl_rng *rng, const double *theta, void *X)
     igraph_vector_t v;
     igraph_rng_t igraph_rng;
     unsigned long int igraph_seed = gsl_rng_get(rng);
+    int ntip = (int) ((double *) arg)[0];
+    double decay_factor = ((double *) arg)[1];
+    double rbf_variance = ((double *) arg)[2];
 
     // because of thread-local storage this might work?
     igraph_rng_init(&igraph_rng, &igraph_rngtype_mt19937);
@@ -149,10 +149,10 @@ void ba_sample_dataset(gsl_rng *rng, const double *theta, void *X)
     SETEANV(&net, "transmit", &v);
 
     simulate_phylogeny(tree, &net, rng, INFINITY, NSIMNODE, 1);
-    subsample_tips(tree, NTIP, rng);
+    subsample_tips(tree, ntip, rng);
     ladderize(tree);
     scale_branches(tree, MEAN);
-    SETGAN(tree, "kernel", kernel(tree, tree, DECAY_FACTOR, RBF_VARIANCE, 1));
+    SETGAN(tree, "kernel", kernel(tree, tree, decay_factor, rbf_variance, 1));
 
     igraph_rng_set_default(igraph_rng_default());
     igraph_rng_destroy(&igraph_rng);
@@ -160,13 +160,15 @@ void ba_sample_dataset(gsl_rng *rng, const double *theta, void *X)
     igraph_destroy(&net);
 }
 
-double ba_distance(const void *x, const void *y)
+double ba_distance(const void *x, const void *y, const void *arg)
 {
     igraph_t *gx = (igraph_t *) x;
     igraph_t *gy = (igraph_t *) y;
     double kx = GAN(gx, "kernel");
     double ky = GAN(gy, "kernel");
-    double kxy = kernel(gx, gy, DECAY_FACTOR, RBF_VARIANCE, 1);
+    double decay_factor = ((double *) arg)[0];
+    double rbf_variance = ((double *) arg)[1];
+    double kxy = kernel(gx, gy, decay_factor, rbf_variance, 1);
     return sqrt(kx) * sqrt(ky) - kxy;
 }
 
@@ -182,8 +184,6 @@ void ba_destroy_dataset(void *z)
 }
 
 smc_functions ba_functions = {
-    .sample_from_prior = ba_sample_from_prior,
-    .prior_density = ba_prior_density,
     .propose = ba_propose,
     .proposal_density = ba_proposal_density,
     .sample_dataset = ba_sample_dataset,
@@ -194,9 +194,9 @@ smc_functions ba_functions = {
 
 smc_config ba_config = {
     .nparam = 1,
-    .nparticle = 1000,
-    .nsample = 10,
-    .ess_tolerance = 500,
+    .nparticle = 10,
+    .nsample = 2,
+    .ess_tolerance = 5,
     .final_epsilon = 0.01,
     .quality = 0.9,
     .step_tolerance = 1e-5,
@@ -206,10 +206,12 @@ smc_config ba_config = {
 
 int main (int argc, char **argv)
 {
-    int i;
+    int i, ntip;
     struct netabc_options opts = get_options(argc, argv);
     igraph_t *tree;
     smc_result *ba_result;
+    double distance_arg[2];
+    double sample_dataset_arg[3];
 
 #if IGRAPH_THREAD_SAFE == 0
     if (opts.nthread > 1)
@@ -226,8 +228,25 @@ int main (int argc, char **argv)
     ladderize(tree);
     scale_branches(tree, MEAN);
     SETGAN(tree, "kernel", 
-           kernel(tree, tree, DECAY_FACTOR, RBF_VARIANCE, 1));
+           kernel(tree, tree, opts.decay_factor, opts.rbf_variance, 1));
+
+    ntip = (igraph_vcount(tree) + 1) / 2;
     
+    ba_config.priors = malloc(sizeof(smc_distribution));
+    ba_config.priors[0] = UNIFORM;
+    ba_config.prior_params = malloc(2 * sizeof(double));
+    ba_config.prior_params[0] = PA_POWER_MIN;
+    ba_config.prior_params[1] = PA_POWER_MAX;
+
+    sample_dataset_arg[0] = ntip;
+    sample_dataset_arg[1] = opts.decay_factor;
+    sample_dataset_arg[2] = opts.rbf_variance;
+    ba_config.sample_dataset_arg = &sample_dataset_arg;
+
+    distance_arg[0] = opts.decay_factor;
+    distance_arg[1] = opts.rbf_variance;
+    ba_config.distance_arg = &distance_arg;
+
     ba_result = abc_smc(ba_config, ba_functions, opts.seed, opts.nthread, tree);
     for (i = 0; i < ba_config.nparticle; ++i)
         printf("%f\n", ba_result->theta[i]);
@@ -237,5 +256,7 @@ int main (int argc, char **argv)
     if (opts.tree_file != stdin) {
         fclose(opts.tree_file);
     }
+    free(ba_config.priors);
+    free(ba_config.prior_params);
     return EXIT_SUCCESS;
 }

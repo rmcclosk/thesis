@@ -4,6 +4,7 @@
 #include <float.h>
 #include <pthread.h>
 #include <gsl/gsl_roots.h>
+#include <gsl/gsl_randist.h>
 #include "smc.h"
 #include "util.h"
 
@@ -62,6 +63,10 @@ double epsilon_objfun(double epsilon, void *params);
 double ess(const double *W, int n);
 void *initialize(void *args);
 void *perturb(void *args);
+void sample(int n, double *theta, gsl_rng *rng, const smc_distribution *dist,
+            const double *params);
+double density(int n, const double *theta, const smc_distribution *dist, 
+               const double *params);
 
 // see Del Moral et al. 2012: An adaptive sequential Monte Carlo method for
 // approximate Bayesian computation
@@ -144,7 +149,7 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
     {
         fprintf(stderr, "%d\t%f\n", niter, smc_work.epsilon);
 
-        for (i = 0; i < config.nparticle; ++i) {
+        for (i = 0; i < 10; ++i) {
             fprintf(stderr, "%f\t%f\t%f\n", smc_work.theta[i], smc_work.X[i * config.nsample], smc_work.W[i]);
         }
         fprintf(stderr, "\n");
@@ -226,6 +231,55 @@ void smc_result_free(smc_result *r)
 }
 
 /* Private. */
+
+void sample(int n, double *theta, gsl_rng *rng, const smc_distribution *dist,
+            const double *params)
+{
+    int i, cur = 0;
+
+    for (i = 0; i < n; ++i)
+    {
+        switch (dist[i])
+        {
+            case UNIFORM:
+                theta[i] = gsl_ran_flat(rng, params[cur], params[cur+1]);
+                cur += 2;
+                break;
+            case GAUSSIAN:
+                theta[i] = gsl_ran_gaussian(rng, params[cur++]);
+                break;
+            default:
+                theta[i] = 0;
+                break;
+        }
+    }
+}
+
+double density(int n, const double *theta, const smc_distribution *dist, 
+               const double *params)
+{
+    int i, cur = 0;
+    double dens = 1;
+    for (i = 0; i < n; ++i)
+    {
+        switch (dist[i])
+        {
+            case UNIFORM:
+                if (theta[i] < params[cur] || theta[i] > params[cur+1]) {
+                    return 0;
+                }
+                dens *= 1.0 / (params[cur+1] - params[cur]);
+                cur += 2;
+                break;
+            case GAUSSIAN:
+                dens *= gsl_ran_gaussian_pdf(theta[i], params[cur++]);
+                break;
+            default:
+                break;
+        }
+    }
+    return dens;
+}
 
 double next_epsilon(void)
 {
@@ -379,15 +433,18 @@ void *initialize(void *args)
     char *z = &smc_work.z[smc_work.config->dataset_size * tdata->thread_index];
     gsl_rng *rng = tdata->rng;
     int start = tdata->start, end = tdata->end;
+    double *particle;
 
     for (i = start; i < end; ++i)
     {
-        smc_work.functions->sample_from_prior(rng, &smc_work.theta[i * nparam]);
+        particle = &smc_work.theta[i * nparam];
+        sample(nparam, particle, rng,
+                smc_work.config->priors, smc_work.config->prior_params); 
         smc_work.W[i] = 1. / nparticle;
         for (j = 0; j < nsample; ++j)
         {
-            smc_work.functions->sample_dataset(rng, &smc_work.theta[i * nparam], z);
-            smc_work.X[i * nsample + j] = smc_work.functions->distance(z, smc_work.data);
+            smc_work.functions->sample_dataset(rng, particle, smc_work.config->sample_dataset_arg, z);
+            smc_work.X[i * nsample + j] = smc_work.functions->distance(z, smc_work.data, smc_work.config->distance_arg);
             smc_work.functions->destroy_dataset(z);
         }
     }
@@ -404,6 +461,8 @@ void *perturb(void *args)
     size_t dataset_size = smc_work.config->dataset_size;
     char *fdbk = smc_work.fdbk;
     double epsilon = smc_work.epsilon;
+    smc_distribution *priors = smc_work.config->priors;
+    double *prior_params = smc_work.config->prior_params;
 
     // get arguments for this thread
     thread_data *tdata = (thread_data *) args;
@@ -434,8 +493,8 @@ void *perturb(void *args)
         smc_work.functions->propose(rng, cur_theta, fdbk);
 
         // prior ratio
-        mh_ratio = smc_work.functions->prior_density(cur_theta) / 
-                   smc_work.functions->prior_density(prev_theta);
+        mh_ratio = density(nparam, cur_theta, priors, prior_params) /
+                   density(nparam, prev_theta, priors, prior_params);
 
         if (mh_ratio == 0)
             continue;
@@ -450,8 +509,8 @@ void *perturb(void *args)
         // sample new datasets
         for (j = 0; j < nsample; ++j)
         {
-            smc_work.functions->sample_dataset(rng, cur_theta, z);
-            new_X[j] = smc_work.functions->distance(z, smc_work.data);
+            smc_work.functions->sample_dataset(rng, cur_theta, smc_work.config->sample_dataset_arg, z);
+            new_X[j] = smc_work.functions->distance(z, smc_work.data, smc_work.config->distance_arg);
             smc_work.functions->destroy_dataset(z);
         }
 

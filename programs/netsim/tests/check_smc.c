@@ -13,18 +13,6 @@
 
 Suite *smc_suite(void);
 
-void toy_sample_from_prior (gsl_rng *rng, double *theta)
-{
-    *theta = gsl_ran_flat(rng, -10, 10);
-}
-
-double toy_prior_density(const double *theta)
-{
-    if (*theta < -10 || *theta > 10)
-        return 0.;
-    return 1./20.;
-}
-
 void toy_propose(gsl_rng *rng, double *theta, const void *params)
 {
     double var = *((double *) params);
@@ -37,7 +25,7 @@ double toy_proposal_density(const double *from, const double *to, const void *pa
     return gsl_ran_gaussian_pdf(*to - *from, sqrt(2*var));
 }
 
-void toy_sample_dataset(gsl_rng *rng, const double *theta, void *X)
+void toy_sample_dataset(gsl_rng *rng, const double *theta, const void *data, void *X)
 {
     double x;
     if (rand() < RAND_MAX / 2) {
@@ -49,7 +37,7 @@ void toy_sample_dataset(gsl_rng *rng, const double *theta, void *X)
     memcpy(X, &x, sizeof(double));
 }
 
-double toy_distance(const void *x, const void *y)
+double toy_distance(const void *x, const void *y, const void *arg)
 {
     return fabs(*(double *) x - *(double *) y);
 }
@@ -66,8 +54,6 @@ void toy_destroy_dataset(void *z)
 }
 
 smc_functions toy_functions = {
-    .sample_from_prior = toy_sample_from_prior,
-    .prior_density = toy_prior_density,
     .propose = toy_propose,
     .proposal_density = toy_proposal_density,
     .sample_dataset = toy_sample_dataset,
@@ -103,6 +89,15 @@ void plot(const double *x, const double *y, int nx, const char *pdf,
     unlink(fn);
 }
 
+void toy_setup_config(smc_config *config)
+{
+    config->priors = malloc(sizeof(smc_distribution));
+    config->prior_params = malloc(2 * sizeof(double));
+    config->priors[0] = UNIFORM;
+    config->prior_params[0] = -10;
+    config->prior_params[1] = 10;
+}
+
 START_TEST (test_smc_toy_steps)
 {
     int i;
@@ -119,6 +114,7 @@ START_TEST (test_smc_toy_steps)
         .feedback_size = sizeof(double)
     };
 
+    toy_setup_config(&toy_config);
     smc_result *res = abc_smc(toy_config, toy_functions, 0, 1, (void *) &y);
 
     fprintf(stderr, "%d steps\n", res->niter);
@@ -147,6 +143,7 @@ START_TEST (test_smc_toy)
         .feedback_size = sizeof(double)
     };
 
+    toy_setup_config(&config);
     smc_result *res = abc_smc(config, toy_functions, 0, 1, (void *) &y);
 
     for (i = 0; i < config.nparticle; ++i) {
@@ -156,6 +153,8 @@ START_TEST (test_smc_toy)
     plot(res->theta, NULL, config.nparticle, "check_smc_hist.pdf",
          "hist(d[,1], xlim=c(-3, 3), xlab=\"theta\", ylab=\"density\", main=NA, breaks=200)");
     smc_result_free(res);
+    free(config.priors);
+    free(config.prior_params);
 }
 END_TEST
 
