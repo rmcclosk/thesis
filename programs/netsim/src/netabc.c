@@ -29,6 +29,7 @@ struct netabc_options {
     int nsample;
     double decay_factor;
     double rbf_variance;
+    double quality;
 };
 
 struct option long_options[] =
@@ -40,6 +41,7 @@ struct option long_options[] =
     {"rbf-variance", required_argument, 0, 'g'},
     {"num-particles", required_argument, 0, 'n'},
     {"num-samples", required_argument, 0, 'p'},
+    {"quality", required_argument, 0, 'q'},
     {0, 0, 0, 0}
 };
 
@@ -54,6 +56,7 @@ void usage(void)
     fprintf(stderr, "  -g, --rbf-variance        variance for tree kernel radial basis function\n");
     fprintf(stderr, "  -n, --num-particles       number of particles for SMC\n");
     fprintf(stderr, "  -p, --num-samples         number of sampled datasets per particle\n");
+    fprintf(stderr, "  -q, --quality             tradeoff between speed and accuracy (0.9=fast, 0.99=accurate)\n");
 }
 
 struct netabc_options get_options(int argc, char **argv)
@@ -66,12 +69,13 @@ struct netabc_options get_options(int argc, char **argv)
         .decay_factor = 0.2,
         .rbf_variance = 2,
         .nparticle = 1000,
-        .nsample = 5
+        .nsample = 5,
+        .quality = 0.95
     };
 
     while (c != -1)
     {
-        c = getopt_long(argc, argv, "hg:l:n:p:s:t:", long_options, &i);
+        c = getopt_long(argc, argv, "hg:l:n:p:q:s:t:", long_options, &i);
         if (c == -1)
             break;
 
@@ -93,6 +97,9 @@ struct netabc_options get_options(int argc, char **argv)
                 break;
             case 'p':
                 opts.nsample = atoi(optarg);
+                break;
+            case 'q':
+                opts.quality = atof(optarg);
                 break;
             case 's':
                 opts.seed = atoi(optarg);
@@ -210,7 +217,6 @@ smc_functions ba_functions = {
 smc_config ba_config = {
     .nparam = 1,
     .final_epsilon = 0.01,
-    .quality = 0.9,
     .step_tolerance = 1e-5,
     .dataset_size = sizeof(igraph_t),
     .feedback_size = sizeof(double)
@@ -248,6 +254,7 @@ int main (int argc, char **argv)
     ba_config.nparticle = opts.nparticle;
     ba_config.ess_tolerance = opts.nparticle / 2;
     ba_config.nsample = opts.nsample;
+    ba_config.quality = opts.quality;
 
     ba_config.priors = malloc(sizeof(smc_distribution));
     ba_config.priors[0] = UNIFORM;
