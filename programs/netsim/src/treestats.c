@@ -23,6 +23,7 @@ double *branch_lengths(const igraph_t *tree);
 double Lp_norm(const double *x1, const double *x2, const double *y1, 
         const double *y2, int n1, int n2, double p);
 double _colless(const igraph_t *tree, int *n, igraph_vector_t *work, int root);
+double _cophenetic(const igraph_t *tree, int *n, igraph_vector_t *work, int root, int depth);
 
 double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor, 
         double rbf_variance, double sst_control)
@@ -178,13 +179,11 @@ double sackin(const igraph_t *t, int use_branch_lengths, treeshape_norm norm)
         }
     }
 
-    if (norm == TREESHAPE_NORM_YULE)
-    {
+    if (norm == TREESHAPE_NORM_YULE) {
         h = M_EULER + gsl_sf_psi_int(ntip + 1);
         s = (s - 2 * ntip * (h - 1)) / ntip;
     }
-    else if (norm == TREESHAPE_NORM_PDA)
-    {
+    else if (norm == TREESHAPE_NORM_PDA) {
         s = s / pow(ntip, 1.5);
     }
 
@@ -203,17 +202,38 @@ double colless(const igraph_t *t, treeshape_norm norm)
 
     c = _colless(t, n, &work, root(t));
     
-    if (norm == TREESHAPE_NORM_YULE)
-    {
+    if (norm == TREESHAPE_NORM_YULE) {
         c = (c - ntip * log(ntip) - ntip * (M_EULER - 1 - log(2))) / ntip;
     }
-    else if (norm == TREESHAPE_NORM_PDA)
-    {
+    else if (norm == TREESHAPE_NORM_PDA) {
         c = c / pow(ntip, 1.5);
     }
 
     igraph_vector_destroy(&work);
     free(n);
+    return c;
+}
+
+double cophenetic(const igraph_t *tree, treeshape_norm norm)
+{
+    double c, h;
+    igraph_vector_t work;
+    igraph_vector_init(&work, 0);
+    int *n = malloc(igraph_vcount(tree) * sizeof(int));
+    int ntip = (igraph_vcount(tree) + 1) / 2;
+
+    c = _cophenetic(tree, n, &work, root(tree), 0);
+
+    if (norm == TREESHAPE_NORM_YULE) {
+        h = M_EULER + gsl_sf_psi_int(ntip);
+        c /= ntip * (ntip - 1) - 2 * ntip * (h - 1);
+    }
+    else if (norm == TREESHAPE_NORM_PDA) {
+        c /= sqrt(M_PI) / 4 * pow(ntip, 2.5);
+    }
+
+    free(n);
+    igraph_vector_destroy(&work);
     return c;
 }
 
@@ -307,6 +327,26 @@ double _colless(const igraph_t *tree, int *n, igraph_vector_t *work, int root)
         rcol = _colless(tree, n, work, rc);
         n[root] = n[lc] + n[rc];
         return lcol + rcol + fabs(n[lc] - n[rc]);
+    }
+    else {
+        n[root] = 1;
+        return 0;
+    }
+}
+
+/* recursively compute the total cophenetic index */
+double _cophenetic(const igraph_t *tree, int *n, igraph_vector_t *work, int root, int depth)
+{
+    int lc, rc; 
+    double lphi, rphi;
+
+    igraph_neighbors(tree, work, root, IGRAPH_OUT);
+    if (igraph_vector_size(work) > 0) {
+        lc = (int) VECTOR(*work)[0]; rc = (int) VECTOR(*work)[1];
+        lphi = _cophenetic(tree, n, work, lc, depth + 1);
+        rphi = _cophenetic(tree, n, work, rc, depth + 1);
+        n[root] = n[lc] + n[rc];
+        return lphi + rphi + n[lc] * n[rc] * depth;
     }
     else {
         n[root] = 1;

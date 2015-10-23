@@ -60,4 +60,15 @@ double sackin(const igraph_t *t, int use_branch_lengths, treeshape_norm norm);
  */
 double colless(const igraph_t *t, treeshape_norm norm);
 
+/** Compute the total cophenetic index.
+ *
+ * See Mir, Arnau, and Francesc Rosselló. "A new balance index for phylogenetic
+ * trees." Mathematical biosciences 241.1 (2013): 125-136.
+ *
+ * \param[in] tree tree to compute index for
+ * \param[in] norm null model to use for normalizing the result
+ * \return the sum of most-recent common ancestor depths for each pair of tips
+ */
+double cophenetic(const igraph_t *tree, treeshape_norm norm);
+
 #endif
