@@ -71,4 +71,33 @@ double colless(const igraph_t *t, treeshape_norm norm);
  */
 double cophenetic(const igraph_t *tree, treeshape_norm norm);
 
+/** Compute the maximum ladder length.
+ *
+ * See \cite colijn2014phylogenetic.
+ *
+ * \param[in] tree tree to compute ladder length for
+ * \return the maximum number of branches from the root to a tip, divided by
+ * the number of tips
+ */
+double ladder_length(const igraph_t *tree);
+
+/** Compute the number of IL nodes.
+ *
+ * See \cite colijn2014phylogenetic.
+ *
+ * \param[in] tree the tree to compute the number of IL nodes for
+ * \return the proportion of internal nodes which have exactly one leaf child
+ */
+double il_nodes(const igraph_t *tree);
+
+/** Compute the BMI of a tree.
+ *
+ * It's the maximum width divided by the maximum height. Haha, I'm so clever.
+ * See \cite colijn2014phylogenetic.
+ *
+ * \param[in] tree tree to compute BMI for
+ * \return maximum width divided by maximum height
+ */
+double bmi(const igraph_t *tree);
+
 #endif

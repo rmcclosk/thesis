@@ -10,7 +10,8 @@ typedef enum {
     TREESTAT_HEIGHT,
     TREESTAT_NTIP,
     TREESTAT_SACKIN,
-    TREESTAT_COLLESS
+    TREESTAT_COLLESS,
+    TREESTAT_COPHENETIC
 } tree_statistic;
 
 struct treestat_options {
@@ -48,6 +49,7 @@ void usage(void)
     fprintf(stderr, "  ntip                      number of tips\n");
     fprintf(stderr, "  sackin                    Sackin's index\n");
     fprintf(stderr, "  colless                   Colless' index\n");
+    fprintf(stderr, "  cophenetic                total cophenetic index\n");
 }
 
 struct treestat_options get_options(int argc, char **argv)
@@ -87,6 +89,9 @@ struct treestat_options get_options(int argc, char **argv)
                 }
                 else if (strcmp(optarg, "ntip") == 0) {
                     opts.stat = TREESTAT_NTIP;
+                }
+                else if (strcmp(optarg, "cophenetic") == 0) {
+                    opts.stat = TREESTAT_COPHENETIC;
                 }
                 else {
                     fprintf(stderr, "Unrecognized tree statistic \"%s\"\n", optarg);
@@ -165,6 +170,9 @@ int main (int argc, char **argv)
             break;
         case TREESTAT_COLLESS:
             s = colless(t, opts.norm_type);
+            break;
+        case TREESTAT_COPHENETIC:
+            s = cophenetic(t, opts.norm_type);
             break;
         default:
             fprintf(stderr, "Unrecognized tree statistic\n");

@@ -109,6 +109,38 @@ START_TEST(test_colless_pda)
 }
 END_TEST
 
+START_TEST(test_cophenetic)
+{
+    igraph_t *t = tree_from_newick("((t2:0.1,t5:0.39):0.93,((t4:0.75,t1:0.48):0.52,t3:0.15):0.53);");
+    ck_assert(cophenetic(t, TREESHAPE_NORM_NONE) == 5);
+    igraph_destroy(t);
+}
+END_TEST
+
+START_TEST(test_ladder_length)
+{
+    igraph_t *t = tree_from_newick("(((t5:1,t1:1):1,(t7:1,t8:1):1):1,(t6:1,(t2:1,(t3:1,t4:1):1):1):1);");
+    ck_assert(ladder_length(t) == 5.0 / 8.0);
+    igraph_destroy(t);
+}
+END_TEST
+
+START_TEST(test_il_nodes)
+{
+    igraph_t *t = tree_from_newick("(((t5:1,t1:1):1,(t7:1,t8:1):1):1,(t6:1,(t2:1,(t3:1,t4:1):1):1):1);");
+    ck_assert(il_nodes(t) == 2.0 / 7.0);
+    igraph_destroy(t);
+}
+END_TEST
+
+START_TEST(test_bmi)
+{
+    igraph_t *t = tree_from_newick("(((t5:1,t1:1):1,(t7:1,t8:1):1):1,(t6:1,(t2:1,(t3:1,t4:1):1):1):1);");
+    ck_assert(bmi(t) == 6.0 / 5.0);
+    igraph_destroy(t);
+}
+END_TEST
+
 Suite *tree_suite(void)
 {
     Suite *s;
@@ -125,7 +157,10 @@ Suite *tree_suite(void)
     tcase_add_test(tc_core, test_colless);
     tcase_add_test(tc_core, test_colless_yule);
     tcase_add_test(tc_core, test_colless_pda);
-    tcase_add_test(tc_core, test_sackin_yule);
+    tcase_add_test(tc_core, test_cophenetic);
+    tcase_add_test(tc_core, test_ladder_length);
+    tcase_add_test(tc_core, test_il_nodes);
+    tcase_add_test(tc_core, test_bmi);
     suite_add_tcase(s, tc_core);
 
     return s;

@@ -3,6 +3,7 @@
 #include <string.h>
 #include <igraph/igraph.h>
 #include <Judy.h>
+#include <limits.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_sf_psi.h>
 
@@ -24,6 +25,7 @@ double Lp_norm(const double *x1, const double *x2, const double *y1,
         const double *y2, int n1, int n2, double p);
 double _colless(const igraph_t *tree, int *n, igraph_vector_t *work, int root);
 double _cophenetic(const igraph_t *tree, int *n, igraph_vector_t *work, int root, int depth);
+double _ladder_length(const igraph_t *tree, igraph_vector_t *work, int root);
 
 double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor, 
         double rbf_variance, double sst_control)
@@ -237,7 +239,122 @@ double cophenetic(const igraph_t *tree, treeshape_norm norm)
     return c;
 }
 
+double ladder_length(const igraph_t *tree)
+{
+    double l;
+    igraph_vector_t work;
+    igraph_vector_init(&work, 0);
+
+    l = _ladder_length(tree, &work, root(tree));
+
+    igraph_vector_destroy(&work);
+    return l / (igraph_vcount(tree) + 1) * 2;
+}
+
+double il_nodes(const igraph_t *tree)
+{
+    int i, lc, rc;
+    double il = 0;
+    igraph_vector_t degree, child;
+
+    igraph_vector_init(&degree, igraph_vcount(tree));
+    igraph_vector_init(&child, 2);
+    igraph_degree(tree, &degree, igraph_vss_all(), IGRAPH_OUT, 0);
+
+    for (i = 0; i < igraph_vcount(tree); ++i)
+    {
+        if (VECTOR(degree)[i] > 0) {
+            igraph_neighbors(tree, &child, i, IGRAPH_OUT);
+            lc = VECTOR(child)[0]; rc = VECTOR(child)[1];
+            il += VECTOR(degree)[lc] == 0 ^ VECTOR(degree)[rc] == 0;
+        }
+    }
+
+    igraph_vector_destroy(&child);
+    igraph_vector_destroy(&degree);
+    return il / (igraph_vcount(tree) - 1) * 2;
+}
+
+double bmi(const igraph_t *tree)
+{
+    int i;
+    double b = 0, bprev = 0;
+    double ht = ladder_length(tree) * (igraph_vcount(tree) + 1) / 2;
+
+    igraph_vector_ptr_t nbhd;
+    igraph_vector_ptr_init(&nbhd, 0);
+
+    // TODO: this probably leaks memory
+    for (i = 0; i < ht; ++i)
+    {
+        igraph_neighborhood(tree, &nbhd, igraph_vss_1(root(tree)), i, IGRAPH_OUT, 0);
+        b = fmax(b, igraph_vector_size(igraph_vector_ptr_e(&nbhd, 0)) - bprev);
+        bprev = igraph_vector_size(igraph_vector_ptr_e(&nbhd, 0));
+        igraph_vector_destroy(igraph_vector_ptr_e(&nbhd, 0));
+    }
+    igraph_vector_ptr_destroy(&nbhd);
+    return b / ht;
+} 
+
 /* Private. */
+
+/* recursively compute the ladder length */
+double _ladder_length(const igraph_t *tree, igraph_vector_t *work, int root)
+{
+    int lc, rc; 
+    double llad, rlad;
+
+    igraph_neighbors(tree, work, root, IGRAPH_OUT);
+    if (igraph_vector_size(work) > 0) {
+        lc = (int) VECTOR(*work)[0]; rc = (int) VECTOR(*work)[1];
+        llad = _ladder_length(tree, work, lc);
+        rlad = _ladder_length(tree, work, rc);
+        return fmax(llad, rlad) + 1;
+    }
+    else {
+        return 1;
+    }
+}
+
+/* recursively compute Colless' index */
+double _colless(const igraph_t *tree, int *n, igraph_vector_t *work, int root)
+{
+    int lc, rc; 
+    double lcol, rcol;
+
+    igraph_neighbors(tree, work, root, IGRAPH_OUT);
+    if (igraph_vector_size(work) > 0) {
+        lc = (int) VECTOR(*work)[0]; rc = (int) VECTOR(*work)[1];
+        lcol = _colless(tree, n, work, lc);
+        rcol = _colless(tree, n, work, rc);
+        n[root] = n[lc] + n[rc];
+        return lcol + rcol + fabs(n[lc] - n[rc]);
+    }
+    else {
+        n[root] = 1;
+        return 0;
+    }
+}
+
+/* recursively compute the total cophenetic index */
+double _cophenetic(const igraph_t *tree, int *n, igraph_vector_t *work, int root, int depth)
+{
+    int lc, rc; 
+    double lphi, rphi;
+
+    igraph_neighbors(tree, work, root, IGRAPH_OUT);
+    if (igraph_vector_size(work) > 0) {
+        lc = (int) VECTOR(*work)[0]; rc = (int) VECTOR(*work)[1];
+        lphi = _cophenetic(tree, n, work, lc, depth + 1);
+        rphi = _cophenetic(tree, n, work, rc, depth + 1);
+        n[root] = n[lc] + n[rc];
+        return lphi + rphi + n[lc] * n[rc] * depth;
+    }
+    else {
+        n[root] = 1;
+        return 0;
+    }
+}
 
 double Lp_norm(const double *x1, const double *x2, const double *y1, 
         const double *y2, int n1, int n2, double p)
@@ -312,46 +429,6 @@ double Lp_norm(const double *x1, const double *x2, const double *y1,
         norm += area;
     }
     return pow(norm, p);
-}
-
-/* recursively compute Colless' index */
-double _colless(const igraph_t *tree, int *n, igraph_vector_t *work, int root)
-{
-    int lc, rc; 
-    double lcol, rcol;
-
-    igraph_neighbors(tree, work, root, IGRAPH_OUT);
-    if (igraph_vector_size(work) > 0) {
-        lc = (int) VECTOR(*work)[0]; rc = (int) VECTOR(*work)[1];
-        lcol = _colless(tree, n, work, lc);
-        rcol = _colless(tree, n, work, rc);
-        n[root] = n[lc] + n[rc];
-        return lcol + rcol + fabs(n[lc] - n[rc]);
-    }
-    else {
-        n[root] = 1;
-        return 0;
-    }
-}
-
-/* recursively compute the total cophenetic index */
-double _cophenetic(const igraph_t *tree, int *n, igraph_vector_t *work, int root, int depth)
-{
-    int lc, rc; 
-    double lphi, rphi;
-
-    igraph_neighbors(tree, work, root, IGRAPH_OUT);
-    if (igraph_vector_size(work) > 0) {
-        lc = (int) VECTOR(*work)[0]; rc = (int) VECTOR(*work)[1];
-        lphi = _cophenetic(tree, n, work, lc, depth + 1);
-        rphi = _cophenetic(tree, n, work, rc, depth + 1);
-        n[root] = n[lc] + n[rc];
-        return lphi + rphi + n[lc] * n[rc] * depth;
-    }
-    else {
-        n[root] = 1;
-        return 0;
-    }
 }
 
 /* get production rules for each node */
