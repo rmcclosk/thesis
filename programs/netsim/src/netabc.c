@@ -194,10 +194,12 @@ double ba_distance(const void *x, const void *y, const void *arg)
     igraph_t *gx = (igraph_t *) x;
     igraph_t *gy = (igraph_t *) y;
 
+    /*
     double sx = sackin(gx, 0, TREESHAPE_NORM_YULE);
     double sy = sackin(gy, 0, TREESHAPE_NORM_YULE);
     double cx = colless(gx, TREESHAPE_NORM_YULE);
     double cy = colless(gy, TREESHAPE_NORM_YULE);
+    */
 
     double kx = GAN(gx, "kernel");
     double ky = GAN(gy, "kernel");
@@ -205,17 +207,19 @@ double ba_distance(const void *x, const void *y, const void *arg)
     double rbf_variance = ((double *) arg)[1];
     int use_nltt = (int) ((double *) arg)[2];
     double kxy = kernel(gx, gy, decay_factor, rbf_variance, 1);
-    double d[4];
+    //double d[4];
 
     if (use_nltt) {
         kxy *= (1.0 - nLTT(gx, gy));
     }
+    return 1.0 - kxy / sqrt(kx) / sqrt(ky);
+    /*
     d[0] = 1.0 - kxy / sqrt(kx) / sqrt(ky);
     d[1] = fabs(sx - sy);
     d[2] = fabs(cx - cy);
     d[3] = nLTT(gx, gy);
+    */
 
-    return d[2];
     //return sqrt(pow(d[1], 2) + pow(d[2], 2) + pow(d[3], 2));
     //return sqrt(pow(d[0], 2) + pow(d[1], 2) + pow(d[2], 2) + pow(d[3], 2));
 }

@@ -13,7 +13,6 @@
 
 #define NDEBUG
 
-/* helper functions for kernel */
 int *production(const igraph_t *tree);
 int count_node_pairs(const int *production1, const int *production2, int nnode1, 
         int nnode2);
@@ -23,9 +22,11 @@ int *children(const igraph_t *tree);
 double *branch_lengths(const igraph_t *tree);
 double Lp_norm(const double *x1, const double *x2, const double *y1, 
         const double *y2, int n1, int n2, double p);
-double _colless(const igraph_t *tree, int *n, igraph_vector_t *work, int root);
-double _cophenetic(const igraph_t *tree, int *n, igraph_vector_t *work, int root, int depth);
-double _ladder_length(const igraph_t *tree, igraph_vector_t *work, int root);
+int _colless(const igraph_t *tree, int *n, igraph_vector_t *work, int root);
+double _cophenetic(const igraph_t *tree, int *n, igraph_vector_t *work, int root, double depth, int use_branch_lengths);
+int _ladder_length(const igraph_t *tree, igraph_vector_t *work, int root);
+int _unbalanced(const igraph_t *tree, int *n, igraph_vector_t *work, int root);
+double _unbalance(const igraph_t *tree, int *n, igraph_vector_t *work, int root);
 
 double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor, 
         double rbf_variance, double sst_control)
@@ -163,7 +164,7 @@ double nLTT(const igraph_t *t1, const igraph_t *t2)
     return k;
 }
 
-double sackin(const igraph_t *t, int use_branch_lengths, treeshape_norm norm)
+double sackin(const igraph_t *t, int use_branch_lengths)
 {
     int i, ntip = (igraph_vcount(t) + 1) / 2;
     double s = 0, h;
@@ -174,19 +175,10 @@ double sackin(const igraph_t *t, int use_branch_lengths, treeshape_norm norm)
     depths(t, use_branch_lengths, buf);
     igraph_degree(t, &out_degree, igraph_vss_all(), IGRAPH_OUT, 0);
 
-    for (i = 0; i < igraph_vcount(t); ++i)
-    {
+    for (i = 0; i < igraph_vcount(t); ++i) {
         if (VECTOR(out_degree)[i] == 0) {
             s += buf[i];
         }
-    }
-
-    if (norm == TREESHAPE_NORM_YULE) {
-        h = M_EULER + gsl_sf_psi_int(ntip + 1);
-        s = (s - 2 * ntip * (h - 1)) / ntip;
-    }
-    else if (norm == TREESHAPE_NORM_PDA) {
-        s = s / pow(ntip, 1.5);
     }
 
     free(buf);
@@ -194,9 +186,9 @@ double sackin(const igraph_t *t, int use_branch_lengths, treeshape_norm norm)
     return s;
 }
 
-double colless(const igraph_t *t, treeshape_norm norm)
+int colless(const igraph_t *t)
 {
-    double c;
+    int c;
     int ntip = (igraph_vcount(t) + 1) / 2;
     int *n = malloc(igraph_vcount(t) * sizeof(int));
     igraph_vector_t work;
@@ -204,19 +196,12 @@ double colless(const igraph_t *t, treeshape_norm norm)
 
     c = _colless(t, n, &work, root(t));
     
-    if (norm == TREESHAPE_NORM_YULE) {
-        c = (c - ntip * log(ntip) - ntip * (M_EULER - 1 - log(2))) / ntip;
-    }
-    else if (norm == TREESHAPE_NORM_PDA) {
-        c = c / pow(ntip, 1.5);
-    }
-
     igraph_vector_destroy(&work);
     free(n);
     return c;
 }
 
-double cophenetic(const igraph_t *tree, treeshape_norm norm)
+double cophenetic(const igraph_t *tree, int use_branch_lengths)
 {
     double c, h;
     igraph_vector_t work;
@@ -224,37 +209,29 @@ double cophenetic(const igraph_t *tree, treeshape_norm norm)
     int *n = malloc(igraph_vcount(tree) * sizeof(int));
     int ntip = (igraph_vcount(tree) + 1) / 2;
 
-    c = _cophenetic(tree, n, &work, root(tree), 0);
-
-    if (norm == TREESHAPE_NORM_YULE) {
-        h = M_EULER + gsl_sf_psi_int(ntip);
-        c /= ntip * (ntip - 1) - 2 * ntip * (h - 1);
-    }
-    else if (norm == TREESHAPE_NORM_PDA) {
-        c /= sqrt(M_PI) / 4 * pow(ntip, 2.5);
-    }
+    c = _cophenetic(tree, n, &work, root(tree), 0, use_branch_lengths);
 
     free(n);
     igraph_vector_destroy(&work);
     return c;
 }
 
-double ladder_length(const igraph_t *tree)
+int ladder_length(const igraph_t *tree)
 {
-    double l;
+    int l;
     igraph_vector_t work;
     igraph_vector_init(&work, 0);
 
     l = _ladder_length(tree, &work, root(tree));
 
     igraph_vector_destroy(&work);
-    return l / (igraph_vcount(tree) + 1) * 2;
+    return l;
 }
 
-double il_nodes(const igraph_t *tree)
+int il_nodes(const igraph_t *tree)
 {
     int i, lc, rc;
-    double il = 0;
+    int il = 0;
     igraph_vector_t degree, child;
 
     igraph_vector_init(&degree, igraph_vcount(tree));
@@ -272,55 +249,173 @@ double il_nodes(const igraph_t *tree)
 
     igraph_vector_destroy(&child);
     igraph_vector_destroy(&degree);
-    return il / (igraph_vcount(tree) - 1) * 2;
+    return il;
 }
 
-double bmi(const igraph_t *tree)
+int width(const igraph_t *tree)
 {
-    int i;
-    double b = 0, bprev = 0;
-    double ht = ladder_length(tree) * (igraph_vcount(tree) + 1) / 2;
+    int i = 0, w = 0, wprev = 1;
+    igraph_vs_t vs = igraph_vss_1(root(tree));
 
-    igraph_vector_ptr_t nbhd;
-    igraph_vector_ptr_init(&nbhd, 0);
+    igraph_vector_t nbhd;
+    igraph_vector_init(&nbhd, 0);
+    igraph_neighborhood_size(tree, &nbhd, vs, i, IGRAPH_OUT, 0);
 
-    // TODO: this probably leaks memory
-    for (i = 0; i < ht; ++i)
+    while (VECTOR(nbhd)[0] < igraph_vcount(tree))
     {
-        igraph_neighborhood(tree, &nbhd, igraph_vss_1(root(tree)), i, IGRAPH_OUT, 0);
-        b = fmax(b, igraph_vector_size(igraph_vector_ptr_e(&nbhd, 0)) - bprev);
-        bprev = igraph_vector_size(igraph_vector_ptr_e(&nbhd, 0));
-        igraph_vector_destroy(igraph_vector_ptr_e(&nbhd, 0));
+        ++i;
+        igraph_neighborhood_size(tree, &nbhd, vs, i, IGRAPH_OUT, 0);
+        if (VECTOR(nbhd)[0] - wprev > w) {
+            w = VECTOR(nbhd)[0] - wprev;
+        }
+        wprev = VECTOR(nbhd)[0];
     }
-    igraph_vector_ptr_destroy(&nbhd);
-    return b / ht;
+    igraph_vector_destroy(&nbhd);
+    return w;
 } 
+
+int max_delta_width(const igraph_t *tree)
+{
+    int i = 0, w = 0, wprev = 1, nprev = 1, maxdw = 0;
+    igraph_vs_t vs = igraph_vss_1(root(tree));
+
+    igraph_vector_t nbhd;
+    igraph_vector_init(&nbhd, 0);
+    igraph_neighborhood_size(tree, &nbhd, vs, i, IGRAPH_OUT, 0);
+
+    while (VECTOR(nbhd)[0] < igraph_vcount(tree))
+    {
+        igraph_neighborhood_size(tree, &nbhd, vs, ++i, IGRAPH_OUT, 0);
+        w = VECTOR(nbhd)[0] - nprev;
+        if (fabs(w - wprev) > maxdw) {
+            maxdw = w > wprev ? w - wprev : wprev - w;
+        }
+        wprev = w;
+        nprev = VECTOR(nbhd)[0];
+    }
+    igraph_vector_destroy(&nbhd);
+    return maxdw;
+}
+
+int cherries(const igraph_t *tree)
+{
+    int i, lc, rc;
+    int c = 0;
+    igraph_vector_t degree, child;
+
+    igraph_vector_init(&degree, igraph_vcount(tree));
+    igraph_vector_init(&child, 2);
+    igraph_degree(tree, &degree, igraph_vss_all(), IGRAPH_OUT, 0);
+
+    for (i = 0; i < igraph_vcount(tree); ++i)
+    {
+        if (VECTOR(degree)[i] > 0) {
+            igraph_neighbors(tree, &child, i, IGRAPH_OUT);
+            lc = VECTOR(child)[0]; rc = VECTOR(child)[1];
+            c += VECTOR(degree)[lc] == 0 && VECTOR(degree)[rc] == 0;
+        }
+    }
+
+    igraph_vector_destroy(&child);
+    igraph_vector_destroy(&degree);
+    return c;
+}
+
+double prop_unbalanced(const igraph_t *tree)
+{
+    int p;
+    int nnode = (igraph_vcount(tree) - 1) / 2;
+    int *n = malloc(igraph_vcount(tree) * sizeof(int));
+    igraph_vector_t work;
+    igraph_vector_init(&work, 0);
+
+    p = _unbalanced(tree, n, &work, root(tree));
+    
+    igraph_vector_destroy(&work);
+    free(n);
+    return (double) p / (double) nnode;
+}
+
+double avg_unbalance(const igraph_t *tree)
+{
+    double u;
+    double nnode = (igraph_vcount(tree) - 1) / 2;
+    int *n = malloc(igraph_vcount(tree) * sizeof(int));
+    igraph_vector_t work;
+    igraph_vector_init(&work, 0);
+
+    u = _unbalance(tree, n, &work, root(tree));
+    
+    igraph_vector_destroy(&work);
+    free(n);
+    return u / nnode;
+}
 
 /* Private. */
 
 /* recursively compute the ladder length */
-double _ladder_length(const igraph_t *tree, igraph_vector_t *work, int root)
+int _ladder_length(const igraph_t *tree, igraph_vector_t *work, int root)
 {
     int lc, rc; 
-    double llad, rlad;
+    int llad, rlad;
 
     igraph_neighbors(tree, work, root, IGRAPH_OUT);
     if (igraph_vector_size(work) > 0) {
         lc = (int) VECTOR(*work)[0]; rc = (int) VECTOR(*work)[1];
         llad = _ladder_length(tree, work, lc);
         rlad = _ladder_length(tree, work, rc);
-        return fmax(llad, rlad) + 1;
+        return llad > rlad ? llad + 1 : rlad + 1;
     }
     else {
         return 1;
     }
 }
 
-/* recursively compute Colless' index */
-double _colless(const igraph_t *tree, int *n, igraph_vector_t *work, int root)
+/* recursively compute unbalance */
+double _unbalance(const igraph_t *tree, int *n, igraph_vector_t *work, int root)
 {
     int lc, rc; 
-    double lcol, rcol;
+    double lunb, runb;
+
+    igraph_neighbors(tree, work, root, IGRAPH_OUT);
+    if (igraph_vector_size(work) > 0) {
+        lc = (int) VECTOR(*work)[0]; rc = (int) VECTOR(*work)[1];
+        lunb = _unbalance(tree, n, work, lc);
+        runb = _unbalance(tree, n, work, rc);
+        n[root] = n[lc] + n[rc];
+        return lunb + runb + fmin(n[lc], n[rc]) / fmax(n[lc], n[rc]);
+    }
+    else {
+        n[root] = 1;
+        return 0;
+    }
+}
+
+/* recursively compute number of unbalanced subtrees */
+int _unbalanced(const igraph_t *tree, int *n, igraph_vector_t *work, int root)
+{
+    int lc, rc; 
+    int lunb, runb;
+
+    igraph_neighbors(tree, work, root, IGRAPH_OUT);
+    if (igraph_vector_size(work) > 0) {
+        lc = (int) VECTOR(*work)[0]; rc = (int) VECTOR(*work)[1];
+        lunb = _unbalanced(tree, n, work, lc);
+        runb = _unbalanced(tree, n, work, rc);
+        n[root] = n[lc] + n[rc];
+        return lunb + runb + (n[lc] != n[rc]);
+    }
+    else {
+        n[root] = 1;
+        return 0;
+    }
+}
+
+/* recursively compute Colless' index */
+int _colless(const igraph_t *tree, int *n, igraph_vector_t *work, int root)
+{
+    int lc, rc; 
+    int lcol, rcol;
 
     igraph_neighbors(tree, work, root, IGRAPH_OUT);
     if (igraph_vector_size(work) > 0) {
@@ -337,16 +432,23 @@ double _colless(const igraph_t *tree, int *n, igraph_vector_t *work, int root)
 }
 
 /* recursively compute the total cophenetic index */
-double _cophenetic(const igraph_t *tree, int *n, igraph_vector_t *work, int root, int depth)
+double _cophenetic(const igraph_t *tree, int *n, igraph_vector_t *work, int root, double depth, int use_branch_lengths)
 {
-    int lc, rc; 
-    double lphi, rphi;
+    int lc, rc, from; 
+    double lphi, rphi, lbl = 1, rbl = 1;
 
-    igraph_neighbors(tree, work, root, IGRAPH_OUT);
+    igraph_incident(tree, work, root, IGRAPH_OUT);
     if (igraph_vector_size(work) > 0) {
-        lc = (int) VECTOR(*work)[0]; rc = (int) VECTOR(*work)[1];
-        lphi = _cophenetic(tree, n, work, lc, depth + 1);
-        rphi = _cophenetic(tree, n, work, rc, depth + 1);
+        igraph_edge(tree, VECTOR(*work)[0], &from, &lc);
+        igraph_edge(tree, VECTOR(*work)[1], &from, &rc);
+        
+        if (use_branch_lengths) {
+            lbl = EAN(tree, "length", VECTOR(*work)[0]);
+            rbl = EAN(tree, "length", VECTOR(*work)[1]);
+        }
+
+        lphi = _cophenetic(tree, n, work, lc, depth + lbl, use_branch_lengths);
+        rphi = _cophenetic(tree, n, work, rc, depth + rbl, use_branch_lengths);
         n[root] = n[lc] + n[rc];
         return lphi + rphi + n[lc] * n[rc] * depth;
     }
