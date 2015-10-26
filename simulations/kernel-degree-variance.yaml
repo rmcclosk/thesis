@@ -1,19 +1,19 @@
 Name: kernel-degree-variance
-Processes: 6
+Processes: 1
 Steps:
     network:
         Extension: gml
         Parameters:
             nnode: 5000
             mean_degree: 8
-            ba_power: [0.1, 0.5, 1.0]
+            ba_power: [0.01, 0.1, 0.5, 1.0]
             seed: !!python/object/apply:__builtin__.xrange [0, 100, 1]
         Interpreter: R --vanilla --silent
         Startup: |
             suppressPackageStartupMessages(library(netabc))
             suppressPackageStartupMessages(library(igraph))
         Rule: | 
-            set.seed({seed})
+            set.seed({seed} * {ba_power} * 100)
             g <- barabasi.game({nnode}, m={mean_degree}/2, power={ba_power}, directed=F)
             graph_attr(g, "comment") <- "{yaml}"
             write.graph(SI.net(g), "{network}", format="gml")
@@ -23,7 +23,7 @@ Steps:
         Parameters:
             nnode: 5000
             mean_degree: 8
-            ba_power: [0.1, 0.5, 1.0]
+            ba_power: [0.01, 0.1, 0.5, 1.0]
             ntip: 100
             nsimnode: 1000
             seed: !!python/object/apply:__builtin__.xrange [0, 100, 1]
@@ -31,16 +31,15 @@ Steps:
         Interpreter: bash
         Rule: |
             echo "#{yaml}" > {tree}
-            nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} {network} >> {tree}
+            nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed `echo {seed}*{ba_power}*100 | bc` {network} >> {tree}
 
     kernel-matrix:
         Extension: mtx
         Parameters:
             branch_scaling: mean
             decay_factor: [0.1, 0.2, 0.4, 0.5]
-            rbf_variance: ["1e-2", 0.0625, 0.125, 1, 2]
+            rbf_variance: [0.0625, 0.125, 1, 2, 5]
             sst_control: [0, 1]
-            coal: ["yes", "no"]
         Depends: tree
         Interpreter: bash
         Rule: |
@@ -50,13 +49,8 @@ Steps:
             for T1 in {tree}; do
                 for T2 in {tree}; do
                     if [[ "$T1" < "$T2" || "$T1" == "$T2" ]]; then
-                        if [[ "x{coal}" == "xyes" ]]; then
-                            treekernel -d -l {decay_factor} -g {rbf_variance} -b {branch_scaling} \
-                                       -s {sst_control} -c $T1 $T2 >> {kernel-matrix}
-                        else
-                            treekernel -d -l {decay_factor} -g {rbf_variance} -b {branch_scaling} \
-                                       -s {sst_control} $T1 $T2 >> {kernel-matrix}
-                        fi
+                        treekernel -d -l {decay_factor} -g {rbf_variance} -b {branch_scaling} \
+                                   -s {sst_control} $T1 $T2 >> {kernel-matrix}
                     fi
                 done
             done
@@ -66,9 +60,8 @@ Steps:
         Parameters:
             branch_scaling: mean
             decay_factor: [0.1, 0.2, 0.4, 0.5]
-            rbf_variance: ["1e-2", 0.0625, 0.125, 1, 2]
+            rbf_variance: [0.0625, 0.125, 1, 2, 5]
             sst_control: [0, 1]
-            coal: ["yes", "no"]
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
         Startup: library(netabc)
@@ -83,16 +76,15 @@ Steps:
         Parameters:
             branch_scaling: mean
             decay_factor: [0.1, 0.2, 0.4, 0.5]
-            rbf_variance: ["1e-2", 0.0625, 0.125, 1, 2]
+            rbf_variance: [0.0625, 0.125, 1, 2, 5]
             sst_control: [0, 1]
-            coal: ["yes", "no"]
             ncrossv: 1000
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
             k <- read.mm("{kernel-matrix}")
-            y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"ba_power"]
+            y <- log10(collect.metadata(strsplit("{tree}", " ")[[1]])[,"ba_power"])
             results <- ksvm.cv(k, y, n.cv={ncrossv}, stats=c("rsquared"))
             cat("#{yaml}\n", file="{classifier}")
             write.tsv(results, "{classifier}", append=TRUE)
@@ -107,5 +99,29 @@ Steps:
         Rule: |
             d <- collect.data(strsplit("{classifier}", " ")[[1]])
             summary.plot(d, x="rbf_variance", y="rsquared", group="decay_factor", 
-                         facet.x="sst_control", facet.y="coal", fun="mean")
+                         facet.x="sst_control", fun="mean")
             ggsave("{crossv-plot}", width=10)
+
+    statistics:
+        Extension: tsv
+        Parameters:
+            placeholder: 0
+        Depends: tree
+        Interpreter: bash
+        Rule: |
+            echo -e "colless\til.portion\tmax.ladder\tdepth\tbmi\tdelta.w\twidth\tcherries\tprop.unbalanced\tavg.unbalance\tsackin\tcophenetic\tgamma" > {statistics}
+            for T in {tree}; do
+                echo -n `treestat -i -y -s colless $T`$'\t' >> {statistics}
+                echo -n `treestat -i -n -s il $T`$'\t' >> {statistics}
+                echo -n `treestat -i -n -s ladder $T`$'\t' >> {statistics}
+                echo -n `treestat -i -n -s depth $T`$'\t' >> {statistics}
+                echo -n `treestat -i -s bmi $T`$'\t' >> {statistics}
+                echo -n `treestat -i -n -s max-delta-width $T`$'\t' >> {statistics}
+                echo -n `treestat -i -n -s width $T`$'\t' >> {statistics}
+                echo -n `treestat -i -n -s cherries $T`$'\t' >> {statistics}
+                echo -n `treestat -i -s prop-unbalanced $T`$'\t' >> {statistics}
+                echo -n `treestat -i -s unbalance $T`$'\t' >> {statistics}
+                echo -n `treestat -i -y -s sackin $T`$'\t' >> {statistics}
+                echo -n `treestat -i -y -s cophenetic $T`$'\t' >> {statistics}
+                echo `treestat -i -s gamma $T` >> {statistics}
+            done
