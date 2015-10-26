@@ -18,8 +18,8 @@
 #define NNODE 5000
 #define NSIMNODE 1000
 #define MEAN_DEGREE 8
-#define PA_POWER_MIN 0.0
-#define PA_POWER_MAX 1.0
+#define PA_POWER_MIN -2
+#define PA_POWER_MAX 0
 
 struct netabc_options {
     FILE *tree_file;
@@ -162,7 +162,7 @@ void ba_sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void 
     igraph_rng_set_default(&igraph_rng);
 
     igraph_vector_init(&v, NNODE);
-    igraph_barabasi_game(&net, NNODE, *theta, MEAN_DEGREE/2, NULL, 0,
+    igraph_barabasi_game(&net, NNODE, pow(10, *theta), MEAN_DEGREE/2, NULL, 0,
             1, 0, IGRAPH_BARABASI_PSUMTREE, NULL);
     igraph_to_directed(&net, IGRAPH_TO_DIRECTED_MUTUAL);
 
@@ -193,35 +193,44 @@ double ba_distance(const void *x, const void *y, const void *arg)
 {
     igraph_t *gx = (igraph_t *) x;
     igraph_t *gy = (igraph_t *) y;
-
-    /*
-    double sx = sackin(gx, 0, TREESHAPE_NORM_YULE);
-    double sy = sackin(gy, 0, TREESHAPE_NORM_YULE);
-    double cx = colless(gx, TREESHAPE_NORM_YULE);
-    double cy = colless(gy, TREESHAPE_NORM_YULE);
-    */
-
+    double decay_factor = ((double *) arg)[0];                                   
+    double rbf_variance = ((double *) arg)[1]; 
+    double nx = NTIP(gx), ny = NTIP(gy);
     double kx = GAN(gx, "kernel");
     double ky = GAN(gy, "kernel");
-    double decay_factor = ((double *) arg)[0];
-    double rbf_variance = ((double *) arg)[1];
-    int use_nltt = (int) ((double *) arg)[2];
-    double kxy = kernel(gx, gy, decay_factor, rbf_variance, 1);
-    //double d[4];
+    double d[14];
+    double w[14] = {9.33802949226047e-01, 2.18403741961014e+05,
+    1.13819995020497e+01, 7.13025882178519e-02, 5.477396722075e-01,
+    6.00418896265072e-02, 4.41223417569416e+05, 6.51247258113592e+00,
+    1.24508698036331e+01, 9.17636517221493e-01, 6.89583117577029e-04,
+    8.78845237640112e-02, 1, 1};
+    double dist = 0;
+    int i;
 
-    if (use_nltt) {
-        kxy *= (1.0 - nLTT(gx, gy));
+    d[0] = ((double) colless(gx) - COLLESS_YULE(nx)) / nx -
+           ((double) colless(gy) - COLLESS_YULE(ny)) / ny;
+    d[1] = (double) il_nodes(gx) / nx - (double) il_nodes(gy) / ny;
+    d[2] = (double) ladder_length(gx) / nx - (double) ladder_length(gy) / ny;
+    d[3] = (double) width(gx) / (double) ladder_length(gx) - 
+           (double) width(gy) / (double) ladder_length(gy);
+    d[4] = (double) max_delta_width(gx) / nx - (double) max_delta_width(gy) / ny;
+    d[5] = (double) width(gx) / nx - (double) width(gy) / ny;
+    d[6] = (double) cherries(gx) / nx - (double) cherries(gy) / ny;
+    d[7] = prop_unbalanced(gx) - prop_unbalanced(gy);
+    d[8] = avg_unbalance(gx) - avg_unbalance(gy);
+    d[9] = (double) (sackin(gx, 0) - SACKIN_YULE(nx)) / nx -
+           (double) (sackin(gy, 0) - SACKIN_YULE(ny)) / ny;
+    d[10] = (double) (cophenetic(gx, 0) - COPHENETIC_YULE(nx)) / nx -
+            (double) (cophenetic(gy, 0) - COPHENETIC_YULE(ny)) / ny;
+    d[11] = pybus_gamma(gx) - pybus_gamma(gy);
+    d[12] = 1.0 - kernel(gx, gy, decay_factor, rbf_variance, 1) / sqrt(kx) / sqrt(ky);
+    d[13] = 1.0 - nLTT(gx, gy);
+
+    for (i = 0; i < 14; ++i) {
+        dist += pow(w[i] * d[i], 2);
     }
-    return 1.0 - kxy / sqrt(kx) / sqrt(ky);
-    /*
-    d[0] = 1.0 - kxy / sqrt(kx) / sqrt(ky);
-    d[1] = fabs(sx - sy);
-    d[2] = fabs(cx - cy);
-    d[3] = nLTT(gx, gy);
-    */
-
-    //return sqrt(pow(d[1], 2) + pow(d[2], 2) + pow(d[3], 2));
-    //return sqrt(pow(d[0], 2) + pow(d[1], 2) + pow(d[2], 2) + pow(d[3], 2));
+    //dist = pow(d[2], 2) + pow(d[8], 2);
+    return sqrt(dist);
 }
 
 void ba_feedback(const double *theta, int nparticle, void *params)
@@ -246,7 +255,7 @@ smc_functions ba_functions = {
 
 smc_config ba_config = {
     .nparam = 1,
-    .final_epsilon = 0.01,
+    .final_epsilon = 0.005,
     .step_tolerance = 1e-5,
     .dataset_size = sizeof(igraph_t),
     .feedback_size = sizeof(double)
