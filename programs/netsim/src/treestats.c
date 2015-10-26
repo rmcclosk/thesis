@@ -351,6 +351,50 @@ double avg_unbalance(const igraph_t *tree)
     return u / nnode;
 }
 
+double pybus_gamma(const igraph_t *tree)
+{
+    int i, j, k;
+    double *node_depths = malloc(igraph_vcount(tree) * sizeof(double));
+    double *T = calloc((NTIP(tree) - 1), sizeof(double));
+    double prev_depth = 0, gamma = 0;
+    int *node_order = malloc(igraph_vcount(tree) * sizeof(int));
+    igraph_vector_t degree;
+
+    igraph_vector_init(&degree, 0);
+    igraph_degree(tree, &degree, igraph_vss_all(), IGRAPH_OUT, 0);
+
+    depths(tree, 1, node_depths);
+    order(node_depths, node_order, sizeof(double), igraph_vcount(tree), compare_doubles);
+
+    // T[k] = sum_(j=2)^(k-2) j*g_j
+    j = 2;
+    for (i = 1; i < igraph_vcount(tree); ++i)
+    {
+        if (VECTOR(degree)[node_order[i]] > 0) {
+            for (k = j - 2; k < (NTIP(tree) - 1); ++k)
+            {
+                T[k] += j * (node_depths[node_order[i]] - prev_depth);
+            }
+            ++j;
+            prev_depth = node_depths[node_order[i]];
+        }
+    }
+    T[NTIP(tree) - 2] += NTIP(tree) * (height(tree) - prev_depth);
+
+    for (i = 2; i < NTIP(tree); ++i) {
+        gamma += T[i - 2];
+    }
+    gamma *= 1.0 / (NTIP(tree) - 2.0);
+    gamma -= T[NTIP(tree) - 2] / 2.0;
+    gamma /= T[NTIP(tree) - 2] * sqrt(1.0 / 12.0 / (NTIP(tree) - 2));
+
+    igraph_vector_destroy(&degree);
+    free(node_depths);
+    free(T);
+    free(node_order);
+    return gamma;
+}
+
 /* Private. */
 
 /* recursively compute the ladder length */

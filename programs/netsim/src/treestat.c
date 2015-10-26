@@ -19,7 +19,8 @@ typedef enum {
     TREESTAT_MAX_DELTA_WIDTH,
     TREESTAT_CHERRIES,
     TREESTAT_PROP_UNBALANCED,
-    TREESTAT_AVG_UNBALANCE
+    TREESTAT_AVG_UNBALANCE,
+    TREESTAT_GAMMA
 } tree_statistic;
 
 struct treestat_options {
@@ -71,6 +72,7 @@ void usage(void)
     fprintf(stderr, "  cherries                  number of cherries\n");
     fprintf(stderr, "  prop-unbalanced           proportion of unbalanced subtrees\n");
     fprintf(stderr, "  unbalance                 average unbalance\n");
+    fprintf(stderr, "  gamma                     Pybus & Harvey's gamma statistic\n");
 }
 
 struct treestat_options get_options(int argc, char **argv)
@@ -138,6 +140,9 @@ struct treestat_options get_options(int argc, char **argv)
                 }
                 else if (strcmp(optarg, "unbalance") == 0) {
                     opts.stat = TREESTAT_AVG_UNBALANCE;
+                }
+                else if (strcmp(optarg, "gamma") == 0) {
+                    opts.stat = TREESTAT_GAMMA;
                 }
                 else {
                     fprintf(stderr, "Unrecognized tree statistic \"%s\"\n", optarg);
@@ -268,6 +273,9 @@ int main (int argc, char **argv)
             break;
         case TREESTAT_AVG_UNBALANCE:
             s = avg_unbalance(t);
+            break;
+        case TREESTAT_GAMMA:
+            s = pybus_gamma(t);
             break;
         default:
             fprintf(stderr, "Unrecognized tree statistic\n");

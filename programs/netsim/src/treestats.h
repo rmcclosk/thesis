@@ -141,4 +141,14 @@ double prop_unbalanced(const igraph_t *tree);
  */
 double avg_unbalance(const igraph_t *tree);
 
+/** Compute Pybus' gamma statistic.
+ *
+ * See \cite pybus2000testing. The tree should be ultrametric, but this isn't
+ * checked.
+ *
+ * \param[in] tree tree to compute statistic for, should be ultrametric
+ * \return gamma statistic
+ */
+double pybus_gamma(const igraph_t *tree);
+
 #endif
