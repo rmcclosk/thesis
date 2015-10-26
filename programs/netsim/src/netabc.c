@@ -18,8 +18,8 @@
 #define NNODE 5000
 #define NSIMNODE 1000
 #define MEAN_DEGREE 8
-#define PA_POWER_MIN -2
-#define PA_POWER_MAX 0
+#define PA_POWER_MIN 0.0
+#define PA_POWER_MAX 1.0
 
 struct netabc_options {
     FILE *tree_file;
@@ -162,7 +162,7 @@ void ba_sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void 
     igraph_rng_set_default(&igraph_rng);
 
     igraph_vector_init(&v, NNODE);
-    igraph_barabasi_game(&net, NNODE, pow(10, *theta), MEAN_DEGREE/2, NULL, 0,
+    igraph_barabasi_game(&net, NNODE, *theta, MEAN_DEGREE/2, NULL, 0,
             1, 0, IGRAPH_BARABASI_PSUMTREE, NULL);
     igraph_to_directed(&net, IGRAPH_TO_DIRECTED_MUTUAL);
 
@@ -207,6 +207,7 @@ double ba_distance(const void *x, const void *y, const void *arg)
     double dist = 0;
     int i;
 
+    /*
     d[0] = ((double) colless(gx) - COLLESS_YULE(nx)) / nx -
            ((double) colless(gy) - COLLESS_YULE(ny)) / ny;
     d[1] = (double) il_nodes(gx) / nx - (double) il_nodes(gy) / ny;
@@ -223,14 +224,18 @@ double ba_distance(const void *x, const void *y, const void *arg)
     d[10] = (double) (cophenetic(gx, 0) - COPHENETIC_YULE(nx)) / nx -
             (double) (cophenetic(gy, 0) - COPHENETIC_YULE(ny)) / ny;
     d[11] = pybus_gamma(gx) - pybus_gamma(gy);
+    */
     d[12] = 1.0 - kernel(gx, gy, decay_factor, rbf_variance, 1) / sqrt(kx) / sqrt(ky);
-    d[13] = 1.0 - nLTT(gx, gy);
+    //d[13] = 1.0 - nLTT(gx, gy);
 
+    /*
     for (i = 0; i < 14; ++i) {
         dist += pow(w[i] * d[i], 2);
     }
+    */
     //dist = pow(d[2], 2) + pow(d[8], 2);
-    return sqrt(dist);
+    //return sqrt(dist);
+    return d[12];
 }
 
 void ba_feedback(const double *theta, int nparticle, void *params)
