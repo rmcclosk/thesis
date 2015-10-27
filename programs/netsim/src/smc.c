@@ -167,7 +167,6 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
         }
 
         // step 3: perturb particles
-        memcpy(smc_work.new_theta, smc_work.theta, config.nparam * config.nparticle * sizeof(double));
         functions.feedback(smc_work.theta, config.nparticle, fdbk);
         smc_work.accept = 0;
         smc_work.alive = 0;
@@ -488,6 +487,7 @@ void *perturb(void *args)
 
         cur_theta = &smc_work.new_theta[i * nparam];
         prev_theta = &smc_work.theta[i * nparam];
+        memcpy(cur_theta, prev_theta, nparam * sizeof(double));
 
         // perturb the particle
         smc_work.functions->propose(rng, cur_theta, fdbk);
@@ -496,15 +496,18 @@ void *perturb(void *args)
         mh_ratio = density(nparam, cur_theta, priors, prior_params) /
                    density(nparam, prev_theta, priors, prior_params);
 
-        if (mh_ratio == 0)
+        if (mh_ratio == 0) {
             continue;
+        }
 
         // proposal ratio
         mh_ratio *= smc_work.functions->proposal_density(cur_theta, prev_theta, fdbk) /
                     smc_work.functions->proposal_density(prev_theta, cur_theta, fdbk);
 
-        if (mh_ratio == 0)
+        if (mh_ratio == 0) {
+            fprintf(stderr, "MH ratio for %f -> %f = 0\n", *prev_theta, *cur_theta);
             continue;
+        }
 
         // sample new datasets
         for (j = 0; j < nsample; ++j)

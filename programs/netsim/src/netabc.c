@@ -17,7 +17,7 @@
 
 #define NNODE 5000
 #define NSIMNODE 1000
-#define MEAN_DEGREE 8
+#define MEAN_DEGREE 4
 #define PA_POWER_MIN 0.0
 #define PA_POWER_MAX 1.0
 

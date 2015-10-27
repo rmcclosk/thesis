@@ -117,7 +117,7 @@ void write_tree_newick(const igraph_t *tree, FILE *f)
 
     igraph_vector_init(&work, 0);
     _write_tree_newick(tree, s, root(tree), &work);
-    fprintf(f, "%s", s);
+    fprintf(f, "%s;", s);
 
     igraph_vector_destroy(&work);
     free(s);
@@ -393,8 +393,6 @@ int _write_tree_newick(const igraph_t *tree, char *out, int root,
         nchar += sprintf(&out[nchar], "%s:%f", VAS(tree, "id", root), length);
     else
         nchar += sprintf(&out[nchar], "%d:%f", root, length);
-    if (is_root)
-        nchar += sprintf(&out[nchar], ";");
     return nchar;
 }
 

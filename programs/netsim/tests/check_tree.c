@@ -103,6 +103,17 @@ START_TEST (test_parse_newick_branch_lengths)
 }
 END_TEST
 
+START_TEST (test_parse_newick_singleton)
+{
+    int i;
+    FILE *f = newick_file("0;");
+    igraph_t *tree = parse_newick(f);
+    ck_assert(igraph_vcount(tree) == 1);
+    igraph_destroy(tree);
+    free(tree);
+}
+END_TEST
+
 START_TEST (test_write_newick)
 {
     int res;
@@ -390,6 +401,7 @@ Suite *tree_suite(void)
     tc_io = tcase_create("IO");
     tcase_add_test(tc_io, test_parse_newick_topology);
     tcase_add_test(tc_io, test_parse_newick_branch_lengths);
+    tcase_add_test(tc_io, test_parse_newick_singleton);
     tcase_add_test(tc_io, test_write_newick);
     suite_add_tcase(s, tc_io);
 

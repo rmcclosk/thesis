@@ -28,7 +28,7 @@ double toy_proposal_density(const double *from, const double *to, const void *pa
 void toy_sample_dataset(gsl_rng *rng, const double *theta, const void *data, void *X)
 {
     double x;
-    if (rand() < RAND_MAX / 2) {
+    if (rand() % 2) {
         x = (*theta + gsl_ran_gaussian(rng, 1)); 
     }
     else {
@@ -115,7 +115,7 @@ START_TEST (test_smc_toy_steps)
     };
 
     toy_setup_config(&toy_config);
-    smc_result *res = abc_smc(toy_config, toy_functions, 0, 1, (void *) &y);
+    smc_result *res = abc_smc(toy_config, toy_functions, 0, 8, (void *) &y);
 
     fprintf(stderr, "%d steps\n", res->niter);
     plot(&res->epsilon[1], NULL, res->niter-1, "check_smc_epsilon.pdf", 
@@ -151,7 +151,7 @@ START_TEST (test_smc_toy)
     }
 
     plot(res->theta, NULL, config.nparticle, "check_smc_hist.pdf",
-         "hist(d[,1], xlim=c(-3, 3), xlab=\"theta\", ylab=\"density\", main=NA, breaks=200)");
+         "plot(density(d[,1]), xlim=c(-3, 3), ylim=c(0, 2.5), xlab=\"theta\", ylab=\"density\", main=NA); polygon(density(d[,1]), col=\"gray\"); x <- seq(-3, 3, 0.01); lines(x, 0.5*dnorm(x, sd=1) + 0.5*dnorm(x, sd=0.1))");
     smc_result_free(res);
     free(config.priors);
     free(config.prior_params);
@@ -168,7 +168,7 @@ Suite *smc_suite(void)
     tc_smc = tcase_create("Core");
     tcase_add_test(tc_smc, test_smc_toy_steps);
     tcase_add_test(tc_smc, test_smc_toy);
-    tcase_set_timeout(tc_smc, 30);
+    tcase_set_timeout(tc_smc, 60);
     suite_add_tcase(s, tc_smc);
 
     return s;

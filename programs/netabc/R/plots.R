@@ -30,9 +30,11 @@ summary.plot <- function (data, x, y, facet.x=".", facet.y=".", group=NULL,
     if (!is.null(group) & group.factor)
         plot.data[,group] <- as.factor(plot.data[,group])
 
-    ggplot(plot.data, aes_string(x=x, y=y, color=group, group=group)) + 
-        facet_grid(as.formula(paste(facet.x, "~", facet.y)), labeller="label_both") +
-        geom_point() + geom_line() + theme_bw() +
+    p <- ggplot(plot.data, aes_string(x=x, y=y, color=group, group=group))
+    if (facet.x != "." | facet.y != ".") {
+        p <- p + facet_grid(as.formula(paste(facet.x, "~", facet.y)), labeller="label_both")
+    }
+    p + geom_point() + geom_line() + theme_bw() +
         theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
 }
 
