@@ -1,0 +1,141 @@
+Name: kernel-smallworld
+Processes: 1
+Steps:
+    network:
+        Extension: gml
+        Parameters:
+            nnode: 5000
+            mean_degree: 2
+            ws_prob: [0.01, 0.05, 0.09]
+            seed: !!python/object/apply:__builtin__.xrange [0, 100, 1]
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(igraph))
+        Rule: | 
+            set.seed({seed} + {mean_degree} * 100)
+            g <- watts.strogatz.game(1, {nnode}, {mean_degree}/2, {ws_prob})
+            graph_attr(g, "comment") <- "{yaml}"
+            write.graph(SI.net(g), "{network}", format="gml")
+
+    tree:
+        Extension: nwk
+        Parameters:
+            nnode: 5000
+            mean_degree: 2
+            ws_prob: [0.01, 0.05, 0.09]
+            ntip: 100
+            nsimnode: 1000
+            seed: !!python/object/apply:__builtin__.xrange [0, 100, 1]
+        Depends: network
+        Interpreter: bash
+        Rule: |
+            echo "#{yaml}" > {tree}
+            nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed `echo {seed}+{ws_prob}*10000 | bc` {network} >> {tree}
+
+    statistics:
+        Extension: tsv
+        Parameters:
+            placeholder: 0
+        Depends: tree
+        Interpreter: bash
+        Rule: |
+            echo -e "colless\til.portion\tmax.ladder\tdepth\tbmi\tdelta.w\twidth\tcherries\tprop.unbalanced\tavg.unbalance\tsackin\tcophenetic\tgamma" > {statistics}
+            for T in {tree}; do
+                echo -n `treestat -i -y -s colless $T`$'\t' >> {statistics}
+                echo -n `treestat -i -n -s il $T`$'\t' >> {statistics}
+                echo -n `treestat -i -n -s ladder $T`$'\t' >> {statistics}
+                echo -n `treestat -i -n -s height $T`$'\t' >> {statistics}
+                echo -n `treestat -i -s bmi $T`$'\t' >> {statistics}
+                echo -n `treestat -i -n -s max-delta-width $T`$'\t' >> {statistics}
+                echo -n `treestat -i -n -s width $T`$'\t' >> {statistics}
+                echo -n `treestat -i -n -s cherries $T`$'\t' >> {statistics}
+                echo -n `treestat -i -s prop-unbalanced $T`$'\t' >> {statistics}
+                echo -n `treestat -i -s unbalance $T`$'\t' >> {statistics}
+                echo -n `treestat -i -y -s sackin $T`$'\t' >> {statistics}
+                echo -n `treestat -i -y -s cophenetic $T`$'\t' >> {statistics}
+                echo `treestat -i -s gamma $T` >> {statistics}
+            done
+
+    stats-plot:
+        Extension: pdf
+        Parameters:
+            placeholder: 0
+        Depends: statistics tree
+        Interpreter: R --vanilla --silent
+        Startup: |
+            library(netabc)
+            library(reshape2)
+        Rule: |
+            m <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"ws_prob"]
+            d <- read.table("{statistics}", header=TRUE)
+            d <- cbind(ba.power=as.factor(m), d)
+            d <- melt(d, id.vars="ba.power")
+            ggplot(d, aes(x=ba.power, y=value)) + geom_violin() + facet_wrap(~variable, scales="free") + theme_bw()
+            ggsave("{stats-plot}")
+
+    kernel-matrix:
+        Extension: mtx
+        Parameters:
+            branch_scaling: mean
+            decay_factor: [0.2, 0.3, 0.4]
+            rbf_variance: [0.0625, 0.125, 1, 2, 5]
+        Depends: tree
+        Interpreter: bash
+        Rule: |
+            echo "%%MatrixMarket matrix array real symmetric" > {kernel-matrix}
+            echo "%{yaml}" >> {kernel-matrix}
+            echo "{$#} {$#}" >> {kernel-matrix}
+            for T1 in {tree}; do
+                for T2 in {tree}; do
+                    if [[ "$T1" < "$T2" || "$T1" == "$T2" ]]; then
+                        treekernel -d -l {decay_factor} -g {rbf_variance} -b {branch_scaling} \
+                                   -s 1 $T1 $T2 >> {kernel-matrix}
+                    fi
+                done
+            done
+
+    kpca-plot:
+        Extension: pdf
+        Parameters:
+            branch_scaling: mean
+            decay_factor: [0.2, 0.3, 0.4]
+            rbf_variance: [0.0625, 0.125, 1, 2, 5]
+        Depends: kernel-matrix tree
+        Interpreter: R --vanilla --silent
+        Startup: library(netabc)
+        Rule: |
+            k <- read.mm("{kernel-matrix}")
+            y <- as.factor(collect.metadata(strsplit("{tree}", " ")[[1]])[,"ws_prob"])
+            kpca.plot(k, color=list(pref.attach.power=y), yaml="{yaml}")
+            ggsave("{kpca-plot}")
+
+    classifier:
+        Extension: tsv
+        Parameters:
+            branch_scaling: mean
+            decay_factor: [0.2, 0.3, 0.4]
+            rbf_variance: [0.0625, 0.125, 1, 2, 5, 10, 20, "INFINITY"]
+            ncrossv: 1000
+        Depends: kernel-matrix tree
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            k <- read.mm("{kernel-matrix}")
+            y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"ws_prob"]
+            results <- ksvm.cv(k, y, n.cv={ncrossv}, stats=c("rsquared"))
+            cat("#{yaml}\n", file="{classifier}")
+            write.tsv(results, "{classifier}", append=TRUE)
+
+    crossv-plot:
+        Extension: pdf
+        Parameters:
+            ncrossv: 1000
+        Depends: classifier 
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            d <- collect.data(strsplit("{classifier}", " ")[[1]])
+            summary.plot(d, x="rbf_variance", y="rsquared", group="decay_factor", 
+                         fun="mean")
+            ggsave("{crossv-plot}", width=10)
