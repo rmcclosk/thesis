@@ -1,0 +1,80 @@
+Name: leventhal2012-fig1
+Processes: 8
+Steps:
+    network:
+        Extension: gml
+        Parameters:
+            nnode: 5000
+            mean_degree: 8
+            net_type: ["BA", "ER", "WS"]
+            ws_prob: 0.01
+            transmissibility: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+            seed: !!python/object/apply:__builtin__.xrange [0, 100, 1]
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(igraph))
+        Rule: | 
+            seed <- {seed} * {transmissibility} * 10
+            if ("{net_type}" == "BA") {{
+                set.seed(seed * 3)
+                g <- barabasi.game({nnode}, m={mean_degree}/2, directed=F)
+            }} else if ("{net_type}" == "WS") {{
+                set.seed(seed * 3 + 1)
+                g <- watts.strogatz.game(1, {nnode}, {mean_degree}/2, {ws_prob})
+            }} else if ("{net_type}" == "ER") {{
+                set.seed(seed * 3 + 2)
+                g <- erdos.renyi.game({nnode}, {mean_degree}/{nnode})
+            }}
+            graph_attr(g, "comment") <- "{yaml}"
+            write.graph(SIR.net(g, transmit.rate=1, remove.rate=(1-{transmissibility})/{transmissibility}), "{network}", format="gml")
+
+    tree:
+        Extension: nwk
+        Parameters:
+            nnode: 5000
+            mean_degree: 8
+            net_type: ["BA", "ER", "WS"]
+            ws_prob: 0.01
+            transmissibility: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+            seed: !!python/object/apply:__builtin__.xrange [0, 100, 1]
+        Depends: network
+        Interpreter: bash
+        Rule: |
+            echo "#{yaml}" > {tree}
+            if [[ "{net_type}" == "BA" ]]; then
+                SEED=$(({seed}*3))
+            else if [[ "{net_type}" == "ER" ]]; then
+                SEED=$(({seed}*3+1))
+            else
+                SEED=$(({seed}*3+2))
+            fi
+            nettree --seed $SEED {network} >> {tree}
+
+    sackin:
+        Extension: tsv
+        Parameters:
+            norm: "none"
+        Depends: tree
+        Interpreter: bash
+        Rule: |
+            for T in {tree}; do
+                treestat -i -s sackin -k {norm} {tree} > {sackin}
+            done
+
+    sackin-plot:
+        Extension: pdf
+        Parameters:
+            norm: "none"
+        Depends: tree sackin
+        Interpreter: R --vanilla --silent
+        Rule: |
+            library(netabc)
+            d <- collect.metadata(strsplit("{tree}", " ")[[1]])
+            d$sackin <- read.table("{sackin}")[,1]
+            ggplot(d, aes(x=transmissibility, y=sackin, fill=net.type)) +
+                stat_summary(fun.ymin=q25, fun.ymax=q75, geom='ribbon', alpha=0.5) +
+                stat_summary(fun.y=median, geom='line', aes(color=net.type)) +
+                theme(legend.position=c(1, 0), legend.justification=c(0, 1)) +
+                theme_bw()
+            ggsave("{sackin-plot}")

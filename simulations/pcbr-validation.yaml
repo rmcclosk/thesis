@@ -165,5 +165,6 @@ Steps:
             net <- read.graph("{network}", "gml")
             pcbr.out <- read.table("{clustering}")
             node.numbers <- as.integer(c(tree$tip.label, tree$node.label))
-            tree.clusters <- V(net)$cluster[node.numbers]
-            pcbr.out[,2]
+            tree.fastnodes <- which(V(net)$cluster[node.numbers] > 0)
+            pcbr.fastnodes <- which(pcbr.out[match(node.numbers, pcbr.out[,1]), 2] > min(pcbr.out[,2]))
+            TODO

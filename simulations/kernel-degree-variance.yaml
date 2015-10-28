@@ -1,5 +1,5 @@
 Name: kernel-degree-variance
-Processes: 1
+Processes: 20
 Steps:
     network:
         Extension: gml
@@ -114,7 +114,7 @@ Steps:
                 echo -n `treestat -i -y -s colless $T`$'\t' >> {statistics}
                 echo -n `treestat -i -n -s il $T`$'\t' >> {statistics}
                 echo -n `treestat -i -n -s ladder $T`$'\t' >> {statistics}
-                echo -n `treestat -i -n -s depth $T`$'\t' >> {statistics}
+                echo -n `treestat -i -n -s height $T`$'\t' >> {statistics}
                 echo -n `treestat -i -s bmi $T`$'\t' >> {statistics}
                 echo -n `treestat -i -n -s max-delta-width $T`$'\t' >> {statistics}
                 echo -n `treestat -i -n -s width $T`$'\t' >> {statistics}
