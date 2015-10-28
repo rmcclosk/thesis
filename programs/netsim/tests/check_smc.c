@@ -92,7 +92,7 @@ void plot(const double *x, const double *y, int nx, const char *pdf,
 void toy_setup_config(smc_config *config)
 {
     config->priors = malloc(sizeof(smc_distribution));
-    config->prior_params = malloc(2 * sizeof(double));
+    config->prior_params = malloc(MAX_DIST_PARAMS * sizeof(double));
     config->priors[0] = UNIFORM;
     config->prior_params[0] = -10;
     config->prior_params[1] = 10;

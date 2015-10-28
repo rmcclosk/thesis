@@ -150,7 +150,7 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
         fprintf(stderr, "%d\t%f\n", niter, smc_work.epsilon);
 
         for (i = 0; i < 10; ++i) {
-            fprintf(stderr, "%f\t%f\t%f\n", smc_work.theta[i], smc_work.X[i * config.nsample], smc_work.W[i]);
+            fprintf(stderr, "%f\t%f\t%f\n", smc_work.theta[(i+1) * config.nparam - 1], smc_work.X[i * config.nsample], smc_work.W[i]);
         }
         fprintf(stderr, "\n");
 
@@ -238,6 +238,7 @@ void sample(int n, double *theta, gsl_rng *rng, const smc_distribution *dist,
 
     for (i = 0; i < n; ++i)
     {
+        cur = i * MAX_DIST_PARAMS;
         switch (dist[i])
         {
             case UNIFORM:
@@ -245,9 +246,13 @@ void sample(int n, double *theta, gsl_rng *rng, const smc_distribution *dist,
                 cur += 2;
                 break;
             case GAUSSIAN:
-                theta[i] = gsl_ran_gaussian(rng, params[cur++]);
+                theta[i] = gsl_ran_gaussian(rng, params[cur]);
+                break;
+            case DELTA:
+                theta[i] = params[cur];
                 break;
             default:
+                fprintf(stderr, "BUG: tried to sample from unknown distribution\n");
                 theta[i] = 0;
                 break;
         }
@@ -261,6 +266,7 @@ double density(int n, const double *theta, const smc_distribution *dist,
     double dens = 1;
     for (i = 0; i < n; ++i)
     {
+        cur = i * MAX_DIST_PARAMS;
         switch (dist[i])
         {
             case UNIFORM:
@@ -271,9 +277,13 @@ double density(int n, const double *theta, const smc_distribution *dist,
                 cur += 2;
                 break;
             case GAUSSIAN:
-                dens *= gsl_ran_gaussian_pdf(theta[i], params[cur++]);
+                dens *= gsl_ran_gaussian_pdf(theta[i], params[cur]);
+                break;
+            case DELTA:
+                dens *= theta[i] == params[cur];
                 break;
             default:
+                fprintf(stderr, "BUG: tried to calculate density for unknown distribution\n");
                 break;
         }
     }
@@ -505,7 +515,6 @@ void *perturb(void *args)
                     smc_work.functions->proposal_density(prev_theta, cur_theta, fdbk);
 
         if (mh_ratio == 0) {
-            fprintf(stderr, "MH ratio for %f -> %f = 0\n", *prev_theta, *cur_theta);
             continue;
         }
 

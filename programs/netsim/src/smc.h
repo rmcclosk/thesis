@@ -3,9 +3,12 @@
 
 #include <gsl/gsl_rng.h>
 
+#define MAX_DIST_PARAMS 2
+
 typedef enum {
     UNIFORM,
-    GAUSSIAN
+    GAUSSIAN,
+    DELTA
 } smc_distribution;
 
 typedef struct {

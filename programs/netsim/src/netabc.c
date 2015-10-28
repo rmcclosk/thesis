@@ -16,13 +16,11 @@
 #include "smc.h"
 #include "util.h"
 
-#define NNODE 5000
-#define NSIMNODE 1000
+#define BA_NNODES 5000
+#define BA_NSIMNODES 1000
 #define BA_MEAN_DEGREE 4
 #define PA_POWER_MIN 0.0
 #define PA_POWER_MAX 1.0
-#define ER_MEAN_DEGREE_MIN 1.2
-#define ER_MEAN_DEGREE_MAX 12
 
 struct netabc_options {
     FILE *tree_file;
@@ -31,7 +29,6 @@ struct netabc_options {
     int seed;
     int nparticle;
     int nsample;
-    int use_nltt;
     double decay_factor;
     double rbf_variance;
     double quality;
@@ -47,7 +44,6 @@ struct option long_options[] =
     {"num-particles", required_argument, 0, 'n'},
     {"num-samples", required_argument, 0, 'p'},
     {"quality", required_argument, 0, 'q'},
-    {"nltt", no_argument, 0, 'c'},
     {0, 0, 0, 0}
 };
 
@@ -63,7 +59,6 @@ void usage(void)
     fprintf(stderr, "  -n, --num-particles       number of particles for SMC\n");
     fprintf(stderr, "  -p, --num-samples         number of sampled datasets per particle\n");
     fprintf(stderr, "  -q, --quality             tradeoff between speed and accuracy (0.9=fast, 0.99=accurate)\n");
-    fprintf(stderr, "  -c, --nltt                multiply the kernel by the nLTT statistic\n");
 }
 
 struct netabc_options get_options(int argc, char **argv)
@@ -79,12 +74,11 @@ struct netabc_options get_options(int argc, char **argv)
         .nparticle = 1000,
         .nsample = 5,
         .quality = 0.95,
-        .use_nltt = 0
     };
 
     while (c != -1)
     {
-        c = getopt_long(argc, argv, "hcg:l:n:p:q:s:t:", long_options, &i);
+        c = getopt_long(argc, argv, "hg:l:n:p:q:s:t:", long_options, &i);
         if (c == -1)
             break;
 
@@ -95,9 +89,6 @@ struct netabc_options get_options(int argc, char **argv)
             case 'h':
                 usage();
                 exit(EXIT_SUCCESS);
-            case 'c':
-                opts.use_nltt = 1;
-                break;
             case 'g':
                 opts.rbf_variance = atof(optarg);
                 break;
@@ -145,50 +136,151 @@ typedef enum {
     TRANSMIT_RATE = 3,
     REMOVE_RATE = 4,
     EDGES = 5,
-    MAX_VALUE = EDGES
+    NUM_PARAMS = EDGES + 1
 } net_parameter;
+
+void set_parameter_defaults(smc_distribution *priors, double *prior_params)
+{
+    priors[NNODE] = DELTA;
+    prior_params[NNODE * MAX_DIST_PARAMS] = 5000;
+
+    priors[NSIMNODE] = DELTA;
+    prior_params[NSIMNODE * MAX_DIST_PARAMS] = 1000;
+
+    priors[SIM_TIME] = DELTA;
+    prior_params[SIM_TIME * MAX_DIST_PARAMS] = DBL_MAX;
+
+    priors[TRANSMIT_RATE] = DELTA;
+    prior_params[TRANSMIT_RATE * MAX_DIST_PARAMS] = 1;
+
+    priors[REMOVE_RATE] = DELTA;
+    prior_params[REMOVE_RATE * MAX_DIST_PARAMS] = 0;
+
+    priors[EDGES] = UNIFORM;
+    prior_params[EDGES * MAX_DIST_PARAMS] = 0;
+    prior_params[EDGES * MAX_DIST_PARAMS + 1] = 0.1;
+}
 
 void get_parameters(FILE *f, smc_distribution *priors, double *prior_params)
 {
-    int i = 0, pcur = 0;
+    int key = 1, seq = 0, seq_cur = 0, param;
     yaml_parser_t parser;
-    yaml_token_t token;
+    yaml_event_t event;
 
+    set_parameter_defaults(priors, prior_params);
+    if (f == NULL) {
+        return;
+    }
+
+    yaml_parser_initialize(&parser);
     yaml_parser_set_input_file(&parser, f);
     do
     {
-        yaml_parser_scan(&parser, &token);
-        switch (token.type)
+        yaml_parser_parse(&parser, &event);
+        switch (event.type)
         {
-            case YAML_SCALAR_TOKEN:
-                fprintf(stderr, "%s\n", token.data.scalar.value);
+            case YAML_SEQUENCE_START_EVENT:
+                seq = 1;
+                seq_cur = 0;
+                break;
+            case YAML_SEQUENCE_END_EVENT:
+                seq = 0;
+                break;
+            case YAML_SCALAR_EVENT:
+                if (key) {
+                    if (strcmp(event.data.scalar.value, "nodes") == 0) {
+                        param = NNODE;
+                    }
+                    else if (strcmp(event.data.scalar.value, "sim_nodes") == 0) {
+                        param = NSIMNODE;
+                    }
+                    else if (strcmp(event.data.scalar.value, "sim_time") == 0) {
+                        param = SIM_TIME;
+                    }
+                    else if (strcmp(event.data.scalar.value, "transmit") == 0) {
+                        param = TRANSMIT_RATE;
+                    }
+                    else if (strcmp(event.data.scalar.value, "remove") == 0) {
+                        param = REMOVE_RATE;
+                    }
+                    else if (strcmp(event.data.scalar.value, "edges") == 0) {
+                        param = EDGES;
+                    }
+                    else {
+                        fprintf(stderr, "Error: unrecognized parameter \"%s\" in YAML file\n",
+                                event.data.scalar.value);
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                else if (seq) {
+                    if (seq_cur == 0) {
+                        if (strcmp(event.data.scalar.value, "uniform") == 0) {
+                            priors[param] = UNIFORM;
+                        }
+                        else if (strcmp(event.data.scalar.value, "gaussian") == 0) {
+                            priors[param] = GAUSSIAN;
+                        }
+                        else if (strcmp(event.data.scalar.value, "delta") == 0) {
+                            priors[param] = GAUSSIAN;
+                        }
+                        else {
+                            fprintf(stderr, "Error: unrecognized distribution \"%s\"\n",
+                                    event.data.scalar.value);
+                            exit(EXIT_FAILURE);
+                        }
+                    }
+                    else if (seq_cur <= MAX_DIST_PARAMS) {
+                        prior_params[MAX_DIST_PARAMS * param + seq_cur - 1] = atof(event.data.scalar.value);
+                    } 
+                    else {
+                        fprintf(stderr, "Error: too many distribution parameters\n");
+                        exit(EXIT_FAILURE);
+                    }
+                    ++seq_cur;
+                }
+                else {
+                    priors[param] = DELTA;
+                    prior_params[MAX_DIST_PARAMS * param] = atof(event.data.scalar.value);
+                }
+
+                if (!seq) {
+                    key = !key;
+                }
                 break;
             default:
                 break;
         }
-        if (token.type != YAML_STREAM_END_TOKEN)
-            yaml_token_delete(&token);
+        if (event.type != YAML_STREAM_END_EVENT)
+            yaml_event_delete(&event);
     }
-    while (token.type != YAML_STREAM_END_TOKEN);
+    while (event.type != YAML_STREAM_END_EVENT);
 
-    yaml_token_delete(&token);
+    yaml_event_delete(&event);
     yaml_parser_delete(&parser);
 }
 
-void ba_propose(gsl_rng *rng, double *theta, const void *params)
+void propose(gsl_rng *rng, double *theta, const void *params)
 {
-    double var = * (double *) params;
-    *theta += gsl_ran_gaussian(rng, sqrt(2*var));
+    int i;
+    double *var = (double *) params;
+    for (i = 0; i < NUM_PARAMS; ++i) {
+        theta[i] += gsl_ran_gaussian(rng, sqrt(2*var[i]));
+    }
 }
 
-double ba_proposal_density(const double *from, const double *to, const void *params)
+double proposal_density(const double *from, const double *to, const void *params)
 {
-    double var = * (double *) params;
-    if (*to < PA_POWER_MIN || *to > PA_POWER_MAX)
-        return 0.;
-    return gsl_ran_gaussian_pdf(*to - *from, sqrt(2*var));
+    int i;
+    double *var = (double *) params;
+    double p = 1;
+
+    for (i = 0; i < NUM_PARAMS; ++i) {
+        p *= gsl_ran_gaussian_pdf(to[i] - from[i], sqrt(2*var[i]));
+    }
+    return p;
 }
 
+// TODO: this is deprecated
 void ba_sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void *X)
 {
     int i;
@@ -206,14 +298,14 @@ void ba_sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void 
     igraph_rng_seed(&igraph_rng, igraph_seed);
     igraph_rng_set_default(&igraph_rng);
 
-    igraph_vector_init(&v, NNODE);
-    igraph_barabasi_game(&net, NNODE, *theta, BA_MEAN_DEGREE/2, NULL, 0,
+    igraph_vector_init(&v, BA_NNODES);
+    igraph_barabasi_game(&net, BA_NNODES, *theta, BA_MEAN_DEGREE/2, NULL, 0,
             1, 0, IGRAPH_BARABASI_PSUMTREE, NULL);
     igraph_to_directed(&net, IGRAPH_TO_DIRECTED_MUTUAL);
 
     igraph_vector_fill(&v, 0);
     SETVANV(&net, "remove", &v);
-    for (i = 0; i < NNODE; ++i) {
+    for (i = 0; i < BA_NNODES; ++i) {
         VECTOR(v)[i] = i;
     }
     SETVANV(&net, "id", &v);
@@ -222,7 +314,7 @@ void ba_sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void 
     igraph_vector_fill(&v, 1);
     SETEANV(&net, "transmit", &v);
 
-    simulate_phylogeny(tree, &net, rng, INFINITY, NSIMNODE, 1);
+    simulate_phylogeny(tree, &net, rng, INFINITY, BA_NSIMNODES, 1);
     subsample_tips(tree, ntip, rng);
     ladderize(tree);
     scale_branches(tree, MEAN);
@@ -234,7 +326,7 @@ void ba_sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void 
     igraph_destroy(&net);
 }
 
-void er_sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void *X)
+void sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void *X)
 {
     int i;
     igraph_t net;
@@ -251,23 +343,24 @@ void er_sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void 
     igraph_rng_seed(&igraph_rng, igraph_seed);
     igraph_rng_set_default(&igraph_rng);
 
-    igraph_vector_init(&v, NNODE);
+    igraph_vector_init(&v, theta[NNODE]);
 
-    igraph_erdos_renyi_game(&net, IGRAPH_ERDOS_RENYI_GNP, NNODE, *theta / NNODE, 0, 0);
+    // TODO: with more complicated models I'll have to bring in R/ergm
+    igraph_erdos_renyi_game(&net, IGRAPH_ERDOS_RENYI_GNP, theta[NNODE], theta[EDGES], 0, 0);
     igraph_to_directed(&net, IGRAPH_TO_DIRECTED_MUTUAL);
     
     igraph_vector_fill(&v, 0);
     SETVANV(&net, "remove", &v);
-    for (i = 0; i < NNODE; ++i) {
+    for (i = 0; i < theta[NNODE]; ++i) {
         VECTOR(v)[i] = i;
     }
     SETVANV(&net, "id", &v);
 
     igraph_vector_resize(&v, igraph_ecount(&net));
-    igraph_vector_fill(&v, 1);
+    igraph_vector_fill(&v, theta[TRANSMIT_RATE]);
     SETEANV(&net, "transmit", &v);
     
-    simulate_phylogeny(tree, &net, rng, INFINITY, NSIMNODE, 1);
+    simulate_phylogeny(tree, &net, rng, theta[SIM_TIME], theta[NSIMNODE], 1);
     i = 0;
     while (igraph_vcount(tree) < (ntip - 1) / 2) {
         if (i == 20) {
@@ -276,7 +369,7 @@ void er_sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void 
             break;
         }
         igraph_destroy(tree);
-        simulate_phylogeny(tree, &net, rng, INFINITY, NSIMNODE, 1);
+        simulate_phylogeny(tree, &net, rng, theta[SIM_TIME], theta[NSIMNODE], 1);
         ++i;
     }
 
@@ -293,7 +386,7 @@ void er_sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void 
     igraph_destroy(&net);
 }
 
-double ba_distance(const void *x, const void *y, const void *arg)
+double distance(const void *x, const void *y, const void *arg)
 {
     if (x == NULL || y == NULL)
         return INFINITY;
@@ -306,51 +399,47 @@ double ba_distance(const void *x, const void *y, const void *arg)
     return 1.0 - kernel(gx, gy, decay_factor, rbf_variance, 1) / sqrt(kx) / sqrt(ky);
 }
 
-void ba_feedback(const double *theta, int nparticle, void *params)
+void feedback(const double *theta, int nparticle, void *params)
 {
-    double var = gsl_stats_variance(theta, 1, nparticle);
-    memcpy(params, &var, sizeof(double));
+    int i;
+    double *var = (double *) params;
+    for (i = 0; i < NUM_PARAMS; ++i) {
+        var[i] = gsl_stats_variance(&theta[i], NUM_PARAMS, nparticle);
+    }
 }
 
-void ba_destroy_dataset(void *z)
+void destroy_dataset(void *z)
 {
     igraph_destroy((igraph_t *) z);
 }
 
-smc_functions ba_functions = {
-    .propose = ba_propose,
-    .proposal_density = ba_proposal_density,
-    .sample_dataset = ba_sample_dataset,
-    .distance = ba_distance,
-    .feedback = ba_feedback,
-    .destroy_dataset = ba_destroy_dataset
-};
-
-smc_functions er_functions = {
-    .propose = ba_propose,
-    .proposal_density = ba_proposal_density,
-    .sample_dataset = er_sample_dataset,
-    .distance = ba_distance,
-    .feedback = ba_feedback,
-    .destroy_dataset = ba_destroy_dataset
+smc_functions functions = {
+    .propose = propose,
+    .proposal_density = proposal_density,
+    .sample_dataset = sample_dataset,
+    .distance = distance,
+    .feedback = feedback,
+    .destroy_dataset = destroy_dataset
 };
 
 smc_config config = {
-    .nparam = 1,
-    .final_epsilon = 0.005,
+    .nparam = NUM_PARAMS,
+    .final_epsilon = 0.01,
     .step_tolerance = 1e-5,
     .dataset_size = sizeof(igraph_t),
-    .feedback_size = sizeof(double)
+    .feedback_size = NUM_PARAMS * sizeof(double)
 };
 
 int main (int argc, char **argv)
 {
-    int i, ntip;
+    int i;
     struct netabc_options opts = get_options(argc, argv);
     igraph_t *tree;
-    smc_result *ba_result;
-    double distance_arg[3];
+    smc_result *result;
+    double distance_arg[2];
     double sample_dataset_arg[3];
+    smc_distribution *priors = malloc(NUM_PARAMS * sizeof(smc_distribution));
+    double *prior_params = malloc(NUM_PARAMS * MAX_DIST_PARAMS * sizeof(double));
 
 #if IGRAPH_THREAD_SAFE == 0
     if (opts.nthread > 1)
@@ -362,50 +451,48 @@ int main (int argc, char **argv)
     }
 #endif
 
+    get_parameters(opts.yaml_file, priors, prior_params);
+    if (opts.yaml_file != NULL) {
+        fclose(opts.yaml_file);
+    }
+
     igraph_i_set_attribute_table(&igraph_cattribute_table);
     tree = parse_newick(opts.tree_file);
+    if (opts.tree_file != stdin) {
+        fclose(opts.tree_file);
+    }
+
     ladderize(tree);
     scale_branches(tree, MEAN);
     SETGAN(tree, "kernel", 
            kernel(tree, tree, opts.decay_factor, opts.rbf_variance, 1));
 
-    ntip = (igraph_vcount(tree) + 1) / 2;
-    
     // set up SMC configuration
     config.nparticle = opts.nparticle;
     config.ess_tolerance = opts.nparticle / 2;
     config.nsample = opts.nsample;
     config.quality = opts.quality;
 
-    config.priors = malloc(sizeof(smc_distribution));
-    config.priors[0] = UNIFORM;
-    config.prior_params = malloc(2 * sizeof(double));
-    config.prior_params[0] = ER_MEAN_DEGREE_MIN;
-    config.prior_params[1] = ER_MEAN_DEGREE_MAX;
+    config.priors = priors;
+    config.prior_params = prior_params;
 
-    sample_dataset_arg[0] = ntip;
+    sample_dataset_arg[0] = NTIP(tree);
     sample_dataset_arg[1] = opts.decay_factor;
     sample_dataset_arg[2] = opts.rbf_variance;
     config.sample_dataset_arg = &sample_dataset_arg;
 
     distance_arg[0] = opts.decay_factor;
     distance_arg[1] = opts.rbf_variance;
-    distance_arg[2] = opts.use_nltt;
     config.distance_arg = &distance_arg;
 
-    ba_result = abc_smc(config, er_functions, opts.seed, opts.nthread, tree);
-    for (i = 0; i < config.nparticle; ++i)
-        printf("%f\n", ba_result->theta[i]);
+    result = abc_smc(config, functions, opts.seed, opts.nthread, tree);
+    for (i = 0; i < config.nparticle; ++i) {
+        printf("%f\n", result->theta[i * NUM_PARAMS + EDGES]);
+    }
 
     igraph_destroy(tree);
-    smc_result_free(ba_result);
-    if (opts.tree_file != stdin) {
-        fclose(opts.tree_file);
-    }
-    if (opts.yaml_file != NULL) {
-        fclose(opts.yaml_file);
-    }
-    free(config.priors);
-    free(config.prior_params);
+    smc_result_free(result);
+    free(priors);
+    free(prior_params);
     return EXIT_SUCCESS;
 }
