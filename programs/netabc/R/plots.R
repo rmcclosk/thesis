@@ -17,7 +17,7 @@ kpca.plot <- function (kmat, color=NULL, shape=NULL, yaml=NULL)
 
 summary.plot <- function (data, x, y, facet.x=".", facet.y=".", group=NULL,
                           fun="mean", x.factor=TRUE, y.factor=FALSE,
-                          group.factor=TRUE)
+                          group.factor=TRUE, yaml=NULL)
 {
     agg.rhs <- paste(x, group, facet.x, facet.y, sep="+")
     agg.formula <- as.formula(paste0(y, "~", agg.rhs))
@@ -34,8 +34,11 @@ summary.plot <- function (data, x, y, facet.x=".", facet.y=".", group=NULL,
     if (facet.x != "." | facet.y != ".") {
         p <- p + facet_grid(as.formula(paste(facet.x, "~", facet.y)), labeller="label_both")
     }
-    p + geom_point() + geom_line() + theme_bw() +
+    p <- p + geom_point() + geom_line() + theme_bw() +
         theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+    if (!is.null(yaml))
+        p <- p + ggtitle(as.yaml(yaml.load(yaml)))
+    p
 }
 
 cluster.plot <- function (net, tree, yaml="", palette="Set1", status.only=FALSE, ...)
