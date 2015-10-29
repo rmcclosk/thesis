@@ -147,7 +147,8 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
     niter = 0;
     while (smc_work.epsilon != config.final_epsilon)
     {
-        fprintf(stderr, "%d\t%f\n", niter, smc_work.epsilon);
+        fprintf(stderr, "%d\t%f\t%f\n", niter, smc_work.epsilon,
+                (double) smc_work.accept / (double) smc_work.alive);
 
         for (i = 0; i < 10; ++i) {
             fprintf(stderr, "%f\t%f\t%f\n", smc_work.theta[(i+1) * config.nparam - 1], smc_work.X[i * config.nsample], smc_work.W[i]);
@@ -243,7 +244,6 @@ void sample(int n, double *theta, gsl_rng *rng, const smc_distribution *dist,
         {
             case UNIFORM:
                 theta[i] = gsl_ran_flat(rng, params[cur], params[cur+1]);
-                cur += 2;
                 break;
             case GAUSSIAN:
                 theta[i] = gsl_ran_gaussian(rng, params[cur]);
@@ -274,7 +274,6 @@ double density(int n, const double *theta, const smc_distribution *dist,
                     return 0;
                 }
                 dens *= 1.0 / (params[cur+1] - params[cur]);
-                cur += 2;
                 break;
             case GAUSSIAN:
                 dens *= gsl_ran_gaussian_pdf(theta[i], params[cur]);

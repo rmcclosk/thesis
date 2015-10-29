@@ -40,6 +40,7 @@ AC_CHECK_LIB([Judy], [JudyLIns], [], [AC_MSG_ERROR([Judy is required])])
 AC_CHECK_LIB([yaml], [yaml_parser_initialize], [], [AC_MSG_ERROR([libyaml is required])])
 PKG_CHECK_MODULES([GSL], [gsl >= 1.16])
 PKG_CHECK_MODULES([CHECK], [check >= 0.9.4])
+PKG_CHECK_MODULES([LIBR], [libR >= 3.0.2])
 
 # Checks for header files.
 AC_HEADER_STDC
