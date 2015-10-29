@@ -336,14 +336,17 @@ if __name__ == "__main__":
     
     expt_dir = expt["Name"]
     mkdir_p(expt_dir)
-
-    try:
-        nproc = expt["Processes"]
-    except KeyError:
-        nproc = 1
     
     sanitize(expt["Name"], con, cur)
     for step_name in iter_steps(expt):
+    
+        try:
+            nproc = expt["Steps"][step_name]["Processes"]
+        except KeyError:
+            try:
+                nproc = expt["Processes"]
+            except KeyError:
+                nproc = 1
         logging.info("Starting step {}".format(step_name))
         try:
             expt["Steps"][step_name]["Depends"] = expt["Steps"][step_name]["Depends"].split(" ")
