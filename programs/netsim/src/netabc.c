@@ -328,7 +328,7 @@ void ba_sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void 
 
 void sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void *X)
 {
-    int i;
+    int i, failed = 0;
     igraph_t net;
     igraph_t *tree = (igraph_t *) X;
     igraph_vector_t v;
@@ -365,7 +365,7 @@ void sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void *X)
     while (igraph_vcount(tree) < (ntip - 1) / 2) {
         if (i == 20) {
             fprintf(stderr, "Too many tries to simulate a tree\n");
-            tree = NULL;
+            failed = 1;
             break;
         }
         igraph_destroy(tree);
@@ -373,7 +373,10 @@ void sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void *X)
         ++i;
     }
 
-    if (tree != NULL) {
+    if (failed) {
+        memset(tree, 0, sizeof(igraph_t));
+    }
+    else {
         subsample_tips(tree, ntip, rng);
         ladderize(tree);
         scale_branches(tree, MEAN);
@@ -388,15 +391,25 @@ void sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void *X)
 
 double distance(const void *x, const void *y, const void *arg)
 {
-    if (x == NULL || y == NULL)
-        return INFINITY;
     igraph_t *gx = (igraph_t *) x;
     igraph_t *gy = (igraph_t *) y;
     double decay_factor = ((double *) arg)[0];                                   
     double rbf_variance = ((double *) arg)[1]; 
-    double kx = GAN(gx, "kernel");
-    double ky = GAN(gy, "kernel");
-    return 1.0 - kernel(gx, gy, decay_factor, rbf_variance, 1) / sqrt(kx) / sqrt(ky);
+    char *zeroes = calloc(sizeof(igraph_t), 1);
+    double kx, ky, dist;
+
+    if (memcmp(x, zeroes, sizeof(igraph_t)) == 0 ||
+        memcmp(y, zeroes, sizeof(igraph_t)) == 0) {
+        dist = INFINITY;
+    }
+    else {
+        kx = GAN(gx, "kernel");
+        ky = GAN(gy, "kernel");
+        dist = 1.0 - kernel(gx, gy, decay_factor, rbf_variance, 1) / sqrt(kx) / sqrt(ky);
+    }
+
+    free(zeroes);
+    return dist;
 }
 
 void feedback(const double *theta, int nparticle, void *params)
