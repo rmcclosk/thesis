@@ -282,7 +282,6 @@ double proposal_density(const double *from, const double *to, const void *params
     return p;
 }
 
-// TODO: this is deprecated
 void ba_sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void *X)
 {
     int i;
