@@ -2,10 +2,6 @@
 
 Automatic computation of summary statistics for ABC.
 
-## beaumont2009adaptive
-
-Automatic tolerance schedule for ABC-SMC.
-
 ## robert2011lack
 
 Problems with model selection within ABC, and steps to remedy (?).
@@ -50,3 +46,11 @@ Stochastic mapping, from Alex.
 ## del2012adaptive
 
 Adaptive tolerance schedules for ABC-SMC, from Alex.
+
+## minin2008fast
+
+Stochastic mapping, from Alex.
+
+## nielsen2002mapping
+
+Stochastic mapping, from Alex.

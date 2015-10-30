@@ -151,7 +151,7 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
                 (double) smc_work.accept / (double) smc_work.alive);
 
         for (i = 0; i < 10; ++i) {
-            fprintf(stderr, "%f\t%f\t%f\n", smc_work.theta[(i+1) * config.nparam - 1], smc_work.X[i * config.nsample], smc_work.W[i]);
+            fprintf(stderr, "%f\t%f\t%f\n", smc_work.theta[(i+1) * config.nparam - 2], smc_work.X[i * config.nsample], smc_work.W[i]);
         }
         fprintf(stderr, "\n");
 

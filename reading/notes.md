@@ -59,6 +59,10 @@ distributions?
 * Propose a M-H move on graphs, which either adds an edge, deletes an edge, or
 completes a triangle.
 
+**[@beaumont2009adaptive]**
+
+* Develops an unbiased importance sampling version of SMC.
+
 # Kernel-ABC
 
 **[@poon2015phylodynamic]**
@@ -67,6 +71,16 @@ completes a triangle.
 model much more effectively than Sackin's index (Figure 1).
 
 # Phylodynamics
+
+## Stochastic Mapping
+
+**[@nielsen2002mapping]**
+
+* Analysing reconstructed characters along a phylogeny is statistically
+unsound, because it doesn't take the uncertainty in the character estimation
+into account.
+* Simulate N mappings of mutations along the tree in proportion to their
+probability under some model, then perform inference on the set of mappings.
 
 ## Contact Networks
 
@@ -150,6 +164,21 @@ the networks are dynamic (Figure 8).
 if the incidence nand prevalence curves are very closely matched.
 * Imbalance, or rather the relationship between epidemic dynamics and
 imbalance, is significantly affected by sampling schemes (Figure 11).
+
+# ERGMs
+
+**[@robins2007introduction]**
+
+* General overview of ERGMs.
+* See Snijders et al: New specifications for exponential random graph models.
+* ERGMs offer a way to model social networks while incorporating realistic
+social dynamics.
+* Models are fitted to observed networks (we don't have this).
+* Network "ties" (ie. edges) depend on local structure.
+* We assign each configuration of interest (eg. a reciprocal tie) a parameter,
+and then equate or constrain a bunch of the parameters.
+* Markov random graph model: includes eg. edge, 2-star, 3-star, and triangle
+effects (Figure 1 and Equation 4).
 
 # Other Statistics
 
