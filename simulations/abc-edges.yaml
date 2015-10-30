@@ -63,7 +63,7 @@ Steps:
             ntip: 1000
             nthread: 20
             decay_factor: 0.3
-            rbf_variance: 5
+            rbf_variance: 10
             nparticle: 2000
             nsample: 10
             quality: 0.95
