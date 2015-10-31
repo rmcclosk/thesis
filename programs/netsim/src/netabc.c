@@ -22,6 +22,8 @@
 #define PA_POWER_MIN 0.0
 #define PA_POWER_MAX 1.0
 
+#define SIMULATE_MAX_TRIES 10
+
 struct netabc_options {
     FILE *tree_file;
     FILE *yaml_file;
@@ -135,8 +137,9 @@ typedef enum {
     SIM_TIME = 2,
     TRANSMIT_RATE = 3,
     REMOVE_RATE = 4,
+    PARETO_SHAPE = 5,
     EDGES = 5,
-    NUM_PARAMS = EDGES + 1
+    NUM_PARAMS = PARETO_SHAPE + 1
 } net_parameter;
 
 void set_parameter_defaults(smc_distribution *priors, double *prior_params)
@@ -156,9 +159,9 @@ void set_parameter_defaults(smc_distribution *priors, double *prior_params)
     priors[REMOVE_RATE] = DELTA;
     prior_params[REMOVE_RATE * MAX_DIST_PARAMS] = 0;
 
-    priors[EDGES] = UNIFORM;
-    prior_params[EDGES * MAX_DIST_PARAMS] = 0;
-    prior_params[EDGES * MAX_DIST_PARAMS + 1] = 0.1;
+    priors[PARETO_SHAPE] = UNIFORM;
+    prior_params[PARETO_SHAPE * MAX_DIST_PARAMS] = 0.5;
+    prior_params[PARETO_SHAPE * MAX_DIST_PARAMS + 1] = 2.5;
 }
 
 void get_parameters(FILE *f, smc_distribution *priors, double *prior_params)
@@ -203,8 +206,8 @@ void get_parameters(FILE *f, smc_distribution *priors, double *prior_params)
                     else if (strcmp(event.data.scalar.value, "remove") == 0) {
                         param = REMOVE_RATE;
                     }
-                    else if (strcmp(event.data.scalar.value, "edges") == 0) {
-                        param = EDGES;
+                    else if (strcmp(event.data.scalar.value, "pareto_shape") == 0) {
+                        param = PARETO_SHAPE;
                     }
                     else {
                         fprintf(stderr, "Error: unrecognized parameter \"%s\" in YAML file\n",
@@ -330,10 +333,10 @@ void ba_sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void 
 
 void sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void *X)
 {
-    int i, failed = 0;
+    int i, j, failed = 0, error, done = 0, is_graphical;
     igraph_t net;
     igraph_t *tree = (igraph_t *) X;
-    igraph_vector_t v;
+    igraph_vector_t v, s;
     igraph_rng_t igraph_rng;
     unsigned long int igraph_seed = gsl_rng_get(rng);
     int ntip = (int) ((double *) arg)[0];
@@ -346,33 +349,63 @@ void sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void *X)
     igraph_rng_set_default(&igraph_rng);
 
     igraph_vector_init(&v, theta[NNODE]);
+    igraph_vector_init(&s, theta[NNODE]);
 
-    // TODO: with more complicated models I'll have to bring in R/ergm
-    igraph_erdos_renyi_game(&net, IGRAPH_ERDOS_RENYI_GNP, theta[NNODE], theta[EDGES], 0, 0);
-    igraph_to_directed(&net, IGRAPH_TO_DIRECTED_MUTUAL);
-    
-    igraph_vector_fill(&v, 0);
-    SETVANV(&net, "remove", &v);
-    for (i = 0; i < theta[NNODE]; ++i) {
-        VECTOR(v)[i] = i;
-    }
-    SETVANV(&net, "id", &v);
-
-    igraph_vector_resize(&v, igraph_ecount(&net));
-    igraph_vector_fill(&v, theta[TRANSMIT_RATE]);
-    SETEANV(&net, "transmit", &v);
-    
-    simulate_phylogeny(tree, &net, rng, theta[SIM_TIME], theta[NSIMNODE], 1);
+    igraph_set_error_handler(igraph_error_handler_ignore);
     i = 0;
-    while (igraph_vcount(tree) < (ntip - 1) / 2) {
-        if (i == 20) {
-            fprintf(stderr, "Too many tries to simulate a tree\n");
+    while (!done) {
+        if (i == SIMULATE_MAX_TRIES) {
+            fprintf(stderr, "Too many tries to generate a network with parameter %f\n",
+                            theta[PARETO_SHAPE]);
             failed = 1;
             break;
         }
-        igraph_destroy(tree);
-        simulate_phylogeny(tree, &net, rng, theta[SIM_TIME], theta[NSIMNODE], 1);
+
+        for (j = 0; j < theta[NNODE]; ++j) {
+            VECTOR(s)[j] = floor(gsl_ran_pareto(rng, theta[PARETO_SHAPE], 1));
+        }
+        igraph_is_graphical_degree_sequence(&s, NULL, &is_graphical);
+        if (!is_graphical) {
+            VECTOR(s)[0] += 1;
+        }
+        igraph_is_graphical_degree_sequence(&s, NULL, &is_graphical);
+        if (is_graphical)
+        {
+            done = !igraph_degree_sequence_game(&net, &s, NULL, IGRAPH_DEGSEQ_VL);
+        }
         ++i;
+    }
+    igraph_set_error_handler(igraph_error_handler_abort);
+
+    if (!failed)
+    {
+        igraph_to_directed(&net, IGRAPH_TO_DIRECTED_MUTUAL);
+        
+        igraph_vector_fill(&v, 0);
+        SETVANV(&net, "remove", &v);
+        for (i = 0; i < theta[NNODE]; ++i) {
+            VECTOR(v)[i] = i;
+        }
+        SETVANV(&net, "id", &v);
+    
+        igraph_vector_resize(&v, igraph_ecount(&net));
+        igraph_vector_fill(&v, theta[TRANSMIT_RATE]);
+        SETEANV(&net, "transmit", &v);
+        
+        simulate_phylogeny(tree, &net, rng, theta[SIM_TIME], theta[NSIMNODE], 1);
+        i = 0;
+        while (igraph_vcount(tree) < (ntip - 1) / 2) {
+            if (i == SIMULATE_MAX_TRIES) {
+                fprintf(stderr, "Too many tries to simulate a tree with parameter %f\n",
+                        theta[PARETO_SHAPE]);
+                failed = 1;
+                break;
+            }
+            igraph_destroy(tree);
+            simulate_phylogeny(tree, &net, rng, theta[SIM_TIME], theta[NSIMNODE], 1);
+            ++i;
+        }
+        igraph_destroy(&net);
     }
 
     if (failed) {
@@ -388,7 +421,6 @@ void sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void *X)
     igraph_rng_set_default(igraph_rng_default());
     igraph_rng_destroy(&igraph_rng);
     igraph_vector_destroy(&v);
-    igraph_destroy(&net);
 }
 
 double distance(const void *x, const void *y, const void *arg)
@@ -425,7 +457,11 @@ void feedback(const double *theta, int nparticle, void *params)
 
 void destroy_dataset(void *z)
 {
-    igraph_destroy((igraph_t *) z);
+    char *zeroes = calloc(sizeof(igraph_t), 1);
+    if (memcmp(z, zeroes, sizeof(igraph_t)) != 0) {
+        igraph_destroy((igraph_t *) z);
+    }
+    free(zeroes);
 }
 
 smc_functions functions = {
@@ -466,12 +502,13 @@ int main (int argc, char **argv)
     }
 #endif
 
+    igraph_i_set_attribute_table(&igraph_cattribute_table);
+
     get_parameters(opts.yaml_file, priors, prior_params);
     if (opts.yaml_file != NULL) {
         fclose(opts.yaml_file);
     }
 
-    igraph_i_set_attribute_table(&igraph_cattribute_table);
     tree = parse_newick(opts.tree_file);
     if (opts.tree_file != stdin) {
         fclose(opts.tree_file);

@@ -37,6 +37,7 @@ typedef struct {
 
     int accept;                     /**< number of accepted proposals */
     int alive;                      /**< number of alive particles */
+    int ninit;                      /**< number of initialized particles */
 } smc_workspace;
 
 /** Arguments to the perturb function.
@@ -56,6 +57,7 @@ smc_workspace smc_work;
 /* Mutexes for data which will be accessed by many threads. */
 pthread_mutex_t smc_accept_mutex;
 pthread_mutex_t smc_alive_mutex;
+pthread_mutex_t smc_ninit_mutex;
 
 void resample(void);
 double next_epsilon(void);
@@ -99,6 +101,7 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
     // initialize pthread things
     pthread_mutex_init(&smc_accept_mutex, NULL);
     pthread_mutex_init(&smc_alive_mutex, NULL);
+    pthread_mutex_init(&smc_ninit_mutex, NULL);
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
@@ -137,6 +140,7 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
 
     // step 0: sample particles from prior
     // TODO: handle errors properly
+    smc_work.ninit = 0;
     for (i = 0; i < nthread; ++i) {
         status = pthread_create(&threads[i], &attr, initialize, (void *) &thread_args[i]);
     }
@@ -205,6 +209,7 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
     // clean up everything else
     pthread_mutex_destroy(&smc_accept_mutex);
     pthread_mutex_destroy(&smc_alive_mutex);
+    pthread_mutex_destroy(&smc_ninit_mutex);
     pthread_attr_destroy(&attr);
     free(threads);
     free(thread_args);
@@ -455,6 +460,12 @@ void *initialize(void *args)
             smc_work.X[i * nsample + j] = smc_work.functions->distance(z, smc_work.data, smc_work.config->distance_arg);
             smc_work.functions->destroy_dataset(z);
         }
+        pthread_mutex_lock(&smc_ninit_mutex);
+        ++smc_work.ninit;
+        if (smc_work.ninit % 100 == 0) {
+            fprintf(stderr, "Initialized %d particles\n", smc_work.ninit);
+        }
+        pthread_mutex_unlock(&smc_ninit_mutex);
     }
 }
 
