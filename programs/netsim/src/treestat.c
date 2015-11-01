@@ -254,7 +254,12 @@ int main (int argc, char **argv)
             }
             break;
         case TREESTAT_BMI:
-            s = width(t) / height(t);
+            if (!igraph_ecount(t)) {
+                s = 1;
+            }
+            else {
+                s = width(t) / height(t);
+            }
             break;
         case TREESTAT_MAX_DELTA_WIDTH:
             s = max_delta_width(t);

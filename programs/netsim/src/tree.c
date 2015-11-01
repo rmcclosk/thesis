@@ -103,6 +103,10 @@ double height(const igraph_t *tree)
     igraph_vector_t work;
     double ht;
 
+    if (!igraph_ecount(tree)) {
+        return 0;
+    }
+
     igraph_vector_init(&work, 2);
     ht = _height(tree, &work, root(tree));
     igraph_vector_destroy(&work);
@@ -128,6 +132,10 @@ double scale_branches(igraph_t *tree, scaling mode)
     int i;
     double scale;
     igraph_vector_t vec;
+    if (!igraph_ecount(tree)) {
+        return 1;
+    }
+
     igraph_vector_init(&vec, igraph_vcount(tree));
 
     EANV(tree, "length", &vec);
