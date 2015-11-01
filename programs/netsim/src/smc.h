@@ -44,7 +44,8 @@ typedef struct {
     int niter;
     double *epsilon;
     double *acceptance_rate;
-    double *theta;
+    double **theta;
+    double **W;
 } smc_result;
 
 /** Perform ABC-SMC.

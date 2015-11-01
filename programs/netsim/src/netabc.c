@@ -25,6 +25,7 @@
 struct netabc_options {
     FILE *tree_file;
     FILE *yaml_file;
+    FILE *trace_file;
     int nthread;
     int seed;
     int nparticle;
@@ -59,6 +60,7 @@ void usage(void)
     fprintf(stderr, "  -n, --num-particles       number of particles for SMC\n");
     fprintf(stderr, "  -p, --num-samples         number of sampled datasets per particle\n");
     fprintf(stderr, "  -q, --quality             tradeoff between speed and accuracy (0.9=fast, 0.99=accurate)\n");
+    fprintf(stderr, "  -d, --trace               write population and weights at each iteration to this file\n");
 }
 
 struct netabc_options get_options(int argc, char **argv)
@@ -67,6 +69,7 @@ struct netabc_options get_options(int argc, char **argv)
     struct netabc_options opts = {
         .tree_file = stdin,
         .yaml_file = NULL,
+        .trace_file = NULL,
         .nthread = 1,
         .seed = -1,
         .decay_factor = 0.2,
@@ -78,7 +81,7 @@ struct netabc_options get_options(int argc, char **argv)
 
     while (c != -1)
     {
-        c = getopt_long(argc, argv, "hg:l:n:p:q:s:t:", long_options, &i);
+        c = getopt_long(argc, argv, "hd:g:l:n:p:q:s:t:", long_options, &i);
         if (c == -1)
             break;
 
@@ -89,6 +92,9 @@ struct netabc_options get_options(int argc, char **argv)
             case 'h':
                 usage();
                 exit(EXIT_SUCCESS);
+            case 'd':
+                opts.trace_file = fopen(optarg, "w");
+                break;
             case 'g':
                 opts.rbf_variance = atof(optarg);
                 break;
@@ -446,7 +452,7 @@ smc_config config = {
 
 int main (int argc, char **argv)
 {
-    int i;
+    int i, j, k;
     struct netabc_options opts = get_options(argc, argv);
     igraph_t *tree;
     smc_result *result;
@@ -500,8 +506,28 @@ int main (int argc, char **argv)
     config.distance_arg = &distance_arg;
 
     result = abc_smc(config, functions, opts.seed, opts.nthread, tree);
+    if (opts.trace_file != NULL) {
+        fprintf(opts.trace_file, "iter\tweight");
+        for (i = 0; i < config.nparam; ++i)
+        {
+            fprintf(opts.trace_file, "\ttheta%d", i);
+        }
+        fprintf(opts.trace_file, "\n");
+        for (i = 0; i <= result->niter; ++i)
+        {
+            for (j = 0; j < config.nparticle; ++j) {
+                fprintf(opts.trace_file, "%d\t%f", i, result->W[i][j]);
+                for (k = 0; k < config.nparam; ++k) {
+                    fprintf(opts.trace_file, "\t%f", result->theta[i][j * config.nparam + k]);
+                }
+                fprintf(opts.trace_file, "\n");
+            }
+        }
+        fclose(opts.trace_file);
+    }
+
     for (i = 0; i < config.nparticle; ++i) {
-        printf("%f\n", result->theta[i * NUM_PARAMS + EDGES]);
+        printf("%f\n", result->theta[result->niter][i * NUM_PARAMS + EDGES]);
     }
 
     igraph_destroy(tree);

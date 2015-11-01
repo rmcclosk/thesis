@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <gsl/gsl_roots.h>
 #include <gsl/gsl_randist.h>
+#include <gsl/gsl_statistics_double.h>
 #include "smc.h"
 #include "util.h"
 
@@ -95,6 +96,8 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
     pthread_attr_t attr;
 
     smc_result *result = malloc(sizeof(smc_result));
+    result->theta = malloc(RESIZE_AMOUNT * sizeof(double*));
+    result->W = malloc(RESIZE_AMOUNT * sizeof(double*));
 
     // initialize pthread things
     pthread_mutex_init(&smc_accept_mutex, NULL);
@@ -150,8 +153,10 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
         fprintf(stderr, "%d\t%f\t%f\n", niter, smc_work.epsilon,
                 (double) smc_work.accept / (double) smc_work.alive);
 
-        for (i = 0; i < 10; ++i) {
-            fprintf(stderr, "%f\t%f\t%f\n", smc_work.theta[(i+1) * config.nparam - 1], smc_work.X[i * config.nsample], smc_work.W[i]);
+        for (i = 0; i < config.nparam; ++i) {
+            fprintf(stderr, "theta%d: mean = %f, variance = %f\n", i, 
+                    gsl_stats_mean(&theta[i], config.nparam, config.nparticle),
+                    gsl_stats_variance(&theta[i], config.nparam, config.nparticle));
         }
         fprintf(stderr, "\n");
 
@@ -180,7 +185,11 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
             status = pthread_join(threads[i], NULL);
         }
 
-        // trace tolerance and acceptance rates
+        // record everything
+        result->theta[niter] = malloc(config.nparticle * config.nparam * sizeof(double));
+        memcpy(result->theta[niter], theta, config.nparticle * config.nparam * sizeof(double));
+        result->W[niter] = malloc(config.nparticle * sizeof(double));
+        memcpy(result->W[niter], W, config.nparticle * sizeof(double));
         epsilons[niter] = smc_work.epsilon;
         accept_rate[niter++] = (double) smc_work.accept / (double) smc_work.alive;
 
@@ -190,17 +199,23 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
             new_size = RESIZE_AMOUNT * (niter / RESIZE_AMOUNT + 1) * sizeof(double);
             epsilons = safe_realloc(epsilons, new_size);
             accept_rate = safe_realloc(accept_rate, new_size);
+            new_size = RESIZE_AMOUNT * (niter / RESIZE_AMOUNT + 1) * sizeof(double*);
+            result->theta = safe_realloc(result->theta, new_size);
+            result->W = safe_realloc(result->W, new_size);
         }
     }
 
     // finally, sample from the estitmated posterior
     resample();
+    result->theta[niter] = malloc(config.nparticle * config.nparam * sizeof(double));
+    memcpy(result->theta[niter], theta, config.nparticle * config.nparam * sizeof(double));
+    result->W[niter] = malloc(config.nparticle * sizeof(double));
+    memcpy(result->W[niter], W, config.nparticle * sizeof(double));
 
     // keep the trace information and final population
     result->niter = niter;
     result->epsilon = epsilons;
     result->acceptance_rate = accept_rate;
-    result->theta = theta;
 
     // clean up everything else
     pthread_mutex_destroy(&smc_accept_mutex);
@@ -214,6 +229,7 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
     gsl_rng_free(rng);
     free(z);
     free(fdbk);
+    free(theta);
     free(new_theta);
     free(X);
     free(new_X);
