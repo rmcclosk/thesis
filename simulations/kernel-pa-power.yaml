@@ -137,6 +137,9 @@ Steps:
     classifier:
         Extension: tsv
         Parameters:
+            nnode: 5000
+            mean_degree: 4
+            nsimnode: 1000
             ntip: [100, 500, 1000]
             branch_scaling: mean
             decay_factor: [0.2, 0.3, 0.4, 0.5]
@@ -161,6 +164,9 @@ Steps:
     crossv-plot:
         Extension: pdf
         Parameters:
+            nnode: 5000
+            mean_degree: 4
+            nsimnode: 1000
             ntip: [100, 500, 1000]
             branch_scaling: mean
             ncrossv: 1000

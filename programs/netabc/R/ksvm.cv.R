@@ -1,19 +1,14 @@
 # http://stackoverflow.com/questions/1753299/help-using-predict-for-kernlabs-svm-in-r
-ksvm.cv <- function (kmat, y, n.cv=1000, stats=c("accuracy"), show.progress=TRUE, nthread=1)
+ksvm.cv <- function (kmat, y, n.cv=1000, stats=c("accuracy"), show.progress=TRUE, nthread=1,
+                     ksvm.type=ifelse(is.factor(y), "C-svc", "eps-svr"))
 {
-    if (is.factor(y))
-    {
+    if (is.factor(y)) {
         allowed.stats <- c("accuracy")
-        ksvm.type <- "C-svc"
-    } 
-    else 
-    {
+    } else {
         allowed.stats <- c("rsquared")
-        ksvm.type <- "eps-svr"
     }
 
-    if (!all(stats %in% allowed.stats))
-    {
+    if (!all(stats %in% allowed.stats)) {
         bad.stats <- paste0(stats[!stats %in% allowed.stats], collapse=", ")
         stop(sprintf("Unrecognized statistics: %s", bad.stats))
     }
@@ -23,8 +18,9 @@ ksvm.cv <- function (kmat, y, n.cv=1000, stats=c("accuracy"), show.progress=TRUE
         rsquared = function (pred, y) cor.test(pred, y)$estimate^2
     )
 
-    if (show.progress)
+    if (show.progress) {
         pb <- txtProgressBar(max=n.cv-1, style=3, file=stderr())
+    }
 
     result <- do.call(rbind, mclapply(1:n.cv, function (i) {
         holdout <- sample.int(nrow(kmat), nrow(kmat)/2)
