@@ -47,6 +47,7 @@ struct option long_options[] =
     {"num-particles", required_argument, 0, 'n'},
     {"num-samples", required_argument, 0, 'p'},
     {"quality", required_argument, 0, 'q'},
+    {"trace", required_argument, 0, 'd'},
     {0, 0, 0, 0}
 };
 

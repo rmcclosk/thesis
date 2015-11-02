@@ -33,18 +33,18 @@ Steps:
         Parameters:
             nnode: 5000
             pareto_shape: [1, 1.5, 2]
-            ntip: 100
+            ntip: [100, 1000]
             nsimnode: 1000
             seed: !!python/object/apply:__builtin__.xrange [0, 100, 1]
         Depends: network
         Interpreter: bash
         Rule: |
             echo "#{yaml}" > {tree}
-            nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed `echo {seed}+{pareto_shape}*100 | bc` {network} >> {tree}
+            nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed `echo {seed}+{pareto_shape}*{ntip} | bc` {network} >> {tree}
             i=0
             while [[ `treestat -i -s ntip {tree}` -lt {ntip} ]]; do
                 echo "#{yaml}" > {tree}
-                nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed `echo {seed}+{pareto_shape}*\(100+$i\) | bc` {network} >> {tree}
+                nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed `echo {seed}+{pareto_shape}*\({ntip}+$i\) | bc` {network} >> {tree}
                 i=$(($i+1))
             done
 
@@ -69,15 +69,22 @@ Steps:
             pareto_shape: [1, 1.5, 2]
             seed: 0
             nsimnode: 1000
-            ntip: 100
+            ntip: [100, 1000]
             nthread: 8
             decay_factor: 0.4
-            rbf_variance: 1
+            rbf_variance: [1, 10]
             nparticle: 1000
             nsample: 5
             quality: 0.95
             shape_min: 1
             shape_max: 2
+        Exclusions:
+            -
+                ntip: 100
+                rbf_variance: 10
+            -
+                ntip: 1000
+                rbf_variance: 1
         Depends: tree abc-config
         Interpreter: bash
         Rule: |
@@ -85,7 +92,7 @@ Steps:
             netabc --num-threads {nthread} --decay-factor {decay_factor} \
                    --rbf-variance {rbf_variance} --num-particles {nparticle} \
                    --num-samples {nsample} --quality {quality} --seed {seed} \
-                   {tree} {abc-config} >> {abc}
+                   --trace {abc} {tree} {abc-config} 
 
     density-plot:
         Extension: pdf
@@ -97,20 +104,34 @@ Steps:
             ntip: 100
             nthread: 8
             decay_factor: 0.4
-            rbf_variance: 1
+            rbf_variance: [1, 10]
             nparticle: 1000
             nsample: 5
             quality: 0.95
             shape_min: 1
             shape_max: 2
+        Exclusions:
+            -
+                ntip: 100
+                rbf_variance: 10
+            -
+                ntip: 1000
+                rbf_variance: 1
         Depends: abc
         Interpreter: R --vanilla --silent
         Startup: library(yaml)
         Rule: |
             yaml <- "{yaml}"
-            p <- read.table("{abc}")[,1]
+            d <- read.table("{abc}", header=TRUE)
+            posterior <- by(d, d$iter, function (by.d) with(by.d, sample(theta5, prob=weight, replace=TRUE)))
+            dens <- lapply(posterior, density)
             pdf("{density-plot}")
-            plot(density(p), xlab="edges", ylab="posterior density",
-                 main=paste(strwrap(as.yaml(yaml.load(yaml)), 60), collapse="\n"))
-            abline(v={pareto_shape}, col="red")
+            par(mfrow=c(2, 3), mar=c(0, 0, 4.1, 0))
+            for (i in 1:length(dens)) {{
+                plot(dens[[i]], main=NA) 
+                abline(v={pareto_shape}, col="red")
+                if (i %% 6 == 0) {{
+                    title(paste(strwrap(as.yaml(yaml.load(yaml)), 60), collapse="\n"), outer=TRUE)
+                }}
+            }}
             dev.off()
