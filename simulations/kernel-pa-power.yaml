@@ -96,7 +96,7 @@ Steps:
             nsimnode: 1000
             ntip: [100, 500, 1000]
             branch_scaling: mean
-            decay_factor: [0.1, 0.2, 0.3, 0.4, 0.5]
+            decay_factor: [0.1, 0.2, 0.3, 0.4]
             rbf_variance: ["1e-2", 0.0625, 0.125, 1, 2, 5, 10]
         Depends: tree
         Interpreter: bash
@@ -123,7 +123,7 @@ Steps:
             nsimnode: 1000
             ntip: [100, 500, 1000]
             branch_scaling: mean
-            decay_factor: [0.1, 0.2, 0.3, 0.4, 0.5]
+            decay_factor: [0.1, 0.2, 0.3, 0.4]
             rbf_variance: ["1e-2", 0.0625, 0.125, 1, 2, 5, 10]
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
@@ -142,7 +142,7 @@ Steps:
             nsimnode: 1000
             ntip: [100, 500, 1000]
             branch_scaling: mean
-            decay_factor: [0.2, 0.3, 0.4, 0.5]
+            decay_factor: [0.2, 0.3, 0.4]
             rbf_variance: ["1e-2", 0.0625, 0.125, 1, 2, 5, 10]
             ncrossv: 1000
             response: ["continuous"]

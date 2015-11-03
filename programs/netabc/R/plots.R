@@ -30,11 +30,11 @@ summary.plot <- function (data, x, y, facet.x=".", facet.y=".", group=NULL,
     if (!is.null(group) & group.factor)
         plot.data[,group] <- as.factor(plot.data[,group])
 
-    p <- ggplot(plot.data, aes_string(x=x, y=y, color=group, group=group))
+    p <- ggplot(plot.data, aes_string(x=x, y=y, color=group, shape=group, group=group))
     if (facet.x != "." | facet.y != ".") {
         p <- p + facet_grid(as.formula(paste(facet.x, "~", facet.y)), labeller="label_both")
     }
-    p <- p + geom_point() + geom_line() + theme_bw() +
+    p <- p + geom_point(size=3) + geom_line() + theme_bw() +
         theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
     if (!is.null(yaml))
         p <- p + ggtitle(as.yaml(yaml.load(yaml)))
