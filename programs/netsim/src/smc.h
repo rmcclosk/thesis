@@ -59,11 +59,12 @@ typedef struct {
  * \param[in] seed random seed (if negative, use time)
  * \panam[in] nthread number of threads to use
  * \param[in] data true data
+ * \param[in] trace_file file to record particle populations to at each iteration
  * \return an smc_result object with the posterior distribution (theta) and
  * other information about the run
  */
 smc_result *abc_smc(const smc_config config, const smc_functions functions,
-                    int seed, int nthread, const void *data);
+                    int seed, int nthread, const void *data, FILE *trace_file);
 
 /** Free an smc_result object.
  *

@@ -72,7 +72,7 @@ double density(int n, const double *theta, const smc_distribution *dist,
 // see Del Moral et al. 2012: An adaptive sequential Monte Carlo method for
 // approximate Bayesian computation
 smc_result *abc_smc(const smc_config config, const smc_functions functions,
-                    int seed, int nthread, const void *data)
+                    int seed, int nthread, const void *data, FILE *trace_file)
 {
     // allocate space for the data in the workspace
     char *z = malloc(config.dataset_size * nthread);
@@ -153,13 +153,6 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
         fprintf(stderr, "%d\t%f\t%f\n", niter, smc_work.epsilon,
                 (double) smc_work.accept / (double) smc_work.alive);
 
-        for (i = 0; i < config.nparam; ++i) {
-            fprintf(stderr, "theta%d: mean = %f, variance = %f\n", i, 
-                    gsl_stats_mean(&theta[i], config.nparam, config.nparticle),
-                    gsl_stats_variance(&theta[i], config.nparam, config.nparticle));
-        }
-        fprintf(stderr, "\n");
-
         smc_work.accept = 0;
         smc_work.alive = 0;
 
@@ -191,7 +184,19 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
         result->W[niter] = malloc(config.nparticle * sizeof(double));
         memcpy(result->W[niter], W, config.nparticle * sizeof(double));
         epsilons[niter] = smc_work.epsilon;
-        accept_rate[niter++] = (double) smc_work.accept / (double) smc_work.alive;
+        accept_rate[niter] = (double) smc_work.accept / (double) smc_work.alive;
+
+        if (trace_file != NULL) {
+            for (i = 0; i < config.nparticle; ++i) {
+                fprintf(trace_file, "%d\t%f", niter, W[i]);
+                for (j = 0; j < config.nparam; ++j) {
+                    fprintf(trace_file, "\t%f", theta[i * config.nparam + j]);
+                }
+                fprintf(trace_file, "\n");
+            }
+        }
+
+        ++niter;
 
         // allocate more space if necessary
         if (niter % RESIZE_AMOUNT == 0)

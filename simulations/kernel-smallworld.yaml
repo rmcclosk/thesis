@@ -152,7 +152,7 @@ Steps:
             k <- read.mm("{kernel-matrix}")
             y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"ws_prob"]
             if ("{response}" == "continuous") {{
-                results <- ksvm.cv(k, y, n.cv={ncrossv}, stats=c("rsquared"), ksvm.type="beps-svr")
+                results <- ksvm.cv(k, y, n.cv={ncrossv}, stats=c("rsquared"), ksvm.type="eps-bsvr")
             }} else {{
                 y <- as.factor(y)
                 results <- ksvm.cv(k, y, n.cv={ncrossv}, stats=c("accuracy"))
