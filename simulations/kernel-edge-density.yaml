@@ -87,32 +87,6 @@ Steps:
                 ggtitle(as.yaml(yaml.load("{yaml}")))
             ggsave("{stats-plot}")
 
-    stats-classifier:
-        Extension: tsv
-        Parameters:
-            nnode: 5000
-            nsimnode: 1000
-            ntip: [100, 500, 1000]
-            branch_scaling: mean
-            decay_factor: [0.2, 0.3, 0.4]
-            rbf_variance: [0.5, 1, 2, 5]
-            ncrossv: 1000
-            response: ["discrete", "continuous"]
-        Depends: statistics tree
-        Interpreter: R --silent --vanilla
-        Startup: suppressPackageStartupMessages(library(netabc))
-        Rule: |
-            d <- read.table("{statistics}", header=TRUE)
-            y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"mean_degree"]
-            if ("{response}" == "continuous") {{
-                results <- lm.cv(d, y, n.cv={ncrossv}, stats=c("rsquared"))
-            }} else {{
-                y <- as.factor(y)
-                results <- rpart.cv(d, y, n.cv={ncrossv}, stats=c("accuracy"))
-            }}
-            cat("#{yaml}\n", file="{classifier}")
-            write.tsv(results, "{classifier}", append=TRUE)
-
     kernel-matrix:
         Extension: mtx
         Parameters:
@@ -120,8 +94,8 @@ Steps:
             nsimnode: 1000
             ntip: [100, 500, 1000]
             branch_scaling: mean
-            decay_factor: [0.2, 0.3, 0.4]
-            rbf_variance: [0.5, 1, 2, 5]
+            decay_factor: [0.2, 0.3, 0.4, 0.5]
+            rbf_variance: [0.5, 1, 2, 5, 10]
         Depends: tree
         Interpreter: bash
         Rule: |
@@ -139,6 +113,24 @@ Steps:
                 done
             done
 
+    kpca-plot:
+        Extension: pdf
+        Parameters:
+            nnode: 5000
+            nsimnode: 1000
+            ntip: [100, 500, 1000]
+            branch_scaling: mean
+            decay_factor: [0.2, 0.3, 0.4, 0.5]
+            rbf_variance: [0.5, 1, 2, 5, 10]
+        Depends: kernel-matrix tree
+        Interpreter: R --vanilla --silent
+        Startup: library(netabc)
+        Rule: |
+            k <- read.mm("{kernel-matrix}")
+            y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"mean_degree"]
+            kpca.plot(k, color=list(mean.degree=y), yaml="{yaml}")
+            ggsave("{kpca-plot}")
+
     classifier:
         Extension: tsv
         Parameters:
@@ -146,10 +138,10 @@ Steps:
             nsimnode: 1000
             ntip: [100, 500, 1000]
             branch_scaling: mean
-            decay_factor: [0.2, 0.3, 0.4]
-            rbf_variance: [0.5, 1, 2, 5]
+            decay_factor: [0.2, 0.3, 0.4, 0.5]
+            rbf_variance: [0.5, 1, 2, 5, 10]
             ncrossv: 1000
-            response: ["discrete", "continuous"]
+            response: ["continuous"]
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
@@ -164,3 +156,26 @@ Steps:
             }}
             cat("#{yaml}\n", file="{classifier}")
             write.tsv(results, "{classifier}", append=TRUE)
+
+    crossv-plot:
+        Extension: pdf
+        Parameters:
+            nnode: 5000
+            nsimnode: 1000
+            ntip: [100, 500, 1000]
+            branch_scaling: mean
+            ncrossv: 1000
+            response: ["continuous"]
+        Depends: classifier 
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            d <- collect.data(strsplit("{classifier}", " ")[[1]])
+            if ("{response}" == "continuous") {{
+                summary.plot(d, x="rbf_variance", y="rsquared", group="decay_factor", 
+                             fun="mean", yaml="{yaml}")
+            }} else {{
+                summary.plot(d, x="rbf_variance", y="accuracy", group="decay_factor", 
+                             fun="mean", yaml="{yaml}")
+            }}
+            ggsave("{crossv-plot}", width=10)

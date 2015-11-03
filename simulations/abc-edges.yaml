@@ -50,7 +50,7 @@ Steps:
             echo "sim_nodes: {nsimnode}" >> {abc-config}
             EDGE_DENSITY_MIN=`echo {mean_degree_min}/{nnode} | bc -l`
             EDGE_DENSITY_MAX=`echo {mean_degree_max}/{nnode} | bc -l`
-            echo "pr_edge: [\"uniform\", $EDGE_DENSITY_MIN, $EDGE_DENSITY_MAX]" >> {abc-config}
+            echo "edges: [\"uniform\", $EDGE_DENSITY_MIN, $EDGE_DENSITY_MAX]" >> {abc-config}
 
     abc:
         Extension: tsv
@@ -75,5 +75,21 @@ Steps:
             echo "#{yaml}" > {abc}
             netabc --num-threads {nthread} --decay-factor {decay_factor} \
                    --rbf-variance {rbf_variance} --num-particles {nparticle} \
-                   --num-samples {nsample} --quality {quality} --net-type gnp \
-                   --trace {abc} {tree} {abc-config} 
+                   --num-samples {nsample} --quality {quality} {tree} {abc-config} >> {abc}
+
+    density-plot:
+        Extension: pdf
+        Parameters:
+            nnode: 5000
+            mean_degree: [2, 5, 8]
+        Depends: abc
+        Interpreter: R --vanilla --silent
+        Startup: library(yaml)
+        Rule: |
+            yaml <- "{yaml}"
+            p <- read.table("{abc}")[,1]
+            pdf("{density-plot}")
+            plot(density(p), xlab="edges", ylab="posterior density",
+                 main=paste(strwrap(as.yaml(yaml.load(yaml)), 60), collapse="\n"))
+            abline(v={mean_degree}/{nnode}, col="red")
+            dev.off()
