@@ -115,7 +115,7 @@ START_TEST (test_smc_toy_steps)
     };
 
     toy_setup_config(&toy_config);
-    smc_result *res = abc_smc(toy_config, toy_functions, 0, 8, (void *) &y);
+    smc_result *res = abc_smc(toy_config, toy_functions, 0, 8, (void *) &y, NULL);
 
     fprintf(stderr, "%d steps\n", res->niter);
     plot(&res->epsilon[1], NULL, res->niter-1, "check_smc_epsilon.pdf", 
@@ -144,13 +144,13 @@ START_TEST (test_smc_toy)
     };
 
     toy_setup_config(&config);
-    smc_result *res = abc_smc(config, toy_functions, 0, 1, (void *) &y);
+    smc_result *res = abc_smc(config, toy_functions, 0, 1, (void *) &y, NULL);
 
     for (i = 0; i < config.nparticle; ++i) {
-        ck_assert(res->theta[i] > -10 && res->theta[i] < 10);
+        ck_assert(res->theta[res->niter][i] > -10 && res->theta[res->niter][i] < 10);
     }
 
-    plot(res->theta, NULL, config.nparticle, "check_smc_hist.pdf",
+    plot(res->theta[res->niter], NULL, config.nparticle, "check_smc_hist.pdf",
          "plot(density(d[,1]), xlim=c(-3, 3), ylim=c(0, 2.5), xlab=\"theta\", ylab=\"density\", main=NA); polygon(density(d[,1]), col=\"gray\"); x <- seq(-3, 3, 0.01); lines(x, 0.5*dnorm(x, sd=1) + 0.5*dnorm(x, sd=0.1))");
     smc_result_free(res);
     free(config.priors);
