@@ -1,6 +1,6 @@
 Name: kernel-edge-density
 Description: Testing if the tree kernel can detect the edge density parameter in a random graph
-Processes: 20
+Processes: 6
 Steps:
     network:
         Extension: gml

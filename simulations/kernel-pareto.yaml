@@ -139,7 +139,7 @@ Steps:
             decay_factor: [0.2, 0.3, 0.4, 0.5]
             rbf_variance: [0.5, 1, 2, 5, 10, 20]
             ncrossv: 1000
-            response: ["discrete", "continuous"]
+            response: ["continuous"]
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
@@ -161,7 +161,7 @@ Steps:
             ntip: [100, 500, 1000]
             branch_scaling: mean
             ncrossv: 1000
-            response: ["discrete", "continuous"]
+            response: ["continuous"]
         Depends: classifier 
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))

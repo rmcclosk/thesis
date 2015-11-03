@@ -1,6 +1,6 @@
 Name: kernel-shapes
 Description: Test if the tree kernel can distinguish trees from differently shaped networks
-Processes: 20
+Processes: 6
 Steps:
     network:
         Extension: gml
