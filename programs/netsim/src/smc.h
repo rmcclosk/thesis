@@ -18,6 +18,7 @@ typedef struct {
     int ess_tolerance; /**< ESS below this value triggers resampling */
 
     double final_epsilon; /**< tolerance level to end at */
+    double final_accept_rate; /**< MCMC acceptance rate to stop at */
     double quality; /**< between 0 and 1, where 0 is fast and coarse, 1 is slow and accurate */
     double step_tolerance; /**< tolerance for bisection solution of next epsilon */
 

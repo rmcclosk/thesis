@@ -169,8 +169,6 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
         functions.feedback(smc_work.theta, config.nparticle, fdbk);
         smc_work.accept = 0;
         smc_work.alive = 0;
-
-        // TODO: handle errors properly
         for (i = 0; i < nthread; ++i) {
             status = pthread_create(&threads[i], &attr, perturb, (void *) &thread_args[i]);
         }
@@ -192,8 +190,17 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
                 for (j = 0; j < config.nparam; ++j) {
                     fprintf(trace_file, "\t%f", theta[i * config.nparam + j]);
                 }
+                for (j = 0; j < config.nsample; ++j) {
+                    fprintf(trace_file, "\t%f", X[i * config.nsample + j]);
+                }
                 fprintf(trace_file, "\n");
             }
+        }
+
+        // if acceptance probability is low enough, we're done
+        if (accept_rate[niter] <= config.final_accept_rate) {
+            smc_work.epsilon = config.final_epsilon;
+            break;
         }
 
         ++niter;
@@ -245,9 +252,16 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
 
 void smc_result_free(smc_result *r)
 {
+    int i;
     free(r->epsilon);
     free(r->acceptance_rate);
+
+    for (i = 0; i <= r->niter; ++i) {
+        free(r->theta[i]);
+        free(r->W[i]);
+    }
     free(r->theta);
+    free(r->W);
     free(r);
 }
 

@@ -28,7 +28,6 @@ arx
 __pycache__
 *.mtx
 *.tsv
-*.sqlite
 *.par
 *.err
 *-journal

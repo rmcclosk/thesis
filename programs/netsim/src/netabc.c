@@ -39,6 +39,7 @@ struct netabc_options {
     double rbf_variance;
     double quality;
     double final_epsilon;
+    double final_accept_rate;
 };
 
 struct option long_options[] =
@@ -54,6 +55,7 @@ struct option long_options[] =
     {"trace", required_argument, 0, 'd'},
     {"net-type", required_argument, 0, 'm'},
     {"final-epsilon", required_argument, 0, 'e'},
+    {"final-accept-rate", required_argument, 0, 'a'},
     {0, 0, 0, 0}
 };
 
@@ -94,6 +96,7 @@ void usage(void)
     fprintf(stderr, "  -d, --trace               write population and weights at each iteration to this file\n");
     fprintf(stderr, "  -m, --net-type            type of network (pa/gnp/sw/pareto)\n");
     fprintf(stderr, "  -e, --final-epsilon       last epsilon for SMC\n");
+    fprintf(stderr, "  -a, --final-accept-rate   stop when particle acceptance rate drops below this value\n");
 }
 
 struct netabc_options get_options(int argc, char **argv)
@@ -111,12 +114,13 @@ struct netabc_options get_options(int argc, char **argv)
         .decay_factor = 0.2,
         .rbf_variance = 2,
         .quality = 0.95,
-        .final_epsilon = 0.01
+        .final_epsilon = 0.01,
+        .final_accept_rate = 0.015
     };
 
     while (c != -1)
     {
-        c = getopt_long(argc, argv, "hd:e:g:l:m:n:p:q:s:t:", long_options, &i);
+        c = getopt_long(argc, argv, "ha:d:e:g:l:m:n:p:q:s:t:", long_options, &i);
         if (c == -1)
             break;
 
@@ -127,6 +131,9 @@ struct netabc_options get_options(int argc, char **argv)
             case 'h':
                 usage();
                 exit(EXIT_SUCCESS);
+            case 'a':
+                opts.final_accept_rate = atof(optarg);
+                break;
             case 'd':
                 opts.trace_file = fopen(optarg, "w");
                 break;
@@ -283,6 +290,9 @@ void get_parameters(FILE *f, smc_distribution *priors, double *prior_params, net
                     }
                     else if (strcmp(event.data.scalar.value, "edges_per_vertex") == 0) {
                         param = EDGES_PER_VERTEX;
+                    }
+                    else if (strcmp(event.data.scalar.value, "attach_power") == 0) {
+                        param = ATTACH_POWER;
                     }
                     else if (strcmp(event.data.scalar.value, "nbhd_size") == 0) {
                         param = NBHD_SIZE;
@@ -601,12 +611,12 @@ smc_functions functions = {
 
 smc_config config = {
     .step_tolerance = 1e-5,
-    .dataset_size = sizeof(igraph_t),
+    .dataset_size = sizeof(igraph_t)
 };
 
 int main (int argc, char **argv)
 {
-    int i, j, k;
+    int i;
     struct netabc_options opts = get_options(argc, argv);
     igraph_t *tree;
     smc_result *result;
@@ -647,6 +657,7 @@ int main (int argc, char **argv)
     config.nsample = opts.nsample;
     config.quality = opts.quality;
     config.final_epsilon = opts.final_epsilon;
+    config.final_accept_rate = opts.final_accept_rate;
 
     config.priors = priors;
     config.prior_params = prior_params;
@@ -654,6 +665,7 @@ int main (int argc, char **argv)
     sarg.ntip = NTIP(tree);
     sarg.decay_factor = opts.decay_factor;
     sarg.rbf_variance = opts.rbf_variance;
+
     switch (opts.net) {
         case PREF_ATTACH:
             sarg.sample_network = sample_network_pa;
@@ -698,18 +710,23 @@ int main (int argc, char **argv)
         fprintf(opts.trace_file, "iter\tweight\tnodes\tsim_nodes\tsim_time\ttransmit\tremove\t");
         switch (opts.net) {
             case PREF_ATTACH:
-                fprintf(opts.trace_file, "edges_per_vertex\tattach_power\n");
+                fprintf(opts.trace_file, "edges_per_vertex\tattach_power");
                 break;
             case SMALL_WORLD:
-                fprintf(opts.trace_file, "nbhd_size\trewire_prob\n");
+                fprintf(opts.trace_file, "nbhd_size\trewire_prob");
                 break;
             case PARETO:
-                fprintf(opts.trace_file, "pareto_shape\n");
+                fprintf(opts.trace_file, "pareto_shape");
                 break;
             default:
-                fprintf(opts.trace_file, "pr_edge\n");
+                fprintf(opts.trace_file, "pr_edge");
                 break;
         }
+
+        for (i = 0; i < opts.nsample; ++i) {
+            fprintf(opts.trace_file, "\tX%d", i);
+        }
+        fprintf(opts.trace_file, "\n");
     }
 
     result = abc_smc(config, functions, opts.seed, opts.nthread, tree, opts.trace_file);
