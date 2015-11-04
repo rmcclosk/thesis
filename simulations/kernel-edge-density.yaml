@@ -1,6 +1,6 @@
 Name: kernel-edge-density
 Description: Testing if the tree kernel can detect the edge density parameter in a random graph
-Processes: 6
+Processes: 8
 Steps:
     network:
         Extension: gml
@@ -22,9 +22,9 @@ Steps:
         Parameters:
             nnode: 5000
             mean_degree: [2, 5, 8]
-            ntip: [100, 500, 1000]
-            nsimnode: 1000
             replicate: !!python/object/apply:__builtin__.xrange [0, 100, 1]
+            nsimnode: 1000
+            ntip: [100, 500, 1000]
         Depends: network
         Interpreter: bash
         Rule: |
@@ -95,7 +95,20 @@ Steps:
             ntip: [100, 500, 1000]
             branch_scaling: mean
             decay_factor: [0.2, 0.3, 0.4, 0.5]
-            rbf_variance: [0.5, 1, 2, 5, 10]
+            rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20, 50, "INFINITY"]
+        Exclusions:
+            -
+                ntip: [100, 500]
+                rbf_variance: [20, 50, "INFINITY"]
+            -
+                ntip: [500, 1000]
+                decay_factor: 0.5
+            -
+                ntip: 1000
+                rbf_variance: 0.5
+            -
+                ntip: [100, 1000]
+                rbf_variance: 0.25
         Depends: tree
         Interpreter: bash
         Rule: |
@@ -121,7 +134,7 @@ Steps:
             ntip: [100, 500, 1000]
             branch_scaling: mean
             decay_factor: [0.2, 0.3, 0.4, 0.5]
-            rbf_variance: [0.5, 1, 2, 5, 10]
+            rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20, 50, "INFINITY"]
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
         Startup: library(netabc)
@@ -139,7 +152,7 @@ Steps:
             ntip: [100, 500, 1000]
             branch_scaling: mean
             decay_factor: [0.2, 0.3, 0.4, 0.5]
-            rbf_variance: [0.5, 1, 2, 5, 10]
+            rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20, 50, "INFINITY"]
             ncrossv: 1000
             response: ["continuous"]
         Depends: kernel-matrix tree
@@ -149,7 +162,11 @@ Steps:
             k <- read.mm("{kernel-matrix}")
             y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"mean_degree"]
             if ("{response}" == "continuous") {{
-                results <- ksvm.cv(k, y, n.cv={ncrossv}, stats=c("rsquared"))
+                results <- tryCatch({{
+                    ksvm.cv(k, y, n.cv={ncrossv}, stats=c("rsquared"))
+                }}, error = function (e) {{
+                    data.frame(rsquared=rep(0, {ncrossv}))
+                }})
             }} else {{
                 y <- as.factor(y)
                 results <- ksvm.cv(k, y, n.cv={ncrossv}, stats=c("accuracy"))
