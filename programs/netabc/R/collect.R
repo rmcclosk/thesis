@@ -42,11 +42,11 @@ collect.metadata <- function (data.files)
 }
 
 # Collect data and metadata from several files.
-collect.data <- function (data.files)
+collect.data <- function (data.files, header=TRUE, ...)
 {
     data.files <- sort(Sys.glob(data.files))
     metadata <- collect.metadata(data.files)
-    data <- lapply(data.files, process.archive, read.table, header=TRUE)
+    data <- lapply(data.files, process.archive, read.table, header=header, ...)
     data <- suppressWarnings(mapply(cbind, data, 
                                     by(metadata, 1:nrow(metadata), identity),
                                     SIMPLIFY=FALSE))

@@ -135,7 +135,7 @@ struct netabc_options get_options(int argc, char **argv)
                 opts.final_accept_rate = atof(optarg);
                 break;
             case 'd':
-                opts.trace_file = fopen(optarg, "w");
+                opts.trace_file = fopen(optarg, "a");
                 break;
             case 'e':
                 opts.final_epsilon = atof(optarg);
@@ -443,7 +443,7 @@ int sample_network_sw(igraph_t *net, gsl_rng *rng, const double *theta)
 {
     igraph_watts_strogatz_game(net, 1, theta[NNODE], theta[NBHD_SIZE], theta[REWIRE_PROB],
                                0, 0);
-    return 1;
+    return 0;
 }
 
 int sample_network_pareto(igraph_t *net, gsl_rng *rng, const double *theta)
@@ -505,7 +505,7 @@ void sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void *X)
     if (!failed) {
         igraph_to_directed(&net, IGRAPH_TO_DIRECTED_MUTUAL);
         
-        igraph_vector_fill(&v, 0);
+        igraph_vector_fill(&v, theta[REMOVE_RATE]);
         SETVANV(&net, "remove", &v);
         for (i = 0; i < theta[NNODE]; ++i) {
             VECTOR(v)[i] = i;
@@ -727,6 +727,10 @@ int main (int argc, char **argv)
             fprintf(opts.trace_file, "\tX%d", i);
         }
         fprintf(opts.trace_file, "\n");
+    }
+    else {
+        fprintf(stderr, "Warning: no trace file specified\n");
+        fprintf(stderr, "Output will not be recorded\n");
     }
 
     result = abc_smc(config, functions, opts.seed, opts.nthread, tree, opts.trace_file);

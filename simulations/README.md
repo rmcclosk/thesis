@@ -203,6 +203,11 @@ split them up depending on the language.
 
     network_list = "{network}".split(" ")
 
-There are currently two special placeholders. `{yaml}` will give you a
+There are currently three special placeholders. `{yaml}` will give you a
 YAML-formatted string containing all the parameters for the current step.
-And `{$#}` will be replaced with the total number of prequisite files.
+Taking inspiration from Makefile syntax, `{$#}` will be replaced with the total
+number of prequisite files. Finally, `{seed}` will contain a random integer
+between 0 and 2^31 which can be used as a random seed. This is intended to
+strike a balance between randomness and reproducibility - you can tell which
+seed was used to make which file, but the seeds themselves were chosen at
+random.

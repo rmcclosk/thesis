@@ -1,6 +1,6 @@
 Name: kernel-smallworld
 Description: Testing if the tree kernel can distinguish small world network rewiring probabilities
-Processes: 20
+Processes: 8
 Steps:
     network:
         Extension: gml
@@ -97,6 +97,10 @@ Steps:
             branch_scaling: mean
             decay_factor: [0.2, 0.3, 0.4, 0.5]
             rbf_variance: [0.5, 1, 2, 5, 10]
+        Exclusions:
+            -
+                ntip: 1000
+                decay_factor: 0.5
         Depends: tree
         Interpreter: bash
         Rule: |
@@ -124,6 +128,10 @@ Steps:
             branch_scaling: mean
             decay_factor: [0.2, 0.3, 0.4, 0.5]
             rbf_variance: [0.5, 1, 2, 5, 10]
+        Exclusions:
+            -
+                ntip: 1000
+                decay_factor: 0.5
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
         Startup: library(netabc)
@@ -145,14 +153,23 @@ Steps:
             rbf_variance: [0.5, 1, 2, 5, 10]
             ncrossv: 1000
             response: ["continuous"]
+        Exclusions:
+            -
+                ntip: 1000
+                decay_factor: 0.5
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
             k <- read.mm("{kernel-matrix}")
-            y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"ws_prob"]
+            y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"ws_prob"]*100
             if ("{response}" == "continuous") {{
-                results <- ksvm.cv(k, y, n.cv={ncrossv}, stats=c("rsquared"), ksvm.type="eps-svr")
+                tryCatch({{
+                    results <- ksvm.cv(k, y, n.cv={ncrossv}, stats=c("rsquared"))
+                }}, error = function (e) {{
+                    cat("File {kernel-matrix} failed\n")
+                    quit()
+                }})
             }} else {{
                 y <- as.factor(y)
                 results <- ksvm.cv(k, y, n.cv={ncrossv}, stats=c("accuracy"))

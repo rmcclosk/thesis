@@ -1,6 +1,6 @@
 Name: kernel-pareto
 Description: Testing if the tree kernel can distinguish between Pareto degree distribution parameters
-Processes: 8
+Processes: 3
 Steps:
     network:
         Extension: gml

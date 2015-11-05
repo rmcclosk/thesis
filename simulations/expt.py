@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3.5
 
 import shlex
 import subprocess
@@ -12,6 +12,7 @@ import random
 import sqlite3
 import hashlib
 import logging
+import random
 
 try:
     subprocess_run = subprocess.run
@@ -26,6 +27,12 @@ def mkdir_p(path):
 
 def iter_parameters(param_dict, exclusions):
     for k, v in param_dict.items():
+        if isinstance(v, str):
+            try:
+                param_dict[k] = eval(v)
+                v = param_dict[k]
+            except:
+                pass
         if isinstance(v, (str, int, float)):
             param_dict[k] = [v]
 
@@ -204,6 +211,7 @@ def run_step(expt, step_name, con, cur, nproc):
             """, ((expt_name, step_name, basename, k, v) for k, v in parameters.items()))
 
             # add some extras for formatting the rules
+            parameters["seed"] = random.randrange(2**31)
             parameters["yaml"] = yaml.dump(parameters, width=1000).rstrip()
             parameters[step_name] = target
             parameters.update(depends)
@@ -275,7 +283,7 @@ def sanitize(expt, con, cur):
             if cur.fetchone() is None:
                 logging.info("Adding checksum for file {} to DB".format(path))
                 basename = file.split(".")[0]
-                with open(path) as f:
+                with open(path, "rb") as f:
                     checksum = hashlib.md5(f.read()).hexdigest()
                     cur.execute("INSERT OR REPLACE INTO md5 (experiment, step, file, path, checksum) VALUES (?, ?, ?, ?, ?)", (expt, step, basename, path, checksum))
     con.commit()

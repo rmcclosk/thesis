@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <math.h>
 #include <float.h>
 #include <pthread.h>
@@ -148,6 +149,7 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
     }
 
     niter = 0;
+    fprintf(stderr, "niter\tepsilon\tMCMC_accept\n");
     while (smc_work.epsilon != config.final_epsilon)
     {
         fprintf(stderr, "%d\t%f\t%f\n", niter, smc_work.epsilon,
@@ -195,6 +197,7 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
                 }
                 fprintf(trace_file, "\n");
             }
+            fflush(trace_file);
         }
 
         // if acceptance probability is low enough, we're done
@@ -478,6 +481,7 @@ void *initialize(void *args)
     int start = tdata->start, end = tdata->end;
     double *particle;
 
+    fprintf(stderr, "start = %d, end = %d\n", start, end);
     for (i = start; i < end; ++i)
     {
         particle = &smc_work.theta[i * nparam];
