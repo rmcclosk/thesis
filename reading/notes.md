@@ -59,6 +59,30 @@ distributions?
 * Propose a M-H move on graphs, which either adds an edge, deletes an edge, or
 completes a triangle.
 
+**[@beaumont2009adaptive]**
+
+* Develops an unbiased importance sampling version of SMC.
+* This is mostly a theoretical paper demonstrating and correcting a bias in the
+version developed by Sisson et al. 2007.
+
+**[@beaumont2010approximate]**
+
+* Pop-gen oveview of ABC.
+* See Joyce & Marjoram 2008 for a method of systematically choosing among
+summary statistics.
+
+**[@del2012adaptive]**
+
+* Develop a version of ABC-SMC with an adaptive tolerance schedule.
+* This is the version I ended up implementing.
+* Particle weights are proportional to the improvement at each step (Equation
+11).
+* Applies an MCMC kernel at each step. That is, particle perturbations are
+accepted with probability equal to a Metropolis-Hastings ratio.
+* Tolerances at each step are chosen so that the estimated sample size of the
+particle population decreases by a small amount (between 1% and 10%) each
+iteration (Equation 12).
+
 # Kernel-ABC
 
 **[@poon2015phylodynamic]**
@@ -67,6 +91,16 @@ completes a triangle.
 model much more effectively than Sackin's index (Figure 1).
 
 # Phylodynamics
+
+## Stochastic Mapping
+
+**[@nielsen2002mapping]**
+
+* Analysing reconstructed characters along a phylogeny is statistically
+unsound, because it doesn't take the uncertainty in the character estimation
+into account.
+* Simulate N mappings of mutations along the tree in proportion to their
+probability under some model, then perform inference on the set of mappings.
 
 ## Contact Networks
 
@@ -150,6 +184,32 @@ the networks are dynamic (Figure 8).
 if the incidence nand prevalence curves are very closely matched.
 * Imbalance, or rather the relationship between epidemic dynamics and
 imbalance, is significantly affected by sampling schemes (Figure 11).
+
+## Other Phylodynamics
+
+**[@hughes2009molecular]**
+
+* Phylogenetic clustering of 11,000 UK HIV sequences by genetic distance.
+* Were able to fit a power-law distribution to cluster sizes by varying the
+distance cutoff.
+* Found few transmissions in acute infection, concluding that acute
+infectiousness doesn't play a role in the heterosexual UK epidemic (Figure 4).
+* Estimated the shape parameter of a Pareto degree distribution as 2.1.
+
+# ERGMs
+
+**[@robins2007introduction]**
+
+* General overview of ERGMs.
+* See Snijders et al: New specifications for exponential random graph models.
+* ERGMs offer a way to model social networks while incorporating realistic
+social dynamics.
+* Models are fitted to observed networks (we don't have this).
+* Network "ties" (ie. edges) depend on local structure.
+* We assign each configuration of interest (eg. a reciprocal tie) a parameter,
+and then equate or constrain a bunch of the parameters.
+* Markov random graph model: includes eg. edge, 2-star, 3-star, and triangle
+effects (Figure 1 and Equation 4).
 
 # Other Statistics
 

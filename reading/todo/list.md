@@ -2,25 +2,13 @@
 
 Automatic computation of summary statistics for ABC.
 
-## beaumont2009adaptive
-
-Automatic tolerance schedule for ABC-SMC.
-
 ## robert2011lack
 
 Problems with model selection within ABC, and steps to remedy (?).
 
-## beaumont2010approximate
-
-Review of ABC from pop-gen perspective.
-
 ## volz2009phylodynamics
 
 Exact phylodynamic inference of SI/SIR model parameters.
-
-## hughes2009molecular
-
-Phylogenetic clustering in UK.
 
 ## lewis2008episodic
 
@@ -43,10 +31,6 @@ Art sent me this in an email.
 
 Stochastic mapping, from Alex.
 
-## nielsen2002mapping
+## volz2012simple
 
-Stochastic mapping, from Alex.
-
-## del2012adaptive
-
-Adaptive tolerance schedules for ABC-SMC, from Alex.
+About phylogenetic clustering, from Art.

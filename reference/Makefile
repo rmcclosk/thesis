@@ -28,6 +28,9 @@ all: dirs \
 	 R/parallel.pdf \
 	 R/ape.pdf \
 	 R/yaml.pdf \
+	 R/ergm.pdf \
+	 R/network.pdf \
+	 R/rpart.pdf \
 	 python/python-library.pdf \
 	 bin/pandoc.pdf \
 	 bin/$(DOXYGEN_LATEST).pdf \
