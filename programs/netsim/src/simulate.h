@@ -34,11 +34,17 @@
  * * "remove": the removal rate of the node once it becomes infected (if the
  * node can recover or die, the removal rate is the sum of the recovery and
  * death rates)
+ * 
+ * If a non-positive value is passed for either the stop_time or stop_nodes
+ * parameters, no limit will be imposed. So if stop_nodes <= 0, the simulation
+ * will continue until no more sero-discordant edges exist in the network. This
+ * does not necessarily mean every node will be infected, if the network is not
+ * connected.
  *
  * \param[in] net the contact network, with rates defined on each edge
  * \param[in] rng the GSL random generator object
- * \param[in] stop_time maximum amount of time to run the simulation for
- * \param[in] stop_nodes maximum number of nodes to infect
+ * \param[in] stop_time maximum amount of time to run the simulation for, <= 0 means no limit
+ * \param[in] stop_nodes maximum number of nodes to infect, <= 0 means no limit
  * \param[in] numeric_ids 1 if the "id" attribute of the network is numeric
  * \param[in] tree an uninitialized igraph_t object
  * \return a phylogeny simulated over the contact network

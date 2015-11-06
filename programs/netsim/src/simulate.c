@@ -25,6 +25,13 @@ void simulate_phylogeny(igraph_t *tree, igraph_t *net, gsl_rng *rng,
     igraph_inclist_t inclist_in, inclist_out;
     Word_t Bytes, Index, *PValue;
 
+    if (stop_nodes <= 0) {
+        stop_nodes = igraph_vcount(net);
+    }
+    if (stop_time <= 0) {
+        stop_time = INFINITY;
+    }
+
     // set of infected nodes
     Pvoid_t infected = (Pvoid_t) NULL;
 

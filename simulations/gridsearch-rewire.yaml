@@ -1,4 +1,4 @@
-Name: gridsearch-smallworld
+Name: gridsearch-rewire
 Description: Grid search for small world rewiring probability
 Processes: 20
 Steps:
@@ -64,7 +64,7 @@ Steps:
             true_rewire_prob: [0.01, 0.05, 0.09]
             test_replicate: "range(10)"
             decay_factor: 0.3
-            rbf_variance: 20
+            rbf_variance: 5
         Depends: train-tree test-tree
         Interpreter: bash
         Rule: |
@@ -95,13 +95,39 @@ Steps:
                 theme_bw()
             ggsave("{kernel-plot}")
 
-    accuracy:
-        Extension: tsv
+    error-plot:
+        Extension: pdf
         Parameters:
             placeholder: 0
-        Depends: kernel test-tree
+        Depends: kernel test-tree train-tree
         Interpreter: R --quiet --vanilla
-        Startup: suppressPackageStartupMessages(library(netabc))
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(data.table))
+            suppressPackageStartupMessages(library(reshape2))
         Rule: |
-            d <- collect.data("{kernel}", header=FALSE, row.names=1, col.names=c("", "score"))
-            m <- collect.metadata(strsplit("{test-tree}", " ")[[1]])
+            # collect all kernel scores
+            files <- strsplit("{kernel}", " ")[[1]]
+            d <- collect.data(files, header=FALSE, col.names=c("tree", "score"))
+
+            # combine with metadata from train and test trees
+            mtrain <- collect.metadata(strsplit("{train-tree}", " ")[[1]])
+            d <- merge(d, mtrain, by.x="tree", by.y=0)
+            mtest <- collect.metadata(strsplit("{test-tree}", " ")[[1]])
+            test.cols <- c("test_replicate", "true_rewire_prob")
+            d <- setDT(merge(d, mtest, by=test.cols))
+
+            # choose point estimate with highest median kernel score
+            d[,median := median(score), by=c(test.cols, "rewire_prob")]
+
+            # compute absolute and relative errors
+            plot.data <- d[,abs(true_rewire_prob - rewire_prob[which.max(median)]), by=test.cols]
+            plot.data <- setNames(plot.data, c(test.cols, "absolute"))
+            plot.data <- plot.data[,relative := absolute / true_rewire_prob]
+            plot.data <- melt(plot.data, id.vars=test.cols, variable.name="error.type", value.name="error")
+
+            # plot it out
+            ggplot(plot.data, aes(x=true_rewire_prob, y=error, group=true_rewire_prob)) + 
+                geom_boxplot() + geom_point(position=position_jitter(width=0.01)) + 
+                facet_wrap(~error.type, scales="free") + theme_bw()
+            ggsave("{error-plot}")

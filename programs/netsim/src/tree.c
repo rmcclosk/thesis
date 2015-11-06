@@ -212,8 +212,9 @@ void subsample_tips(igraph_t *tree, int ntip, const gsl_rng *rng)
     igraph_vector_ptr_t nbhd;
     igraph_vector_t *elem;
 
-    if (orig_ntip <= ntip)
+    if (ntip <= 0 || orig_ntip <= ntip) {
         return;
+    }
 
     igraph_vector_init(&tips, 0);
     igraph_vector_init(&keep_tips, ntip);
