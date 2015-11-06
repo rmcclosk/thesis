@@ -8,7 +8,6 @@
 #include <gsl/gsl_randist.h>
 
 #include "simulate.h"
-#define NDEBUG
 
 void print_node(const igraph_t *net, char *buf, int node, int numeric_ids);
 
@@ -18,7 +17,7 @@ void simulate_phylogeny(igraph_t *tree, igraph_t *net, gsl_rng *rng,
     long i;
     int inode, snode, e, v, n, head, tail, nnode_tree = 0;
     int Rc_int, ndiscordant, ninfected = 1;
-    double t, trans_rate = 0., remove_rate = 0., time = 0.;
+    double t, r, sum, trans_rate = 0., remove_rate = 0., time = 0.;
     char buf[128];
     igraph_vector_int_t *incident;
     igraph_vector_t edges, branch_lengths;
@@ -56,7 +55,9 @@ void simulate_phylogeny(igraph_t *tree, igraph_t *net, gsl_rng *rng,
     // start the epidemic
     inode = rand() % igraph_vcount(net);
     J1S(Rc_int, infected, inode);
-    //fprintf(stderr, "start epidemic at node %d\n", inode);
+#ifndef NDEBUG
+    fprintf(stderr, "start epidemic at node %d\n", inode);
+#endif
     igraph_vector_push_back(&branch_lengths, 0.);
     JLI(PValue, tip_map, inode); *PValue = nnode_tree++;
     JLI(PValue, node_map, nnode_tree-1); *PValue = inode;
@@ -66,6 +67,10 @@ void simulate_phylogeny(igraph_t *tree, igraph_t *net, gsl_rng *rng,
 
     for (e = 0; e < igraph_vector_int_size(incident); ++e) {
         J1S(Rc_int, discordant, VECTOR(*incident)[e]);
+#ifndef NDEBUG
+        igraph_edge(net, VECTOR(*incident)[e], &tail, &head);
+        fprintf(stderr, "add edge %d->%d\n", tail, head);
+#endif
     }
 
     ndiscordant = igraph_vector_int_size(incident);
@@ -81,6 +86,9 @@ void simulate_phylogeny(igraph_t *tree, igraph_t *net, gsl_rng *rng,
     {
         // choose the next event time
         t = gsl_ran_exponential(rng, 1. / (trans_rate + remove_rate));
+#ifndef NDEBUG
+        fprintf(stderr, "next interval is %f\n", t);
+#endif
         if (t + time < stop_time)
         {
             // increase all extant branch lengths by t
@@ -95,10 +103,19 @@ void simulate_phylogeny(igraph_t *tree, igraph_t *net, gsl_rng *rng,
             if ((double) rand() / (double) RAND_MAX < trans_rate / (trans_rate + remove_rate))
             {
                 // choose the next edge
-                i = rand() % ndiscordant;
-                J1BC(Rc_int, discordant, i+1, Index);
-                igraph_edge(net, Index, &inode, &snode);
-                //fprintf(stderr, "infect node %d->%d\n", inode, snode);
+                r = (double) rand() / (double) RAND_MAX; 
+                fprintf(stderr, "%f\n", r);
+                Index = 0; J1F(Rc_int, discordant, Index);
+                sum = EAN(net, "transmit", Index) / trans_rate;
+                while (r > sum) {
+                    sum += EAN(net, "transmit", Index) / trans_rate;
+                    J1N(Rc_int, discordant, Index);
+                }
+
+                igraph_edge(net, (int) Index, &inode, &snode);
+#ifndef NDEBUG
+                fprintf(stderr, "infect node %d->%d\n", inode, snode);
+#endif
 
                 // mark the new node as infected
                 ++ninfected;
@@ -134,7 +151,9 @@ void simulate_phylogeny(igraph_t *tree, igraph_t *net, gsl_rng *rng,
                         J1T(Rc_int, removed, head);
                         if (!Rc_int)
                         {
-                            //printf("add edge %d->%d\n", tail, head);
+#ifndef NDEBUG
+                            fprintf(stderr, "add edge %d->%d\n", tail, head);
+#endif
                             J1S(Rc_int, discordant, VECTOR(*incident)[e]);
                             trans_rate += EAN(net, "transmit", VECTOR(*incident)[e]);
                             ++ndiscordant;
@@ -151,7 +170,9 @@ void simulate_phylogeny(igraph_t *tree, igraph_t *net, gsl_rng *rng,
                     J1T(Rc_int, discordant, VECTOR(*incident)[e]);
                     if (Rc_int)
                     {
-                        //printf("remove edge %d->%d\n", tail, head);
+#ifndef NDEBUG
+                        fprintf(stderr, "remove edge %d->%d\n", tail, head);
+#endif
                         J1U(Rc_int, discordant, VECTOR(*incident)[e]);
                         trans_rate -= EAN(net, "transmit", VECTOR(*incident)[e]);
                         --ndiscordant;
@@ -162,14 +183,23 @@ void simulate_phylogeny(igraph_t *tree, igraph_t *net, gsl_rng *rng,
             // next event is a removal
             else
             {
-                // choose and remove node
-                i = rand() % ninfected;
-                J1BC(Rc_int, infected, i+1, Index);
+                // choose the node to remove
+                r = (double) rand() / (double) RAND_MAX; 
+                Index = 0; J1F(Rc_int, infected, Index);
+                sum = VAN(net, "remove", Index) / remove_rate;
+                while (r > sum) {
+                    sum += VAN(net, "remove", Index) / remove_rate;
+                    J1N(Rc_int, infected, Index);
+                }
+
+                // remove the node
                 J1U(Rc_int, infected, Index);
                 J1S(Rc_int, removed, Index);
-                remove_rate -= VAN(net, "remove", Index);
+                remove_rate -= VAN(net, "remove", (int) Index);
                 --ninfected;
-                //printf("remove node %d\n", Index);
+#ifndef NDEBUG
+                fprintf(stderr, "remove node %d\n", (int) Index);
+#endif
 
                 // outgoing discordant edges aren't discordant anymore
                 incident = igraph_inclist_get(&inclist_out, Index);
@@ -179,7 +209,9 @@ void simulate_phylogeny(igraph_t *tree, igraph_t *net, gsl_rng *rng,
                     if (Rc_int)
                     {
                         igraph_edge(net, VECTOR(*incident)[e], &tail, &head);
-                        //printf("remove edge %d->%d\n", tail, head);
+#ifndef NDEBUG
+                        fprintf(stderr, "remove edge %d->%d\n", tail, head);
+#endif
                         J1U(Rc_int, discordant, VECTOR(*incident)[e]);
                         trans_rate -= EAN(net, "transmit", VECTOR(*incident)[e]);
                         --ndiscordant;
