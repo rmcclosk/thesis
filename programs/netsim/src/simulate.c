@@ -8,6 +8,7 @@
 #include <gsl/gsl_randist.h>
 
 #include "simulate.h"
+#define NDEBUG
 
 void print_node(const igraph_t *net, char *buf, int node, int numeric_ids);
 
@@ -104,7 +105,6 @@ void simulate_phylogeny(igraph_t *tree, igraph_t *net, gsl_rng *rng,
             {
                 // choose the next edge
                 r = (double) rand() / (double) RAND_MAX; 
-                fprintf(stderr, "%f\n", r);
                 Index = 0; J1F(Rc_int, discordant, Index);
                 sum = EAN(net, "transmit", Index) / trans_rate;
                 while (r > sum) {
