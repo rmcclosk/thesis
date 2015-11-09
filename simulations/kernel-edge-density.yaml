@@ -7,11 +7,11 @@ Steps:
         Parameters:
             nnode: 5000
             mean_degree: [2, 5, 8]
-            replicate: !!python/object/apply:__builtin__.xrange [0, 100, 1]
+            replicate: "range(100)"
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: | 
-            set.seed({replicate} + {mean_degree} * 100)
+            set.seed({seed})
             g <- sample_gnp({nnode}, {mean_degree}/{nnode})
             graph_attr(g, "comment") <- "{yaml}"
             write.graph(SI.net(g), "{network}", format="gml")
@@ -19,19 +19,18 @@ Steps:
     tree:
         Extension: nwk
         Parameters:
-            nnode: 5000
             mean_degree: [2, 5, 8]
-            replicate: !!python/object/apply:__builtin__.xrange [0, 100, 1]
+            replicate: "range(100)"
             nsimnode: 1000
             ntip: [100, 500, 1000]
         Depends: network
         Interpreter: bash
         Rule: |
             echo "#{yaml}" > {tree}
-            SEED=`echo "{replicate} + {mean_degree} * 100 + 1000" | bc`
-            nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed $SEED {network} >> {tree}
+            SEED={seed}
+            nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} {network} >> {tree}
             while [[ `treestat -i -s ntip {tree}` -lt {ntip} ]]; do
-                SEED=$(($SEED+1000))
+                SEED=$(($SEED+1))
                 echo "#{yaml}" > {tree}
                 nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed $SEED {network} >> {tree}
             done
@@ -39,10 +38,8 @@ Steps:
     tree-plot:
         Extension: pdf
         Parameters:
-            nnode: 5000
             mean_degree: [2, 5, 8]
-            replicate: !!python/object/apply:__builtin__.xrange [0, 100, 1]
-            nsimnode: 1000
+            replicate: "range(100)"
             ntip: [100, 500, 1000]
         Depends: tree
         Interpreter: R --vanilla --silent
@@ -58,8 +55,6 @@ Steps:
     statistics:
         Extension: tsv
         Parameters:
-            nnode: 5000
-            nsimnode: 1000
             ntip: [100, 500, 1000]
         Depends: tree
         Interpreter: bash
@@ -85,8 +80,6 @@ Steps:
     stats-plot:
         Extension: pdf
         Parameters:
-            nnode: 5000
-            nsimnode: 1000
             ntip: [100, 500, 1000]
         Depends: statistics tree
         Interpreter: R --vanilla --silent
@@ -108,25 +101,19 @@ Steps:
     kernel-matrix:
         Extension: mtx
         Parameters:
-            nnode: 5000
-            nsimnode: 1000
             ntip: [100, 500, 1000]
-            branch_scaling: mean
             decay_factor: [0.2, 0.3, 0.4, 0.5]
-            rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20, 50, "INFINITY"]
+            rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20, 50, 100]
         Exclusions:
             -
                 ntip: [100, 500]
-                rbf_variance: [20, 50, "INFINITY"]
-            -
-                ntip: [500, 1000]
-                decay_factor: 0.5
+                rbf_variance: [20, 50, 100]
             -
                 ntip: 1000
-                rbf_variance: 0.5
+                rbf_variance: [0.25, 0.5]
             -
-                ntip: [100, 1000]
-                rbf_variance: 0.25
+                ntip: [1000]
+                decay_factor: 0.5
         Depends: tree
         Interpreter: bash
         Rule: |
@@ -138,7 +125,7 @@ Steps:
                     if [[ "$T1" < "$T2" || "$T1" == "$T2" ]]; then
                         treekernel --ladderize --decay-factor {decay_factor} \
                                    --gauss-factor {rbf_variance} \
-                                   --scale-branches {branch_scaling} \
+                                   --scale-branches mean \
                                    --sst-control 1 $T1 $T2 >> {kernel-matrix}
                     fi
                 done
@@ -147,12 +134,9 @@ Steps:
     kpca-plot:
         Extension: pdf
         Parameters:
-            nnode: 5000
-            nsimnode: 1000
             ntip: [100, 500, 1000]
-            branch_scaling: mean
             decay_factor: [0.2, 0.3, 0.4, 0.5]
-            rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20, 50, "INFINITY"]
+            rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20, 50, 100]
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
         Startup: library(netabc)
@@ -165,52 +149,32 @@ Steps:
     classifier:
         Extension: tsv
         Parameters:
-            nnode: 5000
-            nsimnode: 1000
             ntip: [100, 500, 1000]
-            branch_scaling: mean
             decay_factor: [0.2, 0.3, 0.4, 0.5]
-            rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20, 50, "INFINITY"]
-            ncrossv: 1000
-            response: ["continuous"]
+            rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20, 50, 100]
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
             k <- read.mm("{kernel-matrix}")
             y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"mean_degree"]
-            if ("{response}" == "continuous") {{
-                results <- tryCatch({{
-                    ksvm.cv(k, y, n.cv={ncrossv}, stats=c("rsquared"))
-                }}, error = function (e) {{
-                    data.frame(rsquared=rep(0, {ncrossv}))
-                }})
-            }} else {{
-                y <- as.factor(y)
-                results <- ksvm.cv(k, y, n.cv={ncrossv}, stats=c("accuracy"))
-            }}
+            results <- tryCatch({{
+                ksvm.cv(k, y, n.cv=1000, stats=c("rsquared"))
+            }}, error = function (e) {{
+                data.frame(rsquared=rep(0, 1000))
+            }})
             cat("#{yaml}\n", file="{classifier}")
             write.tsv(results, "{classifier}", append=TRUE)
 
     crossv-plot:
         Extension: pdf
         Parameters:
-            nnode: 5000
-            nsimnode: 1000
             ntip: [100, 500, 1000]
-            branch_scaling: mean
-            ncrossv: 1000
-            response: ["continuous"]
         Depends: classifier 
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
             d <- collect.data(strsplit("{classifier}", " ")[[1]])
-            if ("{response}" == "continuous") {{
-                summary.plot(d, x="rbf_variance", y="rsquared", group="decay_factor", 
-                             fun="mean", yaml="{yaml}")
-            }} else {{
-                summary.plot(d, x="rbf_variance", y="accuracy", group="decay_factor", 
-                             fun="mean", yaml="{yaml}")
-            }}
+            summary.plot(d, x="rbf_variance", y="rsquared", group="decay_factor", 
+                         fun="mean", yaml="{yaml}")
             ggsave("{crossv-plot}", width=10)

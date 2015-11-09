@@ -7,4 +7,4 @@ Author: Rosemary McCloskey
 Maintainer: Rosemary McCloskey <rmccloskey@cfenet.ubc.ca>
 Description: Functions for my thesis.
 License: BSD-3
-Depends: Matrix, kernlab, ggplot2, yaml, parallel, ape, igraph, RColorBrewer, rpart
+Depends: Matrix, kernlab, ggplot2, yaml, parallel, ape, igraph, RColorBrewer, data.table, reshape2
