@@ -1,20 +1,19 @@
 Name: kernel-pareto
 Description: Testing if the tree kernel can distinguish between Pareto degree distribution parameters
-Processes: 3
+Processes: 20
 Steps:
     network:
         Extension: gml
         Parameters:
             nnode: 5000
             pareto_shape: [1, 1.5, 2]
-            seed: !!python/object/apply:__builtin__.xrange [0, 100, 1]
+            replicate: "range(100)"
         Interpreter: R --vanilla --silent
         Startup: |
             suppressPackageStartupMessages(library(netabc))
-            suppressPackageStartupMessages(library(igraph))
             suppressPackageStartupMessages(library(VGAM))
         Rule: | 
-            set.seed({seed} + {pareto_shape} * 100)
+            set.seed({seed})
             g <- sample_degseq(2, method="simple")
             while (any(which_loop(g)) | any(which_multiple(g))) 
             {{
@@ -32,22 +31,38 @@ Steps:
     tree:
         Extension: nwk
         Parameters:
-            nnode: 5000
             pareto_shape: [1, 1.5, 2]
             ntip: [100, 500, 1000]
             nsimnode: 1000
-            seed: !!python/object/apply:__builtin__.xrange [0, 100, 1]
+            replicate: "range(100)"
         Depends: network
         Interpreter: bash
         Rule: |
             echo "#{yaml}" > {tree}
-            nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed `echo {seed}+{pareto_shape}*100 | bc` {network} >> {tree}
-            i=0
+            SEED={seed}
+            nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed $SEED {network} >> {tree}
             while [[ `treestat -i -s ntip {tree}` -lt {ntip} ]]; do
+                SEED=$(($SEED+1))
                 echo "#{yaml}" > {tree}
-                nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed `echo {seed}+{pareto_shape}*\(100+$i\) | bc` {network} >> {tree}
-                i=$(($i+1))
+                nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed $SEED {network} >> {tree}
             done
+
+    tree-plot:
+        Extension: pdf
+        Parameters:
+            pareto_shape: [1, 1.5, 2]
+            ntip: [100, 500, 1000]
+            replicate: [0, 1, 2]
+        Depends: tree
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            t <- read.tree("{tree}")
+            pdf("{tree-plot}")
+            par(mar=c(0, 0, 4, 0) + 0.1)
+            plot(t, show.tip.label=FALSE) 
+            title(paste(strwrap(as.yaml(yaml.load("{yaml}")), 60), collapse="\n"))
+            dev.off()
 
     statistics:
         Extension: tsv
@@ -95,9 +110,12 @@ Steps:
         Extension: mtx
         Parameters:
             ntip: [100, 500, 1000]
-            branch_scaling: mean
             decay_factor: [0.2, 0.3, 0.4, 0.5]
-            rbf_variance: [0.5, 1, 2, 5, 10, 20]
+            rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20]
+        Exclusions:
+            -
+                ntip: [500, 1000]
+                rbf_variance: 0.25
         Depends: tree
         Interpreter: bash
         Rule: |
@@ -109,7 +127,7 @@ Steps:
                     if [[ "$T1" < "$T2" || "$T1" == "$T2" ]]; then
                     treekernel --ladderize --decay-factor {decay_factor} \
                                --gauss-factor {rbf_variance} \
-                               --scale-branches {branch_scaling} \
+                               --scale-branches mean \
                                --sst-control 1 $T1 $T2 >> {kernel-matrix}
                     fi
                 done
@@ -119,9 +137,8 @@ Steps:
         Extension: pdf
         Parameters:
             ntip: [100, 500, 1000]
-            branch_scaling: mean
             decay_factor: [0.2, 0.3, 0.4, 0.5]
-            rbf_variance: [0.5, 1, 2, 5, 10, 20]
+            rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20]
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
         Startup: library(netabc)
@@ -135,23 +152,15 @@ Steps:
         Extension: tsv
         Parameters:
             ntip: [100, 500, 1000]
-            branch_scaling: mean
             decay_factor: [0.2, 0.3, 0.4, 0.5]
-            rbf_variance: [0.5, 1, 2, 5, 10, 20]
-            ncrossv: 1000
-            response: ["continuous"]
+            rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20]
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
             k <- read.mm("{kernel-matrix}")
             y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"pareto_shape"]
-            if ("{response}" == "continuous") {{
-                results <- ksvm.cv(k, y, n.cv={ncrossv}, stats=c("rsquared"))
-            }} else {{
-                y <- as.factor(y)
-                results <- ksvm.cv(k, y, n.cv={ncrossv}, stats=c("accuracy"))
-            }}
+            results <- ksvm.cv(k, y, n.cv=1000, stats=c("rsquared"))
             cat("#{yaml}\n", file="{classifier}")
             write.tsv(results, "{classifier}", append=TRUE)
 
@@ -159,19 +168,11 @@ Steps:
         Extension: pdf
         Parameters:
             ntip: [100, 500, 1000]
-            branch_scaling: mean
-            ncrossv: 1000
-            response: ["continuous"]
         Depends: classifier 
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
             d <- collect.data(strsplit("{classifier}", " ")[[1]])
-            if ("{response}" == "continuous") {{
-                summary.plot(d, x="rbf_variance", y="rsquared", group="decay_factor", 
-                             fun="mean", yaml="{yaml}")
-            }} else {{
-                summary.plot(d, x="rbf_variance", y="accuracy", group="decay_factor", 
-                             fun="mean", yaml="{yaml}")
-            }}
+            summary.plot(d, x="rbf_variance", y="rsquared", group="decay_factor", 
+                         fun="mean", yaml="{yaml}")
             ggsave("{crossv-plot}", width=10)

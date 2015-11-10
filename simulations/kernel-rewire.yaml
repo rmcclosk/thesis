@@ -1,28 +1,27 @@
-Name: kernel-pa-power
-Description: Testing if the tree kernel can recover the preferential attachment power in a Barabasi-Albert graph
-Processes: 20
+Name: kernel-rewire
+Description: Testing if the tree kernel can distinguish small world network rewiring probabilities
+Processes: 6
 Steps:
     network:
         Extension: gml
         Parameters:
             nnode: 5000
-            mean_degree: [4, 8]
-            pa_power: [0.0, 0.5, 1.0]
+            nbhd_size: 2
+            rewire_prob: [0.01, 0.05, 0.09]
             replicate: "range(100)"
         Interpreter: R --vanilla --silent
         Startup: |
             suppressPackageStartupMessages(library(netabc))
         Rule: | 
             set.seed({seed})
-            g <- sample_pa({nnode}, m={mean_degree}/2, power={pa_power}, directed=FALSE)
+            g <- sample_smallworld(1, {nnode}, {nbhd_size}, {rewire_prob})
             graph_attr(g, "comment") <- "{yaml}"
             write.graph(SI.net(g), "{network}", format="gml")
 
     tree:
         Extension: nwk
         Parameters:
-            mean_degree: [4, 8]
-            pa_power: [0.0, 0.5, 1.0]
+            rewire_prob: [0.01, 0.05, 0.09]
             replicate: "range(100)"
             nsimnode: 1000
             ntip: [100, 500, 1000]
@@ -35,10 +34,9 @@ Steps:
     tree-plot:
         Extension: pdf
         Parameters:
-            mean_degree: [4, 8]
-            pa_power: [0.0, 0.5, 1.0]
-            replicate: [0, 1, 2]
+            rewire_prob: [0.01, 0.05, 0.09]
             ntip: [100, 500, 1000]
+            replicate: [0, 1, 2]
         Depends: tree
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
@@ -53,7 +51,6 @@ Steps:
     statistics:
         Extension: tsv
         Parameters:
-            mean_degree: [4, 8]
             ntip: [100, 500, 1000]
         Depends: tree
         Interpreter: bash
@@ -79,7 +76,6 @@ Steps:
     stats-plot:
         Extension: pdf
         Parameters:
-            mean_degree: [4, 8]
             ntip: [100, 500, 1000]
         Depends: statistics tree
         Interpreter: R --vanilla --silent
@@ -87,13 +83,13 @@ Steps:
             suppressPackageStartupMessages(library(netabc))
             suppressPackageStartupMessages(library(reshape2))
         Rule: |
-            m <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"pa_power", drop=FALSE]
-            m$pa_power <- as.factor(m$pa_power)
+            m <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"rewire_prob", drop=FALSE]
+            m$rewire_prob <- as.factor(m$rewire_prob)
             d <- read.table("{statistics}", header=TRUE)
             d <- merge(m, d, by="row.names")
             d[,"Row.names"] <- NULL
-            d <- melt(d, id.vars="pa_power")
-            ggplot(d, aes(x=pa_power, y=value)) + geom_violin() + 
+            d <- melt(d, id.vars="rewire_prob")
+            ggplot(d, aes(x=rewire_prob, y=value)) + geom_violin() + 
                 facet_wrap(~variable, scales="free") + theme_bw() + 
                 ggtitle(as.yaml(yaml.load("{yaml}")))
             ggsave("{stats-plot}")
@@ -102,19 +98,15 @@ Steps:
         Extension: mtx
         Parameters:
             ntip: [100, 500, 1000]
-            mean_degree: [4, 8]
             decay_factor: [0.2, 0.3, 0.4, 0.5]
-            rbf_variance: [0.125, 0.25, 0.5, 1, 2, 5, 10, 20]
+            rbf_variance: [0.5, 1, 2, 5, 10, 20]
         Exclusions:
             -
                 ntip: 1000
-                rbf_variance: [0.125, 0.25, 0.5]
-            -
-                ntip: [100, 500]
-                rbf_variance: 20
-            -
-                ntip: 1000
                 decay_factor: 0.5
+            -
+                ntip: 100
+                rbf_variance: 20
         Depends: tree
         Interpreter: bash
         Rule: |
@@ -136,31 +128,31 @@ Steps:
         Extension: pdf
         Parameters:
             ntip: [100, 500, 1000]
-            mean_degree: [4, 8]
             decay_factor: [0.2, 0.3, 0.4, 0.5]
-            rbf_variance: [0.125, 0.25, 0.5, 1, 2, 5, 10, 20]
+            rbf_variance: [0.5, 1, 2, 5, 10, 20]
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
         Startup: library(netabc)
         Rule: |
             k <- read.mm("{kernel-matrix}")
-            y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"pa_power"]
+            y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"rewire_prob"]
             kpca.plot(k, color=list(mean.degree=y), yaml="{yaml}")
             ggsave("{kpca-plot}")
 
     classifier:
         Extension: tsv
         Parameters:
+            nnode: 5000
+            nsimnode: 1000
             ntip: [100, 500, 1000]
-            mean_degree: [4, 8]
             decay_factor: [0.2, 0.3, 0.4, 0.5]
-            rbf_variance: [0.125, 0.25, 0.5, 1, 2, 5, 10, 20]
+            rbf_variance: [0.5, 1, 2, 5, 10, 20]
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
             k <- read.mm("{kernel-matrix}")
-            y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"pa_power"]
+            y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"rewire_prob"]*100
             results <- ksvm.cv(k, y, n.cv=1000, stats=c("rsquared"))
             cat("#{yaml}\n", file="{classifier}")
             write.tsv(results, "{classifier}", append=TRUE)
@@ -169,7 +161,6 @@ Steps:
         Extension: pdf
         Parameters:
             ntip: [100, 500, 1000]
-            mean_degree: [4, 8]
         Depends: classifier 
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))

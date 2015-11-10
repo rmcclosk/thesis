@@ -1,27 +1,27 @@
-Name: gridsearch-rewire
-Description: Grid search for small world rewiring probability
+Name: gridsearch-mean-degree
+Description: Grid search for preferential attachment mean degree
 Processes: 20
 Steps:
     train-network:
         Extension: gml
         Parameters:
             nnode: 5000
-            nbhd_size: 2
-            rewire_prob: "[i/1000 for i in range(101)]"
-            replicate: "range(10)"
+            m: "range(2, 11)"
+            m: 1
+            replicate: "range(100)"
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: | 
             set.seed({seed})
-            g <- sample_smallworld(1, {nnode}, {nbhd_size}, {rewire_prob})
+            g <- sample_pa({nnode}, power={m}, m={m}, directed=FALSE)
             graph_attr(g, "comment") <- "{yaml}"
             write.graph(SI.net(g), "{train-network}", format="gml")
 
     train-tree:
         Extension: nwk
         Parameters:
-            rewire_prob: "[i/1000 for i in range(101)]"
-            replicate: "range(10)"
+            m: "range(2, 11)"
+            replicate: "range(100)"
             nsimnode: 1000
             ntip: 1000
         Depends: train-network
@@ -34,21 +34,21 @@ Steps:
         Extension: gml
         Parameters:
             nnode: 5000
-            nbhd_size: 2
-            true_rewire_prob: [0.01, 0.05, 0.09]
+            true_m: [2, 3, 5, 8]
+            m: 1
             test_replicate: "range(10)"
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: | 
             set.seed({seed})
-            g <- sample_smallworld(1, {nnode}, {nbhd_size}, {true_rewire_prob})
+            g <- sample_pa({nnode}, power={m}, m={true_m}, directed=FALSE)
             graph_attr(g, "comment") <- "{yaml}"
             write.graph(SI.net(g), "{test-network}", format="gml")
 
     test-tree:
         Extension: nwk
         Parameters:
-            true_rewire_prob: [0.01, 0.05, 0.09]
+            true_m: [2, 3, 5, 8]
             test_replicate: "range(10)"
             nsimnode: 1000
             ntip: 1000
@@ -61,10 +61,10 @@ Steps:
     kernel:
         Extension: tsv
         Parameters:
-            true_rewire_prob: [0.01, 0.05, 0.09]
+            true_m: [2, 3, 5, 8]
             test_replicate: "range(10)"
             decay_factor: 0.3
-            rbf_variance: 5
+            rbf_variance: 20
         Depends: train-tree test-tree
         Interpreter: bash
         Rule: |
@@ -80,7 +80,7 @@ Steps:
     kernel-plot:
         Extension: pdf
         Parameters:
-            true_rewire_prob: [0.01, 0.05, 0.09]
+            true_m: [2, 3, 5, 8]
             test_replicate: "range(10)"
         Depends: kernel train-tree
         Interpreter: R --quiet --vanilla
@@ -88,11 +88,11 @@ Steps:
         Rule: |
             k <- read.table("{kernel}", row.names=1, col.names=c("", "score"))
             k <- merge(k, collect.metadata(strsplit("{train-tree}", " ")[[1]]), by=0)
-            pt.est <- with(k, as.numeric(names(which.max(tapply(score, rewire_prob, mean)))))
-            lines <- data.frame(value=c(pt.est, {true_rewire_prob}),
-                                rewire_prob=c("estimated", "true"))
-            ggplot(k, aes(x=rewire_prob, y=score)) + geom_point() +
-                geom_vline(data=lines, aes(xintercept=value, linetype=rewire_prob, color=rewire_prob), show_guide = TRUE) +
+            pt.est <- with(k, as.numeric(names(which.max(tapply(score, m, mean)))))
+            lines <- data.frame(value=c(pt.est, {true_m}),
+                                m=c("estimated", "true"))
+            ggplot(k, aes(x=m, y=score)) + geom_point() +
+                geom_vline(data=lines, aes(xintercept=value, linetype=m, color=m), show_guide = TRUE) +
                 theme_bw()
             ggsave("{kernel-plot}")
 
@@ -115,20 +115,21 @@ Steps:
             mtrain <- collect.metadata(strsplit("{train-tree}", " ")[[1]])
             d <- merge(d, mtrain, by.x="tree", by.y=0)
             mtest <- collect.metadata(strsplit("{test-tree}", " ")[[1]])
-            test.cols <- c("test_replicate", "true_rewire_prob")
+            test.cols <- c("test_replicate", "true_m")
             d <- setDT(merge(d, mtest, by=test.cols))
 
             # choose point estimate with highest median kernel score
-            d[,median := median(score), by=c(test.cols, "rewire_prob")]
+            d[,median := median(score), by=c(test.cols, "m")]
 
             # compute absolute and relative errors
-            plot.data <- d[,abs(true_rewire_prob - rewire_prob[which.max(median)]), by=test.cols]
+            plot.data <- d[,abs(true_m - m[which.max(median)]), by=test.cols]
             plot.data <- setNames(plot.data, c(test.cols, "absolute"))
-            plot.data <- plot.data[,relative := absolute / true_rewire_prob]
+            plot.data <- plot.data[,relative := absolute / true_m]
             plot.data <- melt(plot.data, id.vars=test.cols, variable.name="error.type", value.name="error")
+            plot.data <- plot.data[,true_m := as.factor(true_m)]
 
-            # plot
-            ggplot(plot.data, aes(x=true_rewire_prob, y=error, group=true_rewire_prob)) + 
+            # plot it out
+            ggplot(plot.data, aes(x=true_m, y=error, group=true_m)) + 
                 geom_boxplot() + 
                 facet_wrap(~error.type, scales="free") + theme_bw()
             ggsave("{error-plot}")
