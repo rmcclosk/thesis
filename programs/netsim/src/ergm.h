@@ -1,3 +1,5 @@
+/* This file is no longer in use. */
+
 #ifndef ERGM_H
 #define ERGM_H
 
