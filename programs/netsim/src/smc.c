@@ -200,12 +200,6 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
             fflush(trace_file);
         }
 
-        // if acceptance probability is low enough, we're done
-        if (accept_rate[niter] <= config.final_accept_rate) {
-            smc_work.epsilon = config.final_epsilon;
-            break;
-        }
-
         ++niter;
 
         // allocate more space if necessary
@@ -218,6 +212,13 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
             result->theta = safe_realloc(result->theta, new_size);
             result->W = safe_realloc(result->W, new_size);
         }
+
+        // if acceptance probability is low enough, we're done
+        if (accept_rate[niter-1] <= config.final_accept_rate) {
+            smc_work.epsilon = config.final_epsilon;
+            break;
+        }
+
     }
 
     // finally, sample from the estitmated posterior
@@ -443,10 +444,13 @@ void resample(void)
     int i, wcur;
     int nparticle = smc_work.config->nparticle;
     int nparam = smc_work.config->nparam;
+    int nsample = smc_work.config->nsample;
     double r, wsum;
     double *W = smc_work.W;
     double *theta = smc_work.theta;
     double *new_theta = smc_work.new_theta;
+    double *X = smc_work.X;
+    double *new_X = malloc(nparticle * nsample * sizeof(double));
 
     // sample particles according to their weights
     for (i = 0; i < nparticle; ++i)
@@ -458,6 +462,7 @@ void resample(void)
             wsum += W[++wcur];
         }
         memcpy(&new_theta[i * nparam], &theta[wcur * nparam], nparam * sizeof(double));
+        memcpy(&new_X[i * nsample], &X[wcur * nsample], nsample * sizeof(double));
     }
 
     // reset all the weights
@@ -467,6 +472,8 @@ void resample(void)
 
     // use the new particles
     memcpy(smc_work.theta, smc_work.new_theta, nparticle * nparam * sizeof(double));
+    memcpy(smc_work.X, new_X, nparticle * nsample * sizeof(double));
+    free(new_X);
 }
 
 void *initialize(void *args)

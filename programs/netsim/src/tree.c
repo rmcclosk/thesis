@@ -412,10 +412,12 @@ void _cut_at_time(igraph_t *tree, double t, int root, double troot,
     double tnode;
 
     igraph_incident(tree, work, root, IGRAPH_IN);
-    if (igraph_vector_size(work) > 0)
+    if (igraph_vector_size(work) > 0) {
         tnode = EAN(tree, "length", VECTOR(*work)[0]);
-    else
+    }
+    else {
         tnode = 0.;
+    }
 
     if (tnode + troot > t)
     {
@@ -426,8 +428,9 @@ void _cut_at_time(igraph_t *tree, double t, int root, double troot,
         igraph_subcomponent(tree, work, root, IGRAPH_OUT);
         for (i = 0; i < igraph_vector_size(work); ++i) 
         {
-            if ((int) VECTOR(*work)[i] != root)
+            if ((int) VECTOR(*work)[i] != root) {
                 igraph_vector_push_back(to_delete, VECTOR(*work)[i]);
+            }
         }
     }
     else
@@ -442,6 +445,8 @@ void _cut_at_time(igraph_t *tree, double t, int root, double troot,
             _cut_at_time(tree, t, rc, troot + tnode, extant_only, work, to_delete);
         }
 
+        // if we're sampling extant nodes at time t only, and this node isn't
+        // extant at time t, then we delete it
         else if (extant_only && troot + tnode < t)
         {
             igraph_vector_push_back(to_delete, (igraph_real_t) root);

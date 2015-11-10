@@ -98,34 +98,6 @@ void toy_setup_config(smc_config *config)
     config->prior_params[1] = 10;
 }
 
-START_TEST (test_smc_toy_steps)
-{
-    int i;
-    double y = 0;
-    smc_config toy_config = {
-        .nparam = 1,
-        .nparticle = 10000,
-        .nsample = 1,
-        .ess_tolerance = 5000,
-        .final_epsilon = 0.01,
-        .quality = 0.95,
-        .step_tolerance = 1e-5,
-        .dataset_size = sizeof(double),
-        .feedback_size = sizeof(double)
-    };
-
-    toy_setup_config(&toy_config);
-    smc_result *res = abc_smc(toy_config, toy_functions, 0, 8, (void *) &y, NULL);
-
-    fprintf(stderr, "%d steps\n", res->niter);
-    plot(&res->epsilon[1], NULL, res->niter-1, "check_smc_epsilon.pdf", 
-         "plot(d[,1], xlab=\"time index\", ylab=\"epsilon\", main=NA, type=\"l\")");
-    plot(&res->acceptance_rate[1], NULL, res->niter-1, "check_smc_accept.pdf", 
-         "plot(d[,1], xlab=\"time index\", ylab=\"acceptance rate\", main=NA, type=\"l\")");
-    smc_result_free(res);
-}
-END_TEST
-
 START_TEST (test_smc_toy)
 {
     double y = 0;
@@ -134,7 +106,7 @@ START_TEST (test_smc_toy)
     smc_config config = {
         .nparam = 1,
         .nparticle = 10000,
-        .nsample = 2,
+        .nsample = 5,
         .ess_tolerance = 5000,
         .final_epsilon = 0.01,
         .quality = 0.95,
@@ -158,6 +130,75 @@ START_TEST (test_smc_toy)
 }
 END_TEST
 
+START_TEST (test_smc_toy_steps)
+{
+    int i;
+    double y = 0;
+    smc_config toy_config = {
+        .nparam = 1,
+        .nparticle = 10000,
+        .nsample = 1,
+        .ess_tolerance = 5000,
+        .final_epsilon = 0.01,
+        .quality = 0.95,
+        .step_tolerance = 1e-5,
+        .dataset_size = sizeof(double),
+        .feedback_size = sizeof(double)
+    };
+
+    toy_setup_config(&toy_config);
+    smc_result *res = abc_smc(toy_config, toy_functions, 0, 8, (void *) &y, NULL);
+
+    // same number of steps as in Del Moral 2012
+    ck_assert(res->niter > 120 && res->niter < 140);
+    plot(&res->epsilon[1], NULL, res->niter-1, "check_smc_epsilon.pdf", 
+         "plot(d[,1], xlab=\"time index\", ylab=\"epsilon\", main=NA, type=\"l\")");
+    plot(&res->acceptance_rate[1], NULL, res->niter-1, "check_smc_accept.pdf", 
+         "plot(d[,1], xlab=\"time index\", ylab=\"acceptance rate\", main=NA, type=\"l\")");
+    smc_result_free(res);
+}
+END_TEST
+
+START_TEST (test_smc_distance)
+{
+    double y = 0;
+    int i, fd;
+    char fn[] = "/tmp/test_smc_distance", cmd[BUFSIZ];
+    FILE *trace = fopen(fn, "w+");
+
+    smc_config config = {
+        .nparam = 1,
+        .nparticle = 1000,
+        .nsample = 2,
+        .ess_tolerance = 500,
+        .final_epsilon = 0.0,
+        .final_accept_rate = 0.015,
+        .quality = 0.95,
+        .step_tolerance = 1e-9,
+        .dataset_size = sizeof(double),
+        .feedback_size = sizeof(double)
+    };
+
+    toy_setup_config(&config);
+    fprintf(trace, "iter\tweight\ttheta\tX0\tX1\n");
+    smc_result *res = abc_smc(config, toy_functions, 0, 1, (void *) &y, trace);
+    fflush(trace);
+    fseek(trace, 0L, SEEK_SET);
+
+    sprintf(cmd, "R --vanilla --silent -e 'd <- read.table(\"%s\", header=TRUE)' ", fn);
+    sprintf(cmd, "%s -e 'd <- subset(d, iter == max(d$iter))' ", cmd);
+    sprintf(cmd, "%s -e 'pdf(\"check_smc_distance.pdf\")' ", cmd);
+    sprintf(cmd, "%s -e 'plot(abs(d$theta), d$X0, col=\"red\")' ", cmd);
+    sprintf(cmd, "%s -e 'points(abs(d$theta), d$X1, col=\"blue\")' ", cmd);
+    sprintf(cmd, "%s -e 'abline(a=0, b=1, lty=2)' ", cmd);
+    sprintf(cmd, "%s -e 'dev.off()'\n", cmd);
+    i = system(cmd);
+
+    fclose(trace);
+    unlink(fn);
+}
+END_TEST
+
 Suite *smc_suite(void)
 {
     Suite *s;
@@ -166,8 +207,9 @@ Suite *smc_suite(void)
     s = suite_create("smc");
 
     tc_smc = tcase_create("Core");
-    tcase_add_test(tc_smc, test_smc_toy_steps);
     tcase_add_test(tc_smc, test_smc_toy);
+    tcase_add_test(tc_smc, test_smc_toy_steps);
+    tcase_add_test(tc_smc, test_smc_distance);
     tcase_set_timeout(tc_smc, 60);
     suite_add_tcase(s, tc_smc);
 
