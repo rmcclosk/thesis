@@ -10,7 +10,7 @@ Steps:
             net_type: ["BA", "ER", "WS"]
             ws_prob: 0.01
             pa_power: 1
-            replicate: !!python/object/apply:__builtin__.xrange [0, 100, 1]
+            replicate: "range(100)"
         Interpreter: R --vanilla --silent
         Startup: |
             suppressPackageStartupMessages(library(netabc))
@@ -36,7 +36,7 @@ Steps:
             net_type: ["BA", "ER", "WS"]
             ws_prob: 0.01
             pa_power: 1
-            replicate: !!python/object/apply:__builtin__.xrange [0, 100, 1]
+            replicate: "range(100)"
             nsimnode: 1000
             ntip: [100, 500, 1000]
         Depends: network
@@ -66,7 +66,7 @@ Steps:
             net_type: ["BA", "ER", "WS"]
             ws_prob: 0.01
             pa_power: 1
-            replicate: !!python/object/apply:__builtin__.xrange [0, 100, 1]
+            replicate: "range(3)"
             nsimnode: 1000
             ntip: [100, 500, 1000]
         Depends: tree

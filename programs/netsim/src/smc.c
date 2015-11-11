@@ -488,7 +488,6 @@ void *initialize(void *args)
     int start = tdata->start, end = tdata->end;
     double *particle;
 
-    fprintf(stderr, "start = %d, end = %d\n", start, end);
     for (i = start; i < end; ++i)
     {
         particle = &smc_work.theta[i * nparam];

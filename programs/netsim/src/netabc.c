@@ -263,10 +263,12 @@ void get_parameters(FILE *f, smc_distribution *priors, double *prior_params, net
         {
             case YAML_SEQUENCE_START_EVENT:
                 seq = 1;
+                key = 0;
                 seq_cur = 0;
                 break;
             case YAML_SEQUENCE_END_EVENT:
                 seq = 0;
+                key = 1;
                 break;
             case YAML_SCALAR_EVENT:
                 if (key) {
@@ -347,8 +349,9 @@ void get_parameters(FILE *f, smc_distribution *priors, double *prior_params, net
             default:
                 break;
         }
-        if (event.type != YAML_STREAM_END_EVENT)
+        if (event.type != YAML_STREAM_END_EVENT) {
             yaml_event_delete(&event);
+        }
     }
     while (event.type != YAML_STREAM_END_EVENT);
 
@@ -434,14 +437,14 @@ int sample_network_gnp(igraph_t *net, gsl_rng *rng, const double *theta)
 
 int sample_network_pa(igraph_t *net, gsl_rng *rng, const double *theta)
 {
-    igraph_barabasi_game(net, theta[NNODE], theta[ATTACH_POWER], theta[EDGES_PER_VERTEX],
+    igraph_barabasi_game(net, theta[NNODE], theta[ATTACH_POWER], (int) theta[EDGES_PER_VERTEX],
                          NULL, 0, 1, 0, IGRAPH_BARABASI_PSUMTREE, NULL);
     return 0;
 }
 
 int sample_network_sw(igraph_t *net, gsl_rng *rng, const double *theta)
 {
-    igraph_watts_strogatz_game(net, 1, theta[NNODE], theta[NBHD_SIZE], theta[REWIRE_PROB],
+    igraph_watts_strogatz_game(net, 1, theta[NNODE], (int) theta[NBHD_SIZE], theta[REWIRE_PROB],
                                0, 0);
     return 0;
 }
