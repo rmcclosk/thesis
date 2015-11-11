@@ -7,18 +7,17 @@ library later, if I ever get around to it.
 ## Prerequisites
 
 There are quite a number of these I'm afraid. You need the following shared
-libraries. Make sure you actually build and install the shared library for
-R, not just the binary.
+libraries. 
 
 * [GSL](http://www.gnu.org/software/gsl/)
 * [igraph](http://igraph.org/c/)
 * [Judy](http://judy.sourceforge.net/)
 * [libyaml](http://pyyaml.org/wiki/LibYAML)
 * [check](http://check.sourceforge.net/)
-* [R](https://www.r-project.org/)
 
-You also need the pthreads API. If you're on linux this is probably already
-installed. If you're not on linux, this project probably won't work for you :)
+You also need the pthreads API, and a fairly recent version of Flex and Bison.
+If you're on unix these are probably already installed. If you're not on unix,
+this project probably won't work for you :)
 
 Optionally, to build all the documentation, you need
 [Doxygen](http://www.stack.nl/~dimitri/doxygen/index.html) and a LaTeX

@@ -186,13 +186,13 @@ START_TEST (test_smc_distance)
     fseek(trace, 0L, SEEK_SET);
 
     sprintf(cmd, "R --vanilla --silent -e 'd <- read.table(\"%s\", header=TRUE)' ", fn);
-    sprintf(cmd, "%s -e 'd <- subset(d, iter == max(d$iter))' ", cmd);
+    sprintf(cmd, "%s -e 'library(ggplot2) ' ", cmd);
+    sprintf(cmd, "%s -e 'd <- subset(d, iter %%%% 11 == 0) ' ", cmd);
     sprintf(cmd, "%s -e 'pdf(\"check_smc_distance.pdf\")' ", cmd);
-    sprintf(cmd, "%s -e 'plot(abs(d$theta), d$X0, col=\"red\")' ", cmd);
-    sprintf(cmd, "%s -e 'points(abs(d$theta), d$X1, col=\"blue\")' ", cmd);
-    sprintf(cmd, "%s -e 'abline(a=0, b=1, lty=2)' ", cmd);
+    sprintf(cmd, "%s -e 'ggplot(d, aes(x=abs(theta), y=X0)) + geom_point() + facet_wrap(~iter) + theme_bw()' ", cmd);
     sprintf(cmd, "%s -e 'dev.off()'\n", cmd);
     i = system(cmd);
+    ck_assert(0);
 
     fclose(trace);
     unlink(fn);
