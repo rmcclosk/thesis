@@ -20,6 +20,10 @@ struct nettree_options {
     FILE *net_file;
     FILE *tree_file;
     int seed;
+
+    int nsample;
+    double *sample_prop;
+    double *sample_time;
 };
 
 struct option long_options[] =
@@ -31,6 +35,8 @@ struct option long_options[] =
     {"tree-tips", required_argument, 0, 't'},
     {"extant-only", no_argument, 0, 'e'},
     {"seed", required_argument, 0, 'd'},
+    {"sample-time", required_argument, 0, 'm'},
+    {"sample-prop", required_argument, 0, 'p'},
     {0, 0, 0, 0}
 };
 
@@ -45,6 +51,8 @@ void usage(void)
     fprintf(stderr, "  -t, --tree-tips           sample this many tips from the tree (default infinity)\n");
     fprintf(stderr, "  -e, --extant-only         sample only extant tips (default false)\n");
     fprintf(stderr, "  -d, --seed                random seed\n");
+    fprintf(stderr, "  -m, --sample-time         sample some tips at this time\n");
+    fprintf(stderr, "  -p, --sample-prop         sample this proportion of tips at some time point\n");
 }
 
 struct nettree_options get_options(int argc, char **argv)
@@ -58,12 +66,15 @@ struct nettree_options get_options(int argc, char **argv)
         .ntip = 0,
         .net_file = stdin,
         .tree_file = stdout,
-        .seed = -1
+        .seed = -1,
+        .nsample = 0,
+        .sample_prop = NULL,
+        .sample_time = NULL
     };
 
     while (c != -1)
     {
-        c = getopt_long(argc, argv, "hs:n:r:t:ed:", long_options, &i);
+        c = getopt_long(argc, argv, "hs:m:p:n:r:t:ed:", long_options, &i);
         if (c == -1)
             break;
 
@@ -74,6 +85,15 @@ struct nettree_options get_options(int argc, char **argv)
                 exit(EXIT_SUCCESS);
             case 's':
                 opts.sim_time = atof(optarg);
+                break;
+            case 'm':
+                opts.nsample++;
+                opts.sample_prop = safe_realloc(opts.sample_prop, opts.nsample * sizeof(double));
+                opts.sample_time = safe_realloc(opts.sample_time, opts.nsample * sizeof(double));
+                opts.sample_prop[opts.nsample - 1] = atof(optarg);
+                break;
+            case 'p':
+                opts.sample_time[opts.nsample - 1] = atof(optarg);
                 break;
             case 'n':
                 opts.sim_nodes = atoi(optarg);
@@ -214,6 +234,10 @@ int main (int argc, char **argv)
         // post-process the tree
         cut_at_time(&tree, opts.tree_height, opts.extant_only);
         subsample_tips(&tree, opts.ntip, rng);
+        if (opts.nsample > 0) {
+            subsample(&tree, opts.nsample, opts.sample_prop, opts.sample_time, rng);
+        }
+
         ladderize(&tree);
         write_tree_newick(&tree, opts.tree_file);
         igraph_destroy(&tree);
