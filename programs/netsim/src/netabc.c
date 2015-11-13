@@ -225,8 +225,8 @@ void set_parameter_defaults(smc_distribution *priors, double *prior_params, net_
     }
     else if (net == RANDOM_GNP) {
         priors[PR_EDGE] = UNIFORM;
-        prior_params[PR_EDGE * MAX_DIST_PARAMS] = 0;
-        prior_params[PR_EDGE * MAX_DIST_PARAMS + 1] = 0.1;
+        prior_params[PR_EDGE * MAX_DIST_PARAMS] = 1.0 / 5000.0;
+        prior_params[PR_EDGE * MAX_DIST_PARAMS + 1] = 20.0 / 5000.0;
     }
     else if (net == SMALL_WORLD) {
         priors[NBHD_SIZE] = DELTA;
@@ -430,7 +430,7 @@ struct sample_dataset_arg {
 
 int sample_network_gnp(igraph_t *net, gsl_rng *rng, const double *theta)
 {
-    igraph_erdos_renyi_game(net, IGRAPH_ERDOS_RENYI_GNP, theta[NNODE], 
+    igraph_erdos_renyi_game(net, IGRAPH_ERDOS_RENYI_GNP, (int) theta[NNODE], 
                             theta[PR_EDGE], 0, 0);
     return 0;
 }
@@ -444,8 +444,8 @@ int sample_network_pa(igraph_t *net, gsl_rng *rng, const double *theta)
 
 int sample_network_sw(igraph_t *net, gsl_rng *rng, const double *theta)
 {
-    igraph_watts_strogatz_game(net, 1, theta[NNODE], (int) theta[NBHD_SIZE], theta[REWIRE_PROB],
-                               0, 0);
+    igraph_watts_strogatz_game(net, 1, (int) theta[NNODE], (int) theta[NBHD_SIZE], 
+                               theta[REWIRE_PROB], 0, 0);
     return 0;
 }
 
@@ -538,7 +538,8 @@ void sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void *X)
     }
     else {
         subsample_tips(tree, ntip, rng);
-        ladderize(tree);
+        // don't ask me why I have to do this twice i have no idea
+        ladderize(tree); ladderize(tree);
         scale_branches(tree, MEAN);
         SETGAN(tree, "kernel", kernel(tree, tree, decay_factor, rbf_variance, 1));
         igraph_destroy(&net);
@@ -549,23 +550,24 @@ void sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void *X)
     igraph_vector_destroy(&v);
 }
 
-double distance(const void *x, const void *y, const void *arg)
+double distance(const void *x, const void *data, const void *arg)
 {
     igraph_t *gx = (igraph_t *) x;
-    igraph_t *gy = (igraph_t *) y;
+    igraph_t *gy = (igraph_t *) data;
     double decay_factor = ((double *) arg)[0];                                   
     double rbf_variance = ((double *) arg)[1]; 
     char *zeroes = calloc(sizeof(igraph_t), 1);
-    double kx, ky, dist;
+    double k, kx, ky, dist;
 
     if (memcmp(x, zeroes, sizeof(igraph_t)) == 0 ||
-        memcmp(y, zeroes, sizeof(igraph_t)) == 0) {
+        memcmp(data, zeroes, sizeof(igraph_t)) == 0) {
         dist = INFINITY;
     }
     else {
-        kx = GAN(gx, "kernel");
         ky = GAN(gy, "kernel");
-        dist = 1.0 - kernel(gx, gy, decay_factor, rbf_variance, 1) / sqrt(kx) / sqrt(ky);
+        kx = GAN(gx, "kernel");
+        k = kernel(gx, gy, decay_factor, rbf_variance, 1);
+        dist = 1.0 - k / sqrt(kx) / sqrt(ky);
     }
 
     free(zeroes);

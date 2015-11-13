@@ -192,7 +192,6 @@ START_TEST (test_smc_distance)
     sprintf(cmd, "%s -e 'ggplot(d, aes(x=abs(theta), y=X0)) + geom_point() + facet_wrap(~iter) + theme_bw()' ", cmd);
     sprintf(cmd, "%s -e 'dev.off()'\n", cmd);
     i = system(cmd);
-    ck_assert(0);
 
     fclose(trace);
     unlink(fn);
