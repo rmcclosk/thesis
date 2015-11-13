@@ -120,4 +120,18 @@ void collapse_singles(igraph_t *tree);
  */
 void subsample_tips(igraph_t *tree, int ntip, const gsl_rng *rng);
 
+/** Subsample proportions of tips from a tree longitudinally.
+ *
+ * The sampling times are processed in order from earliest (ie. nearest the
+ * root) to latest. For each sampling time, a fixed proportion of the extant
+ * lineages is sampled at random, and all their descendants are deleted. 
+ *
+ * \param[in,out] tree tree to subsample
+ * \param[in] ntime number of sampling times
+ * \param[in] prop proportion of extant lineages to sample at each time point
+ * \param[in] t sampling times
+ * \param[in] rng GSL random number generator object
+ */
+void subsample(igraph_t *tree, int ntime, const double *prop, const double *t, gsl_rng *rng);
+
 #endif

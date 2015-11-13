@@ -260,6 +260,108 @@ void subsample_tips(igraph_t *tree, int ntip, const gsl_rng *rng)
     igraph_vector_ptr_destroy_all(&nbhd);
 }
 
+void subsample(igraph_t *tree, int ntime, const double *prop, const double *t, gsl_rng *rng)
+{
+    int i, j, sample, v, nextant;
+    int *sample_order = malloc(ntime * sizeof(int));
+    double *dpth = NULL;
+    igraph_vector_ptr_t nbhd;
+    igraph_vector_t extant, drop, drop_all, *elem;
+    igraph_adjlist_t adjlist;
+    igraph_inclist_t inclist;
+    igraph_vector_int_t *adj, *inc;
+
+    igraph_vector_init(&extant, 0);
+    igraph_vector_init(&drop, igraph_vcount(tree));
+    igraph_vector_init(&drop_all, 0);
+    igraph_vector_ptr_init(&nbhd, 0);
+
+    // order the sampling times chronologically
+    order(t, sample_order, sizeof(double), ntime, compare_doubles);
+
+    // go through each sampling time, choosing the required number of tips
+    for (i = 0; i <= ntime; ++i) {
+        igraph_adjlist_init(tree, &adjlist, IGRAPH_IN);
+        igraph_inclist_init(tree, &inclist, IGRAPH_IN);
+
+        // get the depths of each node
+        dpth = safe_realloc(dpth, igraph_vcount(tree) * sizeof(double));
+        depths(tree, 1, dpth);
+        
+        sample = sample_order[i == ntime ? i - 1 : i];
+        igraph_vector_clear(&extant);
+        igraph_vector_clear(&drop);
+        igraph_vector_clear(&drop_all);
+        nextant = 0;
+
+        // find all the nodes which are extant at the sampling time
+        // by extant we mean that they are later than the sampling time, but
+        // their parent is earlier
+        for (v = 0; v < igraph_vcount(tree); ++v) {
+            adj = igraph_adjlist_get(&adjlist, v);
+
+            // skip the root
+            if (igraph_vector_int_size(adj) == 0) {
+                continue;
+            }
+
+            if (dpth[v] >= t[sample] && dpth[VECTOR(*adj)[0]] <= t[sample]) {
+                igraph_vector_push_back(&extant, v);
+                ++nextant;
+            }
+        }
+
+        if (i < ntime) 
+        {
+            // choose the required number of nodes to be sampled
+            igraph_vector_resize(&drop, (int) (prop[sample] * nextant));
+            gsl_ran_choose(rng, VECTOR(drop), (int) (prop[sample] * nextant), 
+                           VECTOR(extant), nextant, sizeof(igraph_real_t));
+    
+            // adjust the branch lengths of the sampled nodes
+            for (j = 0; j < igraph_vector_size(&drop); ++j) {
+                v = VECTOR(drop)[j];
+                inc = igraph_inclist_get(&inclist, v);
+                SETEAN(tree, "length", VECTOR(*inc)[0], 
+                       EAN(tree, "length", VECTOR(*inc)[0]) - dpth[v] + t[sample]);
+            }
+        }
+
+        // at the end, delete everybody who wasn't sampled
+        else 
+        {
+            igraph_vector_resize(&drop, nextant);
+            memcpy(VECTOR(drop), VECTOR(extant), nextant * sizeof(igraph_real_t));
+        }
+
+        // find all children of the sampled nodes and delete them
+        igraph_neighborhood(tree, &nbhd, igraph_vss_vector(&drop), INT_MAX, IGRAPH_OUT, 0);
+
+        for (j = 0; j < igraph_vector_ptr_size(&nbhd); ++j) {
+            elem = (igraph_vector_t *) igraph_vector_ptr_e(&nbhd, j);
+            for (v = 0; v < igraph_vector_size(elem); ++v) {
+                if (i == ntime || !igraph_vector_binsearch2(&drop, VECTOR(*elem)[v])) {
+                    igraph_vector_push_back(&drop_all, VECTOR(*elem)[v]);
+                }
+            }
+            igraph_vector_destroy(elem);
+        }
+
+        igraph_delete_vertices(tree, igraph_vss_vector(&drop_all));
+        igraph_adjlist_destroy(&adjlist);
+        igraph_inclist_destroy(&inclist);
+    }
+
+    collapse_singles(tree);
+
+    free(dpth);
+    free(sample_order);
+    igraph_vector_destroy(&extant);
+    igraph_vector_destroy(&drop);
+    igraph_vector_destroy(&drop_all);
+    igraph_vector_ptr_destroy_all(&nbhd);
+}
+
 void depths(const igraph_t *tree, int use_branch_lengths, double *depths)
 {
     igraph_vector_t work;
