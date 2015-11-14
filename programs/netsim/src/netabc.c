@@ -437,7 +437,7 @@ int sample_network_gnp(igraph_t *net, gsl_rng *rng, const double *theta)
 
 int sample_network_pa(igraph_t *net, gsl_rng *rng, const double *theta)
 {
-    igraph_barabasi_game(net, theta[NNODE], theta[ATTACH_POWER], (int) theta[EDGES_PER_VERTEX],
+    igraph_barabasi_game(net, (int) theta[NNODE], theta[ATTACH_POWER], (int) theta[EDGES_PER_VERTEX],
                          NULL, 0, 1, 0, IGRAPH_BARABASI_PSUMTREE, NULL);
     return 0;
 }
@@ -454,7 +454,7 @@ int sample_network_pareto(igraph_t *net, gsl_rng *rng, const double *theta)
     int done = 0, i = 0, j, is_graphical;
     igraph_vector_t s;
 
-    igraph_vector_init(&s, theta[NNODE]);
+    igraph_vector_init(&s, (int) theta[NNODE]);
 
     igraph_set_error_handler(igraph_error_handler_ignore);
     while (!done) {
@@ -464,7 +464,7 @@ int sample_network_pareto(igraph_t *net, gsl_rng *rng, const double *theta)
             return 1;
         }
 
-        for (j = 0; j < theta[NNODE]; ++j) {
+        for (j = 0; j < (int) theta[NNODE]; ++j) {
             VECTOR(s)[j] = floor(gsl_ran_pareto(rng, theta[PARETO_SHAPE], 1));
         }
         igraph_is_graphical_degree_sequence(&s, NULL, &is_graphical);
@@ -502,7 +502,7 @@ void sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void *X)
     igraph_rng_seed(&igraph_rng, igraph_seed);
     igraph_rng_set_default(&igraph_rng);
 
-    igraph_vector_init(&v, theta[NNODE]);
+    igraph_vector_init(&v, (int) theta[NNODE]);
 
     failed = sarg->sample_network(&net, rng, theta);
     if (!failed) {
@@ -510,7 +510,7 @@ void sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void *X)
         
         igraph_vector_fill(&v, theta[REMOVE_RATE]);
         SETVANV(&net, "remove", &v);
-        for (i = 0; i < theta[NNODE]; ++i) {
+        for (i = 0; i < (int) theta[NNODE]; ++i) {
             VECTOR(v)[i] = i;
         }
         SETVANV(&net, "id", &v);
