@@ -18,6 +18,9 @@
 
 #define MAX_PARAMS 7
 #define SIMULATE_MAX_TRIES 100
+#ifndef INFINITY
+#define INFINITY DBL_MAX
+#endif
 
 typedef enum {
     PREF_ATTACH,
