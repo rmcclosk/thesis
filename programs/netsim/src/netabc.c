@@ -393,6 +393,10 @@ double proposal_density(const double *from, const double *to, const void *params
     double *var = (double *) params;
     double p = 1;
 
+    if (to[NSIMNODE] > to[NNODE]) {
+        return 0;
+    }
+
     for (i = 0; i < nparam; ++i) {
         if (fabs(var[i]) > FLT_EPSILON || fabs(to[i] - from[i]) > FLT_EPSILON) {
             p *= gsl_ran_gaussian_pdf(to[i] - from[i], sqrt(2*var[i]));

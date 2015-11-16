@@ -1,6 +1,6 @@
 Name: kernel-nbhd-size
 Description: Testing if the tree kernel can distinguish small world neighbourhood sizes
-Processes: 20
+Processes: 6
 Steps:
     network:
         Extension: gml
@@ -41,7 +41,7 @@ Steps:
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
-            t <- read.tree("{tree}")
+            t <- ladderize(read.tree("{tree}"))
             pdf("{tree-plot}")
             par(mar=c(0, 0, 4, 0) + 0.1)
             plot(t, show.tip.label=FALSE) 

@@ -41,7 +41,7 @@ Steps:
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
-            t <- read.tree("{tree}")
+            t <- ladderize(read.tree("{tree}"))
             pdf("{tree-plot}")
             par(mar=c(0, 0, 4, 0) + 0.1)
             plot(t, show.tip.label=FALSE) 
