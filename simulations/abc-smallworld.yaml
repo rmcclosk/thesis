@@ -76,3 +76,62 @@ Steps:
                    --num-samples {nsample} --quality {quality} --seed {seed} \
                    --final-epsilon {final_epsilon} --final-accept {final_accept} \
                    --net-type sw --trace {abc} {tree} {abc-config} 
+
+    sanity-plot:
+        Extension: pdf
+        Parameters:
+            rewire_prob: [0.01, 0.05, 0.09]
+            nbhd_size: [2, 4, 6]
+            replicate: 0
+        Depends: abc
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(data.table))
+        Rule: |
+            d <- fread("{abc}")
+            d[,particle := 1:nrow(.SD), by=iter]
+            d <- melt(d, id.vars=grep("X", colnames(d), value=TRUE, invert=TRUE), 
+                      variable.name="sample", value.name="distance")
+            setkey(d, iter, particle)
+            d[,med.dist := median(distance), by=c("iter", "particle")]
+            d <- unique(d)
+
+            pdf("{sanity-plot}")
+            for (i in unique(d$iter)) {{
+                p <- ggplot(subset(d, iter==i), aes(x=nbhd_size, y=rewire_prob)) + 
+                    geom_point(aes(size=med.dist, color=med.dist)) + 
+                    geom_point(x={nbhd_size}, y={rewire_prob}, color="red", size=8) + 
+                    xlim(1, 10) + ylim(0, 0.1) + ggtitle(paste("iteration", i)) +
+                    theme_bw()
+                print(p)
+            }}
+            dev.off()
+
+    iter-plot:
+        Extension: pdf
+        Parameters:
+            rewire_prob: [0.01, 0.05, 0.09]
+            nbhd_size: [2, 4, 6]
+            replicate: 0
+        Depends: abc
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(plyr))
+            suppressPackageStartupMessages(library(gridExtra))
+            suppressPackageStartupMessages(library(data.table))
+        Rule: |
+            d <- fread("{abc}")
+            d <- d[,.SD[sample(1:nrow(.SD), prob=weight, replace=TRUE),], by=iter]
+
+            pdf("{iter-plot}")
+            p <- ggplot(d, aes(x=rewire_prob)) + geom_density() + geom_vline(xintercept={rewire_prob}) + xlim(0, 0.1) + ggtitle("rewiring probability") + theme_bw()
+            plots <- dlply(d, "iter", `%+%`, e1=p)
+            do.call(marrangeGrob, list(grobs=plots, nrow=3, ncol=3))
+
+            p <- ggplot(d, aes(x=nbhd_size)) + geom_density() + geom_vline(xintercept={nbhd_size}) + xlim(0, 10) + ggtitle("neighbourhood size") + theme_bw()
+            plots <- dlply(d, "iter", `%+%`, e1=p)
+            do.call(marrangeGrob, list(grobs=plots, nrow=3, ncol=3))
+
+            dev.off()

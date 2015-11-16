@@ -86,3 +86,25 @@ Steps:
                    --num-samples {nsample} --quality {quality} --seed {seed} \
                    --final-epsilon {final_epsilon} --final-accept {final_accept} \
                    --net-type pareto --trace {abc} {tree} {abc-config} 
+
+    iter-plot:
+        Extension: pdf
+        Parameters:
+            pareto_shape: [1, 1.5, 2]
+            replicate: 0
+        Depends: abc
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(plyr))
+            suppressPackageStartupMessages(library(gridExtra))
+            suppressPackageStartupMessages(library(data.table))
+        Rule: |
+            d <- fread("{abc}")
+            d <- d[,.SD[sample(1:nrow(.SD), prob=weight, replace=TRUE),], by=iter]
+            # http://stackoverflow.com/questions/19059826/multiple-graphs-over-multiple-pages-using-ggplot
+            p <- ggplot(d, aes(x=pareto_shape)) + geom_density() + geom_vline(xintercept={pareto_shape}) + xlim(1, 2) + theme_bw() + ggtitle("pareto shape")
+            plots <- dlply(d, "iter", `%+%`, e1=p)
+            pdf("{iter-plot}")
+            do.call(marrangeGrob, list(grobs=plots, nrow=3, ncol=3))
+            dev.off()

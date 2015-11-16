@@ -1,6 +1,6 @@
 Name: kernel-pa-power
 Description: Testing if the tree kernel can recover the preferential attachment power in a Barabasi-Albert graph
-Processes: 20
+Processes: 6
 Steps:
     network:
         Extension: gml
@@ -43,7 +43,7 @@ Steps:
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
-            t <- read.tree("{tree}")
+            t <- ladderize(read.tree("{tree}"))
             pdf("{tree-plot}")
             par(mar=c(0, 0, 4, 0) + 0.1)
             plot(t, show.tip.label=FALSE) 
@@ -105,6 +105,7 @@ Steps:
             mean_degree: [4, 8]
             decay_factor: [0.2, 0.3, 0.4, 0.5]
             rbf_variance: [0.125, 0.25, 0.5, 1, 2, 5, 10, 20]
+            nltt: ["yes", "no"]
         Exclusions:
             -
                 ntip: 1000
@@ -124,10 +125,17 @@ Steps:
             for T1 in {tree}; do
                 for T2 in {tree}; do
                     if [[ "$T1" < "$T2" || "$T1" == "$T2" ]]; then
-                        treekernel --ladderize --decay-factor {decay_factor} \
-                                   --gauss-factor {rbf_variance} \
-                                   --scale-branches mean \
-                                   --sst-control 1 $T1 $T2 >> {kernel-matrix}
+                        if [[ "{nltt}" == "yes" ]]; then
+                            treekernel --ladderize --decay-factor {decay_factor} \
+                                       --gauss-factor {rbf_variance} \
+                                       --scale-branches mean --nLTT \
+                                       --sst-control 1 $T1 $T2 >> {kernel-matrix}
+                        else
+                            treekernel --ladderize --decay-factor {decay_factor} \
+                                       --gauss-factor {rbf_variance} \
+                                       --scale-branches mean \
+                                       --sst-control 1 $T1 $T2 >> {kernel-matrix}
+                        fi
                     fi
                 done
             done
@@ -139,6 +147,7 @@ Steps:
             mean_degree: [4, 8]
             decay_factor: [0.2, 0.3, 0.4, 0.5]
             rbf_variance: [0.125, 0.25, 0.5, 1, 2, 5, 10, 20]
+            nltt: ["yes", "no"]
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
         Startup: library(netabc)
@@ -155,6 +164,7 @@ Steps:
             mean_degree: [4, 8]
             decay_factor: [0.2, 0.3, 0.4, 0.5]
             rbf_variance: [0.125, 0.25, 0.5, 1, 2, 5, 10, 20]
+            nltt: ["yes", "no"]
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
@@ -176,5 +186,5 @@ Steps:
         Rule: |
             d <- collect.data(strsplit("{classifier}", " ")[[1]])
             summary.plot(d, x="rbf_variance", y="rsquared", group="decay_factor", 
-                         fun="mean", yaml="{yaml}")
+                         facet.x="nltt", fun="mean", yaml="{yaml}")
             ggsave("{crossv-plot}", width=10)

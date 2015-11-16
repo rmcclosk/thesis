@@ -1,6 +1,6 @@
 Name: kernel-shapes
 Description: Test if the tree kernel can distinguish trees from differently shaped networks
-Processes: 20
+Processes: 6
 Steps:
     network:
         Extension: gml
@@ -73,7 +73,7 @@ Steps:
         Interpreter: R --vanilla --quiet
         Startup: suppressPackageStartupMessages(library(ape))
         Rule: |
-            t <- read.tree("{tree}")
+            t <- ladderize(read.tree("{tree}"))
             pdf("{tree-plot}")
             plot(t, show.tip.label=FALSE, no.margin=TRUE, direction="down")
             dev.off()

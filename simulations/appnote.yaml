@@ -44,10 +44,9 @@ Steps:
         Interpreter: bash
         Rule: |
             echo "#{yaml}" > {statistics}
-            echo -e "\tcolless\tsackin" >> {statistics}
+            echo -e "\tsackin" >> {statistics}
             for T in {tree}; do
                 echo -n $T$'\t' >> {statistics}
-                echo -n `treestat -i -s colless $T`$'\t' >> {statistics}
                 echo `treestat -i -s sackin $T` >> {statistics}
             done
 
@@ -61,14 +60,10 @@ Steps:
         Interpreter: R --vanilla --silent
         Startup: |
             suppressPackageStartupMessages(library(netabc))
-            suppressPackageStartupMessages(library(reshape2))
         Rule: |
             m <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"edge_density", drop=FALSE]
             m$edge_density <- as.factor(m$edge_density)
             d <- read.table("{statistics}", header=TRUE)
             d <- merge(m, d, by="row.names")
-            d[,"Row.names"] <- NULL
-            d <- melt(d, id.vars="edge_density")
-            ggplot(d, aes(x=edge_density, y=value)) + geom_violin() + 
-                facet_wrap(~variable, scales="free") + theme_bw()
+            ggplot(d, aes(x=edge_density, y=sackin)) + geom_violin() + theme_bw()
             ggsave("{stats-plot}", height=4)
