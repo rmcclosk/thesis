@@ -186,5 +186,5 @@ Steps:
         Rule: |
             d <- collect.data(strsplit("{classifier}", " ")[[1]])
             summary.plot(d, x="rbf_variance", y="rsquared", group="decay_factor", 
-                         facet.x="nltt", fun="mean", yaml="{yaml}")
+                         facet.y="nltt", fun="mean", yaml="{yaml}")
             ggsave("{crossv-plot}", width=10)

@@ -1,6 +1,6 @@
 Name: abc-smallworld
 Description: ABC inference on 2-parameter small world networks
-Processes: 1
+Processes: 2
 Steps:
     network:
         Extension: gml
@@ -134,4 +134,27 @@ Steps:
             plots <- dlply(d, "iter", `%+%`, e1=p)
             do.call(marrangeGrob, list(grobs=plots, nrow=3, ncol=3))
 
+    error-plot:
+        Extension: pdf
+        Parameters:
+            replicate: 0
+        Depends: abc
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(data.table))
+        Rule: |
+            d <- setDT(collect.data(strsplit("{abc}", " ")[[1]]))
+            setnames(d, make.names(colnames(d), unique=TRUE))
+            d <- d[,.SD[which(iter == max(iter)),], by=c("rewire_prob.1", "nbhd_size.1")]
+            d <- d[,.SD[sample(1:nrow(.SD), prob=weight, replace=TRUE),], c("rewire_prob.1", "nbhd_size.1")]
+            pdf("{error-plot}")
+            ggplot(d, aes(x=factor(rewire_prob.1), y=rewire_prob, fill=factor(nbhd_size.1))) + 
+                geom_boxplot() + geom_hline(yintercept=d[,unique(rewire_prob.1)], linetype=2) + 
+                labs(x="true rewiring probability", y="estimated rewiring probability", fill="neighbourhood size") + 
+                scale_fill_brewer() + theme_bw()
+            ggplot(d, aes(x=factor(nbhd_size.1), y=nbhd_size, fill=factor(rewire_prob.1))) + 
+                geom_boxplot() + geom_hline(yintercept=d[,unique(nbhd_size.1)], linetype=2) + 
+                labs(x="true neighbourhood size", y="estimated neighbourhood size", fill="rewiring probability") + 
+                scale_fill_brewer() + theme_bw()
             dev.off()

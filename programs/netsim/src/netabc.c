@@ -37,6 +37,7 @@ struct netabc_options {
     int seed;
     int nparticle;
     int nsample;
+    int nltt;
     net_type net;
     double decay_factor;
     double rbf_variance;
@@ -52,6 +53,7 @@ struct option long_options[] =
     {"seed", required_argument, 0, 's'},
     {"decay-factor", required_argument, 0, 'l'},
     {"rbf-variance", required_argument, 0, 'g'},
+    {"nltt", no_argument, 0, 'c'},
     {"num-particles", required_argument, 0, 'n'},
     {"num-samples", required_argument, 0, 'p'},
     {"quality", required_argument, 0, 'q'},
@@ -93,6 +95,7 @@ void usage(void)
     fprintf(stderr, "  -s, --seed                random seed\n");
     fprintf(stderr, "  -l, --decay-factor        decay factor for tree kernel\n");
     fprintf(stderr, "  -g, --rbf-variance        variance for tree kernel radial basis function\n");
+    fprintf(stderr, "  -c, --nltt                multiply tree kernel by nLTT statistic\n");
     fprintf(stderr, "  -n, --num-particles       number of particles for SMC\n");
     fprintf(stderr, "  -p, --num-samples         number of sampled datasets per particle\n");
     fprintf(stderr, "  -q, --quality             tradeoff between speed and accuracy (0.9=fast, 0.99=accurate)\n");
@@ -116,6 +119,7 @@ struct netabc_options get_options(int argc, char **argv)
         .net = RANDOM_GNP,
         .decay_factor = 0.2,
         .rbf_variance = 2,
+        .nltt = 0,
         .quality = 0.95,
         .final_epsilon = 0.01,
         .final_accept_rate = 0.015
@@ -123,7 +127,7 @@ struct netabc_options get_options(int argc, char **argv)
 
     while (c != -1)
     {
-        c = getopt_long(argc, argv, "ha:d:e:g:l:m:n:p:q:s:t:", long_options, &i);
+        c = getopt_long(argc, argv, "ha:cd:e:g:l:m:n:p:q:s:t:", long_options, &i);
         if (c == -1)
             break;
 
@@ -136,6 +140,9 @@ struct netabc_options get_options(int argc, char **argv)
                 exit(EXIT_SUCCESS);
             case 'a':
                 opts.final_accept_rate = atof(optarg);
+                break;
+            case 'c':
+                opts.nltt = 1;
                 break;
             case 'd':
                 opts.trace_file = fopen(optarg, "a");
@@ -432,6 +439,7 @@ struct sample_dataset_arg {
     int ntip;
     double decay_factor;
     double rbf_variance;
+    int nltt;
     int (*sample_network) (igraph_t *, gsl_rng *, const double *);
 };
 
@@ -498,11 +506,13 @@ void sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void *X)
     igraph_vector_t v;
     igraph_rng_t igraph_rng;
     unsigned long int igraph_seed = gsl_rng_get(rng);
+    double k;
 
     struct sample_dataset_arg *sarg = (struct sample_dataset_arg *) arg;
     int ntip = sarg->ntip;
     double decay_factor = sarg->decay_factor;
     double rbf_variance = sarg->rbf_variance;
+    int nltt = sarg->nltt;
 
     // seems to work because of thread-local storage
     igraph_rng_init(&igraph_rng, &igraph_rngtype_mt19937);
@@ -548,7 +558,11 @@ void sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void *X)
         // don't ask me why I have to do this twice i have no idea
         ladderize(tree); ladderize(tree);
         scale_branches(tree, MEAN);
-        SETGAN(tree, "kernel", kernel(tree, tree, decay_factor, rbf_variance, 1));
+        k = kernel(tree, tree, decay_factor, rbf_variance, 1);
+        if (nltt) {
+            k *= nLTT(tree, tree);
+        }
+        SETGAN(tree, "kernel", k);
         igraph_destroy(&net);
     }
 
@@ -563,6 +577,7 @@ double distance(const void *x, const void *data, const void *arg)
     igraph_t *gy = (igraph_t *) data;
     double decay_factor = ((double *) arg)[0];                                   
     double rbf_variance = ((double *) arg)[1]; 
+    int nltt = (int) ((double *) arg)[2];
     char *zeroes = calloc(sizeof(igraph_t), 1);
     double k, kx, ky, dist;
 
@@ -574,6 +589,9 @@ double distance(const void *x, const void *data, const void *arg)
         ky = GAN(gy, "kernel");
         kx = GAN(gx, "kernel");
         k = kernel(gx, gy, decay_factor, rbf_variance, 1);
+        if (nltt) {
+            k *= nLTT(gx, gy);
+        }
         dist = 1.0 - k / sqrt(kx) / sqrt(ky);
     }
 
@@ -632,10 +650,11 @@ int main (int argc, char **argv)
     struct netabc_options opts = get_options(argc, argv);
     igraph_t *tree;
     smc_result *result;
-    double distance_arg[2];
+    double distance_arg[3];
     struct sample_dataset_arg sarg;
     smc_distribution *priors = malloc(MAX_PARAMS * sizeof(smc_distribution));
     double *prior_params = malloc(MAX_PARAMS * MAX_DIST_PARAMS * sizeof(double));
+    double k;
 
 #if IGRAPH_THREAD_SAFE == 0
     if (opts.nthread > 1)
@@ -660,8 +679,11 @@ int main (int argc, char **argv)
 
     ladderize(tree);
     scale_branches(tree, MEAN);
-    SETGAN(tree, "kernel", 
-           kernel(tree, tree, opts.decay_factor, opts.rbf_variance, 1));
+    k = kernel(tree, tree, opts.decay_factor, opts.rbf_variance, 1);
+    if (opts.nltt) {
+        k *= nLTT(tree, tree);
+    }
+    SETGAN(tree, "kernel", k);
 
     // set up SMC configuration
     config.nparticle = opts.nparticle;
@@ -677,6 +699,7 @@ int main (int argc, char **argv)
     sarg.ntip = NTIP(tree);
     sarg.decay_factor = opts.decay_factor;
     sarg.rbf_variance = opts.rbf_variance;
+    sarg.nltt = opts.nltt;
 
     switch (opts.net) {
         case PREF_ATTACH:
@@ -716,6 +739,7 @@ int main (int argc, char **argv)
 
     distance_arg[0] = opts.decay_factor;
     distance_arg[1] = opts.rbf_variance;
+    distance_arg[2] = opts.nltt;
     config.distance_arg = &distance_arg;
 
     if (opts.trace_file != NULL) {

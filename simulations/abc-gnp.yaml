@@ -40,8 +40,8 @@ Steps:
         Parameters:
             nnode_min: [2000, 5000]
             nnode_max: [5000, 8000]
-            nsimnode_min: 500
-            nsimnode_max: [500, 2000]
+            nsimnode_min: [500, 1000]
+            nsimnode_max: [1000, 2000]
             density_min: 0.0001
             density_max: 0.01
         Exclusions:
@@ -52,8 +52,17 @@ Steps:
                 nnode_min: 5000
                 nnode_max: 8000
             -
-                nnode_max: 5000
+                nnode_min: 5000
+                nsimnode_min: 500
+            -
+                nnode_min: 5000
                 nsimnode_max: 2000
+            -
+                nsimnode_min: 1000
+                nsimnode_max: 2000
+            -
+                nsimnode_min: 500
+                nsimnode_max: 1000
         Interpreter: bash
         Rule: |
             if [[ "{nnode_min}" == "{nnode_max}" ]]; then
@@ -78,15 +87,15 @@ Steps:
         Parameters:
             nnode_min: [2000, 5000]
             nnode_max: [5000, 8000]
-            nsimnode_min: 500
-            nsimnode_max: [500, 2000]
+            nsimnode_min: [500, 1000]
+            nsimnode_max: [1000, 2000]
             density_min: 0.0001
             density_max: 0.01
             edge_density: "[i/5000 for i in (2, 4, 6, 8)]"
             nsimnode: 1000
             ntip: 500
             replicate: 0
-            nthread: 20
+            nthread: 22
             decay_factor: 0.4
             rbf_variance: 1
             nparticle: 1000

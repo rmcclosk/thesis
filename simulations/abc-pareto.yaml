@@ -6,7 +6,7 @@ Steps:
         Parameters:
             nnode: 5000
             pareto_shape: [1, 1.5, 2]
-            replicate: 0
+            replicate: [0, 1]
         Interpreter: R --vanilla --silent
         Startup: |
             suppressPackageStartupMessages(library(netabc))
@@ -33,7 +33,7 @@ Steps:
             pareto_shape: [1, 1.5, 2]
             ntip: 1000
             nsimnode: 1000
-            replicate: 0
+            replicate: [0, 1]
         Depends: network
         Interpreter: bash
         Rule: |
@@ -107,4 +107,48 @@ Steps:
             plots <- dlply(d, "iter", `%+%`, e1=p)
             pdf("{iter-plot}")
             do.call(marrangeGrob, list(grobs=plots, nrow=3, ncol=3))
+            dev.off()
+
+    sanity-plot:
+        Extension: pdf
+        Parameters:
+            pareto_shape: [1, 1.5, 2]
+            replicate: 0
+        Depends: abc
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(plyr))
+            suppressPackageStartupMessages(library(gridExtra))
+            suppressPackageStartupMessages(library(data.table))
+        Rule: |
+            d <- fread("{abc}")
+            d <- d[, X0 := ifelse(is.finite(X0), X0, 1)]
+            d <- d[,.SD[sample(1:nrow(.SD), prob=1-X0, replace=TRUE),], by=iter]
+            # http://stackoverflow.com/questions/19059826/multiple-graphs-over-multiple-pages-using-ggplot
+            p <- ggplot(d, aes(x=pareto_shape)) + geom_density() + geom_vline(xintercept={pareto_shape}) + xlim(1, 2) + theme_bw() + ggtitle("pareto shape")
+            plots <- dlply(d, "iter", `%+%`, e1=p)
+            pdf("{sanity-plot}")
+            do.call(marrangeGrob, list(grobs=plots, nrow=3, ncol=3))
+            dev.off()
+
+    error-plot:
+        Extension: pdf
+        Parameters:
+            replicate: [0, 1]
+        Depends: abc
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(data.table))
+        Rule: |
+            d <- setDT(collect.data(strsplit("{abc}", " ")[[1]]))
+            setnames(d, make.names(colnames(d), unique=TRUE))
+            d <- d[,.SD[which(iter == max(iter)),], by=pareto_shape.1]
+            d <- d[,.SD[sample(1:nrow(.SD), prob=weight, replace=TRUE),], by=pareto_shape.1]
+            pdf("{error-plot}")
+            ggplot(d, aes(x=factor(pareto_shape.1), y=pareto_shape)) +
+                geom_boxplot() + geom_hline(yintercept=d[,unique(pareto_shape.1)], linetype=2) +
+                labs(x="true Pareto shape", y="estimated Pareto shape") +
+                theme_bw()
             dev.off()
