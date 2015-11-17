@@ -9,3 +9,5 @@ directory, so you should modify your environment as follows.
     export LIBRARY_PATH=/path/to/thesis/dependencies/bin:$LIBRARY_PATH
     export LD_LIBRARY_PATH=/path/to/thesis/dependencies/bin:$LD_LIBRARY_PATH
     export C_INCLUDE_PATH=/path/to/thesis/dependencies/include:$C_INCLUDE_PATH
+
+Then just type "make".
