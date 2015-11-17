@@ -39,7 +39,7 @@ bin/pkg-config: src/pkg-config-0.29.tar.gz
 	cd $(basename $(basename $^)) && ./configure --prefix=$(WD) --with-internal-glib && make && make install
 
 lib/libigraph.so: src/igraph
-	cd $^ && ./bootstrap.sh && ./configure --prefix=$(WD) && make && make install
+	cd $^ && ./bootstrap.sh && ./configure --prefix=$(WD) --enable-tls && make && make install
 
 bin/git: src/git-2.6.3.tar.gz
 	tar xf $^ -C $(dir $^)
