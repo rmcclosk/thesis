@@ -559,9 +559,6 @@ void sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void *X)
         ladderize(tree); ladderize(tree);
         scale_branches(tree, MEAN);
         k = kernel(tree, tree, decay_factor, rbf_variance, 1);
-        if (nltt) {
-            k *= nLTT(tree, tree);
-        }
         SETGAN(tree, "kernel", k);
         igraph_destroy(&net);
     }
@@ -590,7 +587,7 @@ double distance(const void *x, const void *data, const void *arg)
         kx = GAN(gx, "kernel");
         k = kernel(gx, gy, decay_factor, rbf_variance, 1);
         if (nltt) {
-            k *= nLTT(gx, gy);
+            k *= (1.0 - nLTT(gx, gy));
         }
         dist = 1.0 - k / sqrt(kx) / sqrt(ky);
     }
@@ -680,9 +677,6 @@ int main (int argc, char **argv)
     ladderize(tree);
     scale_branches(tree, MEAN);
     k = kernel(tree, tree, opts.decay_factor, opts.rbf_variance, 1);
-    if (opts.nltt) {
-        k *= nLTT(tree, tree);
-    }
     SETGAN(tree, "kernel", k);
 
     // set up SMC configuration
