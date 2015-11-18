@@ -86,4 +86,30 @@ Steps:
                    --rbf-variance {rbf_variance} --num-particles {nparticle} \
                    --num-samples {nsample} --quality {quality} --seed {seed} \
                    --final-epsilon {final_epsilon} --final-accept {final_accept} \
-                   $NLTT --net-type pa --trace {abc} {tree} {abc-config} 
+    iter-plot:
+        Extension: pdf
+        Parameters:
+            m: 2
+            power: [0.0, 0.5, 1, 1.5]
+            power_min: 0
+            power_max: 2
+            nnode_min: 1000
+            nnode_max: 10000
+            nnode_prior: ["uniform", "delta"]
+            replicate: [0, 1]
+        Depends: abc
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(ggplus))
+            suppressPackageStartupMessages(library(data.table))
+        Rule: |
+            d <- fread("{abc}")
+            d <- d[,.SD[sample(1:nrow(.SD), prob=weight, replace=TRUE),], by=iter]
+
+            pdf("{iter-plot}")
+            p <- ggplot(d, aes(x=attach_power)) + geom_density() + 
+                 geom_vline(xintercept={m}, lty=2) + xlim({power_min}, {power_max}) + 
+                 labs(x="attachment power", y="density") + theme_bw()
+            facet_multiple(p, facets="iter", nrow=3, ncol=3)
+            dev.off()
