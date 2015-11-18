@@ -13,9 +13,3 @@ I'm using. It probably wouldn't be a useful package for its own sake.
 
 This is the main software component of this project. It contains C source code
 for several binaries, described in more details in its own README.
-
-## pcbr
-
-This is an old version of the MMPP code I wrote for my rotation project. It's
-mostly been incorporated into netsim and will probably be removed in the
-future.
