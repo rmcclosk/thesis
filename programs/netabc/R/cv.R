@@ -1,45 +1,39 @@
-# http://stackoverflow.com/questions/1753299/help-using-predict-for-kernlabs-svm-in-r
-ksvm.cv <- function (kmat, y, n.cv=1000, stats=c("accuracy"), show.progress=TRUE, nthread=1,
-                     ksvm.type=ifelse(is.factor(y), "C-svc", "eps-svr"))
-{
-    get.train <- function(k, holdout) as.kernelMatrix(k[-holdout,-holdout])
-    get.test <- function(k, holdout, m) as.kernelMatrix(k[holdout, -holdout][,SVindex(m), drop=F])
-    fit.model <- function(k, train.y) ksvm(k, train.y, kernel="matrix", type=ksvm.type)
-    predict <- kernlab::predict
-    do.cv(kmat, y, get.train, get.test, fit.model, predict, n.cv=n.cv,
-          stats=stats, show.progress=show.progress, nthread=nthread)
-}
+#' Generic cross-validation.
+#'
+#' Given data x and labels y, perform replicate 2-fold cross-validations to
+#' determine the accuracy of a classifier. The parameter x can by anything; y
+#' must be either a factor or a numeric vector.
+#'
+#' The other mandatory parameters are functions for doing CV-related tasks.
 
-lm.cv <- function (data, y, n.cv=1000, stats=c("rsquared"), show.progress=TRUE, nthread=1)
-{
-    get.train <- function (d, holdout) d[-holdout,]
-    get.test <- function (d, holdout, m) d[holdout,]
-    fit.model <- function (d, train.y) {
-        train.data <- cbind(d, y=train.y)
-        frm <- as.formula(paste0("y~", paste(colnames(d), collapse="+")))
-        lm(frm, data=train.data)
-    }
-    predict <- stats::predict
-    do.cv(data, y, get.train, get.test, fit.model, predict, n.cv=n.cv,
-          stats=stats, show.progress=show.progress, nthread=nthread)
-}
+#' get.train will be passed two parameters, x and holdout, where x was input to
+#' the function and holdout is an integer vector of indices of y which will be
+#' held out and should be removed from x. 
 
-rpart.cv <- function (data, y, n.cv=1000, stats=c("accuracy"), show.progress=TRUE, nthread=1)
-{
-    get.train <- function (d, holdout) d[-holdout,]
-    get.test <- function (d, holdout, m) d[holdout,]
-    fit.model <- function (d, train.y) {
-        train.data <- cbind(d, y=train.y)
-        frm <- as.formula(paste0("y~", paste(colnames(d), collapse="+")))
-        model <- rpart(frm, data=train.data, method="class")
-        # http://www.statmethods.net/advstats/cart.html
-        prune(model, cp = model$cptable[which.min(model$cptable[,"xerror"]),"CP"])
-    }
-    predict <- function (m, d) stats::predict(m, data=d, type="vector")
-    do.cv(data, y, get.train, get.test, fit.model, predict, n.cv=n.cv,
-          stats=stats, show.progress=show.progress, nthread=nthread)
-}
-
+#' get.test will be passed x, holdout, and m, where m is the fitted model. It
+#' is necessary to pass the fitted model so that we can for example get the
+#' indices of the support vectors.
+#'
+#' fit.model will be passed training data (as returned by get.train) and a
+#' corresponding subset of y with the test labels held out. It should return a
+#' model trained on the training data.
+#'
+#' predict will be passed the fitted model (as returned by fit.model) and the 
+#' test data (as returned by get.test). It should return predicted labels for
+#' the test set.
+#'
+#' Some summary statistics are calculated for each cross-validation, and these
+#' are returned as a data.frame. Currently the only available statistics are
+#' "rsquared" for numeric labels or "accuracy" for categorical labels.
+#'
+#' @param x data, can by anything
+#' @param y labels, either a factor or a numeric
+#' @param get.train function to create training subset of x
+#' @param get.test function to create testing subset of x
+#' @param n.cv number of cross-validations to perform
+#' @param stats statistics to calculate
+#' @param show.progress whether to display a progress bar
+#' @param nthread number of threads to use
 do.cv <- function (x, y, get.train, get.test, fit.model, predict, n.cv=1000,
                    stats=c("accuracy"), show.progress=TRUE, nthread=1)
 {
@@ -82,4 +76,33 @@ do.cv <- function (x, y, get.train, get.test, fit.model, predict, n.cv=1000,
         close(pb)
     }
     result
+}
+
+#' Perform replicate 2-fold cross-validations on a kSVM classifier.
+#'
+#' Returns a data.frame with the indicated statistics for each individual
+#' cross-validation. Currently the only supported statistics are "accuracy" for
+#' categorical labels or "rsquared" for numeric labels.
+#'
+#' @param kmat kernel matrix
+#' @param y labels for data
+#' @param stats statistics to calculate
+#' @param show.progress whether to display a progress bar
+#' @param nthread number of threads to use
+#' @param ksvm.type type of kernel-SVM classifier
+#' @return A data.frame with the indicated statistics for each CV
+#' @seealso \url{http://stackoverflow.com/questions/1753299}
+#' @seealso \code{\link{kernlab::ksvm}}
+#' @export
+ksvm.cv <- function (kmat, y, n.cv=1000, 
+                     stats=ifelse(is.factor(y), "accuracy", "rsquared"),
+                     show.progress=TRUE, nthread=1,
+                     ksvm.type=ifelse(is.factor(y), "C-svc", "eps-svr"))
+{
+    get.train <- function(k, holdout) as.kernelMatrix(k[-holdout,-holdout])
+    get.test <- function(k, holdout, m) as.kernelMatrix(k[holdout, -holdout][,SVindex(m), drop=F])
+    fit.model <- function(k, train.y) ksvm(k, train.y, kernel="matrix", type=ksvm.type)
+    predict <- kernlab::predict
+    do.cv(kmat, y, get.train, get.test, fit.model, predict, n.cv=n.cv,
+          stats=stats, show.progress=show.progress, nthread=nthread)
 }

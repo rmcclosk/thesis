@@ -1,20 +1,49 @@
+#' Plot a 2-dimensional PCA projection of a kernel-matrix 
+#'
+#' @param kmat kernel matrix
+#' @param color either NULL, or a list of one element to display with color
+#' @param shape either NULL, or a list of one element to display with point shape
+#' @param yaml either NULL, or a YAML-formatted string to title the plot with
+#' @return a ggplot object
+#' @export
 kpca.plot <- function (kmat, color=NULL, shape=NULL, yaml=NULL)
 {
     kmat <- as.kernelMatrix(kmat)
     plot.data <- as.data.frame(rotated(kpca(kmat, features=2)))
     colnames(plot.data) <- c("PC1", "PC2")
-    if (!is.null(color))
+    if (!is.null(color)) {
         plot.data <- cbind(plot.data, color)
-    if (!is.null(shape))
+    }
+    if (!is.null(shape)) {
         plot.data <- cbind(plot.data, shape)
+    }
     plot.aes <- aes_string(x="PC1", y="PC2", color=names(color), shape=names(shape))
 
     p <- ggplot(plot.data, plot.aes) + geom_point() + theme_bw()
-    if (!is.null(yaml))
-        p <- p + ggtitle(as.yaml(yaml.load(yaml)))
+    if (!is.null(yaml)) {
+        p <- p + ggtitle(paste(strwrap(as.yaml(yaml.load(yaml)), 60), collapse="\n"))
+    }
     p
 }
 
+#' Summarize data by colors, shapes, and faceting
+#'
+#' The color and shape of the points, as well as which points have lines drawn
+#' between them, is dictated by the group parameter.
+#'
+#' @param data data to summarize
+#' @param x name of column to be plotted on the x-axis
+#' @param y name of column to be plotted on the y-axis
+#' @param facet.x name of column to be faceted in columns
+#' @param facet.y name of column to be faceted in rows
+#' @param group name of column used to group points, or NULL
+#' @param fun summary statistic to display
+#' @param x.factor display the x-axis variable as a factor
+#' @param y.factor display the y-axis variable as a factor
+#' @param group.factor display the grouping variable as a factor
+#' @param yaml either NULL, or a YAML-formatted string to title the plot with
+#' @return a ggplot object
+#' @export
 summary.plot <- function (data, x, y, facet.x=".", facet.y=".", group=NULL,
                           fun="mean", x.factor=TRUE, y.factor=FALSE,
                           group.factor=TRUE, yaml=NULL)
@@ -23,24 +52,43 @@ summary.plot <- function (data, x, y, facet.x=".", facet.y=".", group=NULL,
     agg.formula <- as.formula(paste0(y, "~", agg.rhs))
     plot.data <- aggregate(agg.formula, data, fun)
 
-    if (y.factor)
+    if (y.factor) {
         plot.data[,y] <- as.factor(plot.data[,y])
-    if (x.factor)
+    }
+    if (x.factor) {
         plot.data[,x] <- as.factor(plot.data[,x])
-    if (!is.null(group) & group.factor)
+    }
+    if (!is.null(group) & group.factor) {
         plot.data[,group] <- as.factor(plot.data[,group])
+    }
 
     p <- ggplot(plot.data, aes_string(x=x, y=y, color=group, shape=group, group=group))
     if (facet.x != "." | facet.y != ".") {
-        p <- p + facet_grid(as.formula(paste(facet.x, "~", facet.y)), labeller="label_both")
+        p <- p + facet_grid(as.formula(paste(facet.y, "~", facet.x)), labeller="label_both")
     }
     p <- p + geom_point(size=3) + geom_line() + theme_bw() +
         theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
-    if (!is.null(yaml))
-        p <- p + ggtitle(as.yaml(yaml.load(yaml)))
+    if (!is.null(yaml)) {
+        p <- p + ggtitle(paste(strwrap(as.yaml(yaml.load(yaml)), 60), collapse="\n"))
+    }
     p
 }
 
+#' Plot contact network clusters in a phylogeny
+#'
+#' This takes a contact network and a phylogeny, where the phylogeny was
+#' presumably simulated from the contact network. The node names in the network
+#' and phylogeny are matched. The nodes of the contact network should have the
+#' "cluster" attribute defined, which indicates which cluster they are part of.
+#' These clusters are highlighted with colours in the phylogeny.
+#'
+#' @param net contact network whose nodes have a "cluster" attribute
+#' @param tree phylogeny with tip and node labels from the contact network
+#' @param yaml YAML-formatted metadata to title the tree with
+#' @param palette color brewer palette to use
+#' @param status.only if TRUE, use only one colour to indicate cluster status
+#' @param ... other arguments to be passed to plot.phylo
+#' @export
 cluster.plot <- function (net, tree, yaml="", palette="Set1", status.only=FALSE, ...)
 {
     d <- data.frame(node=as.character(V(net)$id), cluster=as.integer(V(net)$cluster))
@@ -72,17 +120,28 @@ cluster.plot <- function (net, tree, yaml="", palette="Set1", status.only=FALSE,
     title(paste(strwrap(as.yaml(yaml.load(yaml)), 60), collapse="\n"))
 }
 
-pcbr.plot <- function (tree, pcbr.out, yaml="", palette="PuBu", ...)
+#' Plot a phylogeny with edges coloured by a label
+#'
+#' @param tree phylogeny to plot
+#' @param labels a matrix or data.frame, where the first two columns are the
+#'               node name and the corresponding label
+#' @param yaml YAML-formatted metadata to title the tree with
+#' @param palette color brewer palette to use
+#' @param parent if TRUE, color the edges according to the parent's state,
+#'               otherwise the child's
+#' @param ... other arguments to be passed to plot.phylo
+#' @export
+edge.color.plot <- function (tree, labels, yaml="", palette="PuBu", parent=TRUE, ...)
 {
-    names(pcbr.out) <- c("node", "rate", "cluster")
-    pcbr.out$rate <- factor(pcbr.out$rate, levels=sort(unique(pcbr.out$rate)))
-    pcbr.out$rate <- as.integer(pcbr.out$rate)
-    colors <- brewer.pal(max(pcbr.out$rate), palette)
+    labels <- as.data.frame(labels)
+    colnames(labels)[1:2] <- c("node", "rate")
+    labels$rate <- as.integer(as.factor(labels$rate))
+    colors <- brewer.pal(max(labels$rate), palette)
 
-    labels <- c(tree$tip.label, tree$node.label)
-    parents <- labels[tree$edge[,1]]
-    parent.rate <- with(pcbr.out, rate[match(parents, node)])
-    edge.col <- colors[parent.rate]
+    tree.labels <- c(tree$tip.label, tree$node.label)
+    nodes <- tree.labels[tree$edge[,if (parent) 1 else 2]]
+    edge.labels <- with(labels, rate[match(nodes, node)])
+    edge.col <- colors[edge.labels]
     plot.phylo(tree, edge.color=edge.col, ...)
     title(paste(strwrap(as.yaml(yaml.load(yaml)), 60), collapse="\n"))
 }
