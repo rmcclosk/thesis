@@ -20,8 +20,8 @@ all: dirs \
      lib/libyaml.so \
      lib/libcheck.so \
      lib/libxml2.so \
-	 bin/python3 \
-     lib/python3/site-packages/yaml \
+     bin/python3 \
+     lib/python3.5/site-packages/yaml \
      R-pkgs
 
 dirs:
@@ -51,7 +51,7 @@ lib/libJudy.so: src/judy-1.0.5.tar.gz
 lib/libyaml.so: src/yaml-0.1.5.tar.gz
 lib/libcheck.so: src/check-0.10.0.tar.gz
 bin/python3: src/Python-3.5.0.tar.xz
-lib/python3/site-packages/yaml: src/PyYAML-3.11.tar.gz
+lib/python3.5/site-packages/yaml: src/PyYAML-3.11.tar.gz
 
 bin/pkg-config: src/pkg-config-0.29.tar.gz
 	tar xf $^ -C $(dir $^)
@@ -72,7 +72,7 @@ lib/libxml2.so: src/libxml2-2.9.2.tar.gz
 	tar xf $^ -C $(dir $^)
 	cd $(basename $(basename $^)) && ./configure --prefix=$(WD) --without-python && make && make install
 
-lib/python3/site-packages/%:
+lib/python3.5/site-packages/%:
 	tar xf $^ -C $(dir $^)
 	cd $(basename $(basename $^)) && python3 setup.py install
 

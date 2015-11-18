@@ -270,7 +270,7 @@ def run_step(expt, step_name, con, cur, nproc):
         for id in ids:
             if id in out:
                 done = False
-                time.sleep(2)
+                time.sleep(60)
                 break
 
     for _, fn in [x for x in scripts + jobscripts if x != 0]:
