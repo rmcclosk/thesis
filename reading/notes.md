@@ -185,6 +185,11 @@ if the incidence nand prevalence curves are very closely matched.
 * Imbalance, or rather the relationship between epidemic dynamics and
 imbalance, is significantly affected by sampling schemes (Figure 11).
 
+**[@robinson2012dynamics]**
+
+* Develops a method for modelling dynamic sexual contact networks.
+* There is a link to a survey of sexual partnering information.
+
 ## Other Phylodynamics
 
 **[@hughes2009molecular]**

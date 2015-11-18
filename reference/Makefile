@@ -32,6 +32,8 @@ all: dirs \
 	 R/network.pdf \
 	 R/data.table.pdf \
 	 R/reshape2.pdf \
+	 R/roxygen2.pdf \
+	 R/ggplot2.pdf \
 	 python/python-library.pdf \
 	 bin/pandoc.pdf \
 	 bin/$(DOXYGEN_LATEST).pdf \

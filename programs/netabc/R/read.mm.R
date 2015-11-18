@@ -1,3 +1,7 @@
+#' Read a symmetric MatrixMarket file
+#'
+#' @param file the file to read
+#' @return a symmetric matrix
 read.mm.symmetric <- function (file)
 {
     dim <- scan(file, what=integer(0), n=2, comment.char="%", quiet=TRUE)[1]
@@ -12,6 +16,10 @@ read.mm.symmetric <- function (file)
     m
 }
 
+#' Read a general array-formatted MatrixMarket file
+#'
+#' @param file the file to read
+#' @return a matrix
 read.mm.general <- function (file)
 {
     dim <- scan(file, what=integer(0), n=2, comment.char="%", quiet=TRUE)
@@ -22,7 +30,13 @@ read.mm.general <- function (file)
     matrix(data, nrow=dim, ncol=dim)
 }
 
-# read a matrix in MatrixMarket format
+#' Read a matrix in MatrixMarket format
+#'
+#' If the matrix file is in co-ordinate format, the readMM function from the
+#' Matrix package is used.
+#'
+#' @param file.name MatrixMarket file to read
+#' @return a matrix
 read.mm <- function (file.name)
 {
     if (grepl("\\.bz2?$", file.name, perl=TRUE)) {
@@ -37,9 +51,11 @@ read.mm <- function (file.name)
 
     mm.spec <- readLines(f, n=1)
     result <- NULL
-    if (grepl("coordinate", mm.spec))
+    if (grepl("coordinate", mm.spec)) 
+    {
         result <- readMM(f)
-    if (mm.spec == "%%MatrixMarket matrix array real symmetric")
+    }
+    else if (mm.spec == "%%MatrixMarket matrix array real symmetric")
     {
         result <- read.mm.symmetric(f)
     }
@@ -49,7 +65,8 @@ read.mm <- function (file.name)
     }
 
     close(f)
-    if (is.null(result))
+    if (is.null(result)) {
         stop(sprintf("MatrixMarket format '%s' not yet implemented", mm.spec))
-    return(result)
+    }
+    result
 }

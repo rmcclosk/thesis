@@ -1,11 +1,22 @@
-SI.net <- function(net, transmit.rate=1, mode="mutual")
-{
-    SIR.net(net, transmit.rate=transmit.rate, remove.rate=0, mode=mode)
-}
-
+#' Create a contact network with a SIR dynamics.
+#'
+#' If the network is undirected, it will be converted to a directed network by
+#' creating mutual directed edges for each undirected edge. The transmission
+#' and removal rates for each node and edge in the network are set to the
+#' parameter values. By default, the removal rate is zero, corresponding to an
+#' SI epidemic.
+#'
+#' @param net the network to operate on
+#' @param transmit.rate transmission rate for all edges
+#' @param remove.rate removal rate for all nodes
+#' @param mode mode of conversion from undirected to directed
+#' @return a modified network
+#' @export
 SIR.net <- function(net, transmit.rate=1, remove.rate=0, mode="mutual")
 {
-    net <- as.directed(net, mode=mode)
+    if (!is.directed(net)) {
+        net <- as.directed(net, mode=mode)
+    }
     E(net)$transmit <- transmit.rate
     V(net)$remove <- remove.rate
     net
