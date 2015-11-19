@@ -1,4 +1,5 @@
 Name: abc-gnp
+Description: ABC inference on 1-parameter BA networks
 Processes: 1
 Steps:
     network:
@@ -20,7 +21,7 @@ Steps:
         Extension: nwk
         Parameters:
             edge_density: "[i/5000 for i in (2, 4, 6, 8)]"
-            ntip: 500
+            ntip: 1000
             nsimnode: 1000
             replicate: 0
         Depends: network
@@ -38,66 +39,39 @@ Steps:
     abc-config:
         Extension: yaml
         Parameters:
-            nnode_min: [2000, 5000]
-            nnode_max: [5000, 8000]
-            nsimnode_min: [500, 1000]
-            nsimnode_max: [1000, 2000]
+            nnode: 5000
+            nnode_min: 1000
+            nnode_max: 10000
+            nnode_prior: ["uniform", "delta"]
+            nsimnode: 1000
             density_min: 0.0001
             density_max: 0.01
-        Exclusions:
-            -
-                nnode_min: 2000
-                nnode_max: 5000
-            -
-                nnode_min: 5000
-                nnode_max: 8000
-            -
-                nnode_min: 5000
-                nsimnode_min: 500
-            -
-                nnode_min: 5000
-                nsimnode_max: 2000
-            -
-                nsimnode_min: 1000
-                nsimnode_max: 2000
-            -
-                nsimnode_min: 500
-                nsimnode_max: 1000
         Interpreter: bash
         Rule: |
-            if [[ "{nnode_min}" == "{nnode_max}" ]]; then
-                echo 'nodes: {nnode_min}' > {abc-config}
+            if [[ "{nnode_prior}" == "uniform" ]]; then
+                echo "nodes: [\"uniform\", {nnode_min}, {nnode_max}]" > {abc-config}
             else
-                echo 'nodes: ["uniform", {nnode_min}, {nnode_max}]' > {abc-config}
+                echo "nodes: {nnode}" > {abc-config}
             fi
-
-            if [[ "{nsimnode_min}" == "{nsimnode_max}" ]]; then
-                echo 'sim_nodes: {nsimnode_min}' >> {abc-config}
-            else
-                echo 'sim_nodes: ["uniform", {nsimnode_min}, {nsimnode_max}]' >> {abc-config}
-            fi
+            echo "sim_nodes: {nsimnode}" >> {abc-config}
             echo "sim_time: 0" >> {abc-config}
             echo "transmit: 1" >> {abc-config}
             echo "remove: 0" >> {abc-config}
-            echo 'pr_edge: ["uniform", {density_min}, {density_max}]' >> {abc-config}
+            echo "pr_edge: [\"uniform\", {density_min}, {density_max}]" >> {abc-config}
 
     abc:
         Extension: tsv
-        Processes: 1
+        Processes: 0
+        Threads: 12
+        Walltime: 3
         Parameters:
-            nnode_min: [2000, 5000]
-            nnode_max: [5000, 8000]
-            nsimnode_min: [500, 1000]
-            nsimnode_max: [1000, 2000]
-            density_min: 0.0001
-            density_max: 0.01
+            nnode_prior: ["uniform", "delta"]
             edge_density: "[i/5000 for i in (2, 4, 6, 8)]"
-            nsimnode: 1000
-            ntip: 500
             replicate: 0
-            nthread: 22
-            decay_factor: 0.4
-            rbf_variance: 1
+            nthread: 12
+            decay_factor: 0.3
+            rbf_variance: [5, 50]
+            nltt: [0, 1]
             nparticle: 1000
             nsample: 5
             quality: 0.95
@@ -107,42 +81,14 @@ Steps:
         Interpreter: bash
         Rule: |
             echo "#{yaml}" > {abc}
+            echo "#{yaml}" > {abc}
+            if [[ "{nltt}" == "1" ]]; then
+                NLTT=--nltt
+            else
+                NLTT=""
+            fi
             netabc --num-threads {nthread} --decay-factor {decay_factor} \
                    --rbf-variance {rbf_variance} --num-particles {nparticle} \
                    --num-samples {nsample} --quality {quality} --seed {seed} \
                    --final-epsilon {final_epsilon} --final-accept {final_accept} \
-                   --net-type gnp --trace {abc} {tree} {abc-config} 
-
-    iter-plot:
-        Extension: pdf
-        Parameters:
-            nnode: 5000
-            nnode_min: [2000, 5000]
-            nnode_max: [5000, 8000]
-            nsimnode_min: 500
-            nsimnode_max: [500, 2000]
-            density_min: 0.0001
-            density_max: 0.01
-            edge_density: "[i/5000 for i in (2, 4, 6, 8)]"
-            replicate: 0
-        Depends: abc
-        Interpreter: R --vanilla --silent
-        Startup: |
-            suppressPackageStartupMessages(library(netabc))
-            suppressPackageStartupMessages(library(plyr))
-            suppressPackageStartupMessages(library(gridExtra))
-            suppressPackageStartupMessages(library(data.table))
-        Rule: |
-            d <- fread("{abc}")
-            d <- d[,.SD[sample(1:nrow(.SD), prob=weight, replace=TRUE),], by=iter]
-            # http://stackoverflow.com/questions/19059826/multiple-graphs-over-multiple-pages-using-ggplot
-            p <- ggplot(d, aes(x=pr_edge)) + geom_density() + geom_vline(xintercept={edge_density}) + xlim(0.0002, 0.004) + theme_bw() + ggtitle("edge density")
-            plots <- dlply(d, "iter", `%+%`, e1=p)
-            pdf("{iter-plot}")
-            do.call(marrangeGrob, list(grobs=plots, nrow=3, ncol=3))
-
-            p <- ggplot(d, aes(x=nodes)) + geom_density() + geom_vline(xintercept={nnode}) + xlim(1000, 10000) + theme_bw() + ggtitle("nodes")
-            plots <- dlply(d, "iter", `%+%`, e1=p)
-            pdf("{iter-plot}")
-            do.call(marrangeGrob, list(grobs=plots, nrow=3, ncol=3))
-            dev.off()
+                   $NLTT --net-type gnp --trace {abc} {tree} {abc-config} 

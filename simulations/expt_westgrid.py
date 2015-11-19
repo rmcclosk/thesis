@@ -152,6 +152,7 @@ def run_step(expt, step_name, con, cur, nproc):
     files = []
 
     scripts = [0] * nproc
+    ntasks = [0] * nproc
     proc_cur = 0
 
     exclusions = []
@@ -201,8 +202,12 @@ def run_step(expt, step_name, con, cur, nproc):
 
         # check if the file needs updating
         if (needs_update(target, depends, cur)):
-
-            if scripts[proc_cur] == 0:
+            if nproc <= 0:
+                tf = tempfile.mkstemp(dir=TMPDIR)
+                scripts.append((os.fdopen(tf[0], "w"), tf[1]))
+                scripts[-1][0].write(str(startup, "UTF-8"))
+                
+            elif scripts[proc_cur] == 0:
                 tf = tempfile.mkstemp(dir=TMPDIR)
                 scripts[proc_cur] = (os.fdopen(tf[0], "w"), tf[1])
                 scripts[proc_cur][0].write(str(startup, "UTF-8"))
@@ -225,17 +230,23 @@ def run_step(expt, step_name, con, cur, nproc):
             if not command.endswith(os.linesep):
                 command = "{}\n".format(command)
             logging.debug(command)
-            scripts[proc_cur][0].write(command)
+            
+            if nproc <= 0:
+                scripts[-1][0].write(command)
+            else:
+                scripts[proc_cur][0].write(command)
+                ntasks[proc_cur] += 1
             files.append((basename, target))
 
-            proc_cur = (proc_cur + 1) % nproc
+            if nproc > 0:
+                proc_cur = (proc_cur + 1) % nproc
 
             # commit changes to the database
             con.commit()
 
-    jobscripts = [0] * nproc
+    jobscripts = [0] * len(scripts)
     ids = []
-    for i in range(nproc):
+    for i in range(len(scripts)):
         if scripts[i] != 0:
             scripts[i][0].write("\n")
             scripts[i][0].close()
@@ -249,9 +260,9 @@ def run_step(expt, step_name, con, cur, nproc):
             except KeyError:
                 jobscripts[i][0].write("#PBS -l nodes=1:ppn=1\n")
             try:
-                jobscripts[i][0].write("#PBS -l walltime={}\n".format(step["Walltime"]))
+                jobscripts[i][0].write("#PBS -l walltime={}:00:00\n".format(step["Walltime"]))
             except KeyError:
-                jobscripts[i][0].write("#PBS -l walltime=01:00:00\n")
+                jobscripts[i][0].write("#PBS -l walltime={}:00:00\n".format(ntasks[i]))
             jobscripts[i][0].write("\n")
 
             jobscripts[i][0].write("cd $PBS_O_WORKDIR\n")
@@ -268,9 +279,13 @@ def run_step(expt, step_name, con, cur, nproc):
 
         done = True
         for id in ids:
-            if id in out:
-                done = False
-                time.sleep(60)
+            for line in out.split("\n"):
+                    line = line.split()
+                    if len(line) > 9 and line[9] != "C" and id in line[0]:
+                        done = False
+                        time.sleep(60)
+                        break
+            if not done:
                 break
 
     for _, fn in [x for x in scripts + jobscripts if x != 0]:

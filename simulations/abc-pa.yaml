@@ -15,7 +15,7 @@ Steps:
             set.seed({seed})
             g <- sample_pa({nnode}, m={m}, power={power}, directed=FALSE)
             graph_attr(g, "comment") <- "{yaml}"
-            write.graph(SI.net(g), "{network}", format="gml")
+            write.graph(SIR.net(g), "{network}", format="gml")
 
     tree:
         Extension: nwk
@@ -58,16 +58,18 @@ Steps:
 
     abc:
         Extension: tsv
-        Processes: 1
+        Processes: 0
+        Threads: 12
+        Walltime: 3
         Parameters:
             nnode_prior: ["uniform", "delta"]
             m: 2
             power: [0.0, 0.5, 1, 1.5]
             replicate: 0
-            nthread: 38
-            decay_factor: 0.2
-            rbf_variance: 2
-            nltt: 1
+            nthread: 12
+            decay_factor: [0.2, 0.3]
+            rbf_variance: [2, 5]
+            nltt: [0, 1]
             nparticle: 1000
             nsample: 5
             quality: 0.95
@@ -86,30 +88,5 @@ Steps:
                    --rbf-variance {rbf_variance} --num-particles {nparticle} \
                    --num-samples {nsample} --quality {quality} --seed {seed} \
                    --final-epsilon {final_epsilon} --final-accept {final_accept} \
-    iter-plot:
-        Extension: pdf
-        Parameters:
-            m: 2
-            power: [0.0, 0.5, 1, 1.5]
-            power_min: 0
-            power_max: 2
-            nnode_min: 1000
-            nnode_max: 10000
-            nnode_prior: ["uniform", "delta"]
-            replicate: [0, 1]
-        Depends: abc
-        Interpreter: R --vanilla --silent
-        Startup: |
-            suppressPackageStartupMessages(library(netabc))
-            suppressPackageStartupMessages(library(ggplus))
-            suppressPackageStartupMessages(library(data.table))
-        Rule: |
-            d <- fread("{abc}")
-            d <- d[,.SD[sample(1:nrow(.SD), prob=weight, replace=TRUE),], by=iter]
-
-            pdf("{iter-plot}")
-            p <- ggplot(d, aes(x=attach_power)) + geom_density() + 
-                 geom_vline(xintercept={m}, lty=2) + xlim({power_min}, {power_max}) + 
-                 labs(x="attachment power", y="density") + theme_bw()
-            facet_multiple(p, facets="iter", nrow=3, ncol=3)
-            dev.off()
+                   $NLTT --net-type pa --trace {abc} --seed {seed} {tree} {abc-config}
+            echo "EOF" >> {abc}
