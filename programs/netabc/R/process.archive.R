@@ -2,6 +2,8 @@
 #'
 #' @param file.name name of the file to operate on
 #' @param fun function to apply to the opened file
+#' @param ... additional arguments for fun
+#' @export
 process.archive <- function (file.name, fun, ...)
 {
     if (grepl("\\.bz2?$", file.name, perl=TRUE)) {

@@ -85,11 +85,16 @@ collect.metadata <- function (data.files)
 
     # fill in the fields each file doesn't have with NA 
     metadata <- mapply(function (df, new) {
-        cbind(df, as.data.frame(setNames(as.list(rep(NA, length(new))), new)))
+        if (length(new) > 0) {
+            cbind(df, as.data.frame(setNames(as.list(rep(NA, length(new))), new)))
+        }
+        else {
+            df
+        }
     }, metadata, new.cols, SIMPLIFY=FALSE)
 
     # put all together and set row names to files
-    metadata <- do.call(rbind, lapply(metadata, "[", keep.cols))
+    metadata <- do.call(rbind, metadata)
     rownames(metadata) <- data.files
     metadata
 }
