@@ -238,7 +238,8 @@ def run_step(expt, step_name, con, cur, nproc):
                 ntasks[proc_cur] += 1
             files.append((basename, target))
 
-            proc_cur = (proc_cur + 1) % nproc
+            if nproc > 0:
+                proc_cur = (proc_cur + 1) % nproc
 
             # commit changes to the database
             con.commit()

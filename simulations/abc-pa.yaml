@@ -88,4 +88,5 @@ Steps:
                    --rbf-variance {rbf_variance} --num-particles {nparticle} \
                    --num-samples {nsample} --quality {quality} --seed {seed} \
                    --final-epsilon {final_epsilon} --final-accept {final_accept} \
-                   --net-type pa --trace {abc} --seed {seed} {tree} {abc-config}
+                   $NLTT --net-type pa --trace {abc} --seed {seed} {tree} {abc-config}
+            echo "EOF" >> {abc}
