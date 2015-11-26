@@ -17,5 +17,6 @@ Depends:
     igraph,
     RColorBrewer,
     data.table,
-    reshape2
+    reshape2,
+    gridExtra
 RoxygenNote: 5.0.1

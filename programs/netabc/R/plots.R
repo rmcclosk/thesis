@@ -145,3 +145,42 @@ edge.color.plot <- function (tree, labels, yaml="", palette="PuBu", parent=TRUE,
     plot.phylo(tree, edge.color=edge.col, ...)
     title(paste(strwrap(as.yaml(yaml.load(yaml)), 60), collapse="\n"))
 }
+
+#' Plot marginal kernel densities
+#'
+#' @param d data.frame to plot densities for
+#' @param truth true parameter values to indicate on plots
+#' @param limits axis limits for plots
+#' @export
+marginal.plot <- function (d, truth, limits) {                                   
+    vary.cols <- colnames(d)[apply(d, 2, function (x) length(unique(x)) > 1)]       
+                                                                                 
+    if (length(vary.cols) >= 2) {                                                
+    # 2D marginals                                                               
+        combos <- combn(vary.cols, 2)                                            
+        plot.data <- apply(combos, 2, function (c) d[, c, with=FALSE])           
+        plot.aes <- apply(combos, 2, function (c) aes_string(x=c[1], y=c[2]))       
+        plot.limits <- apply(combos, 2, function (c) limits[c])                  
+        plots <- mapply(ggplot, plot.data, plot.aes, SIMPLIFY=FALSE)             
+        plots <- mapply(function (p, lim) {                                      
+            p + stat_density2d(aes(fill=..level..), geom="polygon") + theme_bw() +
+                guides(fill=FALSE) +                                             
+                geom_point(data=truth, color="black", size=8) +                  
+                geom_point(data=truth, color="white", size=6) +                  
+                xlim(lim[[1]][1], lim[[1]][2]) +                                 
+                ylim(lim[[2]][1], lim[[2]][2])                                   
+        }, plots, plot.limits, SIMPLIFY=FALSE)                                   
+        do.call(grid.arrange, c(plots, ncol=ceiling(sqrt(ncol(combos))),         
+                                top="2D marginals"))                             
+    }                                                                            
+                                                                                 
+    # 1D marginals                                                               
+    plot.aes <- lapply(vary.cols, function (c) aes_string(x=c))                  
+    plots <- mapply(ggplot, list(d), plot.aes, SIMPLIFY=FALSE)                   
+    plots <- mapply(function (p, col) {                                          
+        p + geom_density() + theme_bw() + xlim(limits[[col]][1], limits[[col]][2]) +
+            geom_vline(xintercept=truth[,col], linetype=2)                       
+    }, plots, vary.cols, SIMPLIFY=FALSE)                                         
+    do.call(grid.arrange, c(plots, ncol=ceiling(sqrt(length(vary.cols))),        
+                            top="1D marginals"))                                 
+} 
