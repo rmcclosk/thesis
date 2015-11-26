@@ -37,6 +37,7 @@ read.mm.general <- function (file)
 #'
 #' @param file.name MatrixMarket file to read
 #' @return a matrix
+#' @export
 read.mm <- function (file.name)
 {
     if (grepl("\\.bz2?$", file.name, perl=TRUE)) {

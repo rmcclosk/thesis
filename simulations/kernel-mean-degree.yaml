@@ -1,6 +1,6 @@
 Name: kernel-mean-degree
 Description: Testing if the tree kernel can distinguish mean degree in a Barabasi-Albert network
-Processes: 7
+Processes: 16
 Steps:
     network:
         Extension: gml
@@ -100,6 +100,7 @@ Steps:
             ntip: [100, 500, 1000]
             decay_factor: [0.2, 0.3, 0.4, 0.5]
             rbf_variance: [0.125, 0.25, 0.5, 1, 2, 5, 10, 20, 50]
+            nltt: [0, 1]
         Exclusions:
             -
                 ntip: 1000
@@ -110,6 +111,11 @@ Steps:
         Depends: tree
         Interpreter: bash
         Rule: |
+            if [[ "{nltt}" == "1" ]]; then
+                NLTT="--nLTT"
+            else
+                NLTT=""
+            fi
             echo "%%MatrixMarket matrix array real symmetric" > {kernel-matrix}
             echo "%{yaml}" >> {kernel-matrix}
             echo "{$#} {$#}" >> {kernel-matrix}
@@ -118,7 +124,7 @@ Steps:
                     if [[ "$T1" < "$T2" || "$T1" == "$T2" ]]; then
                         treekernel --ladderize --decay-factor {decay_factor} \
                                    --gauss-factor {rbf_variance} \
-                                   --scale-branches mean \
+                                   --scale-branches mean $NLTT \
                                    --sst-control 1 $T1 $T2 >> {kernel-matrix}
                     fi
                 done
@@ -130,6 +136,7 @@ Steps:
             ntip: [100, 500, 1000]
             decay_factor: [0.2, 0.3, 0.4, 0.5]
             rbf_variance: [0.125, 0.25, 0.5, 1, 2, 5, 10, 20, 50]
+            nltt: [0, 1]
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
         Startup: library(netabc)
@@ -145,6 +152,7 @@ Steps:
             ntip: [100, 500, 1000]
             decay_factor: [0.2, 0.3, 0.4, 0.5]
             rbf_variance: [0.125, 0.25, 0.5, 1, 2, 5, 10, 20, 50]
+            nltt: [0, 1]
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
@@ -165,5 +173,5 @@ Steps:
         Rule: |
             d <- collect.data(strsplit("{classifier}", " ")[[1]])
             summary.plot(d, x="rbf_variance", y="rsquared", group="decay_factor", 
-                         fun="mean", yaml="{yaml}")
+                         facet.x="nltt", fun="mean", yaml="{yaml}")
             ggsave("{crossv-plot}", width=10)
