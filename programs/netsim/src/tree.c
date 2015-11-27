@@ -108,45 +108,27 @@ int root(const igraph_t *tree)
 void ladderize(igraph_t *tree)
 {
     igraph_vector_t work, permvec;
-    igraph_t new_tree;
-    int i, from, to; 
+    igraph_t *new_tree = malloc(sizeof(igraph_t));
+    int i;
     int *order = malloc(igraph_vcount(tree) * sizeof(int));
-    int *perm = malloc(igraph_vcount(tree) * sizeof(int));
-    tree_attrs *a = _get_tree_attrs(tree);
-    igraph_vector_t edges;
 
     igraph_vector_init(&work, 2);
-    igraph_vector_init(&edges, 0);
     igraph_vector_init(&permvec, igraph_vcount(tree));
 
     _ladderize(tree, &work, root(tree), order);
 
     for (i = 0; i < igraph_vcount(tree); ++i) {
         igraph_vector_set(&permvec, order[i], (double) i);
-        perm[order[i]] = i;
     }
 
-    for (i = 0; i < igraph_ecount(tree); ++i) {
-        igraph_edge(tree, i, &from, &to);
-        igraph_vector_push_back(&edges, perm[from]);
-        igraph_vector_push_back(&edges, perm[to]);
-    }
-    igraph_delete_edges(tree, igraph_ess_all(IGRAPH_EDGEORDER_ID));
-    igraph_add_edges(tree, &edges, 0);
-    _permute_tree_attrs(tree, a, perm);
-
-    /*
-    igraph_permute_vertices(tree, &new_tree, &permvec);
+    igraph_permute_vertices(tree, new_tree, &permvec);
     igraph_destroy(tree);
-    memcpy(tree, &new_tree, sizeof(igraph_t));
-    */
+    memcpy(tree, new_tree, sizeof(igraph_t));
 
     free(order);
-    free(perm);
+    free(new_tree);
     igraph_vector_destroy(&work);
     igraph_vector_destroy(&permvec);
-    igraph_vector_destroy(&edges);
-    _tree_attrs_destroy(a);
 }
 
 tree_attrs *_get_tree_attrs(const igraph_t *tree)

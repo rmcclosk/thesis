@@ -172,7 +172,7 @@ int main (int argc, char **argv)
     char buf[128];
     struct nettree_options opts = get_options(argc, argv);
     gsl_rng *rng = set_seed(opts.seed < 0 ? time(NULL) : opts.seed);
-    igraph_t net, tree;
+    igraph_t net, *tree = malloc(sizeof(igraph_t));
     igraph_strvector_t gnames, vnames, enames;
     igraph_vector_t gtypes, vtypes, etypes;
 
@@ -225,22 +225,23 @@ int main (int argc, char **argv)
         // reject until we get a tree with enough nodes
         // we already checked for a sufficiently large connected component,
         // so this should succeed eventually
-        simulate_phylogeny(&tree, &net, rng, opts.sim_time, opts.sim_nodes, numeric_ids);
-        while (igraph_vcount(&tree) < opts.ntip) {
-            igraph_destroy(&tree);
-            simulate_phylogeny(&tree, &net, rng, opts.sim_time, opts.sim_nodes, numeric_ids);
+        simulate_phylogeny(tree, &net, rng, opts.sim_time, opts.sim_nodes, numeric_ids);
+        while (igraph_vcount(tree) < opts.ntip) {
+            igraph_destroy(tree);
+            simulate_phylogeny(tree, &net, rng, opts.sim_time, opts.sim_nodes, numeric_ids);
         }
 
         // post-process the tree
-        cut_at_time(&tree, opts.tree_height, opts.extant_only);
-        subsample_tips(&tree, opts.ntip, rng);
+        cut_at_time(tree, opts.tree_height, opts.extant_only);
+        subsample_tips(tree, opts.ntip, rng);
         if (opts.nsample > 0) {
-            subsample(&tree, opts.nsample, opts.sample_prop, opts.sample_time, rng);
+            subsample(tree, opts.nsample, opts.sample_prop, opts.sample_time, rng);
         }
 
-        ladderize(&tree);
-        write_tree_newick(&tree, opts.tree_file);
-        igraph_destroy(&tree);
+        ladderize(tree);
+        write_tree_newick(tree, opts.tree_file);
+        igraph_destroy(tree);
+        free(tree);
     }
 
     // clean up
