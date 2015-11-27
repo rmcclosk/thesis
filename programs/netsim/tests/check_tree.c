@@ -208,12 +208,14 @@ END_TEST
 
 START_TEST(test_ladderize)
 {
-    igraph_t *tree = tree_from_newick("(t1:0.4,((t3:0.05,t2:0.8):0.88,t4:0.25):0.46);");
+    igraph_t *tree = tree_from_newick("(t1:0.4,((t3:0.05,t2:0.8)t5:0.88,t4:0.25)t6:0.46)t7;");
     igraph_vs_t vs;
     igraph_vector_t v = new_vector();
     int i;
 
     ladderize(tree);
+    ck_assert(strcmp(VAS(tree, "id", 6), "t7") == 0);
+
     for (i = 0; i < 7; ++i)
     {
         igraph_degree(tree, &v, igraph_vss_1(i), IGRAPH_OUT, 1);

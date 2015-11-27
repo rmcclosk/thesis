@@ -98,6 +98,74 @@ START_TEST (test_rotl_double)
 }
 END_TEST
 
+START_TEST (test_permute_vector)
+{
+    int i;
+    int perm[10] = {3, 7, 2, 5, 9, 1, 8, 6, 4, 0};
+    int perm2[10] = {3, 1, 2, 5, 9, 0, 8, 6, 4, 7};
+    igraph_vector_t v;
+    igraph_vector_init(&v, 10);
+
+    for (i = 0; i < 10; ++i) {
+        VECTOR(v)[i] = i;
+    }
+    permute(&v, sizeof(igraph_real_t), 10, perm, get_igraph_vector_t, set_igraph_vector_t);
+    for (i = 0; i < 10; ++i) {
+        ck_assert(VECTOR(v)[perm[i]] == i);
+    }
+
+    for (i = 0; i < 10; ++i) {
+        VECTOR(v)[i] = i;
+    }
+    permute(&v, sizeof(igraph_real_t), 10, perm2, get_igraph_vector_t, set_igraph_vector_t);
+    for (i = 0; i < 10; ++i) {
+        ck_assert(VECTOR(v)[perm2[i]] == i);
+    }
+
+    igraph_vector_destroy(&v);
+}
+END_TEST
+
+START_TEST (test_permute_strvector)
+{
+    int i;
+    int perm[10] = {3, 7, 2, 5, 9, 1, 8, 6, 4, 0};
+    igraph_strvector_t v;
+    igraph_strvector_init(&v, 10);
+    char str[10];
+
+    for (i = 0; i < 10; ++i) {
+        sprintf(str, "%d", i);
+        igraph_strvector_set(&v, i, str);
+    }
+    permute(&v, 2, 10, perm, get_igraph_strvector_t, set_igraph_strvector_t);
+    for (i = 0; i < 10; ++i) {
+        sprintf(str, "%d", i);
+        ck_assert(strcmp(STR(v, perm[i]), str) == 0);
+    }
+    igraph_strvector_destroy(&v);
+}
+END_TEST
+
+START_TEST (test_permute_vector_bool)
+{
+    int i;
+    int perm[10] = {3, 7, 2, 5, 9, 1, 8, 6, 4, 0};
+    igraph_vector_bool_t v;
+    igraph_vector_bool_init(&v, 10);
+
+    for (i = 0; i < 10; ++i) {
+        VECTOR(v)[i] = i % 2;
+    }
+    permute(&v, 2, 10, perm, get_igraph_vector_bool_t, 
+            set_igraph_vector_bool_t);
+    for (i = 0; i < 10; ++i) {
+        ck_assert(VECTOR(v)[perm[i]] % 2 == i % 2);
+    }
+    igraph_vector_bool_destroy(&v);
+}
+END_TEST
+
 Suite *util_suite(void)
 {
     Suite *s;
@@ -113,6 +181,9 @@ Suite *util_suite(void)
     tcase_add_test(tc_core, test_order_ints);
     tcase_add_test(tc_core, test_order_doubles);
     tcase_add_test(tc_core, test_rotl_int);
+    tcase_add_test(tc_core, test_permute_vector);
+    tcase_add_test(tc_core, test_permute_strvector);
+    tcase_add_test(tc_core, test_permute_vector_bool);
     suite_add_tcase(s, tc_core);
 
     return s;

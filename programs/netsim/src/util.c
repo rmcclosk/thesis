@@ -136,3 +136,66 @@ void *safe_realloc(void *ptr, size_t size)
     }
     return tmp;
 }
+
+void permute(void *v, size_t size, int nitems, const int *perm, 
+             void (get) (const void *, int, void *),
+             void (set) (void *, int, const void *))
+{
+    int cyc_start = 0, cur, next;
+    int *done = calloc(nitems, sizeof(int));
+    char *cur_item = malloc(size), *next_item = malloc(size);
+
+    while (cyc_start < nitems) {
+        cur = cyc_start;
+        next = perm[cyc_start];
+        get(v, cur, cur_item);
+        do {
+            get(v, next, next_item);
+            set(v, next, cur_item);
+            memcpy(cur_item, next_item, size);
+    
+            done[next] = 1;
+            cur = next;
+            next = perm[next];
+        } while (cur != cyc_start);
+
+        while (done[cyc_start] == 1 && cyc_start < nitems) {
+            ++cyc_start;
+        }
+    }
+
+    free(done);
+    free(cur_item);
+    free(next_item);
+}
+
+void set_igraph_vector_t(void *v, int n, const void *value)
+{
+    igraph_vector_set((igraph_vector_t *) v, n, * (igraph_real_t *) value);
+}
+
+void get_igraph_vector_t(const void *v, int n, void *value)
+{
+    * (igraph_real_t *) value = VECTOR(*(igraph_vector_t *) v)[n];
+}
+
+void set_igraph_vector_bool_t(void *v, int n, const void *value)
+{
+    igraph_vector_bool_set((igraph_vector_bool_t *) v, n, 
+                           * (igraph_bool_t *) value);
+}
+
+void get_igraph_vector_bool_t(const void *v, int n, void *value)
+{
+    * (igraph_bool_t *) value = VECTOR(*(igraph_vector_bool_t *) v)[n];
+}
+
+void set_igraph_strvector_t(void *v, int n, const void *value)
+{
+    igraph_strvector_set((igraph_strvector_t *) v, n, (const char *) value);
+}
+
+void get_igraph_strvector_t(const void *v, int n, void *value)
+{
+    strcpy(value, STR(* (igraph_strvector_t *) v, n));
+}

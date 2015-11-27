@@ -440,31 +440,31 @@ struct sample_dataset_arg {
     double decay_factor;
     double rbf_variance;
     int nltt;
-    int (*sample_network) (igraph_t *, gsl_rng *, const double *);
+    int (*sample_network) (igraph_t *, gsl_rng *, igraph_rng_t *rng, const double *);
 };
 
-int sample_network_gnp(igraph_t *net, gsl_rng *rng, const double *theta)
+int sample_network_gnp(igraph_t *net, gsl_rng *rng, igraph_rng_t *igraph_rng, const double *theta)
 {
     igraph_erdos_renyi_game(net, IGRAPH_ERDOS_RENYI_GNP, (int) theta[NNODE], 
                             theta[PR_EDGE], 0, 0);
     return 0;
 }
 
-int sample_network_pa(igraph_t *net, gsl_rng *rng, const double *theta)
+int sample_network_pa(igraph_t *net, gsl_rng *rng, igraph_rng_t *igraph_rng, const double *theta)
 {
     igraph_barabasi_game(net, (int) theta[NNODE], theta[ATTACH_POWER], (int) theta[EDGES_PER_VERTEX],
-                         NULL, 0, 1, 0, IGRAPH_BARABASI_PSUMTREE, NULL);
+                         NULL, 0, 1, 0, IGRAPH_BARABASI_PSUMTREE, NULL, igraph_rng);
     return 0;
 }
 
-int sample_network_sw(igraph_t *net, gsl_rng *rng, const double *theta)
+int sample_network_sw(igraph_t *net, gsl_rng *rng, igraph_rng_t *igraph_rng, const double *theta)
 {
     igraph_watts_strogatz_game(net, 1, (int) theta[NNODE], (int) theta[NBHD_SIZE], 
                                theta[REWIRE_PROB], 0, 0);
     return 0;
 }
 
-int sample_network_pareto(igraph_t *net, gsl_rng *rng, const double *theta)
+int sample_network_pareto(igraph_t *net, gsl_rng *rng, igraph_rng_t *igraph_rng, const double *theta)
 {
     int done = 0, i = 0, j, is_graphical;
     igraph_vector_t s;
@@ -514,14 +514,12 @@ void sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void *X)
     double rbf_variance = sarg->rbf_variance;
     int nltt = sarg->nltt;
 
-    // seems to work because of thread-local storage
     igraph_rng_init(&igraph_rng, &igraph_rngtype_mt19937);
     igraph_rng_seed(&igraph_rng, igraph_seed);
-    igraph_rng_set_default(&igraph_rng);
 
     igraph_vector_init(&v, (int) theta[NNODE]);
 
-    failed = sarg->sample_network(&net, rng, theta);
+    failed = sarg->sample_network(&net, rng, &igraph_rng, theta);
     if (!failed) {
         igraph_to_directed(&net, IGRAPH_TO_DIRECTED_MUTUAL);
         
@@ -555,15 +553,13 @@ void sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void *X)
     }
     else {
         subsample_tips(tree, ntip, rng);
-        // don't ask me why I have to do this twice i have no idea
-        ladderize(tree); ladderize(tree);
+        ladderize(tree);
         scale_branches(tree, MEAN);
         k = kernel(tree, tree, decay_factor, rbf_variance, 1);
         SETGAN(tree, "kernel", k);
         igraph_destroy(&net);
     }
 
-    igraph_rng_set_default(igraph_rng_default());
     igraph_rng_destroy(&igraph_rng);
     igraph_vector_destroy(&v);
 }
@@ -674,7 +670,7 @@ int main (int argc, char **argv)
         fclose(opts.tree_file);
     }
 
-    ladderize(tree); ladderize(tree);
+    ladderize(tree);
     scale_branches(tree, MEAN);
     k = kernel(tree, tree, opts.decay_factor, opts.rbf_variance, 1);
     SETGAN(tree, "kernel", k);

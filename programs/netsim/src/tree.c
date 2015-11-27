@@ -15,6 +15,32 @@
 
 void yyrestart(FILE *f);
 
+typedef struct {
+    igraph_strvector_t *strvattrs;
+    igraph_vector_t *numvattrs;
+    igraph_vector_bool_t *boolvattrs;
+
+    igraph_strvector_t *streattrs;
+    igraph_vector_t *numeattrs;
+    igraph_vector_bool_t *booleattrs;
+
+    int nstrvattr;
+    int nnumvattr;
+    int nboolvattr;
+
+    int nstreattr;
+    int nnumeattr;
+    int nbooleattr;
+
+    igraph_strvector_t strvattr_names;
+    igraph_strvector_t numvattr_names;
+    igraph_strvector_t boolvattr_names;
+
+    igraph_strvector_t streattr_names;
+    igraph_strvector_t numeattr_names;
+    igraph_strvector_t booleattr_names;
+} tree_attrs;
+
 /* recursive functions */
 int _ladderize(igraph_t *tree, igraph_vector_t *work, int root, int *perm);
 double _height(const igraph_t *tree, igraph_vector_t *work, int root);
@@ -26,6 +52,9 @@ int _collapse_singles(igraph_t *tree, int root, igraph_vector_t *vdel,
         igraph_vector_t *work, double *bl);
 void _depths(const igraph_t *tree, double *depths, igraph_vector_t *work, 
         int root, double parent_depth, int use_branch_lengths);
+tree_attrs *_get_tree_attrs(const igraph_t *tree);
+void _permute_tree_attrs(igraph_t *tree, tree_attrs *a, const int *perm);
+void _tree_attrs_destroy(tree_attrs *a);
 
 igraph_t *parse_newick(FILE *f)
 {
@@ -80,22 +109,299 @@ void ladderize(igraph_t *tree)
 {
     igraph_vector_t work, permvec;
     igraph_t new_tree;
-    int i, *perm = malloc(igraph_vcount(tree) * sizeof(int));
+    int i, from, to; 
+    int *order = malloc(igraph_vcount(tree) * sizeof(int));
+    int *perm = malloc(igraph_vcount(tree) * sizeof(int));
+    tree_attrs *a = _get_tree_attrs(tree);
+    igraph_vector_t edges;
 
     igraph_vector_init(&work, 2);
+    igraph_vector_init(&edges, 0);
     igraph_vector_init(&permvec, igraph_vcount(tree));
 
-    _ladderize(tree, &work, root(tree), perm);
-    for (i = 0; i < igraph_vcount(tree); ++i)
-        igraph_vector_set(&permvec, perm[i], (double) i);
-    igraph_permute_vertices(tree, &new_tree, &permvec);
+    _ladderize(tree, &work, root(tree), order);
 
+    for (i = 0; i < igraph_vcount(tree); ++i) {
+        igraph_vector_set(&permvec, order[i], (double) i);
+        perm[order[i]] = i;
+    }
+
+    for (i = 0; i < igraph_ecount(tree); ++i) {
+        igraph_edge(tree, i, &from, &to);
+        igraph_vector_push_back(&edges, perm[from]);
+        igraph_vector_push_back(&edges, perm[to]);
+    }
+    igraph_delete_edges(tree, igraph_ess_all(IGRAPH_EDGEORDER_ID));
+    igraph_add_edges(tree, &edges, 0);
+    _permute_tree_attrs(tree, a, perm);
+
+    /*
+    igraph_permute_vertices(tree, &new_tree, &permvec);
     igraph_destroy(tree);
     memcpy(tree, &new_tree, sizeof(igraph_t));
+    */
 
+    free(order);
     free(perm);
     igraph_vector_destroy(&work);
     igraph_vector_destroy(&permvec);
+    igraph_vector_destroy(&edges);
+    _tree_attrs_destroy(a);
+}
+
+tree_attrs *_get_tree_attrs(const igraph_t *tree)
+{
+    int i, j, nv = igraph_vcount(tree), ne = igraph_ecount(tree), from, to;
+    int *heads = malloc(ne * sizeof(int));
+    igraph_strvector_t gnames, vnames, enames;
+    igraph_vector_t gtypes, vtypes, etypes;
+    tree_attrs *a = malloc(sizeof(tree_attrs));
+
+    igraph_strvector_t streattr;
+    igraph_vector_t numeattr;
+    igraph_vector_bool_t booleattr;
+
+    for (i = 0; i < ne; ++i) {
+        igraph_edge(tree, i, &from, &to);
+        heads[i] = to;
+    }
+
+    igraph_strvector_init(&gnames, 0);
+    igraph_strvector_init(&vnames, nv);
+    igraph_strvector_init(&enames, nv);
+
+    igraph_vector_init(&gtypes, 0);
+    igraph_vector_init(&vtypes, nv);
+    igraph_vector_init(&etypes, nv);
+
+    igraph_strvector_init(&streattr, 0);
+    igraph_vector_init(&numeattr, 0);
+    igraph_vector_bool_init(&booleattr, 0);
+
+    igraph_cattribute_list(tree, &gnames, &gtypes, &vnames, &vtypes, &enames,
+                           &etypes);
+
+    igraph_strvector_init(&a->strvattr_names, 0);
+    igraph_strvector_init(&a->numvattr_names, 0);
+    igraph_strvector_init(&a->boolvattr_names, 0);
+
+    igraph_strvector_init(&a->streattr_names, 0);
+    igraph_strvector_init(&a->numeattr_names, 0);
+    igraph_strvector_init(&a->booleattr_names, 0);
+
+    for (i = 0; i < igraph_vector_size(&vtypes); ++i) {
+        switch ((igraph_attribute_type_t) VECTOR(vtypes)[i]) {
+            case IGRAPH_ATTRIBUTE_STRING:
+                igraph_strvector_add(&a->strvattr_names, STR(vnames, i));
+                break;
+            case IGRAPH_ATTRIBUTE_NUMERIC:
+                igraph_strvector_add(&a->numvattr_names, STR(vnames, i));
+                break;
+            case IGRAPH_ATTRIBUTE_BOOLEAN:
+                igraph_strvector_add(&a->boolvattr_names, STR(vnames, i));
+                break;
+            default:
+                break;
+        }
+    }
+
+    for (i = 0; i < igraph_vector_size(&etypes); ++i) {
+        switch ((igraph_attribute_type_t) VECTOR(etypes)[i]) {
+            case IGRAPH_ATTRIBUTE_STRING:
+                igraph_strvector_add(&a->streattr_names, STR(enames, i));
+                break;
+            case IGRAPH_ATTRIBUTE_NUMERIC:
+                igraph_strvector_add(&a->numeattr_names, STR(enames, i));
+                break;
+            case IGRAPH_ATTRIBUTE_BOOLEAN:
+                igraph_strvector_add(&a->booleattr_names, STR(enames, i));
+                break;
+            default:
+                break;
+        }
+    }
+
+    a->nstrvattr = igraph_strvector_size(&a->strvattr_names);
+    a->nnumvattr = igraph_strvector_size(&a->numvattr_names);
+    a->nboolvattr = igraph_strvector_size(&a->boolvattr_names);
+
+    a->nstreattr = igraph_strvector_size(&a->streattr_names);
+    a->nnumeattr = igraph_strvector_size(&a->numeattr_names);
+    a->nbooleattr = igraph_strvector_size(&a->booleattr_names);
+
+    a->strvattrs = malloc(a->nstrvattr * sizeof(igraph_strvector_t));
+    a->numvattrs = malloc(a->nnumvattr * sizeof(igraph_vector_t));
+    a->boolvattrs = malloc(a->nboolvattr * sizeof(igraph_vector_bool_t));
+
+    a->streattrs = malloc(a->nstreattr * sizeof(igraph_strvector_t));
+    a->numeattrs = malloc(a->nnumeattr * sizeof(igraph_vector_t));
+    a->booleattrs = malloc(a->nbooleattr * sizeof(igraph_vector_bool_t));
+
+    for (i = 0; i < a->nstrvattr; ++i) {
+        igraph_strvector_init(&a->strvattrs[i], nv);
+        VASV(tree, STR(a->strvattr_names, i), &a->strvattrs[i]);
+    }
+    for (i = 0; i < a->nnumvattr; ++i) {
+        igraph_vector_init(&a->numvattrs[i], nv);
+        VANV(tree, STR(a->strvattr_names, i), &a->numvattrs[i]);
+    }
+    for (i = 0; i < a->nboolvattr; ++i) {
+        igraph_vector_bool_init(&a->boolvattrs[i], nv);
+        VABV(tree, STR(a->boolvattr_names, i), &a->boolvattrs[i]);
+    }
+
+    for (i = 0; i < a->nstreattr; ++i) {
+        igraph_strvector_init(&a->streattrs[i], nv);
+        EASV(tree, STR(a->streattr_names, i), &streattr);
+        for (j = 0; j < ne; ++j) {
+            igraph_strvector_set(&a->streattrs[i], heads[j], STR(streattr, j));
+        }
+    }
+    for (i = 0; i < a->nnumeattr; ++i) {
+        igraph_vector_init(&a->numeattrs[i], nv);
+        EANV(tree, STR(a->numeattr_names, i), &numeattr);
+        for (j = 0; j < ne; ++j) {
+            VECTOR(a->numeattrs[i])[heads[j]] = VECTOR(numeattr)[j];
+        }
+    }
+    for (i = 0; i < a->nbooleattr; ++i) {
+        igraph_vector_bool_init(&a->booleattrs[i], nv);
+        EABV(tree, STR(a->booleattr_names, i), &booleattr);
+        for (j = 0; j < ne; ++j) {
+            VECTOR(a->booleattrs[i])[heads[j]] = VECTOR(booleattr)[j];
+        }
+    }
+
+    igraph_strvector_destroy(&gnames);
+    igraph_strvector_destroy(&vnames);
+    igraph_strvector_destroy(&enames);
+
+    igraph_vector_destroy(&gtypes);
+    igraph_vector_destroy(&vtypes);
+    igraph_vector_destroy(&etypes);
+
+    igraph_strvector_destroy(&streattr);
+    igraph_vector_destroy(&numeattr);
+    igraph_vector_bool_destroy(&booleattr);
+
+    free(heads);
+
+    return a;
+}
+
+void _permute_tree_attrs(igraph_t *tree, tree_attrs *a, const int *perm)
+{
+    int i, j, nv = igraph_vcount(tree);
+    igraph_vector_int_t *inc;
+    igraph_inclist_t inclist;
+    int *edge = malloc(nv * sizeof(int));
+
+    igraph_inclist_init(tree, &inclist, IGRAPH_IN);
+    for (i = 0; i < nv; ++i) {
+        inc = igraph_inclist_get(&inclist, i);
+        if (igraph_vector_int_size(inc) > 0) {
+            edge[i] = VECTOR(*inc)[0];
+        }
+        else {
+            edge[i] = -1;
+        }
+    }
+    igraph_inclist_destroy(&inclist);
+
+    for (i = 0; i < a->nstrvattr; ++i) {
+        permute(&a->strvattrs[i], BUFSIZ, nv, perm, get_igraph_strvector_t, 
+                set_igraph_strvector_t);
+        SETVASV(tree, STR(a->strvattr_names, i), &a->strvattrs[i]);
+    }
+
+    for (i = 0; i < a->nnumvattr; ++i) {
+        permute(&a->numvattrs[i], sizeof(igraph_real_t), nv, perm, 
+                get_igraph_vector_t, set_igraph_vector_t);
+        SETVANV(tree, STR(a->numvattr_names, i), &a->numvattrs[i]);
+    }
+
+    for (i = 0; i < a->nboolvattr; ++i) {
+        permute(&a->boolvattrs[i], sizeof(igraph_bool_t), nv, perm, 
+                get_igraph_vector_bool_t, set_igraph_vector_bool_t);
+        SETVABV(tree, STR(a->boolvattr_names, i), &a->boolvattrs[i]);
+    }
+
+    for (i = 0; i < a->nstreattr; ++i) {
+        permute(&a->streattrs[i], BUFSIZ, nv, perm, get_igraph_strvector_t,
+                set_igraph_strvector_t);
+        for (j = 0; j < nv; ++j) {
+            if (edge[j] != -1) {
+                SETEAS(tree, STR(a->streattr_names, i), edge[j], 
+                       STR(a->streattrs[i], j));
+            }
+        }
+    }
+
+    for (i = 0; i < a->nnumeattr; ++i) {
+        permute(&a->numeattrs[i], sizeof(igraph_real_t), nv, perm, 
+                get_igraph_vector_t, set_igraph_vector_t);
+        for (j = 0; j < nv; ++j) {
+            if (edge[j] != -1) {
+                SETEAN(tree, STR(a->numeattr_names, i), edge[j], 
+                       VECTOR(a->numeattrs[i])[j]);
+            }
+        }
+    }
+
+    for (i = 0; i < a->nbooleattr; ++i) {
+        permute(&a->booleattrs[i], sizeof(igraph_bool_t), nv, perm, 
+                get_igraph_vector_bool_t, set_igraph_vector_bool_t);
+        for (j = 0; j < nv; ++j) {
+            if (edge[j] != -1) {
+                SETEAN(tree, STR(a->booleattr_names, i), edge[j], 
+                       VECTOR(a->booleattrs[i])[j]);
+            }
+        }
+    }
+    free(edge);
+}
+
+void _tree_attrs_destroy(tree_attrs *a)
+{
+    int i;
+
+    for (i = 0; i < a->nstrvattr; ++i) {
+        igraph_strvector_destroy(&a->strvattrs[i]);
+    }
+    for (i = 0; i < a->nnumvattr; ++i) {
+        igraph_vector_destroy(&a->numvattrs[i]);
+    }
+    for (i = 0; i < a->nboolvattr; ++i) {
+        igraph_vector_bool_destroy(&a->boolvattrs[i]);
+    }
+
+    for (i = 0; i < a->nstreattr; ++i) {
+        igraph_strvector_destroy(&a->streattrs[i]);
+    }
+    for (i = 0; i < a->nnumeattr; ++i) {
+        igraph_vector_destroy(&a->numeattrs[i]);
+    }
+    for (i = 0; i < a->nbooleattr; ++i) {
+        igraph_vector_bool_destroy(&a->booleattrs[i]);
+    }
+
+    free(a->strvattrs);
+    free(a->numvattrs);
+    free(a->boolvattrs);
+
+    free(a->streattrs);
+    free(a->numeattrs);
+    free(a->booleattrs);
+
+    igraph_strvector_destroy(&a->strvattr_names);
+    igraph_strvector_destroy(&a->numvattr_names);
+    igraph_strvector_destroy(&a->boolvattr_names);
+
+    igraph_strvector_destroy(&a->streattr_names);
+    igraph_strvector_destroy(&a->numeattr_names);
+    igraph_strvector_destroy(&a->booleattr_names);
+
+    free(a);
 }
 
 double height(const igraph_t *tree)
@@ -432,8 +738,9 @@ int _ladderize(igraph_t *tree, igraph_vector_t *work, int root, int *perm)
     }
 
     // swap order of children if necessary
-    if (do_swap)
+    if (do_swap) {
         rotl(perm, (rsize + lsize) * sizeof(int), lsize * sizeof(int));
+    }
 
     // now add the root
     perm[lsize + rsize] = root;

@@ -54,7 +54,7 @@ void simulate_phylogeny(igraph_t *tree, igraph_t *net, gsl_rng *rng,
     igraph_vector_init(&branch_lengths, 0);
 
     // start the epidemic
-    inode = rand() % igraph_vcount(net);
+    inode = gsl_rng_get(rng) % igraph_vcount(net);
     J1S(Rc_int, infected, inode);
 #ifndef NDEBUG
     fprintf(stderr, "start epidemic at node %d\n", inode);
@@ -101,10 +101,10 @@ void simulate_phylogeny(igraph_t *tree, igraph_t *net, gsl_rng *rng,
             }
 
             // next event is a transmission
-            if ((double) rand() / (double) RAND_MAX < trans_rate / (trans_rate + remove_rate))
+            if (gsl_rng_uniform(rng) < trans_rate / (trans_rate + remove_rate))
             {
                 // choose the next edge
-                r = (double) rand() / (double) RAND_MAX; 
+                r = gsl_rng_uniform(rng);
                 Index = 0; J1F(Rc_int, discordant, Index);
                 sum = EAN(net, "transmit", Index) / trans_rate;
                 while (r > sum) {
@@ -184,7 +184,7 @@ void simulate_phylogeny(igraph_t *tree, igraph_t *net, gsl_rng *rng,
             else
             {
                 // choose the node to remove
-                r = (double) rand() / (double) RAND_MAX; 
+                r = gsl_rng_uniform(rng);
                 Index = 0; J1F(Rc_int, infected, Index);
                 sum = VAN(net, "remove", Index) / remove_rate;
                 while (r > sum) {

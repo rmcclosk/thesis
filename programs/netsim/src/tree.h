@@ -68,7 +68,7 @@ void depths(const igraph_t *tree, int use_branch_lengths, double *depths);
  *
  * This renumbers the vertices of the tree such that:
  *
- * * children always have larger indices than their parents,
+ * * children always have smaller indices than their parents,
  * * the sibling with the most descendants has the larger index,
  * * if two siblings have an equal number of descendants, the one with the
  * largest branch length to its parent has the larger index.

@@ -102,9 +102,92 @@ double max_doubles(double *x, int n);
 
 /** Allocate a block of memory, or abort if out of memory.
  *
- *  \param[in,out] ptr place to put new memory block
- *  \param[in] size amount of memory to allocate
+ * \param[in,out] ptr place to put new memory block
+ * \param[in] size amount of memory to allocate
  */
 void *safe_realloc(void *ptr, size_t size);
 
+/** Permute an array in place
+ *
+ * You have to supply a getter and setter for the array. This seems a bit
+ * unnecessary when using regular arrays, but it's so that the function can
+ * also be applied to eg. igraph_strvector_t which can't be indexed with []
+ * syntax.
+ *
+ * \param[in,out] v array to permute
+ * \param[in] size size of array elements
+ * \param[in] nitems number of elements in array
+ * \param[in] perm permutation to apply
+ * \param[in] get returns a pointer to the nth element of v
+ * \param[in] set sets the nth element of v
+ */
+void permute(void *v, size_t size, int nitems, const int *perm, 
+             void (get) (const void *, int, void *),
+             void (set) (void *, int, const void *));
+
+/** Set the nth element of an igraph_vector_t
+ *
+ * This provides an alternative inteface to igraph_vector_set to be useable in
+ * permute().
+ *
+ * \param[in,out] v vector to be modified
+ * \param[in] n index of v to set
+ * \param[in] value pointer to new value of v[n]
+ */
+void set_igraph_vector_t(void *v, int n, const void *value);
+
+/** Get the nth element of an igraph_vector_t
+ *
+ * This provides an alternative inteface to igraph_strvector_get to be useable
+ * in permute().
+ *
+ * \param[in,out] v vector to be queried
+ * \param[in] n index of v to get
+ * \param[out] value v[n] will be stored here
+ */
+void get_igraph_vector_t(const void *v, int n, void *value);
+
+/** Set the nth element of an igraph_vector_bool_t
+ *
+ * This provides an alternative inteface to igraph_vector_bool_set to be
+ * useable in permute().
+ *
+ * \param[in,out] v vector to be modified
+ * \param[in] n index of v to set
+ * \param[in] value pointer to new value of v[n]
+ */
+void set_igraph_vector_bool_t(void *v, int n, const void *value);
+
+/** Get the nth element of an igraph_vector_bool_t
+ *
+ * This provides an alternative inteface to igraph_strvector_bool_get to be
+ * useable in permute().
+ *
+ * \param[in,out] v vector to be queried
+ * \param[in] n index of v to get
+ * \param[out] value v[n] will be stored here
+ */
+void get_igraph_vector_bool_t(const void *v, int n, void *value);
+
+/** Set the nth element of an igraph_strvector_t
+ *
+ * This provides an alternative inteface to igraph_strvector_set to be useable
+ * in permute().
+ *
+ * \param[in,out] v vector to be modified
+ * \param[in] n index of v to set
+ * \param[in] value pointer to new value of v[n]
+ */
+void set_igraph_strvector_t(void *v, int n, const void *value);
+
+/** Get the nth element of an igraph_strvector_t
+ *
+ * This provides an alternative inteface to igraph_strvector_set to be useable
+ * in permute().
+ *
+ * \param[in,out] v vector to be queried
+ * \param[in] n index of v to get
+ * \param[out] value v[n] will be stored here
+ */
+void get_igraph_strvector_t(const void *v, int n, void *value);
 #endif
