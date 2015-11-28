@@ -59,7 +59,7 @@ smc_workspace smc_work;
 pthread_mutex_t smc_accept_mutex;
 pthread_mutex_t smc_alive_mutex;
 
-void resample(void);
+void resample(gsl_rng *rng);
 double next_epsilon(void);
 double epsilon_objfun(double epsilon, void *params);
 double ess(const double *W, int n);
@@ -164,7 +164,7 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
         // step 2: resample particles according to their weights
         if (ess(smc_work.W, config.nparticle) < config.ess_tolerance) {
             fprintf(stderr, "ESS = %f, resampling\n", ess(smc_work.W, config.nparticle));
-            resample();
+            resample(rng);
         }
 
         // step 3: perturb particles
@@ -222,7 +222,7 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
     }
 
     // finally, sample from the estitmated posterior
-    resample();
+    resample(rng);
     result->theta[niter] = malloc(config.nparticle * config.nparam * sizeof(double));
     memcpy(result->theta[niter], theta, config.nparticle * config.nparam * sizeof(double));
     result->W[niter] = malloc(config.nparticle * sizeof(double));
@@ -439,7 +439,7 @@ double ess(const double *W, int n)
     return 1.0 / sum;
 }
 
-void resample(void)
+void resample(gsl_rng *rng)
 {
     int i, wcur;
     int nparticle = smc_work.config->nparticle;
@@ -457,7 +457,7 @@ void resample(void)
     {
         wcur = -1;
         wsum = 0;
-        r = (double) rand() / (double) RAND_MAX;
+        r = gsl_rng_uniform(rng);
         while (r > wsum && wcur < nparticle) {
             wsum += W[++wcur];
         }
@@ -580,7 +580,7 @@ void *perturb(void *args)
         mh_ratio *= new_nbhd / old_nbhd;
 
         // accept or reject the proposal
-        if ((double) rand() / (double) RAND_MAX < mh_ratio)
+        if (gsl_rng_uniform(rng) < mh_ratio)
         {
             pthread_mutex_lock(&smc_accept_mutex);
             ++smc_work.accept;
