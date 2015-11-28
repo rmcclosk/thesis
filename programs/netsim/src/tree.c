@@ -709,10 +709,10 @@ int _ladderize(igraph_t *tree, igraph_vector_t *work, int root, int *perm)
     // order first by size
     lsize = _ladderize(tree, work, lc, perm);
     rsize = _ladderize(tree, work, rc, &perm[lsize]);
-    do_swap = lsize > rsize;
+    do_swap = (lsize > rsize);
 
     // order next by branch length
-    if (!do_swap)
+    if (lsize == rsize)
     {
         igraph_es_incident(&es, root, IGRAPH_OUT);
         igraph_cattribute_EANV(tree, "length", es, work);
