@@ -120,5 +120,5 @@ collect.data <- function (data.files, header=TRUE, ...)
     data <- suppressWarnings(mapply(cbind, data, 
                                     by(metadata, 1:nrow(metadata), identity),
                                     SIMPLIFY=FALSE))
-    rbindlist(data)
+    do.call(rbind, data)
 }
