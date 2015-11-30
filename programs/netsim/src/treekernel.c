@@ -131,6 +131,7 @@ int main (int argc, char **argv)
     igraph_t *t1 = parse_newick(opts.tree1_file);
     igraph_t *t2 = parse_newick(opts.tree2_file);
 
+
     if (opts.ladderize) {
         ladderize(t1);
         ladderize(t2);
@@ -142,9 +143,6 @@ int main (int argc, char **argv)
     if (opts.normalize) {
         kdenom = sqrt(kernel(t1, t1, opts.decay_factor, opts.gauss_factor, opts.sst_control)) *
                  sqrt(kernel(t2, t2, opts.decay_factor, opts.gauss_factor, opts.sst_control));
-    }
-    if (opts.nLTT) {
-        kdenom *= sqrt(1.0 - nLTT(t1, t1)) * sqrt(1.0 - nLTT(t2, t2));
     }
 
     knum = kernel(t1, t2, opts.decay_factor, opts.gauss_factor, opts.sst_control);
