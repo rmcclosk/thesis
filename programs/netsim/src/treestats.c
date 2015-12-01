@@ -131,16 +131,16 @@ double nLTT(const igraph_t *t1, const igraph_t *t2)
         igraph_degree(trees[itree], &vec, igraph_vss_all(), IGRAPH_OUT, 0);
 
         prev = 0; cur = 0; h = 0;
-        y[itree][0] = 1.0 / n[itree];
+        y[itree][0] = -1.0 / (n[itree] - 2);
         for (i = 0; i < igraph_vcount(trees[itree]); ++i)
         {
             if (VECTOR(vec)[node_order[i]] > 0) {
                 if (buf[node_order[i]] == prev) {
-                    y[itree][cur] += 1.0 / n[itree];
+                    y[itree][cur] += 1.0 / (n[itree] - 2);
                 }
                 else {
                     x[itree][++cur] = buf[node_order[i]];
-                    y[itree][cur] = y[itree][cur-1] + 1.0 / n[itree];
+                    y[itree][cur] = y[itree][cur-1] + 1.0 / (n[itree] - 2);
                     h = fmax(h, buf[node_order[i]]);
                     prev = buf[node_order[i]];
                 }

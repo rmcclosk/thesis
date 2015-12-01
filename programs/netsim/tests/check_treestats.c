@@ -47,7 +47,25 @@ START_TEST(test_nLTT)
 {
     igraph_t *t1 = tree_from_newick("((1:0.5,2:0.25)5:0.5,(3:0.25,4:0.25)6:0.5)7;");
     igraph_t *t2 = tree_from_newick("((((1:0.4,2:0.4)6:0.3,3:0.4)7:0.2,4:0.4)8:0.1,5:0.4)9;");
-    ck_assert(fabs(nLTT(t1, t2) - 0.03095142) < 1e-5);
+    ck_assert(fabs(nLTT(t1, t2) - 0.111111) < 1e-5);
+    igraph_destroy(t1);
+    igraph_destroy(t2);
+}
+END_TEST
+
+START_TEST(test_nLTT_identical)
+{
+    igraph_t *t1 = tree_from_newick("((1:0.5,2:0.25)5:0.5,(3:0.25,4:0.25)6:0.5)7;");
+    ck_assert(fabs(nLTT(t1, t1)) < 1e-5);
+    igraph_destroy(t1);
+}
+END_TEST
+
+START_TEST(test_nLTT_uniform_diffsizes)
+{
+    igraph_t *t1 = tree_from_newick("((((:1,:1):1,:1):1,:1):1,:1);");
+    igraph_t *t2 = tree_from_newick("(((:1,:1):1,:1):1,:1);");
+    ck_assert(fabs(nLTT(t1, t2)) < 1e-5);
     igraph_destroy(t1);
     igraph_destroy(t2);
 }
@@ -185,6 +203,8 @@ Suite *tree_suite(void)
     tc_core = tcase_create("Core");
     tcase_add_test(tc_core, test_kernel);
     tcase_add_test(tc_core, test_nLTT);
+    tcase_add_test(tc_core, test_nLTT_identical);
+    tcase_add_test(tc_core, test_nLTT_uniform_diffsizes);
     tcase_add_test(tc_core, test_sackin);
     tcase_add_test(tc_core, test_sackin_branch_lengths);
     tcase_add_test(tc_core, test_sackin_yule);
