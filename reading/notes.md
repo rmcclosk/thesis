@@ -83,6 +83,23 @@ accepted with probability equal to a Metropolis-Hastings ratio.
 particle population decreases by a small amount (between 1% and 10%) each
 iteration (Equation 12).
 
+**[@fearnhead2012constructing]**
+
+* Search for summary statistics which maximise the accuracy of ABC parameter 
+estimates, not necessarily the accuracy of the approximation to the posterior.
+* Introduce the term "calibrated" to indicate the property that (equation 7)
+the integral of the true posterior over a subset of parameter space agrees with
+the integral of the ABC posterior over the same subset.
+* Calibration of the ABC posterior implies that we can correctly infer 
+eg. confidence intervals.
+* It's actually a fairly straightforward modification to the standard importance
+sampling (not sure how it would fit in adaptive ABC-SMC though).
+* Summary statistics are linear models fitted to observed data, based on a 
+preliminary grid search. Not too complicated.
+* There's a note under theorem 5 that "ABC gives estimates that are at least as
+accurate or more accurate than any other estimators based on the same summary
+statistics."
+
 # Kernel-ABC
 
 **[@poon2015phylodynamic]**
@@ -201,6 +218,17 @@ distance cutoff.
 infectiousness doesn't play a role in the heterosexual UK epidemic (Figure 4).
 * Estimated the shape parameter of a Pareto degree distribution as 2.1.
 
+**[@volz2012simple]**
+
+* Modelling shows that viruses from acute/early infections cluster at higher
+rates even when there is no elevated transmission risk during acute infection.
+* This might just be because of the use of a distance cutoff for clustering.
+Acute infections = shorter branches = more clustering.
+
+**[@volz2013viral]**
+
+* TODO
+
 # ERGMs
 
 **[@robins2007introduction]**
@@ -215,6 +243,20 @@ social dynamics.
 and then equate or constrain a bunch of the parameters.
 * Markov random graph model: includes eg. edge, 2-star, 3-star, and triangle
 effects (Figure 1 and Equation 4).
+
+# Other Graph Theory
+
+**[@erdos1960evolution]**
+
+* Didn't read this one; it describes random graphs.
+
+**[@barabasi1999emergence]**
+
+* Didn't read. Describes preferential attachment/scale-free networks.
+
+**[@watts1998collective]**
+
+* Didn't read. Describes small world networks.
 
 # Other Statistics
 
@@ -231,6 +273,11 @@ parameters.
 * The accuracy statistic proposed by the authors doesn't give a hard "yes or
 no" answer to whether a model is a good fit. It's more like a tool to assist in
 model selection by eye.
+
+**[@gillespie1977exact]**
+
+* I didn't actually read this one, but it's the reference for performing
+simulations with concurrent Poisson processes.
 
 # HIV Epidemiology
 
@@ -251,3 +298,42 @@ person based on their viral DNA (presumably from a phylogeny-derived network).
 
 * Surveillance data about MSM in Canada.
 * Tables 10, 11, 14, 18 give numbers of contacts.
+
+# General Phylogenetics
+
+**[@nee1992tempo]**
+
+* This is as reference for the idea that branching times correspond to
+speciation events in a time-scaled phylogeny.
+* Might also be the first instance of a lineages-through-time plot (Figure 1)?
+* Reference 20 sounds like it's talking about root-to-tip regression, might be
+worth checking out as a new reference preceeding Rambaut and Pybus.
+
+**[@drummond2003measurably]**
+
+* Defines heterochronous vs. isochronous sampling, and measurably evolving
+populations (MEPs).
+* MEPs are "operationally defined", meaning that what exactly constitutes an
+MEP depends on the amount of data available and the range of sampling times.
+* Some useful references for "seminal" papers in here.
+
+**[@janzen2015approximate]**
+
+* Develop the normalized lineages-through-time statistic and show that it's
+better than imbalance.
+
+# Software
+
+**[@csardi2006igraph]**
+
+* Describes the igraph library. Just needed the reference, I didn't read it in
+detail.
+
+**[@baskins2004judy]**
+
+* Judy arrays. Didn't read, just used.
+
+**[@gough2009gnu]**
+
+* The GSL manual, which is apparently the right way to cite GSL. Check on this,
+it says on the GSL page that I should be citing one by a different guy?

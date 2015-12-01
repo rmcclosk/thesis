@@ -19,17 +19,19 @@ are in units of calendar time are referred to as \defn{time-scaled}.
 In the case of a rooted tree with branch lengths in calendar time, the internal
 nodes can be mapped onto a timeline by using the tips of the phylogeny, which
 usually map to the present day, as a reference point. These \defn{branching
-times} correspond to the times at which speciation events occurred. In
-phylogenies relating animal species, speciation most often occurs by an
-\defn{allopatric} process, where a sub-population of organisms is
-geographically isolated from the original population. Over time, the two
-populations diverge genetically, eventually resulting in two distinct species.
+times} correspond to the times at which speciation events
+occurred~\autocite{nee1992tempo}. In phylogenies relating animal species,
+speciation most often occurs by an \defn{allopatric} process, where a
+sub-population of organisms is geographically isolated from the original
+population [a reference to Coyne \& Orr will go here once I skim the relevant
+bits of the book]. Over time, the two populations diverge genetically,
+eventually resulting in two distinct species.
 
-Certain viruses, particularly RNA viruses such as the human immuno-deficiency
-virus (HIV), evolve rapidy enough that populations can accumulate measurable
-genetic changes on time scales of months or years. Transmission of the virus
-from one host to another closely mirrors the allopatric speciation process.
-Upon transmission, a sub-population of virions from the donor host is
+Many RNA viruses, such as the human immuno-deficiency virus (HIV), evolve
+rapidy enough that populations can accumulate measurable genetic changes on
+time scales of months or years~\autocite{drummond2003measurably}. Transmission
+of the virus from one host to another closely mirrors the allopatric speciation
+process. Upon transmission, a sub-population of virions from the donor host is
 geographically isolated in the recpient, followed by genetic divergence of the
 two hosts' infections. Therefore, the branching time relating the two hosts'
 viral populations in a time-scaled phylogeny corresponds to the time of
@@ -50,7 +52,7 @@ arbitrary taxa are not known and must be estimated. Such estimation is most
 often carried out using some type of genetic data sampled from each of the
 taxa, either amino acid sequences or gene orders. The resulting phylogeny, also
 known as a \defn{gene tree}, differs from the time-scaled \defn{species tree}
-which would contain complete information about past speciation events.  In
+which would contain complete information about past speciation events. In
 viral phylogenetics, the gene tree is the viral phylogeny, constructed using
 the genetic sequences of the sampled viruses. On the other hand, the species
 tree is the \defn{transmission tree}, wherein branching times correspond
@@ -129,10 +131,93 @@ where the nodes represent people, and edges represent contacts. An edge between
 two nodes indicate that transmission is possible between the two corresponding
 individuals. For example, if we are considering an HIV transmission network,
 the edges may represent sexual contacts or individuals sharing injection drug
-paraphernalia. For an airborne pathogen such as influenza, edges may simply
+paraphernalia. For an airborne pathogen such as influenza, an edge may simply
 indicate that the two people were in the same room. The edges in a contact
 network may be undirected, indicating that all contacts could possibly transmit
 to each other, or directed, indicating that transmission risk is one-way. It is
 possible to simulate an undirected network using directed edges by simply
 including two directed edges, one in either direction, for each single directed
 edge. Therefore, we exclusively consider directed contact networks here.
+
+Contact networks have been studied extensively in a variety of social,
+economic, and public health contexts. However, investigation of the effects of
+contact network structures on viral phylogenies have been much more limited.
+Existing studies have to focused on a few broad classes of contact network, and
+how phylogenies deriving from these networks have
+differed~\autocite{leventhal2012inferring, colijn2014phylogenetic,
+robinson2013dynamics}. To demonstrate our method, we focus on the same three
+contact network types as studied in~\autocite{leventhal2012inferring}, namely
+Erdos-Renyi (ER) graphs, Barabasi-Albert (BA) graphs, and Watts-Strogatz (WS)
+graphs. ER graphs, also known as random graphs, are the simplest generative
+graph model~\autocite{erdos1960evolution}. They have a single parameter, $p$,
+which gives the probability of any edge occuring in the network. BA
+graphs~\autocite{barabasi1999emergence} model a preferential attachment process
+where nodes with high degree tend to attract more connections. They have two
+parameters, $m$ and $\alpha$, and are constructed by repeatedly adding new
+nodes with $m$ outgoing edges to the network. An existing node $v$ in the
+network is chosen to be the endpoint of these new edges with probability
+proportional to $d(v)^\alpha$, where $d(v)$ is the degree of $v$. WS
+graphs~\autocite{watts1998collective}, also known as small-world graphs, have
+two parameters, $k$ and $p$. They are constructed by creating a ring lattice
+with $k$ edges per node, and then randomly rewiring each edge with probability
+$p$.
+
+\subsection{Approximate Bayesian computation}
+
+Consider a model $M$, with parameters $\theta$, which we wish to fit to some
+observed data $D$. By ``fit'', we often mean that we want to find particular
+values $\hat{\theta}$ for the parameters which optimize the likelihood of our
+data given those parameters and the model,
+\[
+  \hat{\theta} = \argmax_\theta \Pr(D | M, \theta).
+\]
+This $\hat{\theta}$ is the \defn{maximum likelihood} parameter estimate. Note
+that we are employing a common abuse of notation here, where $\Pr(\cdots)$ is
+being unsed to refer to a probabilty \emph{density} rather than a true
+probability. Alternative to maximum likelihood, we may be interested less in a
+point estimate and more in the posterior distribution of possible values of
+$\theta$ given our data, $\Pr(\theta \mid M, D)$. This will be expanded upon
+below, but for the moment, for illustrative purposes, we restrict our attention
+to the maximum likelihood problem.
+
+If the model we are fitting is sufficiently simple, it may be possible to
+calculate $\hat{\theta}$ directly, using calculus. Most models do not admit
+analytic maximum likeilhood solutions, but if the likelihood any set of
+parameters can be calculated up to a normalizing constant, then
+${\Pr(D \mid M,\theta)}$ can be optimized numerically. A wide range of
+optimization strategies exist, the choice of which to use depending on the
+complexity of the model and whether or not we have access to the gradients of
+the likelihood function with respect to each of the parameters. The majority of
+modelling problems fit into this category, and numerical optimization is
+well-developed and extremely widely used.
+
+However, there are some cases, often when the observed data is of a complex
+type, that explicitly calculating the likelihood of some observed data is
+impossible, even up to a normalizing constant. For example, suppose that we
+want to model a chess player's behaviour. We will set up a simple one-parameter
+model which describes the chess playing process.  The parameter, $a \in [0, 1]$
+indicates the player's eagerness to remove his opponent's pieces from the
+board. We can write down an algorithm for the player's behaviour under such a
+model.
+
+% TODO: don't break this over the page
+
+\begin{algorithmic}
+  \While{the game is not over}
+    \If{I can capture an opponent's piece and $\Uniform(0, 1) < a$}
+      \State{capture the piece}
+    \Else
+      \State{make any other move at random}
+    \EndIf
+  \EndWhile
+\end{algorithmic}
+
+Suppose the observed data are the ending configurations of the board, after the
+player has concluded a game against an opponent with a known value of $a$. The
+model we have designed is very simple, but it is not obvious how to calculate
+the likelihood of a particular ending configuration. Indeed, it seems that the
+only way is to enumerate every possible path the game could have taken, and
+tabulate the ending configurations of each. Clearly, this is infeasible.
+Approximate Bayesian computation was designed for situations like these, where
+exact likelihoods are not available, perhaps due to the model involving an
+algorithm or generative process, but we still want to estimate the parameters.

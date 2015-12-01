@@ -1,14 +1,38 @@
 \documentclass[12pt]{article}
 \usepackage[osf]{garamondx}
-\usepackage{tikz}
+\usepackage[garamondx,cmbraces]{newtxmath}
 \usepackage{fullpage}
 \usepackage{setspace}
 
+\usepackage[backend=biber, style=authoryear]{biblatex}
+
+\usepackage{nicefrac}
+\usepackage{amsmath}
+
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+
 \newcommand{\defn}[1]{\textit{#1}}
+\newcommand{\software}[1]{\textit{#1}}
+
+\newcommand{\set}[1]{\left\lbrace#1\right\rbrace}
+\renewcommand{\emptyset}{\varnothing}
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+\DeclareMathOperator{\Exponential}{Exponential}
+\DeclareMathOperator{\Uniform}{Uniform}
+
+\DeclareMathOperator{\inc}{in}
+\DeclareMathOperator{\out}{out}
 
 \title{Phylodynamic inference of contact network parameters through approximate
 Bayesian computation}
 \author{Rosemary M. McCloskey and Art F.Y. Poon}
+
+\addbibresource{papers.bib}
 
 \onehalfspacing
 
@@ -17,7 +41,11 @@ Bayesian computation}
 \maketitle
 
 \section{Introduction}
-
 \input{intro}
+
+\section{Methods}
+\input{methods}
+
+\printbibliography
 
 \end{document}
