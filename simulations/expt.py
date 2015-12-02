@@ -176,6 +176,8 @@ def iter_parameters(param_dict):
                 pass
         if isinstance(v, (str, int, float)):
             param_dict[k] = [v]
+        else:
+            param_dict[k] = v
 
     for param_values in itertools.product(*param_dict.values()):
         yield dict(zip(param_dict.keys(), param_values))
