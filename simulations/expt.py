@@ -15,6 +15,8 @@ import time
 import yaml
 from pprint import pprint
 
+TIMESTAMP = datetime.datetime.today().isoformat()
+
 class Tempfile:
     """A temporary file created with mkstemp()"""
     def __init__(self, tmpdir, mode):
@@ -81,8 +83,28 @@ def validate(expt):
     global_nproc = expt.get("Processes", 1)
     global_nthread = expt.get("Threads", 1)
     shell = os.environ["SHELL"]
-
+    
     for step_name in expt["Steps"]:
+        step = expt["Steps"][step_name]
+
+        # make sure every step has prerequisites, and that these are a list (they
+        # may be passed as a space-delimited string)
+        try:
+            step["Depends"] = step["Depends"].split(" ")
+        except KeyError:
+            step["Depends"] = []
+        except AttributeError:
+            # prerequisite steps are already a list
+            if isinstance(step["Depends"], list):
+                pass
+            else:
+                logging.error("Invalid Depends for step {}".format(step_name))
+                logging.error("Depends must be a list or a space-separated string")
+                return None
+
+        expt["Steps"][step_name] = step
+
+    for step_name in iter_steps(expt):
         step = expt["Steps"][step_name]
 
         # remove steps with no rule
@@ -118,24 +140,15 @@ def validate(expt):
         h, m, s = [int(x) for x in walltime.split(":")]
         step["Walltime"] = datetime.timedelta(hours=h, minutes=m, seconds=s)
 
-        # if there are no parameters and/or exclusions, make them an empty dict
+        # if there are no parameters and/or exclusions, make them empty 
         step["Parameters"] = step.get("Parameters", {})
-        step["Exclusions"] = step.get("Exclusions", {})
+        step["Exclusions"] = step.get("Exclusions", [])
 
-        # make sure every step has prerequisites, and that these are a list (they
-        # may be passed as a space-delimited string)
-        try:
-            step["Depends"] = step["Depends"].split(" ")
-        except KeyError:
-            step["Depends"] = []
-        except AttributeError:
-            # prerequisite steps are already a list
-            if isinstance(step["Depends"], list):
-                pass
-            else:
-                logging.error("Invalid Depends for step {}".format(step_name))
-                logging.error("Depends must be a list or a space-separated string")
-                return None
+        # copy any exclusions from prerequisite steps
+        for prev_step in step["Depends"]:
+            for prev_excl in expt["Steps"][prev_step]["Exclusions"]:
+                prev_excl = {k: prev_excl[k] for k in prev_excl if k in step["Parameters"]}
+                step["Exclusions"].append(prev_excl)
 
         # make sure the modifications to the steps are saved
         expt["Steps"][step_name] = step
@@ -221,7 +234,7 @@ def needs_update(target, depends, cur):
     # upstream exclusions
     # so we don't put a warning, just an info
     for step in depends:
-        if depends[step] == "":
+        if depends[step] == []:
             logging.info("Prerequisites of step {} for file {} are missing".format(step_name, target))
             return False
 
@@ -243,7 +256,7 @@ def needs_update(target, depends, cur):
                 logging.info("Checksum on dependency {} has changed, remaking file {}".format(file_name, target))
                 return True
 
-    logging.info("File {} doesn't need remaking".format(target))
+    logging.info("File {} is up to date".format(target))
     return False
 
 def find_file(step_dir, step_name, extension, parameters, con, cur):
@@ -304,11 +317,14 @@ def store_dependency_checksums(step_name, path, depends, con, cur):
 
 def store_checksum(path, con, cur):
     """Store the MD5 checksum for a file in the database."""
-    with open(path, "rb") as f:
-        checksum = hashlib.md5(f.read()).hexdigest()
-        cur.execute("INSERT OR REPLACE INTO md5 (path, checksum) VALUES (?, ?)", 
-                    (path, checksum))
-        con.commit()
+    if not os.path.exists(path):
+        logging.warning("File {} should have been created, but was not".format(path))
+    else:
+        with open(path, "rb") as f:
+            checksum = hashlib.md5(f.read()).hexdigest()
+            cur.execute("INSERT OR REPLACE INTO md5 (path, checksum) VALUES (?, ?)", 
+                        (path, checksum))
+            con.commit()
 
 def run_qsub(drivers, targets, con, cur):
     """Run a bunch of driver scripts via qsub, and wait for them to finish"""
@@ -375,8 +391,7 @@ def run_shell(drivers, targets, con, cur):
     while not all(done):
 
         # check if the jobs are finished yet
-        for i, proc in enumerate(procs):
-            done[i] = proc.poll() is not None
+        done = [proc.poll() is not None for proc in procs]
 
         # now go through the targets currently being made
         for i, target_list in enumerate(targets):
@@ -398,6 +413,8 @@ def run_shell(drivers, targets, con, cur):
 
 def run_step(expt, step_name, con, cur, tmpdir, qsub):
     """Run an experiment step."""
+
+    global TIMESTAMP
 
     expt_dir = expt["Name"]
     step_dir = os.path.join(expt_dir, step_name)
@@ -481,7 +498,7 @@ def run_step(expt, step_name, con, cur, tmpdir, qsub):
             f.write("#PBS -l walltime={}:{}:{}\n\n".format(hours, minutes, seconds))
             f.write("cd $PBS_O_WORKDIR\n")
 
-        f.write("{} < {}\n".format(step["Interpreter"], scripts[i].name))
+        f.write("{} < {} &> {}.log\n".format(step["Interpreter"], scripts[i].name, TIMESTAMP))
         f.close()
 
     # submit them all! yay!
@@ -509,7 +526,7 @@ def sanitize_database(expt_dir, expt, con, cur):
 
     for path in md5_paths | data_paths | dep_paths:
         if not os.path.exists(path):
-            logging.debug("Deleting file {} from the database (not on filesystem)".format(path))
+            logging.info("Deleting file {} from the database (not on filesystem)".format(path))
             cur.execute("DELETE from md5 WHERE path = ?", (path,))
             cur.execute("DELETE from data WHERE path = ?", (path,))
             cur.execute("DELETE from dependencies WHERE path = ?", (path,))
@@ -517,14 +534,18 @@ def sanitize_database(expt_dir, expt, con, cur):
             with open(path, "rb") as f:
                 checksum = hashlib.md5(f.read()).hexdigest()
             cur.execute("SELECT checksum FROM md5 WHERE path = ?", (path,))
-            if checksum != cur.fetchone()[0]:
-                logging.debug("Deleting file {} from the database (checksum doesn't match)".format(path))
+            row = cur.fetchone()
+            if row is None or checksum != row[0]:
+                if row is None:
+                    logging.info("Deleting file {} from the database (no checksum in database)".format(path))
+                elif checksum != row[0]:
+                    logging.info("Deleting file {} from the database (checksum doesn't match)".format(path))
                 cur.execute("DELETE from md5 WHERE path = ?", (path,))
                 cur.execute("DELETE from data WHERE path = ?", (path,))
                 cur.execute("DELETE from dependencies WHERE path = ?", (path,))
 
     for path in (md5_paths ^ data_paths) | (dep_paths - md5_paths - data_paths):
-        logging.debug("Deleting file {} from the database (tables out of sync)".format(path))
+        logging.info("Deleting file {} from the database (tables out of sync)".format(path))
         cur.execute("DELETE from md5 WHERE path = ?", (path,))
         cur.execute("DELETE from data WHERE path = ?", (path,))
         cur.execute("DELETE from dependencies WHERE path = ?", (path,))
@@ -534,6 +555,7 @@ def sanitize_database(expt_dir, expt, con, cur):
 
         # get all combinations of parameters which will be used with this step
         params = list(iter_parameters(expt["Steps"][step_name]["Parameters"]))
+        keys = params[0].keys()
         exclusions = []
         for excl in expt["Steps"][step_name]["Exclusions"]:
             exclusions.extend(iter_parameters(excl))
@@ -564,7 +586,7 @@ def sanitize_database(expt_dir, expt, con, cur):
                     match = True
                     break
             if not match:
-                logging.debug("Deleting file {} from the database (unused parameters)".format(path))
+                logging.info("Deleting file {} from the database (unused parameters)".format(path))
                 cur.execute("DELETE from md5 WHERE path = ?", (path,))
                 cur.execute("DELETE from data WHERE path = ?", (path,))
                 cur.execute("DELETE from dependencies WHERE path = ?", (path,))
@@ -578,22 +600,20 @@ def sanitize_filesystem(expt_dir, expt, con, cur):
             path = os.path.join(dirpath, basename)
             cur.execute("SELECT * FROM md5 WHERE path = ?", (path,))
             if cur.fetchone() is None:
-                logging.debug("Deleting file {} from filesystem (not in database)".format(path))
+                logging.info("Deleting file {} from filesystem (not in database)".format(path))
                 os.unlink(path)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run a computational experiment.")
     parser.add_argument("yaml_file", type=argparse.FileType("r"))
     parser.add_argument("-q", "--qsub", action="store_true")
-    parser.add_argument("-v", "--verbose", action="store_true")
+    parser.add_argument("-v", "--verbose", action="count", default=0)
     parser.add_argument("-n", "--dry-run", action="store_true")
     parser.add_argument("-s", "--step")
     args = parser.parse_args()
 
-    if args.verbose:
-        logging.basicConfig(level=logging.DEBUG)
-    else:
-        logging.basicConfig(level=logging.WARNING)
+    loglevels = [logging.WARNING, logging.INFO, logging.DEBUG]
+    logging.basicConfig(level=loglevels[args.verbose])
 
     expt = validate(yaml.load(args.yaml_file))
     if expt is None:
