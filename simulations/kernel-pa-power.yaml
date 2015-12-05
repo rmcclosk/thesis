@@ -1,6 +1,7 @@
 Name: kernel-pa-power
 Description: Testing if the tree kernel can recover the preferential attachment power in a Barabasi-Albert graph
 Processes: 1
+Sleep: 5
 Steps:
     network:
         Extension: gml.bz2
@@ -51,6 +52,7 @@ Steps:
             dev.off()
 
     statistics:
+        Sleep: 60
         Extension: tsv
         Parameters:
             ntip: [100, 500, 1000]
@@ -97,8 +99,10 @@ Steps:
             ggsave("{stats-plot}")
 
     kernel-matrix:
+        Sleep: 300
         Processes: 12
         Extension: mtx
+        Walltime: 04:00:00
         Parameters:
             ntip: [100, 500, 1000]
             mean_degree: 4
@@ -151,8 +155,10 @@ Steps:
             ggsave("{kpca-plot}")
 
     classifier:
+        Sleep: 60
         Processes: 12
         Extension: tsv
+        Walltime: 00:30:00
         Parameters:
             ntip: [100, 500, 1000]
             decay_factor: [0.2, 0.3, 0.4]
