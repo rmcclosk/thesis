@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
+import argparse
 import copy
+import datetime
 import hashlib
 import itertools
 import logging
@@ -84,6 +86,35 @@ class ParameterSet (dict):
         return d
 
 
+class Task:
+    """A task running either in a shell, or on a cluster"""
+    def __init__(self, driver, qsub=False):
+        self.qsub = qsub
+        if qsub:
+            proc = subprocess.Popen(["qsub", "-V", jobscripts[i][1]], stdout=subprocess.PIPE)
+            self.id = str(proc.communicate()[0], "UTF-8").split(".")[0]
+        else:
+            self.proc = subprocess.Popen([os.environ["SHELL"], driver.name])
+
+    def finished(self):
+        if self.qsub:
+            proc = subprocess.Popen(["qstat", "-u", os.environ["USER"]], stdout=subprocess.PIPE)
+            out = str(proc.communicate()[0], "UTF-8")
+            for line in out.split("\n"):
+                line = line.split()
+                if len(line) > 9 and line[9] != "C" and self.id in line[0]:
+                    return False
+            return True
+        else:
+            return self.proc.poll() is not None
+
+    def returncode(self):
+        if self.qsub:
+            # TODO
+            return 0
+        return self.proc.returncode
+
+
 class Step:
     """One step of a computational experiment."""
     def __init__(self, name, spec, globals, cur):
@@ -102,6 +133,15 @@ class Step:
         self.rule = spec["Rule"]
         self.sleep = spec.get("Sleep", globals.get("Sleep", 60))
         self.nproc = spec.get("Processes", globals.get("Processes", 1))
+        self.nthread = spec.get("Threads", globals.get("Threads", 1))
+        self.memory = spec.get("Memory", globals.get("Memory", "512m"))
+        walltime = spec.get("Walltime", globals.get("Walltime", "00:05:00"))
+        try:
+            h, m, s = map(int, walltime.split(":"))
+        except ValueError:
+            logging.error("Improperly formatted walltime {}".format(walltime))
+            raise
+        self.walltime = datetime.timedelta(hours=h, minutes=m, seconds=s)
 
         self.parameters = ParameterSet(spec.get("Parameters", {}))
         self.exclusions = [ParameterSet(excl) for excl in spec.get("Exclusions", [])]
@@ -118,6 +158,14 @@ class Step:
                 return False
         return True
 
+    def get_walltime(self, ntasks):
+        """Get a string specifying the amount of walltime for n tasks"""
+        wt = self.walltime * ntasks
+        h = int(wt.seconds / 3600)
+        m = int(wt.seconds % 3600 / 3600)
+        rs = wt.seconds % 60
+        return "{:02d}:{:02d}:{:02d}".format(h, m, s)
+
     def find_file(self, parameters):
         """Find the name for a file with a particular set of parameters."""
         query = "SELECT path FROM data WHERE step = ? AND parameter = ? AND value = ?"
@@ -129,15 +177,17 @@ class Step:
 
         result = self.cur.fetchone()
         if result is not None:
+            logging.debug("Matching file found in database for parameters {}".format(parameters.as_dict()))
             return result[0]
 
+        logging.debug("No matching file found in database for parameters {}".format(parameters.as_dict()))
         basename = hashlib.md5(bytes(str(parameters), "UTF-8")).hexdigest()
         filename = "{}.{}".format(basename, self.extension)
         return os.path.join(self.dir, filename)
 
     def store_parameters(self, path, parameters):
         """Add a path to the database associated with some parameters."""
-        for k, v in parameters.items():
+        for k, v in parameters.as_dict().items():
             self.cur.execute("INSERT OR REPLACE INTO data (step, path, parameter, value) VALUES (?, ?, ?, ?)",
                              (self.name, path, k, str(v)))
 
@@ -149,6 +199,7 @@ class Step:
 
         with open(path, "rb") as f:
             checksum = hashlib.md5(f.read()).hexdigest()
+            logging.debug("Storing checksum for file {}".format(path))
             self.cur.execute("INSERT OR REPLACE INTO md5 (path, checksum) VALUES (?, ?)",
                              (path, checksum))
 
@@ -192,14 +243,14 @@ class Step:
                 JOIN dependencies ON md5.path == dependencies.dep_path 
                 WHERE dependencies.path = ? AND dep_path = ?""",
                 (path, dep_path))
-            if not self.cur.fetchone().pop():
+            if not self.cur.fetchone()[0]:
                 logging.info("Dependency {} for target {} has changed".format(dep_path, path))
                 return True
 
         logging.info("File {} is up to date".format(path))
         return False
 
-    def run(self, dep_steps=[]):
+    def run(self, dep_steps=[], qsub=False):
         """Run a step."""
 
         targets = []
@@ -244,25 +295,31 @@ class Step:
 
             driver = Tempfile("w")
             driver.write("#!{}\n".format(os.environ["SHELL"]))
+            if qsub:
+                driver.write("#PBS -S {}".format(os.environ["SHELL"]))
+                driver.write("#PBS -l nodes=1:ppn={}".format(self.nthread))
+                driver.write("#PBS -l walltime={}".format(self.get_walltime(len(files[i]))))
+                driver.write("#PBS -l pmem={}".format(self.memory))
+                driver.write("cd $PBS_O_WORKDIR")
             driver.write("{} < {}\n".format(self.interpreter, script.name))
             driver.close()
             drivers.append(driver)
 
         # submit each driver
-        procs = []
+        tasks = []
         for driver in drivers:
-            procs.append(subprocess.Popen([os.environ["SHELL"], driver.name]))
+            tasks.append(Task(driver, self.qsub))
 
         # wait for them to finish
-        done = [False] * len(procs)
-        target_cur = [0] * len(procs)
+        done = [False] * len(tasks)
+        target_cur = [0] * len(tasks)
 
         while not all(done):
-            done = [proc.poll() is not None for proc in procs]
+            done = [task.finished() for task in tasks]
 
             for i, files in enumerate(targets):
-                if done[i] and procs[i].returncode == 0:
-                    while target_cur[i] < len(files):
+                if done[i] and tasks[i].returncode() == 0:
+                    while target_cur[i] < len(files[i]):
                         self.store_checksum(files[target_cur[i]])
                         target_cur[i] += 1
                     logging.info("Process {} is finished".format(i))
@@ -276,8 +333,8 @@ class Step:
 
         for f in scripts + drivers: f.delete()
 
-        for proc in procs:
-            if proc.returncode != 0:
+        for task in tasks:
+            if task.returncode != 0:
                 return False
         return True
 
@@ -427,9 +484,15 @@ class Experiment:
                 break
 
 
-with open("test.yaml") as f:
-    logging.basicConfig(level=logging.DEBUG)
-    expt = Experiment(yaml.load(f))
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Run a computational experiment.")
+    parser.add_argument("-v", "--verbose", action="count", default=0)
+    parser.add_argument("-q", "--qsub", action="store_true", default=False)
+    parser.add_argument("yaml_file", type=argparse.FileType("r"))
+    args = parser.parse_args()
+
+    loglevels = [logging.WARNING, logging.INFO, logging.DEBUG]
+    logging.basicConfig(level=loglevels[args.verbose])
+
+    expt = Experiment(yaml.load(args.yaml_file))
     expt.run()
-    #spec = expt["Steps"]["tree"]
-    #s2 = Step("tree", spec, expt, 0)
