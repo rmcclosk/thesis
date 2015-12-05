@@ -17,8 +17,8 @@ import yaml
 
 class Tempfile:
     """A temporary file created with mkstemp()"""
-    def __init__(self, mode="r"):
-        self.fd, self.name = tempfile.mkstemp()
+    def __init__(self, mode="r", tmpdir=None):
+        self.fd, self.name = tempfile.mkstemp(dir=tmpdir)
         self.handle = os.fdopen(self.fd, mode)
 
     def write(self, text):
@@ -249,7 +249,7 @@ class Step:
         logging.info("File {} is up to date".format(path))
         return False
 
-    def run(self, dep_steps=[], qsub=False):
+    def run(self, dep_steps=[], qsub=False, tmpdir=None):
         """Run a step."""
 
         targets = []
@@ -265,7 +265,7 @@ class Step:
             if self.needs_update(target, prereqs):
 
                 if len(scripts) == script_cur:
-                    scripts.append(Tempfile("w"))
+                    scripts.append(Tempfile("w", tmpdir))
                     scripts[script_cur].write("{}\n".format(self.startup))
                     targets.append([])
 
@@ -292,13 +292,16 @@ class Step:
         for i, script in enumerate(scripts):
             script.close()
 
-            driver = Tempfile("w")
+            driver = Tempfile("w", tmpdir)
             driver.write("#!{}\n".format(os.environ["SHELL"]))
             if qsub:
                 driver.write("#PBS -S {}\n".format(os.environ["SHELL"]))
                 driver.write("#PBS -l nodes=1:ppn={}\n".format(self.nthread))
-                driver.write("#PBS -l walltime={}\n".format(self.get_walltime(len(targets[i]))))
+                walltime = self.get_walltime(len(targets[i]))
+                driver.write("#PBS -l walltime={}\n".format(walltime))
                 driver.write("#PBS -l pmem={}\n".format(self.memory))
+                logging.debug("Submitted job {} with ppn={}, walltime={}, pmem={}"
+                              .format(i, self.nthread, walltime, self.memory))
                 driver.write("cd $PBS_O_WORKDIR\n")
             driver.write("{} < {}\n".format(self.interpreter, script.name))
             driver.close()
@@ -330,7 +333,7 @@ class Step:
             if not all(done):
                 time.sleep(self.sleep)
 
-        for f in scripts + drivers: f.delete()
+        #for f in scripts + drivers: f.delete()
 
         for task in tasks:
             if task.returncode != 0:
@@ -473,12 +476,12 @@ class Experiment:
             del dag[next_step]
             yield self.steps[next_step]
 
-    def run(self, qsub=False):
+    def run(self, qsub=False, tmpdir=None):
         """Run an experiment."""
         for step in self.iter_steps():
             logging.info("Starting step {}".format(step.name))
             dep_steps = [self.steps[s] for s in self.step_graph[step.name]]
-            if not step.run(dep_steps, qsub):
+            if not step.run(dep_steps, qsub, tmpdir):
                 logging.error("Step {} failed".format(step.name))
                 break
 
@@ -487,6 +490,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run a computational experiment.")
     parser.add_argument("-v", "--verbose", action="count", default=0)
     parser.add_argument("-q", "--qsub", action="store_true", default=False)
+    parser.add_argument("-t", "--tmpdir", default=None)
     parser.add_argument("yaml_file", type=argparse.FileType("r"))
     args = parser.parse_args()
 
@@ -494,4 +498,4 @@ if __name__ == "__main__":
     logging.basicConfig(level=loglevels[args.verbose])
 
     expt = Experiment(yaml.load(args.yaml_file))
-    expt.run(args.qsub)
+    expt.run(args.qsub, args.tmpdir)
