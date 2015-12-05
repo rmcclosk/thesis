@@ -91,7 +91,7 @@ class Task:
     def __init__(self, driver, qsub=False):
         self.qsub = qsub
         if qsub:
-            proc = subprocess.Popen(["qsub", "-V", jobscripts[i][1]], stdout=subprocess.PIPE)
+            proc = subprocess.Popen(["qsub", "-V", driver.name], stdout=subprocess.PIPE)
             self.id = str(proc.communicate()[0], "UTF-8").split(".")[0]
         else:
             self.proc = subprocess.Popen([os.environ["SHELL"], driver.name])
@@ -110,7 +110,6 @@ class Task:
 
     def returncode(self):
         if self.qsub:
-            # TODO
             return 0
         return self.proc.returncode
 
@@ -162,8 +161,8 @@ class Step:
         """Get a string specifying the amount of walltime for n tasks"""
         wt = self.walltime * ntasks
         h = int(wt.seconds / 3600)
-        m = int(wt.seconds % 3600 / 3600)
-        rs = wt.seconds % 60
+        m = int(wt.seconds % 3600 / 60)
+        s = wt.seconds % 60
         return "{:02d}:{:02d}:{:02d}".format(h, m, s)
 
     def find_file(self, parameters):
@@ -290,17 +289,17 @@ class Step:
 
         # make a driver for each script
         drivers = []
-        for script in scripts: 
+        for i, script in enumerate(scripts):
             script.close()
 
             driver = Tempfile("w")
             driver.write("#!{}\n".format(os.environ["SHELL"]))
             if qsub:
-                driver.write("#PBS -S {}".format(os.environ["SHELL"]))
-                driver.write("#PBS -l nodes=1:ppn={}".format(self.nthread))
-                driver.write("#PBS -l walltime={}".format(self.get_walltime(len(files[i]))))
-                driver.write("#PBS -l pmem={}".format(self.memory))
-                driver.write("cd $PBS_O_WORKDIR")
+                driver.write("#PBS -S {}\n".format(os.environ["SHELL"]))
+                driver.write("#PBS -l nodes=1:ppn={}\n".format(self.nthread))
+                driver.write("#PBS -l walltime={}\n".format(self.get_walltime(len(targets[i]))))
+                driver.write("#PBS -l pmem={}\n".format(self.memory))
+                driver.write("cd $PBS_O_WORKDIR\n")
             driver.write("{} < {}\n".format(self.interpreter, script.name))
             driver.close()
             drivers.append(driver)
@@ -308,7 +307,7 @@ class Step:
         # submit each driver
         tasks = []
         for driver in drivers:
-            tasks.append(Task(driver, self.qsub))
+            tasks.append(Task(driver, qsub))
 
         # wait for them to finish
         done = [False] * len(tasks)
@@ -319,7 +318,7 @@ class Step:
 
             for i, files in enumerate(targets):
                 if done[i] and tasks[i].returncode() == 0:
-                    while target_cur[i] < len(files[i]):
+                    while target_cur[i] < len(files):
                         self.store_checksum(files[target_cur[i]])
                         target_cur[i] += 1
                     logging.info("Process {} is finished".format(i))
@@ -474,12 +473,12 @@ class Experiment:
             del dag[next_step]
             yield self.steps[next_step]
 
-    def run(self):
+    def run(self, qsub=False):
         """Run an experiment."""
         for step in self.iter_steps():
             logging.info("Starting step {}".format(step.name))
             dep_steps = [self.steps[s] for s in self.step_graph[step.name]]
-            if not step.run(dep_steps):
+            if not step.run(dep_steps, qsub):
                 logging.error("Step {} failed".format(step.name))
                 break
 
@@ -495,4 +494,4 @@ if __name__ == "__main__":
     logging.basicConfig(level=loglevels[args.verbose])
 
     expt = Experiment(yaml.load(args.yaml_file))
-    expt.run()
+    expt.run(args.qsub)
