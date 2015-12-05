@@ -7,9 +7,8 @@ import logging
 import os
 import pprint
 import random
-import subprocess
 import sqlite3
-import sys
+import subprocess
 import tempfile
 import time
 import yaml
@@ -30,13 +29,11 @@ class Tempfile:
         os.unlink(self.name)
 
 
-class ParameterSet:
+class ParameterSet (dict):
     """A set of experimental parameters to be combinatorially expanded"""
-    def __init__(self, spec={}, exclusions=[]):
-        self.parameters = spec
-
-        # parse things like primitives and "range(10)"
-        for param, value in self.parameters.items():
+    def __init__(self, spec={}):
+        """Create a ParameterSet from a dictionary specification"""
+        for param, value in spec.items():
             if isinstance(value, str):
                 try:
                     value = eval(value)
@@ -44,86 +41,47 @@ class ParameterSet:
                     pass
             if isinstance(value, str) or not hasattr(value, '__iter__'):
                 value = [value]
-            if not isinstance(value, str) and hasattr(value, '__iter__'):
-                value = list(value)
-            value = list(map(str, value))
-            self.parameters[param] = value
+            self[param] = set(value)
 
-        self.expand = dict.fromkeys(self.parameters.keys(), True)
-        self.exclusions = [ParameterSet(excl) for excl in exclusions]
-
-    def __len__(self):
-        return len(self.parameters)
-
-    def __iter__(self):
-        expand_params = {k: v for k, v in self.parameters.items() if self.expand[k]}
-        no_expand_params = {k: v for k, v in self.parameters.items() if not self.expand[k]}
-        for values in itertools.product(*expand_params.values()):
-            p = dict(zip(expand_params.keys(), ([v] for v in values)))
-            p.update(no_expand_params)
-            if not self.is_excluded(p):
-                yield p
-
-    def __getitem__(self, key):
-        return self.parameters[key]
-
-    def __setitem__(self, key, value):
-        self.parameters[key] = value
-
-    def __str__(self):
-        expand_params = {k: v for k, v in self.parameters.items() if self.expand[k]}
-        return pprint.pformat(expand_params, width=120, compact=True)
-
-    @property
-    def names(self):
-        return self.parameters.keys()
-
-    def __iadd__(self, other):
-        my_names = set(self.names)
-        other_names = set(other.names)
-
-        # exclusions are carried forward
-        self.exclusions.extend(other.exclusions)
-
-        # all pararameters from the other set, which are not in this set, get
-        # copied but not expanded
-        for name in other_names - my_names:
-            self[name] = copy.deepcopy(other[name])
-            self.expand[name] = False
-
-        # for shared names
-        for name in my_names & other_names:
-            if not set(self[name]).issubset(set(other[name])):
-                raise ValueError("Cannot combine parameter {}".format(name))
-
-        return self
-
-    def __and__(self, other):
-        new_set = ParameterSet({})
-        for key in self.names:
-            new_set[key] = list(set(self[key]) & set(other[key]))
-            new_set.expand[key] = self.expand[key]
+    def intersect(self, other):
+        """Get the parameters and values which are in common with myself and another set"""
+        new_set = ParameterSet()
+        for name in self:
+            if name in other and (self[name] & other[name]):
+                new_set[name] = self[name] & other[name]
         return new_set
 
-    def __eq__(self, other):
-        if len(self) != len(other):
-            return False
-        for key in self.names:
-            if not key in other.names:
-                return False
-            if len(set(self[key]) ^ set(other[key])) > 0:
-                return False
-        return True
+    def combinations(self, exclusions = []):
+        """Iterate over all possible combinations of parameters"""
+        for values in itertools.product(*self.values()):
+            d = ParameterSet(dict(zip(self.keys(), values)))
 
-    def __contains__(self, params):
-        return (params & self == params) and not self.is_excluded(params.parameters)
+            # check if this one is excluded
+            keep = True
+            for excl in exclusions:
+                if len(d.intersect(excl)) == len(excl):
+                    keep = False
+                    break
 
-    def is_excluded(self, params):
-        for excl in self.exclusions:
-            for e in excl:
-                if ParameterSet(e) in ParameterSet(params):
-                    return True
-        return False
+            if keep: 
+                yield ParameterSet({k: v.pop() for k, v in d.items()})
+
+    def filter(self, other):
+        """Find all the parameters in one set which match another"""
+        new_set = copy.deepcopy(self)
+        for key in other:
+            if key in self:
+                new_set[key] &= other[key]
+        return new_set
+
+    def as_dict(self):
+        d = {}
+        for key in self:
+            if len(self[key]) == 1:
+                d[key] = list(self[key])[0]
+            else:
+                d[key] = " ".join(sorted(map(str, self[key])))
+        return d
 
 
 class Step:
@@ -145,18 +103,27 @@ class Step:
         self.sleep = spec.get("Sleep", globals.get("Sleep", 60))
         self.nproc = spec.get("Processes", globals.get("Processes", 1))
 
-        self.parameters = ParameterSet(spec.get("Parameters", {}),
-                                       spec.get("Exclusions", []))
+        self.parameters = ParameterSet(spec.get("Parameters", {}))
+        self.exclusions = [ParameterSet(excl) for excl in spec.get("Exclusions", [])]
 
-    def set_dependencies(self, depends):
-        self.depends = depends
+    def __contains__(self, parameters):
+        """Check if a ParameterSet will be used by this step"""
+        if set(parameters.keys()) != set(self.parameters.keys()):
+            return False
+        for key in parameters:
+            if not parameters[key].issubset(self.parameters[key]):
+                return False
+        for excl in self.exclusions:
+            if len(parameters.intersect(excl)) == len(excl):
+                return False
+        return True
 
     def find_file(self, parameters):
         """Find the name for a file with a particular set of parameters."""
         query = "SELECT path FROM data WHERE step = ? AND parameter = ? AND value = ?"
         query = " INTERSECT ".join([query] * len(parameters))
         query_params = []
-        for k, v in parameters.items():
+        for k, v in parameters.as_dict().items():
             query_params.extend([self.name, k, str(v)])
         self.cur.execute(query, tuple(query_params))
 
@@ -167,13 +134,6 @@ class Step:
         basename = hashlib.md5(bytes(str(parameters), "UTF-8")).hexdigest()
         filename = "{}.{}".format(basename, self.extension)
         return os.path.join(self.dir, filename)
-
-    def expand_parameters(self, parameters):
-        """Add file names and extras to parameters"""
-        for k, v in parameters.items():
-            parameters[k] = " ".join(v)
-        parameters["yaml"] = yaml.dump(parameters, width=1000).rstrip()
-        parameters["seed"] = random.randrange(2**31)
 
     def store_parameters(self, path, parameters):
         """Add a path to the database associated with some parameters."""
@@ -201,17 +161,22 @@ class Step:
                 VALUES (?, ?, ?)
             """, (path, dep_path, self.cur.fetchone()[0]))
 
-    def get_prerequisites(self, parameters):
+    def get_prerequisites(self, parameters, dep_steps):
         """Find all the prerequisite files to build a target."""
         prereqs = {}
-        for dep_step in self.depends:
+        for dep_step in dep_steps:
             prereqs[dep_step.name] = []
-            for p in dep_step.parameters & parameters:
+            dep_params = dep_step.parameters.filter(parameters)
+            dep_excl = self.exclusions + dep_step.exclusions
+            for p in dep_params.combinations(dep_excl):
                 matching_file = dep_step.find_file(p)
                 if not os.path.exists(matching_file):
                     raise RuntimeError("Prerequisites from step {} for step {} with parameters {} are missing"
-                                       .format(self.name, dep_step.name, p))
+                                       .format(self.name, dep_step.name, p.as_dict()))
                 prereqs[dep_step.name].append(matching_file)
+            if len(prereqs[dep_step.name]) == 0:
+                raise RuntimeError("Parameters {} for step {} do not match any files from step {}"
+                                   .format(parameters.as_dict(), self.name, dep_step.name))
         return prereqs
 
     def needs_update(self, path, depends):
@@ -222,27 +187,30 @@ class Step:
             return True
 
         for dep_path in itertools.chain(*depends.values()):
-            self.cur.execute("SELECT checksum == dep_checksum FROM md5 JOIN dependencies ON md5.path == dependencies.dep_path WHERE dependencies.path = ? AND dep_path = ?",
-                             (path, dep_path))
-            if not self.cur.fetchone()[0]:
+            self.cur.execute("""
+                SELECT checksum == dep_checksum FROM md5
+                JOIN dependencies ON md5.path == dependencies.dep_path 
+                WHERE dependencies.path = ? AND dep_path = ?""",
+                (path, dep_path))
+            if not self.cur.fetchone().pop():
                 logging.info("Dependency {} for target {} has changed".format(dep_path, path))
                 return True
 
         logging.info("File {} is up to date".format(path))
         return False
 
-    def run(self):
+    def run(self, dep_steps=[]):
         """Run a step."""
-        targets = []
 
+        targets = []
         scripts = []
         script_cur = 0
 
         # add a copy of the rule for each set of parameters, divided amongst
         # scripts for each process
-        for p in self.parameters:
+        for p in self.parameters.combinations(self.exclusions):
             target = self.find_file(p)
-            prereqs = self.get_prerequisites(p)
+            prereqs = self.get_prerequisites(p, dep_steps)
 
             if self.needs_update(target, prereqs):
 
@@ -255,7 +223,10 @@ class Step:
                 self.store_dependencies(target, prereqs)
                 targets[script_cur].append(target)
 
-                self.expand_parameters(p)
+                p = p.as_dict()
+                p["yaml"] = yaml.dump(p, width=1000).rstrip()
+                p["seed"] = random.randrange(2**31)
+                p["$#"] = sum(len(x) for x in prereqs.values())
                 p[self.name] = target
                 p.update({k: " ".join(v) for k, v in prereqs.items()})
 
@@ -290,11 +261,11 @@ class Step:
             done = [proc.poll() is not None for proc in procs]
 
             for i, files in enumerate(targets):
-                if done[i] and proc[i].returncode == 0:
+                if done[i] and procs[i].returncode == 0:
                     while target_cur[i] < len(files):
                         self.store_checksum(files[target_cur[i]])
                         target_cur[i] += 1
-                    logging.info("Process {} is finished".format(files[target_cur[i]]))
+                    logging.info("Process {} is finished".format(i))
                 elif target_cur[i] < len(files) - 1 and os.path.exists(files[target_cur[i]+1]):
                     logging.info("File {} was created".format(files[target_cur[i]]))
                     self.store_checksum(files[target_cur[i]])
@@ -329,45 +300,20 @@ class Experiment:
         self.create_database()
 
         self.steps = {}
-        self.step_graph = {}
         for step_name in spec.get("Steps", []):
             step_spec = spec["Steps"][step_name]
             self.steps[step_name] = Step(step_name, step_spec, spec, self.cur)
 
+        self.step_graph = {}
+        for step_name in spec.get("Steps", []):
+            step_spec = spec["Steps"][step_name]
             depends = step_spec.get("Depends", [])
             if isinstance(depends, str):
                 depends = depends.split(" ")
             self.step_graph[step_name] = depends
 
-        # now that we've read them all, we can set all the steps' dependencies
-        for step_name in self.step_graph:
-            depends = [self[dep_step] for dep_step in self.step_graph[step_name]]
-            self[step_name].set_dependencies(depends)
-
-        self.propagate_parameters()
         self.sanitize_database()
         self.sanitize_filesystem()
-
-    def __iter__(self):
-        dag = copy.deepcopy(self.step_graph)
-        for i in range(len(dag)):
-            next_step = min(dag.items(), key = lambda x: len(x[1]))[0]
-            for step in dag:
-                try:
-                    dag[step].remove(next_step)
-                except ValueError:
-                    pass
-            del dag[next_step]
-            yield self.steps[next_step]
-
-    def __getitem__(self, key):
-        return self.steps[key]
-
-    def propagate_parameters(self):
-        """Propagate steps' prerequisites' parameters."""
-        for step in self:
-            for dep_step in self.step_graph[step.name]:
-                step.parameters += self[dep_step].parameters
 
     def create_database(self):
         self.cur.execute("""
@@ -435,7 +381,7 @@ class Experiment:
             logging.info("Deleting file {} from the database (tables out of sync)".format(path))
             self.purge(path)
 
-        for step in self:
+        for step in self.steps.values():
             # get all paths in the database from this step
             self.cur.execute("SELECT DISTINCT path FROM data WHERE step = ?", (step.name,))
             paths = set([row[0] for row in self.cur.fetchall()])
@@ -445,7 +391,7 @@ class Experiment:
             for path in paths:
                 self.cur.execute("SELECT parameter, value FROM data WHERE path = ?", (path,))
                 params = ParameterSet({row[0]: eval(row[1]) for row in self.cur.fetchall()})
-                if not params in step.parameters:
+                if not params in step:
                     logging.info("Deleting file {} from the database (unused parameters)".format(path))
                     self.purge(path)
 
@@ -459,16 +405,31 @@ class Experiment:
                     logging.info("Deleting file {} from filesystem (not in database)".format(path))
                     os.unlink(path)
 
+    def iter_steps(self):
+        dag = copy.deepcopy(self.step_graph)
+        for i in range(len(dag)):
+            next_step = min(dag.items(), key = lambda x: len(x[1]))[0]
+            for step in dag:
+                try:
+                    dag[step].remove(next_step)
+                except ValueError:
+                    pass
+            del dag[next_step]
+            yield self.steps[next_step]
+
     def run(self):
         """Run an experiment."""
-        for step in self:
+        for step in self.iter_steps():
             logging.info("Starting step {}".format(step.name))
-            if not step.run():
+            dep_steps = [self.steps[s] for s in self.step_graph[step.name]]
+            if not step.run(dep_steps):
                 logging.error("Step {} failed".format(step.name))
                 break
 
 
 with open("test.yaml") as f:
     logging.basicConfig(level=logging.DEBUG)
-    e = Experiment(yaml.load(f))
-    e.run()
+    expt = Experiment(yaml.load(f))
+    expt.run()
+    #spec = expt["Steps"]["tree"]
+    #s2 = Step("tree", spec, expt, 0)
