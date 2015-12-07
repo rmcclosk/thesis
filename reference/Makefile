@@ -1,4 +1,4 @@
-CRAN_URL = "http://cran.stat.sfu.ca/"
+CRAN_URL = http://cran.stat.sfu.ca/
 fetch = curl -L -z $(2) -o $(2) $(1)
 
 .SECONDEXPANSION:
@@ -34,6 +34,8 @@ all: dirs \
 	 R/reshape2.pdf \
 	 R/roxygen2.pdf \
 	 R/ggplot2.pdf \
+	 R/ks.pdf \
+	 R/vignettes/ergm/ergm.pdf \
 	 python/python-library.pdf \
 	 bin/pandoc.pdf \
 	 bin/$(DOXYGEN_LATEST).pdf \
@@ -101,6 +103,10 @@ arx/$(PYTHON_LATEST).tar.bz2: FORCE
 
 R/R-%.pdf: FORCE
 	$(call fetch, $(CRAN_URL)/doc/manuals/r-release/R-$*.pdf, $@)
+
+R/vignettes/%.pdf: FORCE
+	mkdir -p $(dir $@)
+	$(call fetch, $(CRAN_URL)/web/packages/$(subst /,/vignettes/,$*), $@)
 
 R/%.pdf: FORCE
 	$(call fetch, $(CRAN_URL)/web/packages/$*/$*.pdf, $@)

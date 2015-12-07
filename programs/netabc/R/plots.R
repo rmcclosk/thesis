@@ -44,7 +44,7 @@ kpca.plot <- function (kmat, color=NULL, shape=NULL, yaml=NULL)
 #' @param yaml either NULL, or a YAML-formatted string to title the plot with
 #' @return a ggplot object
 #' @export
-summary.plot <- function (data, x, y, facet.x=".", facet.y=".", group=NULL,
+summarize.plot <- function (data, x, y, facet.x=".", facet.y=".", group=NULL,
                           fun="mean", x.factor=TRUE, y.factor=FALSE,
                           group.factor=TRUE, yaml=NULL)
 {
@@ -183,4 +183,4 @@ marginal.plot <- function (d, truth, limits) {
     }, plots, vary.cols, SIMPLIFY=FALSE)                                         
     do.call(grid.arrange, c(plots, ncol=ceiling(sqrt(length(vary.cols))),        
                             top="1D marginals"))                                 
-} 
+}

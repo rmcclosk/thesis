@@ -97,17 +97,6 @@
   publisher={Springer}
 }
 
-@article{fearnhead2012constructing,
-  title={Constructing summary statistics for approximate Bayesian computation: semi-automatic approximate Bayesian computation},
-  author={Fearnhead, Paul and Prangle, Dennis},
-  journal={Journal of the Royal Statistical Society: Series B (Statistical Methodology)},
-  volume={74},
-  number={3},
-  pages={419--474},
-  year={2012},
-  publisher={Wiley Online Library}
-}
-
 # Kernel-ABC
 
 @article{poon2015phylodynamic,
@@ -183,17 +172,6 @@ Klimkait, Thomas and G{\"u}nthard, Huldrych F and Bonhoeffer, Sebastian},
   publisher={Public Library of Science}
 }
 
-@article{robinson2012dynamics,
-  title={The dynamics of sexual contact networks: effects on disease spread and control},
-  author={Robinson, Katy and Cohen, Ted and Colijn, Caroline},
-  journal={Theoretical population biology},
-  volume={81},
-  number={2},
-  pages={89--96},
-  year={2012},
-  publisher={Elsevier}
-}
-
 ## Other Phylodynamics
 
 @article{hughes2009molecular,
@@ -204,16 +182,6 @@ Klimkait, Thomas and G{\"u}nthard, Huldrych F and Bonhoeffer, Sebastian},
   number={9},
   pages={e1000590},
   year={2009}
-}
-
-@article{volz2012simple,
-  title={Simple epidemiological dynamics explain phylogenetic clustering of HIV from patients with recent infection},
-  author={Volz, Erik M and Koopman, James S and Ward, Melissa J and Brown, Andrew Leigh and Frost, Simon DW},
-  journal={PLoS Comput Biol},
-  volume={8},
-  number={6},
-  pages={e1002552--e1002552},
-  year={2012}
 }
 
 # ERGMs
@@ -227,40 +195,6 @@ Klimkait, Thomas and G{\"u}nthard, Huldrych F and Bonhoeffer, Sebastian},
   pages={173--191},
   year={2007},
   publisher={Elsevier}
-}
-
-# Other Graph Theory
-
-@article{erdos1960evolution,
-  title={On the evolution of random graphs},
-  author={Erd\H{o}s, Paul and R{\'e}nyi, Alfred},
-  journal={Publ. Math. Inst. Hungar. Acad. Sci},
-  volume={5},
-  pages={17--61},
-  year={1960},
-  publisher={Citeseer}
-}
-
-@article{barabasi1999emergence,
-  title={Emergence of scaling in random networks},
-  author={Barab{\'a}si, Albert-L{\'a}szl{\'o} and Albert, R{\'e}ka},
-  journal={science},
-  volume={286},
-  number={5439},
-  pages={509--512},
-  year={1999},
-  publisher={American Association for the Advancement of Science}
-}
-
-@article{watts1998collective,
-  title={Collective dynamics of `small-world' networks},
-  author={Watts, Duncan J and Strogatz, Steven H},
-  journal={nature},
-  volume={393},
-  number={6684},
-  pages={440--442},
-  year={1998},
-  publisher={Nature Publishing Group}
 }
 
 # Other Statistics
@@ -283,17 +217,6 @@ Klimkait, Thomas and G{\"u}nthard, Huldrych F and Bonhoeffer, Sebastian},
   pages={729--739},
   year={2002},
   publisher={Oxford University Press}
-}
-
-@article{gillespie1977exact,
-  title={Exact stochastic simulation of coupled chemical reactions},
-  author={Gillespie, Daniel T},
-  journal={The journal of physical chemistry},
-  volume={81},
-  number={25},
-  pages={2340--2361},
-  year={1977},
-  publisher={ACS Publications}
 }
 
 # HIV Epidemiology
@@ -326,64 +249,3 @@ Klimkait, Thomas and G{\"u}nthard, Huldrych F and Bonhoeffer, Sebastian},
     institution={Centre for Communicable Diseases and Infection Control, Infectious Disease Prevention and Control Branch, Public Health Agency of Canada},
     year={2011}
 }
-
-# General Phylogenetics
-
-@article{nee1992tempo,
-  title={Tempo and mode of evolution revealed from molecular phylogenies},
-  author={Nee, Sean and Mooers, Arne O and Harvey, Paul H},
-  journal={Proceedings of the National Academy of Sciences},
-  volume={89},
-  number={17},
-  pages={8322--8326},
-  year={1992},
-  publisher={National Acad Sciences}
-}
-
-@article{drummond2003measurably,
-  title={Measurably evolving populations},
-  author={Drummond, Alexei J and Pybus, Oliver G and Rambaut, Andrew and Forsberg, Roald and Rodrigo, Allen G},
-  journal={Trends in Ecology \& Evolution},
-  volume={18},
-  number={9},
-  pages={481--488},
-  year={2003},
-  publisher={Elsevier}
-}
-
-@article{janzen2015approximate,
-  title={Approximate Bayesian Computation of diversification rates from molecular phylogenies: introducing a new efficient summary statistic, the nLTT},
-  author={Janzen, Thijs and H{\"o}hna, Sebastian and Etienne, Rampal S},
-  journal={Methods in Ecology and Evolution},
-  volume={6},
-  number={5},
-  pages={566--575},
-  year={2015},
-  publisher={Wiley Online Library}
-}
-
-# Software
-
-@article{csardi2006igraph,
-  title={The igraph software package for complex network research},
-  author={Csardi, Gabor and Nepusz, Tamas},
-  journal={InterJournal, Complex Systems},
-  volume={1695},
-  number={5},
-  pages={1--9},
-  year={2006}
-}
-
-@misc{baskins2004judy,
-  title={Judy arrays},
-  author={Baskins, Doug},
-  year={2004}
-}
-
-@book{gough2009gnu,
-  title={GNU scientific library reference manual},
-  author={Gough, Brian},
-  year={2009},
-  publisher={Network Theory Ltd.}
-}
-

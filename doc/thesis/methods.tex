@@ -66,7 +66,7 @@ user-defined cutoff of time ($t_{\max}$) or number of infections ($I_{\max}$).
   \caption{Simulation of an epidemic and transmission tree over a contact network}
   \begin{algorithmic}
     \State infect one node $v$ at random
-    \State let $T$ be a single node labeled $1$
+    \State let $T$ be a single node with index $1$
     \State $\tip[v] \gets 1$
     \State $n \gets 1$
     \State $t \gets 0$
@@ -100,18 +100,61 @@ user-defined cutoff of time ($t_{\max}$) or number of infections ($I_{\max}$).
 
 The tree kernel developed in~\autocite{poon2013mapping} provides a
 comprehensive similarity score between two phylogenetic trees. The kernel
-computes the dot-product of two feature vectors \ldots
+computes the dot-product of two feature vectors, corresponding to the two
+trees, in the infinite-dimensional feature space of all possible subset trees
+with branch lengths. I implemented the fast algorithm developed
+in~\autocite{moschitti2006making}, which first enumerates all pairs of subtrees
+with the same number of leaf children, and then computes the kernel by dynamic
+programming.
 
 In addition, we implemented a modified version of the normalized
 lineages-through-time statistic developed in~\autocite{janzen2015approximate},
 which uses piecewise linear functions instead of step functions for the
-lineages-through-time plots.
+lineages-through-time plots. This modification is to address a potential
+inconsistency for trees of different sizes, illustrated in
+Figure~\ref{fig:nltt}.
+
+\begin{figure}
+  \caption{Comparison of original formulation of normalized
+    lineages-through-time, developed in~\autocite{janzen2015approximate}, with
+    our modified version using linear interpolation. Here, the red and blue
+    trees both have uniformly spaced branching times. Using step functions
+    (left), the nLTT of the two trees is non-zero due to the differing numbers
+    of internal branches. Using linear interpolation, the nLTT is zero (right).
+  The lines on the right graph have been offset for visibility.}
+  \includegraphics[scale=0.75]{nltt}
+  \label{fig:nltt}
+\end{figure}
 
 \subsubsection{Adaptive sequential Monte-Carlo approximate Bayseian computation}
+
+I implemented the adaptive sequential Monte-Carlo algorithm
+developed in~\autocite{del2012adaptive} for approximate Bayesian computation.
+In contrast to most existing sequential Monte-Carlo methods, this algorithm
+does not require the user to specify a sequence of decreasing tolerances to
+approach the target posterior distribution. Rather, the tolerances are computed
+adaptively at each step, starting from infinity at the first iteration. The
+algorithm may be stopped when the tolerance reaches a user-defined final value,
+or when the rate of acceptance of the MCMC kernel reaches a user-defined
+threshold. Following a heuristic applied by the
+authors~\autocite{del2012adaptive}, we used the latter stopping criterion,
+accepting the SMC approximation to the posterior when the MCMC acceptance rate
+dropped below 1.5\%.
+
+
+\subsubsection{Management of computational experiments with combinatorially
+expanded parameters}
+
+This reasearch involved many computational experiments performed with all
+possible combinations of several parameters. For example, to identify the best
+combination of tree kernel parameters (see \ref{subsubsec:kernel} below), we
+considered at least three values each of the parameters $\lambda$ and $\sigma$,
+corresponding to at least nine possible combinations of these. 
 
 \subsection{Method validation}
 
 \subsubsection{Identification of separable parameters in kernel space}
+\label{subsubsec:kernel}
 
 \subsubsection{Grid search}
 
