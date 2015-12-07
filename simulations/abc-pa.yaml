@@ -1,9 +1,11 @@
 Name: abc-pa
 Description: ABC inference on 2-parameter preferential attachment networks
 Processes: 1
+Sleep: 5
 Steps:
     network:
         Extension: gml
+        Walltime: 00:00:30
         Parameters:
             nnode: 5000
             m: 2
@@ -19,6 +21,7 @@ Steps:
 
     tree:
         Extension: nwk
+        Walltime: 00:00:30
         Parameters:
             m: 2
             power: [0.0, 0.5, 1, 1.5]
@@ -33,6 +36,7 @@ Steps:
 
     abc-config:
         Extension: yaml
+        Walltime: 00:00:30
         Parameters:
             nnode: 5000
             nnode_min: 1000
@@ -65,9 +69,10 @@ Steps:
 
     abc:
         Extension: tsv
-        Processes: 1
-        Threads: 20
-        Walltime: 03:00:00
+        Processes: 0
+        Threads: 12
+        Walltime: 06:00:00
+        Sleep: 300
         Parameters:
             nnode_prior: ["uniform", "delta"]
             nsimnode_prior: ["uniform", "delta"]
@@ -75,7 +80,7 @@ Steps:
             m: 2
             power: [0.0, 0.5, 1, 1.5]
             replicate: 0
-            nthread: 32
+            nthread: 12
             decay_factor: 0.3
             rbf_variance: 2
             nltt: 1
@@ -84,6 +89,10 @@ Steps:
             quality: 0.95
             final_epsilon: 0.0
             final_accept: 0.015
+        Exclusions:
+            -
+                ntip: 1000
+                nsimnode_prior: "uniform"
         Depends: tree abc-config
         Interpreter: bash
         Rule: |
@@ -115,6 +124,8 @@ Steps:
             nparticle: 1000
             nsample: 5
             quality: 0.95
+            power_min: 0
+            power_max: 2
         Depends: abc
         Interpreter: R --vanilla --silent
         Startup: |
