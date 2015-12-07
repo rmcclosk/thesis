@@ -11,8 +11,7 @@ Steps:
             pa_power: [0.0, 0.5, 1.0]
             replicate: "range(100)"
         Interpreter: R --vanilla --silent
-        Startup: |
-            suppressPackageStartupMessages(library(netabc))
+        Startup: suppressPackageStartupMessages(library(netabc))
         Rule: | 
             f <- bzfile("{network}", "wb")
             set.seed({seed})
@@ -105,7 +104,6 @@ Steps:
         Walltime: 04:00:00
         Parameters:
             ntip: [100, 500, 1000]
-            mean_degree: 4
             decay_factor: [0.2, 0.3, 0.4]
             rbf_variance: [0.125, 0.25, 0.5, 1, 2, 5, 10, 20]
             nltt: ["yes", "no"]
@@ -128,11 +126,11 @@ Steps:
             echo "%{yaml}" >> {kernel-matrix}
             echo "{$#} {$#}" >> {kernel-matrix}
             for T1 in {tree}; do
-                for T2 in {tree}; d
+                for T2 in {tree}; do
                     if [[ "$T1" < "$T2" || "$T1" == "$T2" ]]; then
                         treekernel --ladderize --decay-factor {decay_factor} \
                                    --gauss-factor {rbf_variance} \
-                                   --scale-branches mean --nLTT \
+                                   --scale-branches mean $NLTT \
                                    $T1 $T2 >> {kernel-matrix}
                     fi
                 done
@@ -184,5 +182,5 @@ Steps:
         Rule: |
             d <- collect.data(strsplit("{classifier}", " ")[[1]])
             summarize.plot(d, x="rbf_variance", y="rsquared", group="decay_factor", 
-                           facet.y="nltt", fun="mean", yaml="{yaml}")
+                           facet.x="nltt", fun="mean", yaml="{yaml}")
             ggsave("{crossv-plot}", width=10)

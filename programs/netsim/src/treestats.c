@@ -4,6 +4,7 @@
 #include <igraph/igraph.h>
 #include <Judy.h>
 #include <limits.h>
+#include <math.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_sf_psi.h>
 

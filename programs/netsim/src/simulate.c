@@ -10,6 +10,11 @@
 #include "simulate.h"
 #define NDEBUG
 
+#ifndef INFINITY
+#include <float.h>
+#define INFINITY DBL_MAX
+#endif
+
 void print_node(const igraph_t *net, char *buf, int node, int numeric_ids);
 
 void simulate_phylogeny(igraph_t *tree, igraph_t *net, gsl_rng *rng,
