@@ -670,7 +670,7 @@ int main (int argc, char **argv)
         fclose(opts.tree_file);
     }
 
-    ladderize(tree);
+    ladderize(tree); 
     scale_branches(tree, MEAN);
     k = kernel(tree, tree, opts.decay_factor, opts.rbf_variance, 1);
     SETGAN(tree, "kernel", k);
