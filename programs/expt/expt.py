@@ -9,6 +9,7 @@ import logging
 import os
 import pprint
 import random
+import re
 import sqlite3
 import subprocess
 import tempfile
@@ -512,5 +513,15 @@ if __name__ == "__main__":
     loglevels = [logging.WARNING, logging.INFO, logging.DEBUG]
     logging.basicConfig(level=loglevels[args.verbose])
 
-    expt = Experiment(yaml.load(args.yaml_file))
+    spec = yaml.load(args.yaml_file)
+
+    try:
+        hostname_re = re.compile(spec["Hostname"])
+    except KeyError:
+        hostname_re = re.compile(".*")
+    if hostname_re.match(socket.gethostname()) is None:
+        logging.error("Wrong hostname: expected to be running on {}, but we are on {}".format(hostname_re.pattern, socket.gethostname()))
+        sys.exit()
+
+    expt = Experiment(spec)
     expt.run(args.qsub, args.tmpdir, args.step)
