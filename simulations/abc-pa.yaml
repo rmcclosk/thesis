@@ -6,7 +6,7 @@ Steps:
         Extension: gml
         Parameters:
             nnode: 5000
-            m: [1, 2, 3]
+            m: 2
             power: [0.0, 0.5, 1, 1.5]
             replicate: 0
         Interpreter: R --vanilla --silent
@@ -20,7 +20,7 @@ Steps:
     tree:
         Extension: nwk
         Parameters:
-            m: [1, 2, 3]
+            m: 2
             power: [0.0, 0.5, 1, 1.5]
             replicate: [0, 1]
             nsimnode: 1000
@@ -60,15 +60,15 @@ Steps:
         Extension: tsv
         Processes: 0
         Threads: 12
-        Walltime: 3
+        Walltime: 03:00:00
         Parameters:
             nnode_prior: ["uniform", "delta"]
             m: 2
             power: [0.0, 0.5, 1, 1.5]
             replicate: 0
             nthread: 12
-            decay_factor: [0.2, 0.3]
-            rbf_variance: [2, 5]
+            decay_factor: 0.3
+            rbf_variance: 2
             nltt: [0, 1]
             nparticle: 1000
             nsample: 5

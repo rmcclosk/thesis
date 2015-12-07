@@ -221,16 +221,22 @@ class Step:
             for p in dep_params.combinations(dep_excl):
                 matching_file = dep_step.find_file(p)
                 if not os.path.exists(matching_file):
-                    raise RuntimeError("Prerequisites from step {} for step {} with parameters {} are missing"
-                                       .format(self.name, dep_step.name, p.as_dict()))
-                prereqs[dep_step.name].append(matching_file)
+                    logging.warning("Prerequisites from step {} for step {} with parameters {} are missing"
+                                    .format(self.name, dep_step.name, p.as_dict()))
+                else:
+                    prereqs[dep_step.name].append(matching_file)
+            prereqs[dep_step.name] = sorted(prereqs[dep_step.name])
             if len(prereqs[dep_step.name]) == 0:
-                raise RuntimeError("Parameters {} for step {} do not match any files from step {}"
-                                   .format(parameters.as_dict(), self.name, dep_step.name))
+                logging.info("Parameters {} for step {} do not match any files from step {}"
+                             .format(parameters.as_dict(), self.name, dep_step.name))
         return prereqs
 
     def needs_update(self, path, depends):
         """Check if a target needs to be remade."""
+        if any(len(x) == 0 for x in depends.values()):
+            logging.info("No prerequisites exist for target {}".format(path))
+            return False
+
         self.cur.execute("SELECT checksum FROM md5 WHERE path = ?", (path,))
         if self.cur.fetchone() is None:
             logging.info("Target {} does not exist".format(path))
@@ -278,7 +284,7 @@ class Step:
                 p["seed"] = random.randrange(2**31)
                 p["$#"] = sum(len(x) for x in prereqs.values())
                 p[self.name] = target
-                p.update({k: " ".join(v) for k, v in prereqs.items()})
+                p.update({k: " ".join(sorted(v)) for k, v in prereqs.items()})
 
                 scripts[script_cur].write("{}\n".format(self.rule.format(**p)))
                 logging.debug(self.rule.format(**p))
@@ -325,18 +331,19 @@ class Step:
                         self.store_checksum(files[target_cur[i]])
                         target_cur[i] += 1
                     logging.info("Process {} is finished".format(i))
-                elif target_cur[i] < len(files) - 1 and os.path.exists(files[target_cur[i]+1]):
-                    logging.info("File {} was created".format(files[target_cur[i]]))
-                    self.store_checksum(files[target_cur[i]])
-                    target_cur[i] += 1
+                else:
+                    while target_cur[i] < len(files) - 1 and os.path.exists(files[target_cur[i]+1]):
+                        logging.info("File {} was created".format(files[target_cur[i]]))
+                        self.store_checksum(files[target_cur[i]])
+                        target_cur[i] += 1
 
             if not all(done):
                 time.sleep(self.sleep)
 
-        #for f in scripts + drivers: f.delete()
+        for f in scripts + drivers: f.delete()
 
         for task in tasks:
-            if task.returncode != 0:
+            if task.returncode() != 0:
                 return False
         return True
 
@@ -449,7 +456,12 @@ class Experiment:
             # if not, delete the path
             for path in paths:
                 self.cur.execute("SELECT parameter, value FROM data WHERE path = ?", (path,))
-                params = ParameterSet({row[0]: eval(row[1]) for row in self.cur.fetchall()})
+                params = ParameterSet({row[0]: row[1] for row in self.cur.fetchall()})
+                for p in params:
+                    try:
+                        params[p] = eval(str(params[p]))
+                    except (NameError, SyntaxError):
+                        pass
                 if not params in step:
                     logging.info("Deleting file {} from the database (unused parameters)".format(path))
                     self.purge(path)
@@ -476,14 +488,16 @@ class Experiment:
             del dag[next_step]
             yield self.steps[next_step]
 
-    def run(self, qsub=False, tmpdir=None):
+    def run(self, qsub=False, tmpdir=None, which_step=None):
         """Run an experiment."""
         for step in self.iter_steps():
+            if which_step is not None and which_step != step.name: continue
             logging.info("Starting step {}".format(step.name))
             dep_steps = [self.steps[s] for s in self.step_graph[step.name]]
             if not step.run(dep_steps, qsub, tmpdir):
                 logging.error("Step {} failed".format(step.name))
                 break
+            logging.info("Finished step {}".format(step.name))
 
 
 if __name__ == "__main__":
@@ -491,6 +505,7 @@ if __name__ == "__main__":
     parser.add_argument("-v", "--verbose", action="count", default=0)
     parser.add_argument("-q", "--qsub", action="store_true", default=False)
     parser.add_argument("-t", "--tmpdir", default=None)
+    parser.add_argument("-s", "--step")
     parser.add_argument("yaml_file", type=argparse.FileType("r"))
     args = parser.parse_args()
 
@@ -498,4 +513,4 @@ if __name__ == "__main__":
     logging.basicConfig(level=loglevels[args.verbose])
 
     expt = Experiment(yaml.load(args.yaml_file))
-    expt.run(args.qsub, args.tmpdir)
+    expt.run(args.qsub, args.tmpdir, args.step)
