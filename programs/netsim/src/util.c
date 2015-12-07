@@ -2,6 +2,7 @@
 #include <string.h>
 #include <float.h>
 #include <time.h>
+#include <math.h>
 #include <gsl/gsl_rng.h>
 #include <igraph/igraph.h>
 #include "util.h"

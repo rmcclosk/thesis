@@ -22,9 +22,9 @@ Steps:
         Parameters:
             m: 2
             power: [0.0, 0.5, 1, 1.5]
-            replicate: [0, 1]
+            replicate: 0
             nsimnode: 1000
-            ntip: 1000
+            ntip: [500, 1000]
         Depends: network
         Interpreter: bash
         Rule: |
@@ -39,6 +39,9 @@ Steps:
             nnode_max: 10000
             nnode_prior: ["uniform", "delta"]
             nsimnode: 1000
+            nsimnode_min: 500
+            nsimnode_max: 2000
+            nsimnode_prior: ["uniform", "delta"]
             m: 2
             power_min: 0
             power_max: 2
@@ -49,7 +52,11 @@ Steps:
             else
                 echo "nodes: {nnode}" > {abc-config}
             fi
-            echo "sim_nodes: {nsimnode}" >> {abc-config}
+            if [[ "{nsimnode_prior}" == "uniform" ]]; then
+                echo "sim_nodes: [\"uniform\", {nsimnode_min}, {nsimnode_max}]" > {abc-config}
+            else
+                echo "sim_nodes: {nsimnode}" > {abc-config}
+            fi
             echo "sim_time: 0" >> {abc-config}
             echo "transmit: 1" >> {abc-config}
             echo "remove: 0" >> {abc-config}
@@ -58,18 +65,20 @@ Steps:
 
     abc:
         Extension: tsv
-        Processes: 0
-        Threads: 12
+        Processes: 1
+        Threads: 20
         Walltime: 03:00:00
         Parameters:
             nnode_prior: ["uniform", "delta"]
+            nsimnode_prior: ["uniform", "delta"]
+            ntip: [500, 1000]
             m: 2
             power: [0.0, 0.5, 1, 1.5]
             replicate: 0
-            nthread: 12
+            nthread: 32
             decay_factor: 0.3
             rbf_variance: 2
-            nltt: [0, 1]
+            nltt: 1
             nparticle: 1000
             nsample: 5
             quality: 0.95
@@ -90,3 +99,34 @@ Steps:
                    --final-epsilon {final_epsilon} --final-accept {final_accept} \
                    $NLTT --net-type pa --trace {abc} --seed {seed} {tree} {abc-config}
             echo "EOF" >> {abc}
+
+    iter-plot:
+        Extension: pdf
+        Processes: 1
+        Parameters:
+            nnode_prior: ["uniform", "delta"]
+            nsimnode_prior: ["uniform", "delta"]
+            m: 2
+            power: [0.0, 0.5, 1, 1.5]
+            replicate: 0
+            decay_factor: 0.3
+            rbf_variance: 2
+            nltt: 1
+            nparticle: 1000
+            nsample: 5
+            quality: 0.95
+        Depends: abc
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(ggplus))
+            suppressPackageStartupMessages(library(data.table))
+        Rule: |
+            d <- fread("head -n -1 {abc}")
+            d <- d[,.SD[sample(1:nrow(.SD), prob=weight, replace=TRUE),], by=iter]
+            pdf("{iter-plot}")
+            p <- ggplot(d, aes(x=attach_power)) + geom_density() + 
+                 geom_vline(xintercept={m}, lty=2) + xlim({power_min}, {power_max}) + 
+                 labs(x="attachment power", y="density") + theme_bw()
+            facet_multiple(p, facets="iter", nrow=3, ncol=3)
+            dev.off()
