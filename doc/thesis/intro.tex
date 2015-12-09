@@ -14,36 +14,75 @@ it is \defn{unrooted}. The structural arrangement of nodes and edges in the
 tree is referred to as its \defn{topology}. The branches of the phylogeny may
 have lengths, which can represent either the genetic distance, or the calendar
 time, between ancestors and their descendants. Phylogenies whose branch lengths
-are in units of calendar time are referred to as \defn{time-scaled}.
+are in units of calendar time are referred to as \defn{time-scaled}. In the
+case of a rooted tree with branch lengths in calendar time, the internal nodes
+can be mapped onto a timeline by using the tips of the phylogeny, which usually
+map to the present day, as a reference point. These \defn{branching times}
+correspond to the times at which speciation events
+occurred~\autocite{nee1992tempo}. These concepts are illustrated in
+Figure~\ref{fig:phylogeny}.
 
-In the case of a rooted tree with branch lengths in calendar time, the internal
-nodes can be mapped onto a timeline by using the tips of the phylogeny, which
-usually map to the present day, as a reference point. These \defn{branching
-times} correspond to the times at which speciation events
-occurred~\autocite{nee1992tempo}. In phylogenies relating animal species,
-speciation most often occurs by an \defn{allopatric} process, where a
-sub-population of organisms is geographically isolated from the original
-population [a reference to Coyne \& Orr will go here once I skim the relevant
-bits of the book]. Over time, the two populations diverge genetically,
-eventually resulting in two distinct species.
+\begin{figure}
+  \label{fig:phylogeny}
+  \includegraphics{phylogeny}
+  \caption{Cartoon illustration of a rooted, time-scaled phylogeny relating
+  several domestic animals. The tips of the phylogeny, which represent extant
+  taxa, are placed at the present day on the time axis. Internal nodes,
+  representing extinct common ancestors to the extant taxa, fall in the past,
+  at branching times corresponding to speciation events. The topology of the
+  tree indicates that cats and dogs are the most closely related pair of
+  species, whereas fish is most distantly related to any other node in the
+  tree.}
+\end{figure}
 
-Many RNA viruses, such as the human immuno-deficiency virus (HIV), evolve
-rapidy enough that populations can accumulate measurable genetic changes on
-time scales of months or years~\autocite{drummond2003measurably}. Transmission
-of the virus from one host to another closely mirrors the allopatric speciation
-process. Upon transmission, a sub-population of virions from the donor host is
-geographically isolated in the recpient, followed by genetic divergence of the
-two hosts' infections. Therefore, the branching time relating the two hosts'
-viral populations in a time-scaled phylogeny corresponds to the time of
-transmission. This correspondence can be quite rough, and is subject to some
-important limitations which are discussed below. However, even taking these
-limitations into account, the relationship between branching times in the
-phylogeny and transmission times in the population theoretically implies that
-the evolutionary history of the virus is informative about its epidemiology. In
-other words, information about transmission patterns can be inferred from the
-viral phylogeny, complementing more traditional survey-based epidemiological
-methods. The tools and techniques for making such inferences are referred to as
-\defn{phylodynamic} methods.
+Various population genetic processes cause the phylogenies that we observe to
+take the particular shapes that they do. Selection, due to environmental
+pressures, allows certain lineages to persist while driving others to
+extinction. Speciation, which causes branching, often occurs by an
+\defn{allopatric} process, where a sub-population of organisms is isolated from
+the original population by a geographic barrier~\autocite{coyne2004speciation}.
+Over time, the two populations diverge genetically, eventually resulting in two
+distinct species. Barriers are not necessary for speciation, however.
+Diversifying selection, which favours either of two ``extreme'' phenotypes, can
+cause \defn{sympatric} speciation without a geographic
+separation~\autocite{coyne2004speciation}.
+
+Now, consider a phylogeny not of macro-organisms, but of RNA viruses. Many of
+these, such as the human immuno-deficiency virus (HIV), evolve rapidy enough
+that populations can accumulate measurable genetic changes on time scales of
+months or years~\autocite{drummond2003measurably}. Because viruses cannot exist
+for long outside their hosts, the host replaces the outside world as the
+``environment'' in which evolution takes place. In this light, striking
+parallels can be drawn between immunological and epidemiological processes at
+the host level, and the evolutionary processes studied in population
+genetics~\autocite{grenfell2004unifying}. For example, both the host immune
+response~\autocite{??} and the presence of anti-retroviral drugs~\autocite{??}
+exert directional selection on the viral population within a single host.
+Transmission, where a sub-population of virions from the donor host is
+``geographically'' isolated in the recpient, closely mirrors the allopatric
+speciation process and causes a branching point in the viral phylogeny
+(although this may not correspond exactly to the time of transmission, as
+discussed in the next section). Consequently, any factor which influences
+transmission dynamics, such as the virus' mode of transmission or the
+population structure of its hosts, in turn affects the shape of the phylogeny.
+The study of this interaction between host-level factors and viral phylogies is
+known as \defn{phylodynamics}~\autocite{grenfell2004unifying}. 
+
+In particular, if a time-scaled phylogeny is constructed where all viruses from
+the same host are collapsed into a single taxon, we might expect the branching
+time relating the two hosts to correspond to the time of transmission. Of
+course, this will only be the case if the two hosts' infections indeed diverged
+allopatrically at the time of transmission, and not sympatrically within the
+donor host at some previous time. This limitation, and others, in interpreting
+the branching times of the viral phylogeny as transmission times, are discussed
+in the next section. Nevertheless, even taking these limitations into account,
+the relationship between branching times in the phylogeny and transmission
+times in the population theoretically implies that the evolutionary history of
+the virus is informative about the biology and epidemiology of its hosts. In
+other words, information about, for example, transmission patterns, might be
+inferred from the viral phylogeny. Phylodynamic methods are intended to
+complement more traditional approaches to gathering epidemiological data, such
+as population surveys.
 
 \subsection{Sources of error in phylodynamics}
 
