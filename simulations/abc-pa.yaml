@@ -57,9 +57,9 @@ Steps:
                 echo "nodes: {nnode}" > {abc-config}
             fi
             if [[ "{nsimnode_prior}" == "uniform" ]]; then
-                echo "sim_nodes: [\"uniform\", {nsimnode_min}, {nsimnode_max}]" > {abc-config}
+                echo "sim_nodes: [\"uniform\", {nsimnode_min}, {nsimnode_max}]" >> {abc-config}
             else
-                echo "sim_nodes: {nsimnode}" > {abc-config}
+                echo "sim_nodes: {nsimnode}" >> {abc-config}
             fi
             echo "sim_time: 0" >> {abc-config}
             echo "transmit: 1" >> {abc-config}
@@ -71,7 +71,7 @@ Steps:
         Extension: tsv
         Processes: 0
         Threads: 12
-        Walltime: 06:00:00
+        Walltime: 08:00:00
         Sleep: 300
         Parameters:
             nnode_prior: ["uniform", "delta"]
@@ -82,8 +82,8 @@ Steps:
             replicate: 0
             nthread: 12
             decay_factor: 0.3
-            rbf_variance: 2
-            nltt: 1
+            rbf_variance: [2, 5]
+            nltt: [0, 1]
             nparticle: 1000
             nsample: 5
             quality: 0.95
@@ -119,8 +119,9 @@ Steps:
             power: [0.0, 0.5, 1, 1.5]
             replicate: 0
             decay_factor: 0.3
-            rbf_variance: 2
-            nltt: 1
+            rbf_variance: [2, 5]
+            nltt: [0, 1]
+            ntip: [500, 1000]
             nparticle: 1000
             nsample: 5
             quality: 0.95
@@ -137,7 +138,91 @@ Steps:
             d <- d[,.SD[sample(1:nrow(.SD), prob=weight, replace=TRUE),], by=iter]
             pdf("{iter-plot}")
             p <- ggplot(d, aes(x=attach_power)) + geom_density() + 
-                 geom_vline(xintercept={m}, lty=2) + xlim({power_min}, {power_max}) + 
-                 labs(x="attachment power", y="density") + theme_bw()
+                 geom_vline(xintercept={power}, lty=2) + xlim({power_min}, {power_max}) + 
+                 labs(x="attachment power", y="density",
+                      title="ntip = {ntip}, nnode_prior = {nnode_prior}, nsimnode_prior = {nsimnode_prior}\nlambda = {decay_factor}, sigma = {rbf_variance}, nLTT = {nltt}") +
+                      theme_bw()
             facet_multiple(p, facets="iter", nrow=3, ncol=3)
+            dev.off()
+
+    posterior-plot:
+        Extension: pdf
+        Processes: 1
+        Parameters:
+            nnode_prior: ["uniform", "delta"]
+            nsimnode_prior: ["uniform", "delta"]
+            m: 2
+            power: [0.0, 0.5, 1, 1.5]
+            replicate: 0
+            decay_factor: 0.3
+            rbf_variance: [2, 5]
+            nltt: [0, 1]
+            ntip: [500, 1000]
+            nparticle: 1000
+            nsample: 5
+            quality: 0.95
+            power_min: 0
+            power_max: 2
+        Depends: abc
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(ggplus))
+            suppressPackageStartupMessages(library(data.table))
+        Rule: |
+            d <- fread("head -n -1 {abc}")
+            d <- subset(d, iter == d[,max(iter)])
+            d <- d[,.SD[sample(1:nrow(.SD), prob=weight, replace=TRUE),], by=iter]
+            p1 <- ggplot(d, aes(x=attach_power)) + geom_density() + theme_bw() + 
+                  labs(title="attachment power") + xlim({power_min}, {power_max}) +
+                  geom_vline(xintercept={power}, lty=2)
+            p2 <- ggplot(d, aes(x=nodes)) + geom_density() + theme_bw() + 
+                  labs(title="total nodes") + xlim(1000, 10000) +
+                  geom_vline(xintercept=5000, lty=2)
+            p3 <- ggplot(d, aes(x=sim_nodes)) + geom_density() + theme_bw() + 
+                  labs(title="infected nodes") + xlim(500, 2000) +
+                  geom_vline(xintercept=1000, lty=2)
+            pdf("{posterior-plot}")
+            grid.arrange(p1, p2, p3, ncol=2, 
+                         top="ntip = {ntip}, nnode_prior = {nnode_prior}, nsimnode_prior = {nsimnode_prior}\nlambda = {decay_factor}, sigma = {rbf_variance}, nLTT = {nltt}")
+            dev.off()
+
+    accuracy-plot:
+        Extension: pdf
+        Processes: 1
+        Parameters:
+            decay_factor: 0.3
+            rbf_variance: [2, 5]
+            nltt: [0, 1]
+            ntip: [500, 1000]
+        Depends: abc
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(ggplus))
+            suppressPackageStartupMessages(library(data.table))
+        Rule: |
+            by.cols <- c("decay_factor", "rbf_variance", "nltt", "ntip", 
+                         "nnode_prior", "nsimnode_prior", "power")
+            d <- setDT(na.omit(collect.data(strsplit("{abc}", " ")[[1]], na.strings="EOF", fill=NA)))
+            d <- d[,.SD[iter == max(iter),], by=by.cols]
+            d <- d[,.SD[sample(1:nrow(.SD), prob=weight, replace=TRUE),], by=by.cols]
+            d[,prior := paste(nnode_prior, nsimnode_prior, sep='-')]
+            title <- "ntip = {ntip}, lambda = {decay_factor}, sigma = {rbf_variance}, nLTT = {nltt}"
+            pdf("{accuracy-plot}")
+            ggplot(d, aes(x=factor(power), y=attach_power, fill=prior)) + 
+                geom_boxplot() + theme_bw() + scale_fill_brewer(palette="Set3") + 
+                geom_hline(yintercept=c(0, 0.5, 1, 1.5), linetype="dashed") +
+                labs(x="true attach power", y="posterior attach power", title=title) +
+                ylim(0, 2) 
+            ggplot(d, aes(x=factor(power), y=nodes, fill=prior)) + 
+                geom_boxplot() + theme_bw() + scale_fill_brewer(palette="Set3") + 
+                geom_hline(yintercept=5000, linetype="dashed") +
+                ylim(1000, 10000) +
+                labs(x="true attach power", y="posterior total nodes", title=title)
+            ggplot(d, aes(x=factor(power), y=sim_nodes, fill=prior)) + 
+                geom_boxplot() + theme_bw() + scale_fill_brewer(palette="Set3") + 
+                geom_hline(yintercept=1000, linetype="dashed") +
+                ylim(500, 2000) + 
+                labs(x="true attach power", y="posterior infected nodes", title=title)
             dev.off()
