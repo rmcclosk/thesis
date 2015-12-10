@@ -1,9 +1,12 @@
 Name: kernel-shapes
 Description: Test if the tree kernel can distinguish trees from differently shaped networks
-Processes: 6
+Processes: 1
+Sleep: 5
+Hostname: (hermes.*)|(litai.*.westgrid.ca)
 Steps:
     network:
-        Extension: gml
+        Extension: gml.bz2
+        Walltime: 00:00:30
         Parameters:
             nnode: 5000
             mean_degree: 4
@@ -12,80 +15,63 @@ Steps:
             pa_power: 1
             replicate: "range(100)"
         Interpreter: R --vanilla --silent
-        Startup: |
-            suppressPackageStartupMessages(library(netabc))
+        Startup: suppressPackageStartupMessages(library(netabc))
         Rule: | 
+            f <- bzfile("{network}", "wb")
+            set.seed({seed})
             if ("{net_type}" == "BA") {{
-                set.seed({replicate})
                 g <- sample_pa({nnode}, m={mean_degree}/2, power={pa_power}, directed=FALSE)
             }} else if ("{net_type}" == "WS") {{
-                set.seed({replicate} + 100)
                 g <- sample_smallworld(1, {nnode}, {mean_degree}/2, {ws_prob})
             }} else if ("{net_type}" == "ER") {{
-                set.seed({replicate} + 200)
                 g <- sample_gnp({nnode}, {mean_degree}/{nnode})
             }}
             graph_attr(g, "comment") <- "{yaml}"
-            write.graph(SI.net(g), "{network}", format="gml")
+            write.graph(SIR.net(g), f, format="gml")
+            close(f)
 
     tree:
         Extension: nwk
+        Walltime: 00:00:30
         Parameters:
-            nnode: 5000
-            mean_degree: 4
             net_type: ["BA", "ER", "WS"]
-            ws_prob: 0.01
-            pa_power: 1
             replicate: "range(100)"
             nsimnode: 1000
             ntip: [100, 500, 1000]
         Depends: network
         Interpreter: bash
         Rule: |
-            # unique seed for each graph, different from the network seeds
-            if [[ "{net_type}" == "BA" ]]; then
-                SEED=`echo "{replicate} + 1000" | bc`
-            elif [[ "{net_type}" == "WS" ]]; then
-                SEED=`echo "{replicate} + 1100" | bc`
-            elif [[ "{net_type}" == "ER" ]]; then
-                SEED=`echo "{replicate} + 1200" | bc`
-            fi
             echo "#{yaml}" > {tree}
-            nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed $SEED {network} >> {tree}
+            SEED={seed}
+            bzcat {network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> {tree}
             while [[ `treestat -i -s ntip {tree}` -lt {ntip} ]]; do
-                SEED=`echo "$SEED + 1000" | bc`
+                SEED=$(($SEED+1))
                 echo "#{yaml}" > {tree}
-                nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed $SEED {network} >> {tree}
+                bzcat {network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed $SEED >> {tree}
             done
 
     tree-plot:
         Extension: pdf
+        Walltime: 00:00:30
         Parameters:
-            nnode: 5000
-            mean_degree: 4
             net_type: ["BA", "ER", "WS"]
-            ws_prob: 0.01
-            pa_power: 1
             replicate: "range(3)"
-            nsimnode: 1000
             ntip: [100, 500, 1000]
         Depends: tree
-        Interpreter: R --vanilla --quiet
-        Startup: suppressPackageStartupMessages(library(ape))
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
             t <- ladderize(read.tree("{tree}"))
             pdf("{tree-plot}")
-            plot(t, show.tip.label=FALSE, no.margin=TRUE, direction="down")
+            par(mar=c(0, 0, 4, 0) + 0.1)
+            plot(t, show.tip.label=FALSE) 
+            title(paste(strwrap(as.yaml(yaml.load("{yaml}")), 60), collapse="\n"))
             dev.off()
 
     statistics:
         Extension: tsv
+        Walltime: 00:10:00
         Parameters:
-            nnode: 5000
-            mean_degree: 4
-            ws_prob: 0.01
-            pa_power: 1
-            nsimnode: 1000
             ntip: [100, 500, 1000]
         Depends: tree
         Interpreter: bash
@@ -110,12 +96,8 @@ Steps:
 
     stats-plot:
         Extension: pdf
+        Walltime: 00:00:30
         Parameters:
-            nnode: 5000
-            mean_degree: 4
-            ws_prob: 0.01
-            pa_power: 1
-            nsimnode: 1000
             ntip: [100, 500, 1000]
         Depends: statistics tree
         Interpreter: R --vanilla --silent
@@ -136,19 +118,29 @@ Steps:
 
     kernel-matrix:
         Extension: mtx
+        Sleep: 300
+        Processes: 12
+        Walltime: 04:00:00
         Parameters:
-            nnode: 5000
-            mean_degree: 4
-            ws_prob: 0.01
-            pa_power: 1
-            nsimnode: 1000
             ntip: [100, 500, 1000]
-            branch_scaling: mean
             decay_factor: [0.2, 0.3, 0.4]
-            rbf_variance: [0.5, 1, 2, 5]
+            rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20]
+            nltt: ["yes", "no"]
+        Exclusions:
+            -
+                ntip: 1000
+                rbf_variance: [0.125, 0.25, 0.5]
+            -
+                ntip: [100, 500]
+                rbf_variance: 20
         Depends: tree
         Interpreter: bash
         Rule: |
+            if [[ "{nltt}" == "yes" ]]; then
+                NLTT="--nLTT"
+            else
+                NLTT=""
+            fi
             echo "%%MatrixMarket matrix array real symmetric" > {kernel-matrix}
             echo "%{yaml}" >> {kernel-matrix}
             echo "{$#} {$#}" >> {kernel-matrix}
@@ -157,73 +149,58 @@ Steps:
                     if [[ "$T1" < "$T2" || "$T1" == "$T2" ]]; then
                         treekernel --ladderize --decay-factor {decay_factor} \
                                    --gauss-factor {rbf_variance} \
-                                   --scale-branches {branch_scaling} \
-                                   --sst-control 1 $T1 $T2 >> {kernel-matrix}
+                                   --scale-branches mean $NLTT \
+                                   $T1 $T2 >> {kernel-matrix}
                     fi
                 done
             done
 
     kpca-plot:
         Extension: pdf
+        Walltime: 00:01:00
         Parameters:
-            nnode: 5000
-            mean_degree: 4
-            ws_prob: 0.01
-            pa_power: 1
-            nsimnode: 1000
             ntip: [100, 500, 1000]
-            branch_scaling: mean
             decay_factor: [0.2, 0.3, 0.4]
-            rbf_variance: [0.5, 1, 2, 5]
+            rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20]
+            nltt: ["yes", "no"]
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
         Startup: library(netabc)
         Rule: |
             k <- read.mm("{kernel-matrix}")
             y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"net_type"]
-            kpca.plot(k, color=list(net.type=y), yaml="{yaml}")
+            kpca.plot(k, color=list(mean.degree=y), yaml="{yaml}")
             ggsave("{kpca-plot}")
 
     classifier:
         Extension: tsv
+        Walltime: 00:20:00
+        Sleep: 60
         Parameters:
-            nnode: 5000
             ntip: [100, 500, 1000]
-            nsimnode: 1000
-            mean_degree: 4
-            ws_prob: 0.01
-            pa_power: 1
-            branch_scaling: mean
             decay_factor: [0.2, 0.3, 0.4]
-            rbf_variance: [0.5, 1, 2, 5]
-            branch_scaling: mean
-            ncrossv: 1000
+            rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20]
+            nltt: ["yes", "no"]
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
             k <- read.mm("{kernel-matrix}")
             y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"net_type"]
-            results <- ksvm.cv(k, as.factor(y), n.cv={ncrossv}, stats=c("accuracy"))
+            results <- ksvm.cv(k, y, n.cv=1000, stats=c("accuracy"))
             cat("#{yaml}\n", file="{classifier}")
             write.tsv(results, "{classifier}", append=TRUE)
 
     crossv-plot:
         Extension: pdf
+        Walltime: 00:01:00
         Parameters:
-            nnode: 5000
-            nsimnode: 1000
             ntip: [100, 500, 1000]
-            mean_degree: 4
-            ws_prob: 0.01
-            pa_power: 1
-            branch_scaling: mean
-            ncrossv: 1000
         Depends: classifier 
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
             d <- collect.data(strsplit("{classifier}", " ")[[1]])
             summary.plot(d, x="rbf_variance", y="accuracy", group="decay_factor", 
-                         fun="mean", yaml="{yaml}")
+                         facet.x="nltt", fun="mean", yaml="{yaml}")
             ggsave("{crossv-plot}", width=10)

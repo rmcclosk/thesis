@@ -1,0 +1,36 @@
+Name: kernel-nnode
+Description: Test if the tree kernel can distinguish number of infected nodes in a saturated network
+Processes: 1
+Sleep: 5
+Hostname: (hermes.*)|(litai.*.westgrid.ca)
+Steps:
+    network:
+        Extension: gml.bz2
+        Walltime: 00:10:00
+        Sleep: 60
+        Memory: 1000mb
+        Parameters:
+            nnode: 5000
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: | 
+            gml.file <- gsub(".bz2", "", "{network}")
+            g <- make_full_graph({nnode}, directed=FALSE)
+            graph_attr(g, "comment") <- "{yaml}"
+            write.graph(SIR.net(g, transmit.rate=0.01), gml.file, format="gml")
+            system(paste("bzip2", gml.file))
+
+    tree:
+        Processes: 10
+        Extension: nwk
+        Walltime: 00:08:00
+        Memory: 20000mb
+        Parameters:
+            ntip: 500
+            nsimnode: [500, 1000, 1500]
+            replicate: 0
+        Depends: network
+        Interpreter: bash
+        Rule: |
+            echo "#{yaml}" > {tree}                                                 
+            bzcat {network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> {tree}

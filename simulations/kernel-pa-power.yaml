@@ -2,9 +2,11 @@ Name: kernel-pa-power
 Description: Testing if the tree kernel can recover the preferential attachment power in a Barabasi-Albert graph
 Processes: 1
 Sleep: 5
+Hostname: (hermes.*)|(litai.*.westgrid.ca)
 Steps:
     network:
         Extension: gml.bz2
+        Walltime: 00:00:30
         Parameters:
             nnode: 5000
             mean_degree: 4
@@ -22,6 +24,7 @@ Steps:
 
     tree:
         Extension: nwk
+        Walltime: 00:00:30
         Parameters:
             pa_power: [0.0, 0.5, 1.0]
             replicate: "range(100)"
@@ -34,6 +37,7 @@ Steps:
             bzcat {network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> {tree}
 
     tree-plot:
+        Walltime: 00:00:30
         Extension: pdf
         Parameters:
             pa_power: [0.0, 0.5, 1.0]
@@ -51,6 +55,7 @@ Steps:
             dev.off()
 
     statistics:
+        Walltime: 00:10:00
         Sleep: 60
         Extension: tsv
         Parameters:
@@ -77,6 +82,7 @@ Steps:
             done
 
     stats-plot:
+        Walltime: 00:00:30
         Extension: pdf
         Parameters:
             ntip: [100, 500, 1000]
@@ -137,6 +143,7 @@ Steps:
             done
 
     kpca-plot:
+        Walltime: 00:01:00
         Extension: pdf
         Parameters:
             ntip: [100, 500, 1000]
@@ -156,7 +163,7 @@ Steps:
         Sleep: 60
         Processes: 12
         Extension: tsv
-        Walltime: 00:30:00
+        Walltime: 00:20:00
         Parameters:
             ntip: [100, 500, 1000]
             decay_factor: [0.2, 0.3, 0.4]
@@ -179,6 +186,7 @@ Steps:
         Depends: classifier 
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
+        Walltime: 00:01:00
         Rule: |
             d <- collect.data(strsplit("{classifier}", " ")[[1]])
             summarize.plot(d, x="rbf_variance", y="rsquared", group="decay_factor", 
