@@ -12,8 +12,9 @@
 gsl_rng *set_seed(int seed)
 {
     gsl_rng *rng;
-    if (seed > 0)
+    if (seed < 0) {
         seed = time(NULL);
+    }
 
     // C
     srand(seed);

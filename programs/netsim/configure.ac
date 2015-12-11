@@ -38,7 +38,7 @@ AC_CHECK_LIB([gslcblas], [cblas_dgemm], [], [AC_MSG_ERROR([GSL CBLAS is required
 AC_CHECK_LIB([igraph], [igraph_empty], [], [AC_MSG_ERROR([igraph is required])])
 AC_CHECK_LIB([Judy], [JudyLIns], [], [AC_MSG_ERROR([Judy is required])])
 AC_CHECK_LIB([yaml], [yaml_parser_initialize], [], [AC_MSG_ERROR([libyaml is required])])
-PKG_CHECK_MODULES([GSL], [gsl >= 1.16])
+PKG_CHECK_MODULES([GSL], [gsl >= 1.15])
 PKG_CHECK_MODULES([CHECK], [check >= 0.9.4])
 
 # Checks for header files.

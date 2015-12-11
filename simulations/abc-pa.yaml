@@ -70,9 +70,9 @@ Steps:
     abc:
         Extension: tsv
         Processes: 0
-        Threads: 12
+        Threads: 24
         Walltime: 08:00:00
-        Sleep: 300
+        Sleep: 600
         Parameters:
             nnode_prior: ["uniform", "delta"]
             nsimnode_prior: ["uniform", "delta"]
@@ -80,7 +80,6 @@ Steps:
             m: 2
             power: [0.0, 0.5, 1, 1.5]
             replicate: 0
-            nthread: 12
             decay_factor: 0.3
             rbf_variance: [2, 5]
             nltt: [0, 1]
@@ -102,7 +101,7 @@ Steps:
             else
                 NLTT=""
             fi
-            netabc --num-threads {nthread} --decay-factor {decay_factor} \
+            netabc --num-threads 24 --decay-factor {decay_factor} \
                    --rbf-variance {rbf_variance} --num-particles {nparticle} \
                    --num-samples {nsample} --quality {quality} --seed {seed} \
                    --final-epsilon {final_epsilon} --final-accept {final_accept} \

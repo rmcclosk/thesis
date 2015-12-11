@@ -3,17 +3,18 @@ CRAN = http://cran.stat.sfu.ca
 WD = $(shell pwd)
 
 all: dirs \
-     bin/tar \
-     lib/liblzma.so \
-     bin/automake \
      bin/autoconf \
+     bin/automake \
+     bin/m4 \
+     bin/tar \
+     bin/lzip \
+     lib/liblzma.so \
      bin/libtool \
      lib/libcurl.so \
      bin/git \
      bin/pkg-config \
      bin/flex \
      bin/bison \
-     bin/R \
      lib/libgsl.so \
      lib/libigraph.so \
      lib/libJudy.so \
@@ -39,10 +40,15 @@ R-pkgs: R/library/devtools \
         R/library/VGAM
 
 bin/tar: src/tar-1.28.tar.gz
+bin/lzip: src/lzip-1.17.tar.gz
 lib/liblzma.so: src/xz-5.2.2.tar.gz
 lib/libcurl.so: src/curl-7.45.0.tar.gz
+lib/libgmp.so: src/gmp-6.1.0.tar.lz
+lib/libmpfr.so: src/mpfr-3.1.3.tar.xz
+lib/libmpc.so: src/mpc-1.0.3.tar.gz
 bin/automake: src/automake-1.15.tar.xz
 bin/autoconf: src/autoconf-2.69.tar.xz
+bin/m4: src/m4-1.4.17.tar.xz
 bin/libtool: src/libtool-2.4.6.tar.xz
 bin/flex: src/flex-2.6.0.tar.bz2
 bin/bison: src/bison-3.0.4.tar.gz
@@ -52,6 +58,11 @@ lib/libyaml.so: src/yaml-0.1.5.tar.gz
 lib/libcheck.so: src/check-0.10.0.tar.gz
 bin/python3: src/Python-3.5.0.tar.xz
 lib/python3.5/site-packages/yaml: src/PyYAML-3.11.tar.gz
+
+bin/gcc: src/gcc-5.2.0.tar.bz2
+	tar xf $^ -C $(dir $^)
+	mkdir -p src/gcc-build
+	cd src/gcc-build && ../$(notdir $(basename $(basename $^)))/configure --prefix=$(WD) --enable-languages=c,c++,fortran && make && make install
 
 bin/pkg-config: src/pkg-config-0.29.tar.gz
 	tar xf $^ -C $(dir $^)
@@ -66,7 +77,7 @@ bin/git: src/git-2.6.3.tar.gz
 
 bin/R: src/R-3.2.2.tar.gz
 	tar xf $^ -C $(dir $^)
-	cd $(basename $(basename $^)) && ./configure --prefix=$(WD) --enable-R-shlib && make && make install
+	cd $(basename $(basename $^)) && ./configure CFLAGS="-lgfortran" --prefix=$(WD) --enable-R-shlib && make && make install
 
 lib/libxml2.so: src/libxml2-2.9.2.tar.gz
 	tar xf $^ -C $(dir $^)
@@ -118,6 +129,15 @@ src/Python-3.5.0.tar.xz:
 
 src/PyYAML-3.11.tar.gz:
 	curl -z $@ -o $@ http://pyyaml.org/download/pyyaml/PyYAML-3.11.tar.gz
+
+src/gcc-5.2.0.tar.bz2:
+	curl -z $@ -o $@ http://gcc.parentingamerica.com/releases/gcc-5.2.0/gcc-5.2.0.tar.bz2
+
+src/gmp-6.1.0.tar.lz:
+	curl -z $@ -o $@ https://gmplib.org/download/gmp/gmp-6.1.0.tar.lz
+
+src/lzip-1.17.tar.gz:
+	curl -z $@ -o $@ http://mirror.csclub.uwaterloo.ca/nongnu/lzip/lzip-1.17.tar.gz
 
 src/%.tar.xz src/%.tar.gz:
 	curl -z $@ -o $@ --disable-epsv $(GNU)/$(word 1, $(subst -, , $(notdir $@)))/$(notdir $@)
