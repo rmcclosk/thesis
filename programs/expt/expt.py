@@ -10,8 +10,10 @@ import os
 import pprint
 import random
 import re
+import socket
 import sqlite3
 import subprocess
+import sys
 import tempfile
 import time
 import yaml
@@ -479,7 +481,8 @@ class Experiment:
 
     def iter_steps(self):
         dag = copy.deepcopy(self.step_graph)
-        for i in range(len(dag)):
+        nstep = len(dag)
+        for i in range(nstep):
             next_step = min(dag.items(), key = lambda x: len(x[1]))[0]
             for step in dag:
                 try:
@@ -514,7 +517,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=loglevels[args.verbose])
 
     spec = yaml.load(args.yaml_file)
-
+    
     try:
         hostname_re = re.compile(spec["Hostname"])
     except KeyError:
