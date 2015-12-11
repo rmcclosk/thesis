@@ -1,10 +1,12 @@
 Name: kernel-mean-degree
 Description: Testing if the tree kernel can distinguish mean degree in a Barabasi-Albert network
-Processes: 16
+Processes: 1
 Sleep: 5
+Hostname: (hermes.*)|(litai.*.westgrid.ca)
 Steps:
     network:
-        Extension: gml
+        Extension: gml.bz2
+        Walltime: 00:00:30
         Parameters:
             nnode: 5000
             mean_degree: [2, 4, 8]
@@ -17,11 +19,12 @@ Steps:
             set.seed({seed})
             g <- sample_pa({nnode}, m={mean_degree}/2, power={pa_power}, directed=FALSE)
             graph_attr(g, "comment") <- "{yaml}"
-            write.graph(SI.net(g), f, format="gml")
+            write.graph(SIR.net(g), f, format="gml")
             close(f)
 
     tree:
         Extension: nwk
+        Walltime: 00:00:30
         Parameters:
             mean_degree: [2, 4, 8]
             replicate: "range(100)"
@@ -34,6 +37,7 @@ Steps:
             bzcat {network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> {tree}
 
     tree-plot:
+        Walltime: 00:00:30
         Extension: pdf
         Parameters:
             mean_degree: [2, 4, 8]
@@ -51,6 +55,7 @@ Steps:
             dev.off()
 
     statistics:
+        Walltime: 00:10:00
         Sleep: 60
         Extension: tsv
         Parameters:
@@ -78,6 +83,7 @@ Steps:
 
     stats-plot:
         Extension: pdf
+        Walltime: 00:00:30
         Parameters:
             ntip: [100, 500, 1000]
         Depends: statistics tree
@@ -137,6 +143,7 @@ Steps:
             done
 
     kpca-plot:
+        Walltime: 00:01:00
         Extension: pdf
         Parameters:
             ntip: [100, 500, 1000]
@@ -156,7 +163,7 @@ Steps:
         Sleep: 60
         Processes: 12
         Extension: tsv
-        Walltime: 00:30:00
+        Walltime: 00:20:00
         Parameters:
             ntip: [100, 500, 1000]
             decay_factor: [0.2, 0.3, 0.4]
@@ -173,6 +180,7 @@ Steps:
             write.tsv(results, "{classifier}", append=TRUE)
 
     crossv-plot:
+        Walltime: 00:01:00
         Extension: pdf
         Parameters:
             ntip: [100, 500, 1000]
@@ -181,6 +189,6 @@ Steps:
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
             d <- collect.data(strsplit("{classifier}", " ")[[1]])
-            summary.plot(d, x="rbf_variance", y="rsquared", group="decay_factor", 
-                         facet.x="nltt", fun="mean", yaml="{yaml}")
+            summarize.plot(d, x="rbf_variance", y="rsquared", group="decay_factor", 
+                           facet.x="nltt", fun="mean", yaml="{yaml}")
             ggsave("{crossv-plot}", width=10)

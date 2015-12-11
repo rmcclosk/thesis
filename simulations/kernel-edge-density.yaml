@@ -1,9 +1,12 @@
 Name: kernel-edge-density
 Description: Testing if the tree kernel can detect the edge density parameter in a random graph
-Processes: 6
+Processes: 1
+Sleep: 5
+Hostname: (hermes.*)|(litai.*.westgrid.ca)
 Steps:
     network:
         Extension: gml.bz2
+        Walltime: 00:00:30
         Parameters:
             nnode: 5000
             mean_degree: [2, 5, 8]
@@ -20,6 +23,7 @@ Steps:
 
     tree:
         Extension: nwk
+        Walltime: 00:00:30
         Parameters:
             mean_degree: [2, 5, 8]
             replicate: "range(100)"
@@ -39,6 +43,7 @@ Steps:
 
     tree-plot:
         Extension: pdf
+        Walltime: 00:00:30
         Parameters:
             mean_degree: [2, 5, 8]
             replicate: "range(3)"
@@ -60,6 +65,7 @@ Steps:
             ntip: [100, 500, 1000]
         Depends: tree
         Interpreter: bash
+        Walltime: 00:10:00
         Rule: |
             echo "#{yaml}" > {statistics}
             echo -e "\tcolless\til.portion\tmax.ladder\tbmi\tdelta.w\twidth\tcherries\tprop.unbalanced\tavg.unbalance\tsackin\tcophenetic\tgamma" >> {statistics}
@@ -80,6 +86,7 @@ Steps:
             done
 
     stats-plot:
+        Walltime: 00:00:30
         Extension: pdf
         Parameters:
             ntip: [100, 500, 1000]
@@ -101,24 +108,30 @@ Steps:
             ggsave("{stats-plot}")
 
     kernel-matrix:
+        Sleep: 300
+        Processes: 12
         Extension: mtx
+        Walltime: 04:00:00
         Parameters:
             ntip: [100, 500, 1000]
-            decay_factor: [0.2, 0.3, 0.4, 0.5]
-            rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20, 50, 100]
+            decay_factor: [0.2, 0.3, 0.4]
+            rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20]
+            nltt: ["yes", "no"]
         Exclusions:
             -
-                ntip: [100, 500]
-                rbf_variance: [20, 50, 100]
-            -
                 ntip: 1000
-                rbf_variance: [0.25, 0.5]
+                rbf_variance: [0.125, 0.25, 0.5]
             -
-                ntip: [1000]
-                decay_factor: 0.5
+                ntip: [100, 500]
+                rbf_variance: 20
         Depends: tree
         Interpreter: bash
         Rule: |
+            if [[ "{nltt}" == "yes" ]]; then
+                NLTT="--nLTT"
+            else
+                NLTT=""
+            fi
             echo "%%MatrixMarket matrix array real symmetric" > {kernel-matrix}
             echo "%{yaml}" >> {kernel-matrix}
             echo "{$#} {$#}" >> {kernel-matrix}
@@ -127,18 +140,20 @@ Steps:
                     if [[ "$T1" < "$T2" || "$T1" == "$T2" ]]; then
                         treekernel --ladderize --decay-factor {decay_factor} \
                                    --gauss-factor {rbf_variance} \
-                                   --scale-branches mean \
-                                   --sst-control 1 $T1 $T2 >> {kernel-matrix}
+                                   --scale-branches mean $NLTT \
+                                   $T1 $T2 >> {kernel-matrix}
                     fi
                 done
             done
 
     kpca-plot:
         Extension: pdf
+        Walltime: 00:01:00
         Parameters:
             ntip: [100, 500, 1000]
-            decay_factor: [0.2, 0.3, 0.4, 0.5]
-            rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20, 50, 100]
+            decay_factor: [0.2, 0.3, 0.4]
+            rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20]
+            nltt: ["yes", "no"]
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
         Startup: library(netabc)
@@ -150,26 +165,26 @@ Steps:
 
     classifier:
         Extension: tsv
+        Walltime: 00:20:00
+        Sleep: 60
         Parameters:
             ntip: [100, 500, 1000]
-            decay_factor: [0.2, 0.3, 0.4, 0.5]
-            rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20, 50, 100]
+            decay_factor: [0.2, 0.3, 0.4]
+            rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20]
+            nltt: ["yes", "no"]
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
             k <- read.mm("{kernel-matrix}")
             y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"mean_degree"]
-            results <- tryCatch({{
-                ksvm.cv(k, y, n.cv=1000, stats=c("rsquared"))
-            }}, error = function (e) {{
-                data.frame(rsquared=rep(0, 1000))
-            }})
+            results <- ksvm.cv(k, y, n.cv=1000, stats=c("rsquared"))
             cat("#{yaml}\n", file="{classifier}")
             write.tsv(results, "{classifier}", append=TRUE)
 
     crossv-plot:
         Extension: pdf
+        Walltime: 00:01:00
         Parameters:
             ntip: [100, 500, 1000]
         Depends: classifier 
@@ -177,6 +192,6 @@ Steps:
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
             d <- collect.data(strsplit("{classifier}", " ")[[1]])
-            summary.plot(d, x="rbf_variance", y="rsquared", group="decay_factor", 
-                         fun="mean", yaml="{yaml}")
+            summarize.plot(d, x="rbf_variance", y="rsquared", group="decay_factor", 
+                           facet.x="nltt", fun="mean", yaml="{yaml}")
             ggsave("{crossv-plot}", width=10)

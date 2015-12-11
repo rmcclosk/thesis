@@ -1,9 +1,12 @@
 Name: kernel-pareto
 Description: Testing if the tree kernel can distinguish between Pareto degree distribution parameters
-Processes: 6
+Processes: 1
+Sleep: 5
+Hostname: (hermes.*)|(litai.*.westgrid.ca)
 Steps:
     network:
-        Extension: gml
+        Extension: gml.bz2
+        Walltime: 00:00:30
         Parameters:
             nnode: 5000
             pareto_shape: [1, 1.5, 2]
@@ -13,6 +16,7 @@ Steps:
             suppressPackageStartupMessages(library(netabc))
             suppressPackageStartupMessages(library(VGAM))
         Rule: | 
+            f <- bzfile("{network}", "wb")
             set.seed({seed})
             g <- sample_degseq(2, method="simple")
             while (any(which_loop(g)) | any(which_multiple(g))) 
@@ -26,10 +30,12 @@ Steps:
                                 
             }}
             graph_attr(g, "comment") <- "{yaml}"
-            write.graph(SI.net(g), "{network}", format="gml")
+            write.graph(SIR.net(g), f, format="gml")
+            close(f)
 
     tree:
         Extension: nwk
+        Walltime: 00:00:30
         Parameters:
             pareto_shape: [1, 1.5, 2]
             ntip: [100, 500, 1000]
@@ -40,15 +46,16 @@ Steps:
         Rule: |
             echo "#{yaml}" > {tree}
             SEED={seed}
-            nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed $SEED {network} >> {tree}
+            bzcat {network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> {tree}
             while [[ `treestat -i -s ntip {tree}` -lt {ntip} ]]; do
                 SEED=$(($SEED+1))
                 echo "#{yaml}" > {tree}
-                nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed $SEED {network} >> {tree}
+                bzcat {network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed $SEED >> {tree}
             done
 
     tree-plot:
         Extension: pdf
+        Walltime: 00:00:30
         Parameters:
             pareto_shape: [1, 1.5, 2]
             ntip: [100, 500, 1000]
@@ -66,6 +73,7 @@ Steps:
 
     statistics:
         Extension: tsv
+        Walltime: 00:10:00
         Parameters:
             ntip: [100, 500, 1000]
         Depends: tree
@@ -91,6 +99,7 @@ Steps:
 
     stats-plot:
         Extension: pdf
+        Walltime: 00:01:00
         Parameters:
             ntip: [100, 500, 1000]
         Depends: statistics tree
@@ -107,37 +116,50 @@ Steps:
             ggsave("{stats-plot}")
 
     kernel-matrix:
+        Sleep: 300
+        Processes: 12
         Extension: mtx
+        Walltime: 04:00:00
         Parameters:
             ntip: [100, 500, 1000]
-            decay_factor: [0.2, 0.3, 0.4, 0.5]
+            decay_factor: [0.2, 0.3, 0.4]
             rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20]
+            nltt: ["yes", "no"]
         Exclusions:
             -
-                ntip: [500, 1000]
-                rbf_variance: 0.25
+                ntip: 1000
+                rbf_variance: [0.125, 0.25, 0.5]
+            -
+                ntip: [100, 500]
+                rbf_variance: 20
         Depends: tree
         Interpreter: bash
         Rule: |
+            if [[ "{nltt}" == "yes" ]]; then
+                NLTT="--nLTT"
+            else
+                NLTT=""
+            fi
             echo "%%MatrixMarket matrix array real symmetric" > {kernel-matrix}
             echo "%{yaml}" >> {kernel-matrix}
             echo "{$#} {$#}" >> {kernel-matrix}
             for T1 in {tree}; do
                 for T2 in {tree}; do
                     if [[ "$T1" < "$T2" || "$T1" == "$T2" ]]; then
-                    treekernel --ladderize --decay-factor {decay_factor} \
-                               --gauss-factor {rbf_variance} \
-                               --scale-branches mean \
-                               --sst-control 1 $T1 $T2 >> {kernel-matrix}
+                        treekernel --ladderize --decay-factor {decay_factor} \
+                                   --gauss-factor {rbf_variance} \
+                                   --scale-branches mean $NLTT \
+                                   $T1 $T2 >> {kernel-matrix}
                     fi
                 done
             done
 
     kpca-plot:
         Extension: pdf
+        Walltime: 00:01:00
         Parameters:
             ntip: [100, 500, 1000]
-            decay_factor: [0.2, 0.3, 0.4, 0.5]
+            decay_factor: [0.2, 0.3, 0.4]
             rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20]
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
@@ -150,9 +172,11 @@ Steps:
 
     classifier:
         Extension: tsv
+        Walltime: 00:20:00
+        Sleep: 60
         Parameters:
             ntip: [100, 500, 1000]
-            decay_factor: [0.2, 0.3, 0.4, 0.5]
+            decay_factor: [0.2, 0.3, 0.4]
             rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20]
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
@@ -166,6 +190,7 @@ Steps:
 
     crossv-plot:
         Extension: pdf
+        Walltime: 00:01:00
         Parameters:
             ntip: [100, 500, 1000]
         Depends: classifier 
@@ -173,6 +198,6 @@ Steps:
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
             d <- collect.data(strsplit("{classifier}", " ")[[1]])
-            summary.plot(d, x="rbf_variance", y="rsquared", group="decay_factor", 
-                         fun="mean", yaml="{yaml}")
+            summarize.plot(d, x="rbf_variance", y="rsquared", group="decay_factor", 
+                           facet.x="nltt", fun="mean", yaml="{yaml}")
             ggsave("{crossv-plot}", width=10)
