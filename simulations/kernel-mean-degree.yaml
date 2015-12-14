@@ -37,8 +37,8 @@ Steps:
             bzcat {network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> {tree}
 
     tree-plot:
-        Walltime: 00:00:30
         Extension: pdf
+        Walltime: 00:00:30
         Parameters:
             mean_degree: [2, 4, 8]
             replicate: "range(3)"
@@ -55,9 +55,9 @@ Steps:
             dev.off()
 
     statistics:
+        Extension: tsv
         Walltime: 00:10:00
         Sleep: 60
-        Extension: tsv
         Parameters:
             ntip: [100, 500, 1000]
         Depends: tree
@@ -104,9 +104,9 @@ Steps:
             ggsave("{stats-plot}")
 
     kernel-matrix:
+        Extension: mtx
         Sleep: 300
         Processes: 12
-        Extension: mtx
         Walltime: 04:00:00
         Parameters:
             ntip: [100, 500, 1000]
@@ -143,8 +143,8 @@ Steps:
             done
 
     kpca-plot:
-        Walltime: 00:01:00
         Extension: pdf
+        Walltime: 00:01:00
         Parameters:
             ntip: [100, 500, 1000]
             decay_factor: [0.2, 0.3, 0.4]
@@ -160,10 +160,10 @@ Steps:
             ggsave("{kpca-plot}")
 
     classifier:
-        Sleep: 60
-        Processes: 12
         Extension: tsv
         Walltime: 00:20:00
+        Sleep: 60
+        Processes: 12
         Parameters:
             ntip: [100, 500, 1000]
             decay_factor: [0.2, 0.3, 0.4]
@@ -180,8 +180,8 @@ Steps:
             write.tsv(results, "{classifier}", append=TRUE)
 
     crossv-plot:
-        Walltime: 00:01:00
         Extension: pdf
+        Walltime: 00:01:00
         Parameters:
             ntip: [100, 500, 1000]
         Depends: classifier 

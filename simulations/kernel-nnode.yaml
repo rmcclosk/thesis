@@ -32,15 +32,15 @@ Steps:
         Depends: network
         Interpreter: bash
         Rule: |
-            echo "#{yaml}" > {tree}                                                 
+            echo "#{yaml}" > {tree}
             bzcat {network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> {tree}
 
     tree-plot:
-        Walltime: 00:00:30
         Extension: pdf
+        Walltime: 00:00:30
         Parameters:
             nsimnode: [500, 1000, 1500]
-            replicate: [0, 1, 2]
+            replicate: "range(3)"
         Depends: tree
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
@@ -53,9 +53,9 @@ Steps:
             dev.off()
 
     statistics:
+        Extension: tsv
         Walltime: 00:10:00
         Sleep: 60
-        Extension: tsv
         Parameters:
             ntip: 500
         Depends: tree
@@ -80,8 +80,8 @@ Steps:
             done
 
     stats-plot:
-        Walltime: 00:00:30
         Extension: pdf
+        Walltime: 00:00:30
         Parameters:
             ntip: 500
         Depends: statistics tree
@@ -102,9 +102,9 @@ Steps:
             ggsave("{stats-plot}")
 
     kernel-matrix:
+        Extension: mtx
         Sleep: 300
         Processes: 32
-        Extension: mtx
         Walltime: 04:00:00
         Parameters:
             ntip: 500
@@ -141,8 +141,8 @@ Steps:
             done
 
     kpca-plot:
-        Walltime: 00:01:00
         Extension: pdf
+        Walltime: 00:01:00
         Parameters:
             ntip: 500
             decay_factor: [0.2, 0.3, 0.4]
@@ -158,10 +158,10 @@ Steps:
             ggsave("{kpca-plot}")
 
     classifier:
-        Sleep: 60
-        Processes: 12
         Extension: tsv
         Walltime: 00:20:00
+        Sleep: 60
+        Processes: 12
         Parameters:
             ntip: 500
             decay_factor: [0.2, 0.3, 0.4]
@@ -179,12 +179,12 @@ Steps:
 
     crossv-plot:
         Extension: pdf
+        Walltime: 00:01:00
         Parameters:
             ntip: 500
         Depends: classifier 
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
-        Walltime: 00:01:00
         Rule: |
             d <- collect.data(strsplit("{classifier}", " ")[[1]])
             summarize.plot(d, x="rbf_variance", y="rsquared", group="decay_factor", 

@@ -13,8 +13,7 @@ Steps:
             rewire_prob: [0.01, 0.05, 0.09]
             replicate: "range(100)"
         Interpreter: R --vanilla --silent
-        Startup: |
-            suppressPackageStartupMessages(library(netabc))
+        Startup: suppressPackageStartupMessages(library(netabc))
         Rule: | 
             f <- bzfile("{network}", "wb")
             set.seed({seed})
@@ -34,7 +33,7 @@ Steps:
         Depends: network
         Interpreter: bash
         Rule: |
-            echo "#{yaml}" > {tree}                                                 
+            echo "#{yaml}" > {tree}
             bzcat {network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> {tree}
 
     tree-plot:
@@ -42,8 +41,8 @@ Steps:
         Walltime: 00:00:30
         Parameters:
             rewire_prob: [0.01, 0.05, 0.09]
+            replicate: "range(3)"
             ntip: [100, 500, 1000]
-            replicate: [0, 1, 2]
         Depends: tree
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
@@ -58,6 +57,7 @@ Steps:
     statistics:
         Extension: tsv
         Walltime: 00:10:00
+        Sleep: 60
         Parameters:
             ntip: [100, 500, 1000]
         Depends: tree
@@ -82,8 +82,8 @@ Steps:
             done
 
     stats-plot:
-        Walltime: 00:00:30
         Extension: pdf
+        Walltime: 00:00:30
         Parameters:
             ntip: [100, 500, 1000]
         Depends: statistics tree
@@ -104,9 +104,9 @@ Steps:
             ggsave("{stats-plot}")
 
     kernel-matrix:
+        Extension: mtx
         Sleep: 300
         Processes: 12
-        Extension: mtx
         Walltime: 04:00:00
         Parameters:
             ntip: [100, 500, 1000]
@@ -147,8 +147,8 @@ Steps:
         Walltime: 00:01:00
         Parameters:
             ntip: [100, 500, 1000]
-            decay_factor: [0.2, 0.3, 0.4, 0.5]
-            rbf_variance: [0.5, 1, 2, 5, 10, 20]
+            decay_factor: [0.2, 0.3, 0.4]
+            rbf_variance: [0.125, 0.25, 0.5, 1, 2, 5, 10, 20]
             nltt: ["yes", "no"]
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
@@ -160,10 +160,10 @@ Steps:
             ggsave("{kpca-plot}")
 
     classifier:
-        Sleep: 60
-        Processes: 12
         Extension: tsv
         Walltime: 00:20:00
+        Sleep: 60
+        Processes: 12
         Parameters:
             ntip: [100, 500, 1000]
             decay_factor: [0.2, 0.3, 0.4]
