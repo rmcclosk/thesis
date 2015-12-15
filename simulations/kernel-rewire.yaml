@@ -108,6 +108,7 @@ Steps:
         Sleep: 300
         Processes: 12
         Walltime: 04:00:00
+        Memory: 256m
         Parameters:
             ntip: [100, 500, 1000]
             decay_factor: [0.2, 0.3, 0.4]

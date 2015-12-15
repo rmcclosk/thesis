@@ -1,52 +1,63 @@
 Name: gridsearch-mean-degree
 Description: Grid search for preferential attachment mean degree
-Processes: 20
+Processes: 1
+Sleep: 5
+Hostname: (hermes.*)|(litai.*.westgrid.ca)
+Memory: 256m
 Steps:
     train-network:
-        Extension: gml
+        Extension: gml.bz2
+        Walltime: 00:00:30
         Parameters:
             nnode: 5000
             m: "range(2, 11)"
-            m: 1
-            replicate: "range(100)"
+            power: 1
+            replicate: "range(10)"
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: | 
             set.seed({seed})
-            g <- sample_pa({nnode}, power={m}, m={m}, directed=FALSE)
+            g <- sample_pa({nnode}, power={power}, m={m}, directed=FALSE)
             graph_attr(g, "comment") <- "{yaml}"
-            write.graph(SI.net(g), "{train-network}", format="gml")
+            f <- bzfile("{train-network}", "wb")
+            write.graph(SIR.net(g), f, format="gml")
+            close(f)
 
     train-tree:
         Extension: nwk
+        Walltime: 00:00:30
         Parameters:
             m: "range(2, 11)"
-            replicate: "range(100)"
+            replicate: "range(10)"
             nsimnode: 1000
             ntip: 1000
         Depends: train-network
         Interpreter: bash
         Rule: |
             echo "#{yaml}" > {train-tree}                                                 
-            nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} {train-network} >> {train-tree}
+            bzcat {train-network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> {train-tree}
 
     test-network:
-        Extension: gml
+        Extension: gml.bz2
+        Walltime: 00:00:30
         Parameters:
             nnode: 5000
+            power: 1
             true_m: [2, 3, 5, 8]
-            m: 1
             test_replicate: "range(10)"
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: | 
             set.seed({seed})
-            g <- sample_pa({nnode}, power={m}, m={true_m}, directed=FALSE)
+            g <- sample_pa({nnode}, power={power}, m={true_m}, directed=FALSE)
             graph_attr(g, "comment") <- "{yaml}"
-            write.graph(SI.net(g), "{test-network}", format="gml")
+            f <- bzfile("{test-network}", "wb")
+            write.graph(SIR.net(g), f, format="gml")
+            close(f)
 
     test-tree:
         Extension: nwk
+        Walltime: 00:00:30
         Parameters:
             true_m: [2, 3, 5, 8]
             test_replicate: "range(10)"
@@ -56,32 +67,42 @@ Steps:
         Interpreter: bash
         Rule: |
             echo "#{yaml}" > {test-tree}                                                 
-            nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} {test-network} >> {test-tree}
+            bzcat {test-network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> {test-tree}
 
     kernel:
         Extension: tsv
+        Sleep: 300
+        Processes: 10
+        Walltime: 01:00:00
         Parameters:
             true_m: [2, 3, 5, 8]
             test_replicate: "range(10)"
             decay_factor: 0.3
-            rbf_variance: 20
+            rbf_variance: 10
+            nltt: 0
         Depends: train-tree test-tree
         Interpreter: bash
         Rule: |
             echo "#{yaml}" > {kernel}
+            if [[ {nltt} -eq 1 ]]; then
+                NLTT="--nLTT"
+            else
+                NLTT=""
+            fi
             for T in {train-tree}; do
                 echo -n "$T"$'\t' >> {kernel}
                 treekernel --ladderize --normalize --scale-branches mean \
                            --decay-factor {decay_factor} \
                            --gauss-factor {rbf_variance} \
-                           {test-tree} $T >> {kernel}
+                           $NLTT {test-tree} $T >> {kernel}
             done
 
     kernel-plot:
         Extension: pdf
+        Walltime: 00:02:00
         Parameters:
             true_m: [2, 3, 5, 8]
-            test_replicate: "range(10)"
+            test_replicate: [0, 1, 2]
         Depends: kernel train-tree
         Interpreter: R --quiet --vanilla
         Startup: suppressPackageStartupMessages(library(netabc))
@@ -98,8 +119,7 @@ Steps:
 
     error-plot:
         Extension: pdf
-        Parameters:
-            placeholder: 0
+        Walltime: 00:02:00
         Depends: kernel test-tree train-tree
         Interpreter: R --quiet --vanilla
         Startup: |
@@ -112,23 +132,22 @@ Steps:
             d <- collect.data(files, header=FALSE, col.names=c("tree", "score"))
 
             # combine with metadata from train and test trees
-            mtrain <- collect.metadata(strsplit("{train-tree}", " ")[[1]])
-            d <- merge(d, mtrain, by.x="tree", by.y=0)
-            mtest <- collect.metadata(strsplit("{test-tree}", " ")[[1]])
             test.cols <- c("test_replicate", "true_m")
-            d <- setDT(merge(d, mtest, by=test.cols))
+            d <- merge(d, collect.metadata(strsplit("{train-tree}", " ")[[1]]), by.x="tree", by.y=0)
+            d <- merge(d, collect.metadata(strsplit("{test-tree}", " ")[[1]]), by=test.cols)
+            setDT(d)
 
             # choose point estimate with highest median kernel score
-            d[,median := median(score), by=c(test.cols, "m")]
+            d <- d[,agg := median(score), by=c(test.cols, "m")]
 
             # compute absolute and relative errors
-            plot.data <- d[,abs(true_m - m[which.max(median)]), by=test.cols]
+            plot.data <- d[,abs(true_m - m[which.max(agg)]), by=test.cols]
             plot.data <- setNames(plot.data, c(test.cols, "absolute"))
             plot.data <- plot.data[,relative := absolute / true_m]
             plot.data <- melt(plot.data, id.vars=test.cols, variable.name="error.type", value.name="error")
             plot.data <- plot.data[,true_m := as.factor(true_m)]
 
-            # plot it out
+            # plot the errors
             ggplot(plot.data, aes(x=true_m, y=error, group=true_m)) + 
                 geom_boxplot() + 
                 facet_wrap(~error.type, scales="free") + theme_bw()

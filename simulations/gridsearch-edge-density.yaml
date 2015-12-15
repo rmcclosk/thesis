@@ -1,9 +1,13 @@
 Name: gridsearch-edge-density
 Description: Grid search for random network edge density
-Processes: 20
+Processes: 1
+Sleep: 5
+Hostname: (hermes.*)|(litai.*.westgrid.ca)
+Memory: 256m
 Steps:
     train-network:
-        Extension: gml
+        Extension: gml.bz2
+        Walltime: 00:00:30
         Parameters:
             nnode: 5000
             nsimnode: 1000
@@ -18,10 +22,13 @@ Steps:
                 g <- sample_gnp({nnode}, {edge_density})
             }}
             graph_attr(g, "comment") <- "{yaml}"
-            write.graph(SI.net(g), "{train-network}", format="gml")
+            f <- bzfile("{train-network}", "wb")
+            write.graph(SIR.net(g), f, format="gml")
+            close(f)
 
     train-tree:
         Extension: nwk
+        Walltime: 00:00:30
         Parameters:
             edge_density: "[i/50000. for i in range(10, 201)]"
             replicate: "range(10)"
@@ -31,10 +38,11 @@ Steps:
         Interpreter: bash
         Rule: |
             echo "#{yaml}" > {train-tree}                                                 
-            nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} {train-network} >> {train-tree}
+            bzcat {train-network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> {train-tree}
 
     test-network:
-        Extension: gml
+        Extension: gml.bz2
+        Walltime: 00:00:30
         Parameters:
             nnode: 5000
             nsimnode: 1000
@@ -49,10 +57,13 @@ Steps:
                 g <- sample_gnp({nnode}, {true_edge_density})
             }}
             graph_attr(g, "comment") <- "{yaml}"
-            write.graph(SI.net(g), "{test-network}", format="gml")
+            f <- bzfile("{test-network}", "wb")
+            write.graph(SIR.net(g), f, format="gml")
+            close(f)
 
     test-tree:
         Extension: nwk
+        Walltime: 00:00:30
         Parameters:
             true_edge_density: [0.0004, 0.001, 0.002, 0.0032]
             test_replicate: "range(10)"
@@ -62,29 +73,39 @@ Steps:
         Interpreter: bash
         Rule: |
             echo "#{yaml}" > {test-tree}                                                 
-            nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} {test-network} >> {test-tree}
+            bzcat {test-network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> {test-tree}
 
     kernel:
         Extension: tsv
+        Sleep: 300
+        Processes: 10
+        Walltime: 01:00:00
         Parameters:
             true_edge_density: [0.0004, 0.001, 0.002, 0.0032]
             test_replicate: "range(10)"
             decay_factor: 0.3
             rbf_variance: 50
+            nltt: 0
         Depends: train-tree test-tree
         Interpreter: bash
         Rule: |
             echo "#{yaml}" > {kernel}
+            if [[ {nltt} -eq 1 ]]; then
+                NLTT="--nLTT"
+            else
+                NLTT=""
+            fi
             for T in {train-tree}; do
                 echo -n "$T"$'\t' >> {kernel}
                 treekernel --ladderize --normalize --scale-branches mean \
                            --decay-factor {decay_factor} \
                            --gauss-factor {rbf_variance} \
-                           {test-tree} $T >> {kernel}
+                           $NLTT {test-tree} $T >> {kernel}
             done
 
     kernel-plot:
         Extension: pdf
+        Walltime: 00:02:00
         Parameters:
             true_edge_density: [0.0004, 0.001, 0.002, 0.0032]
             test_replicate: [0, 1, 2]
@@ -94,7 +115,6 @@ Steps:
         Rule: |
             k <- read.table("{kernel}", row.names=1, col.names=c("", "score"))
             k <- merge(k, collect.metadata(strsplit("{train-tree}", " ")[[1]]), by=0)
-            k <- subset(k, score > 0.96)
             pt.est <- with(k, as.numeric(names(which.max(tapply(score, edge_density, mean)))))
             lines <- data.frame(value=c(pt.est, {true_edge_density}),
                                 edge_density=c("estimated", "true"))
@@ -105,8 +125,7 @@ Steps:
 
     error-plot:
         Extension: pdf
-        Parameters:
-            rbf_variance: 50
+        Walltime: 00:02:00
         Depends: kernel test-tree train-tree
         Interpreter: R --quiet --vanilla
         Startup: |
@@ -124,7 +143,7 @@ Steps:
             d <- merge(d, collect.metadata(strsplit("{test-tree}", " ")[[1]]), by=test.cols)
             setDT(d)
 
-            # choose point estimate with highest mean kernel score
+            # choose point estimate with highest median kernel score
             d <- d[,agg := median(score), by=c(test.cols, "edge_density")]
 
             # compute absolute and relative errors
