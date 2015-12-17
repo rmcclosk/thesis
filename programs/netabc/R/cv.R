@@ -106,3 +106,29 @@ ksvm.cv <- function (kmat, y, n.cv=1000,
     do.cv(kmat, y, get.train, get.test, fit.model, predict, n.cv=n.cv,
           stats=stats, show.progress=show.progress, nthread=nthread)
 }
+
+#' Perform replicate 2-fold cross-validations on a linear model classifier.
+#'
+#' Returns a data.frame with the indicated statistics for each individual
+#' cross-validation. Currently the only supported statistic is "rsquared".
+#'
+#' @param x predictors
+#' @param y labels for data
+#' @param stats statistics to calculate
+#' @param show.progress whether to display a progress bar
+#' @param nthread number of threads to use
+#' @return A data.frame with the indicated statistics for each CV
+#' @seealso \url{http://stackoverflow.com/questions/1753299}
+#' @seealso \code{\link{kernlab::ksvm}}
+#' @export
+lm.cv <- function (x, y, n.cv=1000, stats="rsquared", show.progress=TRUE,
+                   nthread=1)
+{
+    get.train <- function(x, holdout) x[-holdout,,drop=FALSE]
+    get.test <- function(x, holdout, m) x[holdout,,drop=FALSE]
+    fit.model <- function(x, train.y) lm(train.y~pred, data=x)
+    predict <- function(m, x.test) predict.lm(m, newdata=x.test)
+    x.df <- data.frame(pred=x)
+    do.cv(x.df, y, get.train, get.test, fit.model, predict, n.cv=n.cv,
+          stats=stats, show.progress=show.progress, nthread=nthread)
+}

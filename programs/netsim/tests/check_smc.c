@@ -206,11 +206,9 @@ Suite *smc_suite(void)
     s = suite_create("smc");
 
     tc_smc = tcase_create("Core");
-    /*
     tcase_add_test(tc_smc, test_smc_toy);
     tcase_add_test(tc_smc, test_smc_toy_steps);
     tcase_add_test(tc_smc, test_smc_distance);
-    */
     tcase_set_timeout(tc_smc, 60);
     suite_add_tcase(s, tc_smc);
 

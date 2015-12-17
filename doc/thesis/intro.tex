@@ -1,38 +1,40 @@
 \subsection{Overview of phylodynamics}
 
-In evolutionary biology, a \defn{phylogeny}, or \defn{phylogenetic tree}, is a
-graphical representation of the evolutionary relationships among a group of
-organisms or species. Phylogenies consist of nodes, representing organisms or
-species (generally, \defn{taxa}), and edges or branches, which link taxa to
-their ancestors and descendants. The \defn{tips} of the phylogeny, that is, the
-nodes without any descendants, correspond to \defn{extant}, or observed, taxa.
-The \defn{internal nodes} correspond to their extinct common ancestors. The
-phylogeny may have a \defn{root}, which is a node with no descendants
-distinguished as the most recent common ancestor of all the extant taxa. When
-such a root exists, the tree is referred to as being \defn{rooted}; otherwise,
-it is \defn{unrooted}. The structural arrangement of nodes and edges in the
-tree is referred to as its \defn{topology}. The branches of the phylogeny may
-have lengths, which can represent either the genetic distance, or the calendar
-time, between ancestors and their descendants. Phylogenies whose branch lengths
-are in units of calendar time are referred to as \defn{time-scaled}. In the
-case of a rooted tree with branch lengths in calendar time, the internal nodes
-can be mapped onto a timeline by using the tips of the phylogeny, which usually
-map to the present day, as a reference point. These \defn{branching times}
-correspond to the times at which speciation events
-occurred~\autocite{nee1992tempo}. These concepts are illustrated in
-Figure~\ref{fig:phylogeny}.
+\subsubsection{Species trees}
 
-\begin{figure}
-  \label{fig:phylogeny}
-  \includegraphics{phylogeny}
-  \caption{Cartoon illustration of a rooted, time-scaled phylogeny relating
-  several domestic animals. The tips of the phylogeny, which represent extant
-  taxa, are placed at the present day on the time axis. Internal nodes,
-  representing extinct common ancestors to the extant taxa, fall in the past,
-  at branching times corresponding to speciation events. The topology of the
-  tree indicates that cats and dogs are the most closely related pair of
-  species, whereas fish is most distantly related to any other node in the
-  tree.}
+In evolutionary biology, the evolutionary relationships among a group of
+organisms or species (generally, \defn{taxa}) are often represented graphically
+in the form of a \defn{species tree}. These trees are often called
+\defn{phylogenies}, but to avoid ambiguity, we will reserve that term for gene
+trees as discussed below. Species trees consist of nodes, representing taxa,
+and edges or branches, which connect taxa to their evolutionary ancestors and
+descendants. The \defn{tips} of a species tree, that is, the nodes without any
+descendants, correspond to \defn{extant}, or observed, taxa, while the
+\defn{internal nodes} correspond to their extinct common ancestors. Species
+trees may have a \defn{root}, which is a node with no descendants distinguished
+as the most recent common ancestor of all the extant taxa. When such a root
+exists, the tree is referred to as being \defn{rooted}; otherwise, it is
+\defn{unrooted}. The structural arrangement of nodes and edges in the tree is
+referred to as its \defn{topology}. The branches of the tree may have
+associated lengths, which, represent the amount of calendar time elapsed
+between ancestors and their descendants. When these branch lengths are present,
+the internal nodes can be mapped onto a timeline by using the tips of the tree,
+which usually map to the present day, as a reference point. These
+\defn{branching times} correspond to the historical times at which speciation
+events occurred~\autocite{nee1992tempo}. These concepts are illustrated in
+Figure~\ref{fig:speciestree}.
+
+\begin{figure}[h]
+  \centering
+  \label{fig:speciestree}
+  \includegraphics{speciestree}
+  \caption{Illustration of a rooted species tree. The tips of the tree, which
+    represent extant taxa, are placed at the present day on the time axis.
+    Internal nodes, representing extinct common ancestors to the extant taxa,
+    fall in the past, at branching times corresponding to speciation events.
+    The topology of the tree indicates that cats and dogs are the most closely
+    related pair of species, whereas fish is most distantly related to any
+    other node in the tree.}
 \end{figure}
 
 Various population genetic processes cause the phylogenies that we observe to
@@ -56,17 +58,17 @@ for long outside their hosts, the host replaces the outside world as the
 parallels can be drawn between immunological and epidemiological processes at
 the host level, and the evolutionary processes studied in population
 genetics~\autocite{grenfell2004unifying}. For example, both the host immune
-response~\autocite{??} and the presence of anti-retroviral drugs~\autocite{??}
-exert directional selection on the viral population within a single host.
-Transmission, where a sub-population of virions from the donor host is
-``geographically'' isolated in the recpient, closely mirrors the allopatric
-speciation process and causes a branching point in the viral phylogeny
-(although this may not correspond exactly to the time of transmission, as
-discussed in the next section). Consequently, any factor which influences
-transmission dynamics, such as the virus' mode of transmission or the
-population structure of its hosts, in turn affects the shape of the phylogeny.
-The study of this interaction between host-level factors and viral phylogies is
-known as \defn{phylodynamics}~\autocite{grenfell2004unifying}. 
+response~\autocite{mcmichael2001cellular} and the presence of anti-retroviral
+drugs~\autocite{??} exert directional selection on the viral population within
+a single host. Transmission, where a sub-population of virions from the donor
+host is ``geographically'' isolated in the recpient, closely mirrors the
+allopatric speciation process and causes a branching point in the viral
+phylogeny (although this may not correspond exactly to the time of
+transmission, as discussed in the next section). Consequently, any factor which
+influences transmission dynamics, such as the virus' mode of transmission or
+the population structure of its hosts, in turn affects the shape of the
+phylogeny. The study of this interaction between host-level factors and viral
+phylogies is known as \defn{phylodynamics}~\autocite{grenfell2004unifying}. 
 
 In particular, if a time-scaled phylogeny is constructed where all viruses from
 the same host are collapsed into a single taxon, we might expect the branching

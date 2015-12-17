@@ -109,6 +109,35 @@ model much more effectively than Sackin's index (Figure 1).
 
 # Phylodynamics
 
+**[@grenfell2004unifying]**
+
+* This is the reference to use for the "definition" of phylodynamics.
+* Sound byte: "epidemiological and population genetic processes occur on a
+similar time scale".
+* Identifies four broad classes of pathogen: short infections with strong
+cross-immunity, short infections with partial cross-immunity, infections with
+immune enhancement, and persistent infections. These each generate
+qualitatively different epidemic trajectories and phylogenies.
+* Only persistent infections have both intra- and inter-host phylogenies to
+consider.
+
+**[@ypma2013relating]**
+
+* Talks about how transmission trees are not phylogenies.
+* Lots of good references, including some starting points for the parallel
+problem in classical pop gen (ie. gene trees vs. species trees).
+* Discrepancy between gene tree and phylogeny is worst when sampling is
+highest.
+* Develop a method for joint estimation of the transmission tree and phylogeny.
+* Reference to "transmission tree reconstruction methods" of Wallinga and
+Teunis 2004. Seems worth checking out, except the cited paper has nothing to do
+with trees. Wrong reference maybe?
+* Evaluate the effect of assuming at coalescent events coincide with
+transmission events on the accuracy of reconstructing the transmission tree (!).
+Turns out it's not that bad.
+* There are some other references in the discussion about methods to
+simultaneously estimate both trees.
+
 ## Stochastic Mapping
 
 **[@nielsen2002mapping]**
@@ -207,6 +236,32 @@ imbalance, is significantly affected by sampling schemes (Figure 11).
 * Develops a method for modelling dynamic sexual contact networks.
 * There is a link to a survey of sexual partnering information.
 
+**[@welch2011statistical]**
+
+* Says in the intro that "network-based studies to date have largely focused on
+the impact of network structure on disease dynamics". Probably should mine the
+references.
+* The last paragraph of the section "Defining contact networks" gives some
+justification for using static contact networks instead of dynamic, as a first
+pass.
+* Discusses the difference between network models which explicitly define the
+probability of a network (eg. random graphs) vs. those which define it
+implicitly via construction rules (eg. preferential attachment).
+* Subsection "Inference about contact networks from disease data" is a goldmine
+of references, several past papers which have tried to infer network parameters
+from epidemic data.
+
+**[@britton2002bayesian]**
+
+* Develops a Bayesian method to infer beta and gamma in an SIR model, given
+that the epidemic is spreading over a random (GNP, they call it Bernoulli)
+contact network. The network itself is a nuisance parameter.
+* They also optionally want to infer the infection times of each individual.
+It's assumed that the removal times are known.
+* Aha, they also infer the edge probability p. This is a good one for previous
+work.
+* They weren't able to get much information about p in their application. 
+
 ## Other Phylodynamics
 
 **[@hughes2009molecular]**
@@ -227,7 +282,48 @@ Acute infections = shorter branches = more clustering.
 
 **[@volz2013viral]**
 
-* TODO
+* General overview of viral phylodynamics.
+* Some good tidbits about the effects of various processes on phylogeny shape.
+Strong directional selection in flu causes a ladder-like shape. An epidemic
+which underwend rapid expansion, like HIV, tends to have a star-like phylogeny.
+* Of course a bunch of unnecessarily detailed coalescent stuff is included.
+* The coalescence rate should be correlated with the rate of infection of new
+hosts. But is this "I" or "beta", or some combination of those? Do we have to
+vary the transmission rate to get any signal?
+* Coalescence rates can be calculated at equilibrium, but what about before the
+model gets to equilibrium? In our case, when the epidemic continues until
+saturation, there is no equilibrium except the end state.
+* The ladder-like structure of flu phylogenies isn't because they all go
+extinct except for one, it's because the old strains are outcompeted by the new
+strain.
+
+**[@pybus2009evolutionary]**
+
+* Another review of viral phylodynamics. Many many references.
+* Box 2 gives some alternative explanations for the within-host evolutionary
+rate being higher than the between-host rate.
+
+**[@mooers1997inferring]**
+
+* This is a way older source for the idea of phylodynamics than Grenfell et al.,
+although it doesn't use that word.
+* Can use this is a reference for "nodes represent speciation events".
+* Tree balance has been used to accept or reject (the latter in almost all
+cases) the Markov (better known as Yule) model in macro-organism phylogenies.
+* Heard 1996 talks about diversification rates depending on an evolving trait.
+This is like the MMPP, but simpler (a Cox process).
+* Phylogenetic estimation (admittedly they only discuss parsimony and UPGMA)
+tends to be biased towards producing more unbalanced trees.
+
+**[@kirkpatrick1993searching]**
+
+* Another early phylodynamics paper, without the word "phylodynamics".
+* Derives expectations and confidence intervals under the Yule model for
+various tree balance statistics, including Sackin's (here called N-bar), and
+Colless'.
+* The B1 statistic is the most powerful in the particular scenario they
+evaluated, but they caution against generalizing that and advise that all six
+statistics be used.
 
 # ERGMs
 
@@ -299,6 +395,32 @@ person based on their viral DNA (presumably from a phylogeny-derived network).
 * Surveillance data about MSM in Canada.
 * Tables 10, 11, 14, 18 give numbers of contacts.
 
+# HIV Biology
+
+**[@mcmichael2001cellular]**
+
+* This is a well-known reference for the fact that RNA viruses (in this case,
+HIV) adapt to selection pressure exerted by the host immune response.
+
+**[@domingo2012viral]**
+
+* Overview of the concept of treating a within-host viral population as a
+quasispecies.
+* The quasispecies idea was apparently developed by Manfred Eigen, although not
+in a virological context. Refs 240-242 possibly have some "original" uses of
+viral quasispecies, good for references. Also ref 206.
+* Also some good references for the fact that quasispecies theory is really the
+same as species theory, with selection etc.
+* On pg. 167 some good references for inter- and intra-host bottlenecking.
+* We should make a distinction between the "mutation rate", which refers to
+changes in individual templates, and the "rate of accumulation of mutations",
+which refers to changes in the consensus sequence.
+* There is some evidence that a viral quasispecies itself, rather than the
+strains of which it is composed, may be a target of selection, although this is
+debated (p. 175).
+* Refs 230, 544 are the original work showing escape mutations in response to
+ART.
+
 # General Phylogenetics
 
 **[@nee1992tempo]**
@@ -306,6 +428,7 @@ person based on their viral DNA (presumably from a phylogeny-derived network).
 * This is as reference for the idea that branching times correspond to
 speciation events in a time-scaled phylogeny.
 * Might also be the first instance of a lineages-through-time plot (Figure 1)?
+Yes, according to mooers1997inferring.
 * Reference 20 sounds like it's talking about root-to-tip regression, might be
 worth checking out as a new reference preceeding Rambaut and Pybus.
 
@@ -321,6 +444,11 @@ MEP depends on the amount of data available and the range of sampling times.
 
 * Develop the normalized lineages-through-time statistic and show that it's
 better than imbalance.
+
+**[@coyne2004speciation]**
+
+* I'm using this as a reference for what allopatric speciation is, and the fact
+that it's common. See chapter 3, particularly page 84.
 
 # Software
 

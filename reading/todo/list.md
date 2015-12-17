@@ -10,10 +10,6 @@ Exact phylodynamic inference of SI/SIR model parameters.
 
 Phylogenetic clustering in UK.
 
-## volz2013viral
-
-Review paper of viral phylodynamics.
-
 ## hohna2015tess
 
 Art sent me this in an email.

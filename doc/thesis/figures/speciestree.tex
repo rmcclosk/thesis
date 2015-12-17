@@ -10,10 +10,10 @@
 
 \begin{tikzpicture}[yscale=0.5]
   \node (t1) {\includegraphics[height=1cm]{dog}};
-  \node (t2) [below=0.5 of t1] {\includegraphics[height=1cm]{cat}};
-  \node (t3) [below=0.5 of t2] {\includegraphics[height=1cm]{rabbit}};
-  \node (t4) [below=1.5 of t3] {\includegraphics[height=1cm]{chameleon}};
-  \node (t5) [below=of t4] {\includegraphics[height=1cm]{fish}};
+  \node (t2) [below=0.2 of t1] {\includegraphics[height=1cm]{cat}};
+  \node (t3) [below=0.2 of t2] {\includegraphics[height=1cm]{rabbit}};
+  \node (t4) [below=0.6 of t3] {\includegraphics[height=1cm]{chameleon}};
+  \node (t5) [below=0.4 of t4] {\includegraphics[height=1cm]{fish}};
 
   \begin{scope}[rotate=45]
     \draw (t1.west) -| coordinate (t1t2) (t2.west);
