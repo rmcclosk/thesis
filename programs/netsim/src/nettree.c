@@ -171,7 +171,7 @@ int main (int argc, char **argv)
     int i, ok, numeric_ids = 0, min_comp_size = 0;
     char buf[128];
     struct nettree_options opts = get_options(argc, argv);
-    gsl_rng *rng = set_seed(opts.seed < 0 ? time(NULL) : opts.seed);
+    gsl_rng *rng = set_seed(opts.seed);
     igraph_t net, *tree = malloc(sizeof(igraph_t));
     igraph_strvector_t gnames, vnames, enames;
     igraph_vector_t gtypes, vtypes, etypes;

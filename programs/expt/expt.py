@@ -251,7 +251,8 @@ class Step:
                 JOIN dependencies ON md5.path == dependencies.dep_path 
                 WHERE dependencies.path = ? AND dep_path = ?""",
                 (path, dep_path))
-            if not self.cur.fetchone()[0]:
+            row = self.cur.fetchone()
+            if row is None or not row[0]:
                 logging.info("Dependency {} for target {} has changed".format(dep_path, path))
                 return True
 

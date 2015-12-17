@@ -9,6 +9,7 @@ Steps:
         Walltime: 00:00:30
         Parameters:
             nnode: 5000
+            nsimnode: 1000
             mean_degree: 4
             net_type: ["BA", "ER", "WS"]
             ws_prob: 0.01
@@ -25,6 +26,9 @@ Steps:
                 g <- sample_smallworld(1, {nnode}, {mean_degree}/2, {ws_prob})
             }} else if ("{net_type}" == "ER") {{
                 g <- sample_gnp({nnode}, {mean_degree}/{nnode})
+                while (length(component_distribution(g)) - 1 < {nsimnode}) {{
+                    g <- sample_gnp({nnode}, {mean_degree}/{nnode})
+                }}
             }}
             graph_attr(g, "comment") <- "{yaml}"
             write.graph(SIR.net(g), f, format="gml")
@@ -42,13 +46,7 @@ Steps:
         Interpreter: bash
         Rule: |
             echo "#{yaml}" > {tree}
-            SEED={seed}
             bzcat {network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> {tree}
-            while [[ `treestat -i -s ntip {tree}` -lt {ntip} ]]; do
-                SEED=$(($SEED+1))
-                echo "#{yaml}" > {tree}
-                bzcat {network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed $SEED >> {tree}
-            done
 
     tree-plot:
         Extension: pdf
@@ -71,6 +69,7 @@ Steps:
     statistics:
         Extension: tsv
         Walltime: 00:10:00
+        Sleep: 60
         Parameters:
             ntip: [100, 500, 1000]
         Depends: tree
@@ -121,10 +120,11 @@ Steps:
         Sleep: 300
         Processes: 12
         Walltime: 04:00:00
+        Memory: 256m
         Parameters:
             ntip: [100, 500, 1000]
             decay_factor: [0.2, 0.3, 0.4]
-            rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20]
+            rbf_variance: [0.125, 0.25, 0.5, 1, 2, 5, 10, 20]
             nltt: ["yes", "no"]
         Exclusions:
             -
@@ -161,7 +161,7 @@ Steps:
         Parameters:
             ntip: [100, 500, 1000]
             decay_factor: [0.2, 0.3, 0.4]
-            rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20]
+            rbf_variance: [0.125, 0.25, 0.5, 1, 2, 5, 10, 20]
             nltt: ["yes", "no"]
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
@@ -174,8 +174,9 @@ Steps:
 
     classifier:
         Extension: tsv
-        Walltime: 00:20:00
+        Walltime: 01:00:00
         Sleep: 60
+        Processes: 12
         Parameters:
             ntip: [100, 500, 1000]
             decay_factor: [0.2, 0.3, 0.4]

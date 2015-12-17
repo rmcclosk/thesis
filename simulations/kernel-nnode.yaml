@@ -1,8 +1,8 @@
 Name: kernel-nnode
 Description: Test if the tree kernel can distinguish number of infected nodes in a saturated network
-Processes: 1
+Processes: 32
 Sleep: 5
-Hostname: (hermes.*)|(litai.*.westgrid.ca)
+Hostname: n[0-9]
 Steps:
     network:
         Extension: gml.bz2
@@ -21,16 +21,173 @@ Steps:
             system(paste("bzip2", gml.file))
 
     tree:
-        Processes: 10
+        Processes: 4
         Extension: nwk
         Walltime: 00:08:00
         Memory: 20000mb
         Parameters:
             ntip: 500
             nsimnode: [500, 1000, 1500]
-            replicate: 0
+            replicate: "range(100)"
         Depends: network
         Interpreter: bash
         Rule: |
-            echo "#{yaml}" > {tree}                                                 
+            echo "#{yaml}" > {tree}
             bzcat {network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> {tree}
+
+    tree-plot:
+        Extension: pdf
+        Walltime: 00:00:30
+        Parameters:
+            nsimnode: [500, 1000, 1500]
+            replicate: "range(3)"
+        Depends: tree
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            t <- ladderize(read.tree("{tree}"))
+            pdf("{tree-plot}")
+            par(mar=c(0, 0, 4, 0) + 0.1)
+            plot(t, show.tip.label=FALSE) 
+            title(paste(strwrap(as.yaml(yaml.load("{yaml}")), 60), collapse="\n"))
+            dev.off()
+
+    statistics:
+        Extension: tsv
+        Walltime: 00:10:00
+        Sleep: 60
+        Parameters:
+            ntip: 500
+        Depends: tree
+        Interpreter: bash
+        Rule: |
+            echo "#{yaml}" > {statistics}
+            echo -e "\tcolless\til.portion\tmax.ladder\tbmi\tdelta.w\twidth\tcherries\tprop.unbalanced\tavg.unbalance\tsackin\tcophenetic\tgamma" >> {statistics}
+            for T in {tree}; do
+                echo -n $T$'\t' >> {statistics}
+                echo -n `treestat -i -y -s colless $T`$'\t' >> {statistics}
+                echo -n `treestat -i -n -s il $T`$'\t' >> {statistics}
+                echo -n `treestat -i -n -s ladder $T`$'\t' >> {statistics}
+                echo -n `treestat -i -s bmi $T`$'\t' >> {statistics}
+                echo -n `treestat -i -n -s max-delta-width $T`$'\t' >> {statistics}
+                echo -n `treestat -i -n -s width $T`$'\t' >> {statistics}
+                echo -n `treestat -i -n -s cherries $T`$'\t' >> {statistics}
+                echo -n `treestat -i -s prop-unbalanced $T`$'\t' >> {statistics}
+                echo -n `treestat -i -s unbalance $T`$'\t' >> {statistics}
+                echo -n `treestat -i -y -s sackin $T`$'\t' >> {statistics}
+                echo -n `treestat -i -y -s cophenetic $T`$'\t' >> {statistics}
+                echo `treestat -i -s gamma $T` >> {statistics}
+            done
+
+    stats-plot:
+        Extension: pdf
+        Walltime: 00:00:30
+        Parameters:
+            ntip: 500
+        Depends: statistics tree
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(reshape2))
+        Rule: |
+            m <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"nsimnode", drop=FALSE]
+            m$nsimnode <- as.factor(m$nsimnode)
+            d <- read.table("{statistics}", header=TRUE)
+            d <- merge(m, d, by="row.names")
+            d[,"Row.names"] <- NULL
+            d <- melt(d, id.vars="nsimnode")
+            ggplot(d, aes(x=nsimnode, y=value)) + geom_violin() + 
+                facet_wrap(~variable, scales="free") + theme_bw() + 
+                ggtitle(as.yaml(yaml.load("{yaml}")))
+            ggsave("{stats-plot}")
+
+    kernel-matrix:
+        Extension: mtx
+        Sleep: 300
+        Processes: 32
+        Walltime: 04:00:00
+        Memory: 256m
+        Parameters:
+            ntip: 500
+            decay_factor: [0.2, 0.3, 0.4]
+            rbf_variance: [0.125, 0.25, 0.5, 1, 2, 5, 10, 20]
+            nltt: ["yes", "no"]
+        Exclusions:
+            -
+                ntip: 1000
+                rbf_variance: [0.125, 0.25, 0.5]
+            -
+                ntip: [100, 500]
+                rbf_variance: 20
+        Depends: tree
+        Interpreter: bash
+        Rule: |
+            if [[ "{nltt}" == "yes" ]]; then
+                NLTT="--nLTT"
+            else
+                NLTT=""
+            fi
+            echo "%%MatrixMarket matrix array real symmetric" > {kernel-matrix}
+            echo "%{yaml}" >> {kernel-matrix}
+            echo "{$#} {$#}" >> {kernel-matrix}
+            for T1 in {tree}; do
+                for T2 in {tree}; do
+                    if [[ "$T1" < "$T2" || "$T1" == "$T2" ]]; then
+                        treekernel --ladderize --decay-factor {decay_factor} \
+                                   --gauss-factor {rbf_variance} \
+                                   --scale-branches mean $NLTT \
+                                   $T1 $T2 >> {kernel-matrix}
+                    fi
+                done
+            done
+
+    kpca-plot:
+        Extension: pdf
+        Walltime: 00:01:00
+        Parameters:
+            ntip: 500
+            decay_factor: [0.2, 0.3, 0.4]
+            rbf_variance: [0.125, 0.25, 0.5, 1, 2, 5, 10, 20]
+            nltt: ["yes", "no"]
+        Depends: kernel-matrix tree
+        Interpreter: R --vanilla --silent
+        Startup: library(netabc)
+        Rule: |
+            k <- read.mm("{kernel-matrix}")
+            y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"nsimnode"]
+            kpca.plot(k, color=list(mean.degree=y), yaml="{yaml}")
+            ggsave("{kpca-plot}")
+
+    classifier:
+        Extension: tsv
+        Walltime: 00:20:00
+        Sleep: 60
+        Processes: 12
+        Parameters:
+            ntip: 500
+            decay_factor: [0.2, 0.3, 0.4]
+            rbf_variance: [0.125, 0.25, 0.5, 1, 2, 5, 10, 20]
+            nltt: ["yes", "no"]
+        Depends: kernel-matrix tree
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            k <- read.mm("{kernel-matrix}")
+            y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"nsimnode"]
+            results <- ksvm.cv(k, y, n.cv=1000, stats=c("rsquared"))
+            cat("#{yaml}\n", file="{classifier}")
+            write.tsv(results, "{classifier}", append=TRUE)
+
+    crossv-plot:
+        Extension: pdf
+        Walltime: 00:01:00
+        Parameters:
+            ntip: 500
+        Depends: classifier 
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            d <- collect.data(strsplit("{classifier}", " ")[[1]])
+            summarize.plot(d, x="rbf_variance", y="rsquared", group="decay_factor", 
+                           facet.x="nltt", fun="mean", yaml="{yaml}")
+            ggsave("{crossv-plot}", width=10)

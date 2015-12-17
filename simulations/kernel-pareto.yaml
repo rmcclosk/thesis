@@ -16,9 +16,10 @@ Steps:
             suppressPackageStartupMessages(library(netabc))
             suppressPackageStartupMessages(library(VGAM))
         Rule: | 
+            f <- bzfile("{network}", "wb")
             set.seed({seed})
             g <- sample_degseq(2, method="simple")
-            while (any(which_loop(g)) | any(which_multiple(g))) 
+            while (any(which_loop(g)) | any(which_multiple(g)))
             {{
                 s <- 1
                 while (!is_graphical(s)) {{
@@ -29,14 +30,12 @@ Steps:
                                 
             }}
             graph_attr(g, "comment") <- "{yaml}"
-            f <- bzfile("{network}", "wb")
             write.graph(SIR.net(g), f, format="gml")
             close(f)
 
     tree:
         Extension: nwk
-        Walltime: 00:01:00
-        Processes: 5
+        Walltime: 00:00:30
         Parameters:
             pareto_shape: [1, 1.5, 2]
             ntip: [100, 500, 1000]
@@ -46,21 +45,15 @@ Steps:
         Interpreter: bash
         Rule: |
             echo "#{yaml}" > {tree}
-            SEED={seed}
             bzcat {network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> {tree}
-            while [[ `treestat -i -s ntip {tree}` -lt {ntip} ]]; do
-                SEED=$(($SEED+1))
-                echo "#{yaml}" > {tree}
-                bzcat {network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed $SEED >> {tree}
-            done
 
     tree-plot:
         Extension: pdf
         Walltime: 00:00:30
         Parameters:
             pareto_shape: [1, 1.5, 2]
+            replicate: "range(3)"
             ntip: [100, 500, 1000]
-            replicate: [0, 1, 2]
         Depends: tree
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
@@ -75,18 +68,19 @@ Steps:
     statistics:
         Extension: tsv
         Walltime: 00:10:00
+        Sleep: 60
         Parameters:
             ntip: [100, 500, 1000]
         Depends: tree
         Interpreter: bash
         Rule: |
             echo "#{yaml}" > {statistics}
-            echo -e "colless\til.portion\tmax.ladder\tdepth\tbmi\tdelta.w\twidth\tcherries\tprop.unbalanced\tavg.unbalance\tsackin\tcophenetic\tgamma" >> {statistics}
+            echo -e "\tcolless\til.portion\tmax.ladder\tbmi\tdelta.w\twidth\tcherries\tprop.unbalanced\tavg.unbalance\tsackin\tcophenetic\tgamma" >> {statistics}
             for T in {tree}; do
+                echo -n $T$'\t' >> {statistics}
                 echo -n `treestat -i -y -s colless $T`$'\t' >> {statistics}
                 echo -n `treestat -i -n -s il $T`$'\t' >> {statistics}
                 echo -n `treestat -i -n -s ladder $T`$'\t' >> {statistics}
-                echo -n `treestat -i -n -s height $T`$'\t' >> {statistics}
                 echo -n `treestat -i -s bmi $T`$'\t' >> {statistics}
                 echo -n `treestat -i -n -s max-delta-width $T`$'\t' >> {statistics}
                 echo -n `treestat -i -n -s width $T`$'\t' >> {statistics}
@@ -100,31 +94,36 @@ Steps:
 
     stats-plot:
         Extension: pdf
-        Walltime: 00:01:00
+        Walltime: 00:00:30
         Parameters:
             ntip: [100, 500, 1000]
         Depends: statistics tree
         Interpreter: R --vanilla --silent
         Startup: |
-            library(netabc)
-            library(reshape2)
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(reshape2))
         Rule: |
-            m <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"pareto_shape"]
+            m <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"pareto_shape", drop=FALSE]
+            m$pareto_shape <- as.factor(m$pareto_shape)
             d <- read.table("{statistics}", header=TRUE)
-            d <- cbind(pareto.shape=as.factor(m), d)
+            d <- merge(m, d, by="row.names")
+            d[,"Row.names"] <- NULL
             d <- melt(d, id.vars="pareto.shape")
-            ggplot(d, aes(x=pareto.shape, y=value)) + geom_violin() + facet_wrap(~variable, scales="free") + theme_bw()
+            ggplot(d, aes(x=pareto.shape, y=value)) + geom_violin() + 
+                facet_wrap(~variable, scales="free") + theme_bw() + 
+                ggtitle(as.yaml(yaml.load("{yaml}")))
             ggsave("{stats-plot}")
 
     kernel-matrix:
+        Extension: mtx
         Sleep: 300
         Processes: 12
-        Extension: mtx
         Walltime: 04:00:00
+        Memory: 256m
         Parameters:
             ntip: [100, 500, 1000]
             decay_factor: [0.2, 0.3, 0.4]
-            rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20]
+            rbf_variance: [0.125, 0.25, 0.5, 1, 2, 5, 10, 20]
             nltt: ["yes", "no"]
         Exclusions:
             -
@@ -161,7 +160,8 @@ Steps:
         Parameters:
             ntip: [100, 500, 1000]
             decay_factor: [0.2, 0.3, 0.4]
-            rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20]
+            rbf_variance: [0.125, 0.25, 0.5, 1, 2, 5, 10, 20]
+            nltt: ["yes", "no"]
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
         Startup: library(netabc)
@@ -175,10 +175,12 @@ Steps:
         Extension: tsv
         Walltime: 00:20:00
         Sleep: 60
+        Processes: 12
         Parameters:
             ntip: [100, 500, 1000]
             decay_factor: [0.2, 0.3, 0.4]
-            rbf_variance: [0.25, 0.5, 1, 2, 5, 10, 20]
+            rbf_variance: [0.125, 0.25, 0.5, 1, 2, 5, 10, 20]
+            nltt: ["yes", "no"]
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
