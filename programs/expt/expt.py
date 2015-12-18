@@ -148,6 +148,9 @@ class Step:
         self.parameters = ParameterSet(spec.get("Parameters", {}))
         self.exclusions = [ParameterSet(excl) for excl in spec.get("Exclusions", [])]
 
+        self.found_params = []
+        self.found_files = []
+
     def __contains__(self, parameters):
         """Check if a ParameterSet will be used by this step"""
         if set(parameters.keys()) != set(self.parameters.keys()):
@@ -170,6 +173,13 @@ class Step:
 
     def find_file(self, parameters):
         """Find the name for a file with a particular set of parameters."""
+        pdict = parameters.as_dict()
+        try:
+            idx = self.found_params.index(pdict)
+            return self.found_files[idx]
+        except ValueError:
+            pass
+
         query = "SELECT path FROM data WHERE step = ? AND parameter = ? AND value = ?"
         query = " INTERSECT ".join([query] * len(parameters))
         query_params = []
@@ -179,12 +189,16 @@ class Step:
 
         result = self.cur.fetchone()
         if result is not None:
+            self.found_params.append(pdict)
+            self.found_files.append(result[0])
             logging.debug("Matching file found in database for parameters {}".format(parameters.as_dict()))
             return result[0]
 
         logging.debug("No matching file found in database for parameters {}".format(parameters.as_dict()))
         basename = hashlib.md5(bytes(str(parameters), "UTF-8")).hexdigest()
         filename = "{}.{}".format(basename, self.extension)
+        self.found_params.append(pdict)
+        self.found_files.append(os.path.join(self.dir, filename))
         return os.path.join(self.dir, filename)
 
     def store_parameters(self, path, parameters):
@@ -382,8 +396,8 @@ class Experiment:
                 depends = depends.split(" ")
             self.step_graph[step_name] = depends
 
-        self.sanitize_database()
-        self.sanitize_filesystem()
+        #self.sanitize_database()
+        #self.sanitize_filesystem()
 
     def create_database(self):
         self.cur.execute("""
@@ -406,6 +420,10 @@ class Experiment:
                 dep_path TEXT,
                 dep_checksum TEXT,
                 PRIMARY KEY (path, dep_path))
+        """)
+        self.cur.execute("""
+            CREATE INDEX IF NOT EXISTS data_idx
+            ON data (step, path, parameter, value)
         """)
 
     def purge(self, path):
