@@ -262,6 +262,21 @@ It's assumed that the removal times are known.
 work.
 * They weren't able to get much information about p in their application. 
 
+**[@goodreau2006assessing]**
+
+* Uses ERGMs to model HIV contact networks.
+* Check Grassly et al. for some arguments against what we're doing (they
+argue in favour of the panmixis / effective population size assumptions).
+* This has actual values for the parameters! Very useful for validating
+clustering.
+* Also provides a significantly more sophisticated method of simulating
+epidemics over a network: instead of transmission trees, they actually simulate
+viral evolution including within-host. This actually results in a simulated
+phylogeny, not a transmission tree. Could be very useful!
+* Contact network structure can affect the estimated effective population size
+by multiple orders of magnitude, so it's important to take it into account.
+* I should definitely do this one for journal club.
+
 ## Other Phylodynamics
 
 **[@hughes2009molecular]**

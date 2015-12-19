@@ -17,3 +17,7 @@ Art sent me this in an email.
 ## minin2008fast
 
 Stochastic mapping, from Alex.
+
+## sloot2008stochastic
+
+Simulation of HIV spread over a contact network, looks related.
