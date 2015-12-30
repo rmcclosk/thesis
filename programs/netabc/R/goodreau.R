@@ -1,94 +1,74 @@
-#' Create one of the networks from Goodreau 2004.
+#' Create one of the group-type from Goodreau 2004.
 #'
 #' @param n number of vertices in the graph
-#' @param net.type type of network to create, one of "random", "2-weak", 
-#'                 "2-strong", "8-weak", "8-strong", "core-weak", "core-strong",
-#'                 or "bridges"
+#' @param num.groups number of equally sized assortative groups, must divide n
+#' @param prop.intra proportion of edges which are reserved for intra-group
+#'                   contacts
 #' @return an undirected graph
 #' @export
-goodreau.net <- function (n, net.type) {
-    if (net.type == "random") {
-        g <- sample_gnm(n, n)
-    } else if (net.type == "2-weak") {
-        g <- make_empty_graph(n, directed=FALSE)
-        edges <- combn(n, 2)
-        intra.edges <- edges[,! xor(edges[1,] <= n/2, edges[2,] <= n/2)]
-        inter.edges <- edges[,xor(edges[1,] <= n/2, edges[2,] <= n/2)]
-        intra.ties <- c(intra.edges[,sample(ncol(intra.edges), 0.75 * n)])
-        inter.ties <- c(inter.edges[,sample(ncol(inter.edges), 0.25 * n)])
-        g <- add_edges(g, intra.ties)
-        g <- add_edges(g, inter.ties)
-        V(g)$group <- paste0("group", ((1:n)-1) %/% (n/2))
-    } else if (net.type == "2-strong") {
-        g <- make_empty_graph(n, directed=FALSE)
-        edges <- combn(n, 2)
-        intra.edges <- edges[,! xor(edges[1,] <= n/2, edges[2,] <= n/2)]
-        inter.edges <- edges[,xor(edges[1,] <= n/2, edges[2,] <= n/2)]
-        intra.ties <- c(intra.edges[,sample(ncol(intra.edges), 0.975 * n)])
-        inter.ties <- c(inter.edges[,sample(ncol(inter.edges), 0.025 * n)])
-        g <- add_edges(g, intra.ties)
-        g <- add_edges(g, inter.ties)
-        V(g)$group <- paste0("group", ((1:n)-1) %/% (n/2))
-    } else if (net.type == "8-weak") {
-        g <- make_empty_graph(n, directed=FALSE)
-        edges <- combn(n, 2)
-        which.intra <- (edges[1,] - 1) %/% (n/8) == (edges[2,] - 1) %/% (n/8)
-        intra.edges <- edges[,which.intra]
-        inter.edges <- edges[,!which.intra]
-        intra.ties <- c(intra.edges[,sample(ncol(intra.edges), 0.75 * n)])
-        inter.ties <- c(inter.edges[,sample(ncol(inter.edges), 0.25 * n)])
-        g <- add_edges(g, intra.ties)
-        g <- add_edges(g, inter.ties)
-        V(g)$group <- paste0("group", ((1:n)-1) %/% (n/8))
-    } else if (net.type == "8-strong") {
-        g <- make_empty_graph(n, directed=FALSE)
-        edges <- combn(n, 2)
-        which.intra <- (edges[1,] - 1) %/% (n/8) == (edges[2,] - 1) %/% (n/8)
-        intra.edges <- edges[,which.intra]
-        inter.edges <- edges[,!which.intra]
-        intra.ties <- c(intra.edges[,sample(ncol(intra.edges), 0.975 * n)])
-        inter.ties <- c(inter.edges[,sample(ncol(inter.edges), 0.025 * n)])
-        g <- add_edges(g, intra.ties)
-        g <- add_edges(g, inter.ties)
-        V(g)$group <- paste0("group", ((1:n)-1) %/% (n/8))
-    } else if (net.type == "core-strong") {
-        g <- make_empty_graph(n, directed=FALSE)
-        edges <- combn(n, 2)
-        intracore.edges <- edges[,edges[1,] <= n/8 & edges[2,] <= n/8]
-        intraper.edges <- edges[,edges[1,] > n/8 & edges[2,] > n/8]
-        inter.edges <- edges[,xor(edges[1,] <= n/8, edges[2,] <= n/8)]
-        intracore.ties <- c(intracore.edges[,sample(ncol(intracore.edges), 0.5 * n)])
-        intraper.ties <- c(intraper.edges[,sample(ncol(intraper.edges), 0.475 * n)])
-        inter.ties <- c(inter.edges[,sample(ncol(inter.edges), 0.025 * n)])
-        g <- add_edges(g, intracore.ties)
-        g <- add_edges(g, intraper.ties)
-        g <- add_edges(g, inter.ties)
-        V(g)$group <- rep(c("core", "periphery"), c(n * 0.125, n * 0.875))
-    } else if (net.type == "core-weak") {
-        g <- make_empty_graph(n, directed=FALSE)
-        edges <- combn(n, 2)
-        intracore.edges <- edges[,edges[1,] <= n/8 & edges[2,] <= n/8]
-        intraper.edges <- edges[,edges[1,] > n/8 & edges[2,] > n/8]
-        inter.edges <- edges[,xor(edges[1,] <= n/8, edges[2,] <= n/8)]
-        intracore.ties <- c(intracore.edges[,sample(ncol(intracore.edges), 0.15 * n)])
-        intraper.ties <- c(intraper.edges[,sample(ncol(intraper.edges), 0.75 * n)])
-        inter.ties <- c(inter.edges[,sample(ncol(inter.edges), 0.1 * n)])
-        g <- add_edges(g, intracore.ties)
-        g <- add_edges(g, intraper.ties)
-        g <- add_edges(g, inter.ties)
-        V(g)$group <- rep(c("core", "periphery"), c(n * 0.125, n * 0.875))
-    } else if (net.type == "bridges") {
-        g <- make_empty_graph(n, directed=FALSE)
-        edges <- combn(n, 2)
-        csw.edges <- edges[,edges[1,] <= 0.475 * n & edges[2,] >= 0.95 * n]
-        marriage.ties <- c(rbind(1:(0.475*n), (1:(0.475*n)) + 0.475*n))
-        csw.ties <- c(csw.edges[,sample(ncol(csw.edges), 0.525*n)])
-        g <- add_edges(g, marriage.ties)
-        g <- add_edges(g, csw.ties)
-        V(g)$group <- rep(c("husband", "wife", "csw"), c(n*0.475, n*0.475, n*0.05))
-    } else {
-        stop("Unrecognized network type")
+goodreau.net.groups <- function (n, num.groups, prop.intra)
+{
+    if (n %% num.groups != 0) {
+        stop("Group size must divide number of nodes evenly")
     }
+
+    g <- make_empty_graph(n, directed=FALSE)
+    group.size <- n / num.groups
+
+    num.intra.ties <- rep(0, num.groups)
+    if (prop.intra * n > 1) {
+        for (i in 1:(prop.intra*n)) {
+            group <- sample(num.groups, 1)
+            num.intra.ties[group] <- num.intra.ties[group] + 1
+        }
+    
+        intra.pairs <- 1:group.size^2
+        head <- (intra.pairs - 1) %/% group.size + 1
+        tail <- (intra.pairs - 1) %% group.size + 1
+        intra.pairs <- intra.pairs[head < tail]
+    
+        intra.ties <- c()
+        for (i in 1:num.groups) {
+            group.start <- (i-1) * group.size + 1
+            pairs <- sample(intra.pairs, num.intra.ties[i])
+            head <- (pairs - 1) %/% group.size + group.start
+            tail <- (pairs - 1) %% group.size + group.start
+            intra.ties <- c(intra.ties, c(rbind(head, tail)))
+        }
+        g <- add_edges(g, intra.ties)
+    }
+
+    if ((1-prop.intra) * n > 1) {
+        group.pairs <- 1:num.groups^2
+        head <- (group.pairs - 1) %/% num.groups + 1
+        tail <- (group.pairs - 1) %% num.groups + 1
+        group.pairs <- group.pairs[head < tail]
+    
+        num.inter.ties <- matrix(0, nrow=num.groups, ncol=num.groups)
+        for (i in 1:((1-prop.intra)*n)) {
+            groups <- sample(group.pairs, 1)
+            head.group <- (groups - 1) %/% num.groups + 1
+            tail.group <- (groups - 1) %% num.groups + 1
+            num.inter.ties[head.group, tail.group] <- num.inter.ties[head.group, tail.group] + 1
+        }
+    
+        inter.pairs <- 1:group.size^2
+        inter.ties <- c()
+        for (i in 1:num.groups) {
+            head.start <- (i-1)*group.size + 1
+            for (j in 1:num.groups) {
+                tail.start <- (j-1)*group.size + 1
+    
+                pairs <- sample(inter.pairs, num.inter.ties[i,j])
+                head <- (pairs - 1) %/% group.size + head.start
+                tail <- (pairs - 1) %/% group.size + tail.start
+                inter.ties <- c(inter.ties, c(rbind(head, tail)))
+            }
+        }
+        g <- add_edges(g, inter.ties)
+    }
+
+    V(g)$group <- paste0("group", ((1:n)-1) %/% group.size)
     g
 }
 
