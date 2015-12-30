@@ -18,6 +18,7 @@ goodreau.net <- function (n, net.type) {
         inter.ties <- c(inter.edges[,sample(ncol(inter.edges), 0.25 * n)])
         g <- add_edges(g, intra.ties)
         g <- add_edges(g, inter.ties)
+        V(g)$group <- paste0("group", ((1:n)-1) %/% (n/2))
     } else if (net.type == "2-strong") {
         g <- make_empty_graph(n, directed=FALSE)
         edges <- combn(n, 2)
@@ -27,6 +28,7 @@ goodreau.net <- function (n, net.type) {
         inter.ties <- c(inter.edges[,sample(ncol(inter.edges), 0.025 * n)])
         g <- add_edges(g, intra.ties)
         g <- add_edges(g, inter.ties)
+        V(g)$group <- paste0("group", ((1:n)-1) %/% (n/2))
     } else if (net.type == "8-weak") {
         g <- make_empty_graph(n, directed=FALSE)
         edges <- combn(n, 2)
@@ -37,6 +39,7 @@ goodreau.net <- function (n, net.type) {
         inter.ties <- c(inter.edges[,sample(ncol(inter.edges), 0.25 * n)])
         g <- add_edges(g, intra.ties)
         g <- add_edges(g, inter.ties)
+        V(g)$group <- paste0("group", ((1:n)-1) %/% (n/8))
     } else if (net.type == "8-strong") {
         g <- make_empty_graph(n, directed=FALSE)
         edges <- combn(n, 2)
@@ -47,6 +50,7 @@ goodreau.net <- function (n, net.type) {
         inter.ties <- c(inter.edges[,sample(ncol(inter.edges), 0.025 * n)])
         g <- add_edges(g, intra.ties)
         g <- add_edges(g, inter.ties)
+        V(g)$group <- paste0("group", ((1:n)-1) %/% (n/8))
     } else if (net.type == "core-strong") {
         g <- make_empty_graph(n, directed=FALSE)
         edges <- combn(n, 2)
@@ -59,6 +63,7 @@ goodreau.net <- function (n, net.type) {
         g <- add_edges(g, intracore.ties)
         g <- add_edges(g, intraper.ties)
         g <- add_edges(g, inter.ties)
+        V(g)$group <- rep(c("core", "periphery"), c(n * 0.125, n * 0.875))
     } else if (net.type == "core-weak") {
         g <- make_empty_graph(n, directed=FALSE)
         edges <- combn(n, 2)
@@ -71,6 +76,7 @@ goodreau.net <- function (n, net.type) {
         g <- add_edges(g, intracore.ties)
         g <- add_edges(g, intraper.ties)
         g <- add_edges(g, inter.ties)
+        V(g)$group <- rep(c("core", "periphery"), c(n * 0.125, n * 0.875))
     } else if (net.type == "bridges") {
         g <- make_empty_graph(n, directed=FALSE)
         edges <- combn(n, 2)
@@ -79,6 +85,7 @@ goodreau.net <- function (n, net.type) {
         csw.ties <- c(csw.edges[,sample(ncol(csw.edges), 0.525*n)])
         g <- add_edges(g, marriage.ties)
         g <- add_edges(g, csw.ties)
+        V(g)$group <- rep(c("husband", "wife", "csw"), c(n*0.475, n*0.475, n*0.05))
     } else {
         stop("Unrecognized network type")
     }
@@ -95,6 +102,9 @@ goodreau.net <- function (n, net.type) {
 #' @export
 add.baseline.rate <- function (net, rate = 0.01)
 {
+    if (rate <= 0) {
+        return (g)
+    }
     new.ties <- c(t(as_edgelist(complementer(g))))
     add_edges(net, new.ties, attr=list(transmit=rep(rate, length(new.ties)/2)))
 }
