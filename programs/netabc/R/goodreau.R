@@ -16,7 +16,7 @@ goodreau.net.groups <- function (n, num.groups, prop.intra)
     group.size <- n / num.groups
 
     num.intra.ties <- rep(0, num.groups)
-    if (prop.intra * n > 1) {
+    if (prop.intra * n >= 1) {
         for (i in 1:(prop.intra*n)) {
             group <- sample(num.groups, 1)
             num.intra.ties[group] <- num.intra.ties[group] + 1
@@ -38,7 +38,7 @@ goodreau.net.groups <- function (n, num.groups, prop.intra)
         g <- add_edges(g, intra.ties)
     }
 
-    if ((1-prop.intra) * n > 1) {
+    if ((1-prop.intra) * n >= 1) {
         group.pairs <- 1:num.groups^2
         head <- (group.pairs - 1) %/% num.groups + 1
         tail <- (group.pairs - 1) %% num.groups + 1
@@ -46,7 +46,11 @@ goodreau.net.groups <- function (n, num.groups, prop.intra)
     
         num.inter.ties <- matrix(0, nrow=num.groups, ncol=num.groups)
         for (i in 1:((1-prop.intra)*n)) {
-            groups <- sample(group.pairs, 1)
+            if (length(group.pairs) > 1) {
+                groups <- sample(group.pairs, 1)
+            } else {
+                groups <- group.pairs
+            }
             head.group <- (groups - 1) %/% num.groups + 1
             tail.group <- (groups - 1) %% num.groups + 1
             num.inter.ties[head.group, tail.group] <- num.inter.ties[head.group, tail.group] + 1
@@ -58,10 +62,9 @@ goodreau.net.groups <- function (n, num.groups, prop.intra)
             head.start <- (i-1)*group.size + 1
             for (j in 1:num.groups) {
                 tail.start <- (j-1)*group.size + 1
-    
                 pairs <- sample(inter.pairs, num.inter.ties[i,j])
                 head <- (pairs - 1) %/% group.size + head.start
-                tail <- (pairs - 1) %/% group.size + tail.start
+                tail <- (pairs - 1) %% group.size + tail.start
                 inter.ties <- c(inter.ties, c(rbind(head, tail)))
             }
         }
