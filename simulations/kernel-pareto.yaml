@@ -9,6 +9,7 @@ Steps:
         Walltime: 00:00:30
         Parameters:
             nnode: 5000
+            nsimnode: [500, 1000, 2000]
             pareto_shape: [1, 1.5, 2]
             replicate: "range(100)"
         Interpreter: R --vanilla --silent
@@ -34,18 +35,24 @@ Steps:
             close(f)
 
     tree:
-        Extension: nwk
+        Extension: nwk.bz2
         Walltime: 00:00:30
         Parameters:
             pareto_shape: [1, 1.5, 2]
-            ntip: [100, 500, 1000]
-            nsimnode: 1000
             replicate: "range(100)"
+            nsimnode: [500, 1000, 2000]
+            ntip: [100, 500, 1000]
+        Exclusions:
+            -
+                nsimnode: 500
+                ntip: 1000
         Depends: network
         Interpreter: bash
         Rule: |
-            echo "#{yaml}" > {tree}
-            bzcat {network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> {tree}
+            NWKFILE=`echo {tree} | sed s/'.bz2'//`
+            echo "#{yaml}" > $NWKFILE
+            bzcat {network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> $NWKFILE
+            bzip2 $NWKFILE
 
     tree-plot:
         Extension: pdf
@@ -53,6 +60,7 @@ Steps:
         Parameters:
             pareto_shape: [1, 1.5, 2]
             replicate: "range(3)"
+            nsimnode: [500, 1000, 2000]
             ntip: [100, 500, 1000]
         Depends: tree
         Interpreter: R --vanilla --silent
@@ -70,6 +78,7 @@ Steps:
         Walltime: 00:10:00
         Sleep: 60
         Parameters:
+            nsimnode: [500, 1000, 2000]
             ntip: [100, 500, 1000]
         Depends: tree
         Interpreter: bash
@@ -78,24 +87,25 @@ Steps:
             echo -e "\tcolless\til.portion\tmax.ladder\tbmi\tdelta.w\twidth\tcherries\tprop.unbalanced\tavg.unbalance\tsackin\tcophenetic\tgamma" >> {statistics}
             for T in {tree}; do
                 echo -n $T$'\t' >> {statistics}
-                echo -n `treestat -i -y -s colless $T`$'\t' >> {statistics}
-                echo -n `treestat -i -n -s il $T`$'\t' >> {statistics}
-                echo -n `treestat -i -n -s ladder $T`$'\t' >> {statistics}
-                echo -n `treestat -i -s bmi $T`$'\t' >> {statistics}
-                echo -n `treestat -i -n -s max-delta-width $T`$'\t' >> {statistics}
-                echo -n `treestat -i -n -s width $T`$'\t' >> {statistics}
-                echo -n `treestat -i -n -s cherries $T`$'\t' >> {statistics}
-                echo -n `treestat -i -s prop-unbalanced $T`$'\t' >> {statistics}
-                echo -n `treestat -i -s unbalance $T`$'\t' >> {statistics}
-                echo -n `treestat -i -y -s sackin $T`$'\t' >> {statistics}
-                echo -n `treestat -i -y -s cophenetic $T`$'\t' >> {statistics}
-                echo `treestat -i -s gamma $T` >> {statistics}
+                echo -n `bzcat $T | treestat -i -y -s colless`$'\t' >> {statistics}
+                echo -n `bzcat $T | treestat -i -n -s il`$'\t' >> {statistics}
+                echo -n `bzcat $T | treestat -i -n -s ladder`$'\t' >> {statistics}
+                echo -n `bzcat $T | treestat -i -s bmi`$'\t' >> {statistics}
+                echo -n `bzcat $T | treestat -i -n -s max-delta-width`$'\t' >> {statistics}
+                echo -n `bzcat $T | treestat -i -n -s width`$'\t' >> {statistics}
+                echo -n `bzcat $T | treestat -i -n -s cherries`$'\t' >> {statistics}
+                echo -n `bzcat $T | treestat -i -s prop-unbalanced`$'\t' >> {statistics}
+                echo -n `bzcat $T | treestat -i -s unbalance`$'\t' >> {statistics}
+                echo -n `bzcat $T | treestat -i -y -s sackin`$'\t' >> {statistics}
+                echo -n `bzcat $T | treestat -i -y -s cophenetic`$'\t' >> {statistics}
+                echo `bzcat $T | treestat -i -s gamma` >> {statistics}
             done
 
     stats-plot:
         Extension: pdf
         Walltime: 00:00:30
         Parameters:
+            nsimnode: [500, 1000, 2000]
             ntip: [100, 500, 1000]
         Depends: statistics tree
         Interpreter: R --vanilla --silent
@@ -108,8 +118,8 @@ Steps:
             d <- read.table("{statistics}", header=TRUE)
             d <- merge(m, d, by="row.names")
             d[,"Row.names"] <- NULL
-            d <- melt(d, id.vars="pareto.shape")
-            ggplot(d, aes(x=pareto.shape, y=value)) + geom_violin() + 
+            d <- melt(d, id.vars="pareto_shape")
+            ggplot(d, aes(x=pareto_shape, y=value)) + geom_violin() + 
                 facet_wrap(~variable, scales="free") + theme_bw() + 
                 ggtitle(as.yaml(yaml.load("{yaml}")))
             ggsave("{stats-plot}")
@@ -121,6 +131,7 @@ Steps:
         Walltime: 04:00:00
         Memory: 256m
         Parameters:
+            nsimnode: [500, 1000, 2000]
             ntip: [100, 500, 1000]
             decay_factor: [0.2, 0.3, 0.4]
             rbf_variance: [0.125, 0.25, 0.5, 1, 2, 5, 10, 20]
@@ -149,7 +160,7 @@ Steps:
                         treekernel --ladderize --decay-factor {decay_factor} \
                                    --gauss-factor {rbf_variance} \
                                    --scale-branches mean $NLTT \
-                                   $T1 $T2 >> {kernel-matrix}
+                                   <(bzcat $T1) <(bzcat $T2) >> {kernel-matrix}
                     fi
                 done
             done
@@ -177,6 +188,7 @@ Steps:
         Sleep: 60
         Processes: 12
         Parameters:
+            nsimnode: [500, 1000, 2000]
             ntip: [100, 500, 1000]
             decay_factor: [0.2, 0.3, 0.4]
             rbf_variance: [0.125, 0.25, 0.5, 1, 2, 5, 10, 20]
@@ -195,6 +207,7 @@ Steps:
         Extension: pdf
         Walltime: 00:01:00
         Parameters:
+            nsimnode: [500, 1000, 2000]
             ntip: [100, 500, 1000]
         Depends: classifier 
         Interpreter: R --vanilla --silent
@@ -204,3 +217,19 @@ Steps:
             summarize.plot(d, x="rbf_variance", y="rsquared", group="decay_factor", 
                            facet.x="nltt", fun="mean", yaml="{yaml}")
             ggsave("{crossv-plot}", width=10)
+
+    kernel-parameters:
+        Extension: tsv 
+        Walltime: 00:01:00
+        Parameters:
+            placeholder: 0
+        Depends: classifier 
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            d <- setDT(collect.data(strsplit("{classifier}", " ")[[1]]))
+            by.cols <- tail(colnames(d, -1), -1) 
+            d <- d[,mean(rsquared), by=by.cols]
+            d <- d[,.SD[which.max(V1),], by=c("nsimnode", "ntip")]
+            setnames(d, "V1", "rsquared")
+            write.tsv(d, "{kernel-parameters}")
