@@ -396,8 +396,8 @@ class Experiment:
                 depends = depends.split(" ")
             self.step_graph[step_name] = depends
 
-        #self.sanitize_database()
-        #self.sanitize_filesystem()
+        self.sanitize_database()
+        self.sanitize_filesystem()
 
     def create_database(self):
         self.cur.execute("""

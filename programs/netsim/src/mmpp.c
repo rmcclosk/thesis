@@ -15,7 +15,7 @@
 #include "stats.h"
 
 #define CMAES_POP_SIZE 100
-#define MAX_NRATES 2
+#define MAX_NRATES 6
 
 struct ck_params {
     int nrates;
@@ -81,7 +81,7 @@ int fit_mmpp(const igraph_t *tree, int *nrates, double **theta, int trace,
                       use_tips, trans_at_nodes, bounds)) {
             fprintf(stderr, "Warning: parameter estimates for %d state model did not converge\n", i);
         }
-        fprintf(stderr, "log likelihood for %d state model is %f\n", i, prev_loglik);
+        fprintf(stderr, "log likelihood for %d state model is %f\n", i, loglik);
         
         if (sel == LRT) {
             test_stat = lrt(prev_loglik, loglik, (i-1)*(i-1), i*i);
@@ -354,13 +354,11 @@ int _fit_mmpp(const igraph_t *tree, int nrates, double *theta, int trace,
         lbound[i] = log(bounds[0]);
         ubound[i] = log(bounds[1]);
         init_sd[i] = 1;
-        fprintf(stderr, "%f, %f\n", lbound[i], ubound[i]);
     }
     for (i = nrates; i < dimension; ++i)
     {
         lbound[i] = log(bounds[2]);
         ubound[i] = log(bounds[3]);
-        fprintf(stderr, "%f, %f\n", lbound[i], ubound[i]);
         init_sd[i] = 1;
     }
 
@@ -411,9 +409,9 @@ int _fit_mmpp(const igraph_t *tree, int nrates, double *theta, int trace,
         theta[i] = tmp[state_order[i]];
         for (j = 0; j < nrates; ++j)
         {
-            if (i > j)
+            if (state_order[i] > state_order[j])
 	            theta[cur++] = tmp[nrates + state_order[i]*(nrates-1) + state_order[j]];
-            else if (i < j)
+            else if (state_order[i] < state_order[j])
 	            theta[cur++] = tmp[nrates + state_order[i]*(nrates-1) + state_order[j]-1];
         }
     }
