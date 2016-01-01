@@ -13,6 +13,10 @@ all: kernel-edge-density \
 	rsync --delete -avz rmcclosk@bulbasaur:/home/rmcclosk/thesis/simulations/$@.sqlite `pwd`
 	rsync --delete -avz rmcclosk@bulbasaur:/home/rmcclosk/thesis/simulations/$@ `pwd`
 
+pcbr-%:
+	rsync --delete -avz rmcclosk@bulbasaur:/home/rmcclosk/thesis/simulations/$@.sqlite `pwd`
+	rsync --delete -avz rmcclosk@bulbasaur:/home/rmcclosk/thesis/simulations/$@ `pwd`
+
 kernel-nnode:
 	rsync --delete -avz rmcclosk@bulbasaur:/home/rmcclosk/thesis/simulations/$@.sqlite `pwd`
 	rsync --delete -avz rmcclosk@bulbasaur:/home/rmcclosk/thesis/simulations/$@ `pwd`

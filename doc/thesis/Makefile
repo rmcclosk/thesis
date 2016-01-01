@@ -1,4 +1,4 @@
-all: outline.pdf main.pdf
+all: main.pdf
 
 outline.pdf: outline.md outline.sty
 	pandoc -V geometry:margin=2cm --number-sections -H $(word 2, $^) $(word 1, $^) -o $@
@@ -9,19 +9,16 @@ main.pdf: main.tex intro.tex methods.tex papers.bib figures
 papers.bib:
 	ln -s ../../reading/$@ .
 
-figures: figures/nltt.pdf \
-	figures/speciestree.pdf \
-	figures/kernel-pa.pdf \
-	figures/crossv-pa.pdf \
-	figures/gridsearch-pa.pdf \
-	figures/abc-pa.pdf \
-	figures/sackin.pdf \
-	figures/smc.pdf
+figures: figures/speciestree.pdf figures/contactnet.pdf
 
 figures/nltt.pdf: figures/nltt.R
 	cd figures && ./nltt.R
 
 figures/speciestree.pdf: figures/speciestree.tex
+	cd figures && pdflatex $(notdir $^)
+	pdfcrop $@ $@
+
+figures/contactnet.pdf: figures/contactnet.tex
 	cd figures && pdflatex $(notdir $^)
 	pdfcrop $@ $@
 
