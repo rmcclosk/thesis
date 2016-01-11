@@ -9,7 +9,12 @@ main.pdf: main.tex intro.tex methods.tex papers.bib figures
 papers.bib:
 	ln -s ../../reading/$@ .
 
-figures: figures/speciestree.pdf figures/contactnet.pdf
+figures: figures/speciestree.pdf \
+	figures/contactnet.pdf \
+	figures/pa_power_bounds.pdf \
+	figures/kernel_pa_kpca.pdf \
+	figures/kernel_pa_crossv.pdf \
+	figures/nltt.pdf
 
 figures/nltt.pdf: figures/nltt.R
 	cd figures && ./nltt.R
@@ -22,12 +27,13 @@ figures/contactnet.pdf: figures/contactnet.tex
 	cd figures && pdflatex $(notdir $^)
 	pdfcrop $@ $@
 
-figures/kernel-pa.pdf:
-	$(eval FIG_PATH := $(shell echo 'select path from data where parameter = "decay_factor" and value = 0.3 intersect select path from data where parameter = "rbf_variance" and value = 2 intersect select path from data where parameter = "nltt" and value = "no" intersect select path from data where parameter = "ntip" and value = 1000 intersect select path from data where step = "kpca-plot";' | sqlite3 ../../simulations/kernel-pa-power.sqlite))
+figures/kernel_pa_kpca.pdf:
+	$(eval FIG_PATH := $(shell echo 'SELECT DISTINCT path FROM data WHERE step = "kpca-plot";' \
+		| sqlite3 ../../simulations/kernel-pa-power.sqlite))
 	cp ../../simulations/$(FIG_PATH) $@
 
-figures/crossv-pa.pdf:
-	$(eval FIG_PATH := $(shell echo 'select path from data where parameter = "ntip" and value = 1000 intersect select path from data where step = "crossv-plot";' | sqlite3 ../../simulations/kernel-pa-power.sqlite))
+figures/kernel_pa_crossv.pdf:
+	$(eval FIG_PATH := $(shell echo 'SELECT path FROM data WHERE parameter = "mean_degree" AND value = "4" INTERSECT SELECT path FROM data WHERE step = "crossv-plot";' | sqlite3 ../../simulations/kernel-pa-power.sqlite))
 	cp ../../simulations/$(FIG_PATH) $@
 
 figures/gridsearch-pa.pdf:

@@ -21,3 +21,8 @@ Stochastic mapping, from Alex.
 ## sloot2008stochastic
 
 Simulation of HIV spread over a contact network, looks related.
+
+## kenah2015algorithms
+
+New algorithm for phylogeny => transmission tree, plus nice overview of
+established methods.

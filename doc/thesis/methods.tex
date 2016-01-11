@@ -114,14 +114,16 @@ lineages-through-time plots. This modification is to address a potential
 inconsistency for trees of different sizes, illustrated in
 Figure~\ref{fig:nltt}.
 
-\begin{figure}
-  \caption{Comparison of original formulation of normalized
-    lineages-through-time, developed in~\autocite{janzen2015approximate}, with
-    our modified version using linear interpolation. Here, the red and blue
-    trees both have uniformly spaced branching times. Using step functions
-    (left), the nLTT of the two trees is non-zero due to the differing numbers
-    of internal branches. Using linear interpolation, the nLTT is zero (right).
-  The lines on the right graph have been offset for visibility.}
+\begin{figure}[ht]
+  \centering
+  \caption[Comparison of original and modified normalised lineages-through-time]
+    {Comparison of original formulation of normalized lineages-through-time,
+     developed in~\autocite{janzen2015approximate}, with our modified version
+     using linear interpolation. Here, the red and blue trees both have
+     uniformly spaced branching times. Using step functions (left), the nLTT
+     of the two trees is non-zero due to the differing numbers of internal
+     branches. Using linear interpolation, the nLTT is zero (right). The lines
+     on the right graph have been offset for visibility.}
   \includegraphics[scale=0.75]{nltt}
   \label{fig:nltt}
 \end{figure}
@@ -141,10 +143,150 @@ authors~\autocite{del2012adaptive}, we used the latter stopping criterion,
 accepting the SMC approximation to the posterior when the MCMC acceptance rate
 dropped below 1.5\%.
 
-\subsection{Method validation}
+\subsection{Simulation experiments}
 
 \subsubsection{Identification of separable parameters in kernel space}
 \label{subsubsec:kernel}
+
+Recall that our approximate Bayesian computation approach to fitting contact
+network models involves simulating transmission trees under a wide variety of
+parameter values, and then comparing these simulated trees to the true
+transmission tree. Values which produce trees similar to the observed
+transmission tree are distinguished as more likely than values which produce
+trees very different from the truth. In order for this type of analysis to
+succeed, it is critical that different parameter values produce different
+looking trees. Otherwise, if many different values produce trees which are too
+similar to each other, it will be impossible to distinguish which value is most
+consistent with the real tree. Just as importantly, trees simulated with
+similar parameter values must be similar to each other. In mathematical terms,
+we require the trees simulated from distinct parameter values to be
+\defn{separable} in tree space. The concept of separability is illustrated in
+Figure~\ref{fig:separable}.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics{separable}
+  \caption[Separable versus non-separable pararameters in kernel space]{
+    Separable versus non-separable parameters in kernel space. Trees have been
+    simulated under three sets of parameters, represented as blue, red, and
+    green. An observed tree is shown in black. Trees are layed out such that
+    the distance between two trees corresponds to their similarity. In panel A,
+    trees from the same parameter set are similar to each other, but different
+    from other trees. The true tree is most consistent with the red parameters.
+    In panels B and C, trees from the same parameter set are not similar to
+    each other (B), or trees from different parameter sets are similar to each
+    other (C). It's difficult to say which parameters the true tree is most
+    consistent with.
+  }
+  \label{fig:separable}
+\end{figure}
+
+Before undertaking a complete ABC analysis, I analysed four simple contact
+network models to determine whether their parameters could be separated in tree
+kernel space. The four models are described in detail in
+subsection~\ref{subsubsec:generative} of the introduction. Briefly, they are:
+random networks, where each possible contact has a fixed probability of
+occuring; preferential attachment networks, where highly connected nodes tend
+to attract more contacts; small world networks, where nodes are connected to
+their immediate neighbours and the occasional far-flung contact; and full
+networks, where every possible connection is present. I will describe here only
+the procedure and results for the preferential attachment networks. The details
+of the other three types of graph can be found in the supplemental materials.
+
+The method of testing for separability was described previously
+in~\autocite{poon2015phylodynamic}, but I will reiterate it here for
+completeness. As a concrete example, consider the attachment power parameter
+$\alpha$ of the preferential attachment networks. This parameter describes the
+strength of attraction to highly connected nodes and is bounded below by zero
+indicating no extra attraction. By qualitative observation, I determined that a
+power of 2.0, which produced networks with very few ``hub'' nodes with
+extremely high degree, was a suitable upper bound (see
+Figure~\ref{fig:pabounds}). Therefore, I chose to test the values 0.5, 1.0, and
+1.5 for separability. The other parameters were fixed: the number of nodes in
+the network was 5000, and the mean degree of each node in the network was four.
+As discussed in subsection~\ref{subsubsec:generative}, this is the smallest
+mean degree value for preferential attachment networks which produces networks
+which are more than trees. 
+
+\begin{figure}[ht]
+  \centering
+  \label{fig:pabounds}
+  \includegraphics{pa_power_bounds}
+  \caption[Upper and lower bounds on preferential attachment power]{
+    Qualitative justification for choice of zero and two as lower and upper
+    bounds on preferential attachment power $\alpha$. (A) Preferential
+    attachment network on 50 nodes with $\alpha = 0$, the lower bound enforced
+    by the model. (B) Preferential attachment network on 50 nodes with $\alpha
+    = 2$, where a few nodes have very high degree but the majority have very
+    low degree. (C) Density plot of node degrees in a 5000-node network with
+    $\alpha = 0$. The maximum degree of a node in this network was 24. (D)
+    Density plot of node degrees in a 5000-node network with $\alpha = 2$. The
+    maximum degree of a node in this network was 4942. 
+  }
+\end{figure}
+
+For each of the values of $\alpha$, I generated 100 networks on 5000 nodes. An
+epidemic was simulated over each network (see subsection X) until 1000 nodes
+were infected, and 500 of those infected nodes were sampled to form a
+transmission tree. This resulted in 300 total simulated transmission trees -
+100 for each of the three values of $\alpha$. Next, I computed the tree
+kernel~\autocite{poon2013mapping} (see subsection~\ref{subsubsec:treeshape})
+for each pair of trees. These values were placed into a 300 $\times$ 300 kernel
+matrix, where the value at the $(i, j)$th position was the tree kernel of the 
+$i$th and $j$th trees. 
+
+The tree kernel provides a pairwise similarity score between two trees. The
+higher the kernel score, the more similar the trees are to each other.
+Therefore, to have separability, we need trees simulated with the same value of
+$\alpha$ to have high kernel scores with each other, but low kernel scores with
+trees from different $\alpha$ values. We can visually check whether or not this
+is true by laying out the trees as points on a graph, in such a way that trees
+with high scores are close to each other, but trees with low scores are far
+apart. This is accomplished by performing a kernel principal components
+analysis (kPCA)~\autocite{scholkopf1998nonlinear} on the kernel matrix.
+Briefly, ordinary principal components analysis (PCA) finds a lower dimensional
+representation of points in a high dimensional space which preserves as much of
+the variation in the data as possible. kPCA performs the same task, but using
+the dot products of each pair of points as input, instead of the data points
+themselves. A two-dimensional kPCA projection of the simulated trees is shown
+in Figure~\ref{fig:pakpca}. The scenario just described - 500 samples from 1000
+infected nodes - is the central panel. To ensure that the method could be used
+in a variety of contexts, the same analysis was performed with 500 and 2000
+infected nodes, as well as 100 and 1000 sampled tips. The projections show that
+all three values are well separated from each other in many of the scenarios.
+With smaller trees, it becomes harder to disinguish $\alpha = 0.5$ from $\alpha
+= 1.0$ in two dimensions.
+
+\begin{figure}[ht]
+  \centering
+  \label{fig:pakpca}
+  \includegraphics{kernel_pa_kpca}
+  \caption[Projection of kernel matrix for different attachment power values
+  onto its first two principal components]{
+    Projection of the kernel matrix for different preferential attachment power
+    values onto its first two principal components, for eight simulation
+    scenarios. Each point corresponds to a simulated transmission tree, and is
+    coloured by preferential attachment power. Facets are number of infected
+    nodes (horizontal), and number of sampled tips (vertical). The parameters
+    to the tree kernel were $\lambda = 0.3$ and $\sigma = 5$, and the nLTT was
+    not used. Qualitatively, trees with a larger number of tips are easier to
+    separate in kernel space, regardless of what sampling proportion they
+    represent. In all cases, the highest attachment power can be separated from
+    the other two, but the two lowest values become hand to distinguish with in
+    the 100-tip trees.
+  }
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \label{fig:pacrossv}
+  \includegraphics{kernel_pa_crossv}
+  \caption[Cross-validation performance of kernel support vector machine
+  classifier for preferential attachment power]{
+    Cross-validation performance of kernel support vector machine classifier
+    for preferential attachment power.
+  }
+\end{figure}
 
 \subsubsection{Grid search}
 

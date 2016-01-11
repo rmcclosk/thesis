@@ -1,7 +1,9 @@
 \documentclass[12pt]{article}
 \usepackage[osf]{garamondx}
 \usepackage[garamondx,cmbraces]{newtxmath}
-\usepackage{fullpage}
+\usepackage{marginnote}
+\usepackage[top=2cm, bottom=2cm, outer=3cm, inner=3cm, heightrounded, 
+            marginparwidth=2cm, marginparsep=0.5cm]{geometry}
 \usepackage{setspace}
 
 \usepackage[backend=biber, style=authoryear]{biblatex}
@@ -13,8 +15,11 @@
 \usepackage{algorithmicx}
 \usepackage{algpseudocode}
 
+\newcommand{\comment}[1]{\marginnote{\textit{#1}}}
+
 \newcommand{\defn}[1]{\textit{#1}}
 \newcommand{\software}[1]{\textit{#1}}
+\newcommand{\etal}{\textit{et al.}}
 
 \newcommand{\set}[1]{\left\lbrace#1\right\rbrace}
 \renewcommand{\emptyset}{\varnothing}
@@ -53,11 +58,11 @@ Bayesian computation}
 \section{Methods}
 \input{methods}
 
-\printbibliography
-
 \section{Results}
 \input{results}
 
 \section{Conclusions}
+
+\printbibliography
 
 \end{document}

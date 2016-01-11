@@ -1,43 +1,53 @@
-\subsection{Overview of phylodynamics}
+\subsection{Phylogenetics and phylodynamics}
 
 \subsubsection{Phylogenetic trees}
 
 In evolutionary biology, a \defn{phylogeny}, or \defn{phylogenetic tree}, is a
 graphical representation of the the evolutionary relationships among a group of
-organisms or species (generally, \defn{taxa}). Phylogenies consist of nodes,
-representing taxa, and edges or branches, which connect taxa to their
-evolutionary ancestors and descendants. The \defn{tips} of a phylogeny, that
-is, the nodes without any descendants, correspond to \defn{extant}, or
-observed, taxa, while the \defn{internal nodes} correspond to their extinct
-common ancestors. Phylogenies may have a \defn{root}, which is a node with no
-descendants distinguished as the most recent common ancestor of all the extant
-taxa. When such a root exists, the tree is referred to as being \defn{rooted};
-otherwise, it is \defn{unrooted}. The structural arrangement of nodes and edges
-in the tree is referred to as its \defn{topology}. The branches of the tree may
-have associated lengths, representing either calendar time or genetic distance
-between ancestors and their descendants. 
+organisms or species (generally, \defn{taxa})~\autocite{haeckel1866generelle}.
+The \defn{tips} of a phylogeny, that is, the nodes without any descendants,
+correspond to \defn{extant}, or observed, taxa, while the \defn{internal nodes}
+correspond to their common ancestors. The edges or \defn{branches} of the
+phylogeny connect ancestors to their descendants. Phylogenies may have a
+\defn{root}, which is a node with no descendants distinguished as the most
+recent common ancestor of all the extant
+taxa~\autocite{harding1971probabilities}. When such a root exists, the tree is
+referred to as being \defn{rooted}; otherwise, it is \defn{unrooted}. The
+structural arrangement of nodes and edges in the tree is referred to as its
+\defn{topology}~\autocite{cavalli1967phylogenetic}. 
 
-A phylogeny with branch lengths in calendar time units is often referred to as
-\defn{time-scaled}. In a time-scaled phylogeny, the internal nodes can be
-mapped onto a timeline by using the tips of the tree, which usually map to the
-present day, as a reference point~\autocite{nee1992tempo}. The corresponding
-points on the timeline are called \defn{branching times}. These concepts are
-illustrated in Figure~\ref{fig:speciestree}.
+The branches of the tree may have associated lengths, representing either
+evolutionary distance or calendar time between ancestors and their descendants.
+The term ``evolutionary distance'' is used here imprecisely to mean any sort of
+quantitative measure of evolution, such as the number of differences between
+the DNA sequences of an ancestor its descendant, or the difference in average
+body mass or height. This will be clarified below in
+subsection~\ref{subsubsec:genetree}. A phylogeny with branch lengths in calendar
+time units is often referred to as \defn{time-scaled}. In a time-scaled
+phylogeny, the internal nodes can be mapped onto a timeline by using the tips
+of the tree, which usually map to the present day, as a reference
+point~\autocite{nee1992tempo}. The corresponding points on the timeline are
+called \defn{branching times}, and the rate of their accumulation is referred
+to as the \defn{branching rate}. Rooted trees whose tips are all the same
+distance from the root are called \defn{ultrametric}
+trees~\autocite{buneman1974note}. These concepts are illustrated in
+Figure~\ref{fig:speciestree}.
 
 \begin{figure}[ht]
   \centering
   \label{fig:speciestree}
   \includegraphics{speciestree}
-  \caption[Illustration of a rooted, time-scaled phylogeny]{Illustration of a
-    rooted, time-scaled phylogeny. The tips of the tree, which represent extant
-    taxa, are placed at the present day on the
-    time axis. Internal nodes, representing extinct common ancestors to the
-    extant taxa, fall in the past. The topology of the tree indicates that cats
-    and dogs are the most closely related pair of species, whereas fish is most
-    distantly related to any other node in the tree.}
+  \caption[Illustration of a rooted, ultrametric, time-scaled phylogeny]
+    {Illustration of a rooted, ultrametric, time-scaled phylogeny. The tips of
+      the tree, which represent extant taxa, are placed at the present day on
+      the time axis. Internal nodes, representing extinct common ancestors to
+      the extant taxa, fall in the past. The topology of the tree indicates
+      that cats and dogs are the most closely related pair of species, whereas
+      fish is most distantly related to any other node in the tree.}
 \end{figure}
 
 \subsubsection{Species trees and transmission trees}
+\label{subsubsec:speciestree}
 
 A \defn{species tree} is a particular type of phylogeny in which the taxa are
 species, and the branching times correspond to historical speciation events. In
@@ -46,25 +56,167 @@ extant species, as this would imply certain knowledge of speciation events in
 the distant past. Therefore, all species trees considered by researchers are
 estimates, based on the genetic or phenotypic similarity of the extant taxa,
 the fossil record, or both. We discuss some of the challenges associated with
-this estimation in subsection \ref{subsec:treeconv} below. However, for the
-moment, we ignore these complications and suppose that we know the true species
-tree.
+this estimation in subsection \ref{subsubsec:treeconv} below. However, for the
+moment, we ignore these complications and consider what can be said about the
+true species tree.
 
-The process of speciation, which causes branching in a species tree, often
-occurs by an \defn{allopatric} process, where a sub-population of organisms is
-isolated from the original population by a geographic
-barrier~\autocite{coyne2004speciation}. Over time, the two populations diverge
-genetically, eventually resulting in two distinct species.
+Speciation, which causes branching in a species tree, often occurs by an
+\defn{allopatric} process, where a sub-population of organisms is isolated from
+the original population by a geographic barrier~\autocite{coyne2004speciation}.
+Over time, differing selection pressures on either side of the barrier, coupled
+with genetic drift, cause the two populations to diverge genetically. This
+eventually results in two distinct species, which will appear as two subtrees
+or \defn{clades} in their species tree if descendants of both survive to the
+present. Of course, this is not necessarily the case, as selection may cause
+one or both of the new sub-populations or their descendants to become extinct.
+On the other hand, selection may favour one of the sub-populations, allowing it
+to expand into new regions or niches and possibly paving the way for subsequent
+speciation events. Therefore, \comment{Is this a fair statement?} we can point
+out two forces primarily responsible for the shapes of species trees:
+geographic barriers, which cause branching, and selection, which controls which
+lineages survive to the present and influences the branching rate.
+
+A different type of tree used in the study of pathogens is a \defn{transmission
+tree}. In such trees, tips represent infected hosts, while internal nodes
+correspond to transmissions from one host to another. Transmission trees are
+generally time-scaled \comment{Is this true?} and rooted, with the root
+corresponding to the index case and branching times indicating times of
+transmission. The internal nodes may be labeled with the donor of the
+transmission pair, if this is known. The tips of the tree, rather than being
+fixed at the present day, are placed at the time at which the individual was
+discovered or their pathogen population sampled. Consequently, the transmission
+tree may not be ultrametric, but may have tips located at varying distances
+from the root. Such trees are said to have \defn{heterochronous} taxa or
+samples~\autocite{drummond2003measurably}, in contrast to the
+\defn{isochronous} samples found in macro-organisms species trees. A
+transmission tree is illustrated in Figure~\ref{fig:contactnet} (right).
+
+When considering epidemics of RNA viruses, transmission trees and species trees
+are highly related. The viral population within a single host has often been
+referred to as a \defn{quasispecies}~\autocite{domingo2012viral}, and due to
+the fast evolutionary rate of these viruses, two hosts' viral populations are
+invariably genetically distinct. The transmission process is functionally
+identical to allopatric speciation, involving geographic isolation of a
+sub-population in a new host and subsequent genetic divergence. However, for
+the most part, it is not selection but rather host epidemiology which causes
+certain lineages to proliferate while driving others to extinction. A host who
+recovers, dies, or is isolated equates to an extinction in the transmission
+tree. On the other hand, dense populations in frequent contact often experience
+rapid epidemic growth, which causes similarly rapid accumulation of branching
+points in the tree. 
+
+The fact that these evolutionary (ie. speciation) and epidemiological processes
+occur on the same time scale for RNA viruses~\autocite{drummond2003measurably}
+is the basis for the field of
+\defn{phylodynamics}~\autocite{grenfell2004unifying}. The similarity between
+transmission and speciation means that it is possible to apply many of the
+tools and techniques developed for species trees to viral transmission trees,
+and interpret the results in the context of transmission rates and host
+epidemiology. As a basic example, the lineages-through-time
+plot~\autocite{nee1992tempo}, which plots the historical speciation rate
+against time, can be used to quantify the incidence of new infections over the
+course of an epidemic. \comment{Reference?} In
+subsection~\ref{subsubsec:treeshape} below, we review some of these methods in
+more detail, as well as several which have been developed specifically for
+viral phylodynamics, and discuss what these methods can tell us about host
+epidemiology.
+
+Finally, we must note two important points. First, we have not yet considered
+the selection pressures operating within a single host, such as immune
+pressure, because these forces do not directly impact transmission trees unless
+they cause a host to recover or die. Second, we reiterate that both
+transmission trees and species trees are theoretical objects which are almost
+never known with certainty for real data. Indeed, the estimation of
+transmission trees is often problematic, and it is in such estimation that
+within-host forces play a role. Both of these issues are discussed further
+below in subsection~\ref{subsubsec:treeconv}, though we continue to ignore them
+in the next subsection.
 
 \subsubsection{Gene trees and viral phylogenies}
+\label{subsubsec:genetree}
 
-\subsubsection{Using gene trees to estimate species trees}
+\subsubsection{Estimating transmission trees}
+\label{subsubsec:treeconv}
+
+Most applications of viral phylodynamics, including this project, aim to answer
+epidemiological questions~\autocite{volz2013viral}. For example, phylodynamic
+methods have been used to investigate the degree of
+clustering~\autocite{hughes2009molecular} and the effect of elevated
+transmission risk in acute infection~\autocite{volz2012simple} (a more thorough
+review is given below in subsection~\ref{subsubsec:appphylo}). For these
+applications, we are ultimately interested in the transmission tree, which is a
+representation of an epidemiological process (transmission), as opposed to the
+viral phylogeny, which represents a biological process (viral evolution). As
+discussed above in subsection~\ref{subsubsec:speciestree}, transmission trees and
+are in practice unknown, and must be estimated from available data. Here, we
+review some of the ways to perform such estimation.
+
+In principle, transmission trees can be reconstructed by on-the-ground
+epidemiological methods, that is, by asking each person who they contacted.
+This is particularly relevant for sexually transmitted diseases such as HIV,
+where individuals are more likely to recall who they contacted and
+when~\autocite{klovdahl1985social}. This kind of data is challenging to collect
+in detail. Most commonly, when applying phylodynamics in practice, the
+transmission tree is estimated from the viral
+phylogeny~\autocite{volz2013viral}. As discussed above in
+subsection~\ref{subsubsec:genetree}, the viral phylogeny is itself also estimated;
+however, for the moment we ignore this complication and describe methods for
+estimating the transmission tree if the viral phylogeny were known.
+
+When we consider the fact that the viral phylogeny is not known with certainty,
+the methods just described follow a two-step procedure. The first step is to
+estimate the viral phylogeny, and the second step is to use it to estimate the
+transmission tree.
+
+\autocite{didelot2014bayesian} develop a Bayesian version of the two-step
+approach. They first estimate a time-scaled phylogeny from viral samples, then
+estimate the transmissions which took place along the phylogeny. Due to
+within-host evolution, the transmissions are allowed to occur anywhere along
+the branches, rather than being constrained to happen at branching points.
+However, the authors admit that their method requires sampling of every
+infected individual, although they indicate that it could be extended to relax
+this assumption.
+
+A different approach is undertaken by Jombart
+\etal~\autocite{jombart2011reconstructing}, who build transmission trees
+directly from sequence data without the intermediate step of constructing a
+phylogeny. Their method finds the most likely geneology among the sampled
+sequences, assuming that the that the common ancestors to sampled isolates are
+themselves sampled. Although this may be a realistic assumption in the early
+stages of an epidemic of a slower evolving pathogen, it is unlikely for
+ancestors to be present among sequences sampled from an ongoing HIV epidemic
+\comment{Needs a reference}.
+
+Several alternative approaches have been developed which aim to
+incorporate available epidemiological data as well. Cottam
+\etal~\autocite{cottam2008integrating} first built a viral phylogeny, then
+enumerated all transmission trees consistent with this phylogeny by labelling
+the internal nodes of the phylogeny in every possible way. Each of the putative
+transmission trees was assigned a likelihood based on infection time and
+geographic separation. 
+
 
 \subsubsection{Tree shapes}
+\label{subsubsec:treeshape}
+
+The aim of viral phylodynamics is to glean some kind of knowledge, about the
+epidemic, the virus, or its hosts and their behaviour, by studying a phylogeny,
+most often a transmission tree. Phylogenies are complex objects, and it is not
+immediately obvious how to extract useful information from them with respect to
+fitting a parameter. Standard statistical methods, built for numeric data
+cannot be applied directly - for example, one cannot perform a regression of a
+parameter of interest against a phylogeny. Therefore, before we discuss exactly
+what phylodynamics can tell us about epidemics, and how it has been applied in
+the past, we will review some of the methods for quantifying the shapes of
+phylogenies and their similarity to each other.
+
+\subsubsection{Applications of phylodynamics}
+\label{subsubsec:appphylo}
 
 \subsection{Contact networks}
+\label{subsec:contactnet}
 
-\subsubsection{Overview and epidemiology}
+\subsubsection{Overview}
 
 Epidemics spread through populations of hosts through \defn{contacts} between
 those hosts. The definition of contact depends on the mode of transmission of
@@ -112,171 +264,16 @@ tree are not available to the researcher.
   {Illustration of epidemic spread over a contact network. On the left, a
    contact network with five hosts, labelled A through E. Directed edges
    indicate six symmetric contacts among the hosts. Coloured, bolded edges
-   represent transmissions. The epidemic began at node A, who transmitted to
+   represent transmissions. The epidemic began with node A, who transmitted to
    nodes B and C. Node C further transmitted to node D, and node E was not
    infected. On the right, the transmission tree topology corresponding to this
-   scenario.}
+   scenario. Note that individual B was sampled before the other infected
+   individuals, resulting in a tree with heterochronous tips.}
 \end{figure}
 
 \subsubsection{Generative models}
+\label{subsubsec:generative}
 
-%Now, consider a phylogeny not of macro-organisms, but of RNA viruses. Many of
-%these, such as the human immuno-deficiency virus (HIV), evolve rapidy enough
-%that populations can accumulate measurable genetic changes on time scales of
-%months or years~\autocite{drummond2003measurably}. Because viruses cannot exist
-%for long outside their hosts, the host replaces the outside world as the
-%``environment'' in which evolution takes place. 
-%
-%In this light, striking parallels can be drawn between immunological and
-%epidemiological processes at the host level, and the evolutionary processes
-%studied in population genetics~\autocite{grenfell2004unifying}. For example,
-%both the host immune response~\autocite{mcmichael2001cellular} and the presence
-%of anti-retroviral drugs~\autocite{??} exert directional selection on the viral
-%population within a single host. Transmission, where a sub-population of
-%virions from the donor host is ``geographically'' isolated in the recpient,
-%closely mirrors the allopatric speciation process and causes a branching point
-%in the viral phylogeny (although this may not correspond exactly to the time of
-%transmission, as discussed in the next section). Consequently, any factor which
-%influences transmission dynamics, such as the virus' mode of transmission or
-%the population structure of its hosts, in turn affects the shape of the
-%phylogeny. The study of this interaction between host-level factors and viral
-%phylogies is known as \defn{phylodynamics}~\autocite{grenfell2004unifying}. 
-%
-%In particular, if a time-scaled phylogeny is constructed where all viruses from
-%the same host are collapsed into a single taxon, we might expect the branching
-%time relating the two hosts to correspond to the time of transmission. Of
-%course, this will only be the case if the two hosts' infections indeed diverged
-%allopatrically at the time of transmission, and not sympatrically within the
-%donor host at some previous time. This limitation, and others, in interpreting
-%the branching times of the viral phylogeny as transmission times, are discussed
-%in the next section. Nevertheless, even taking these limitations into account,
-%the relationship between branching times in the phylogeny and transmission
-%times in the population theoretically implies that the evolutionary history of
-%the virus is informative about the biology and epidemiology of its hosts. In
-%other words, information about, for example, transmission patterns, might be
-%inferred from the viral phylogeny. Phylodynamic methods are intended to
-%complement more traditional approaches to gathering epidemiological data, such
-%as population surveys.
-%
-%
-%\subsection{Sources of error in phylodynamics}
-%\label{subsec:treeconv}
-%
-%In general, the exact topology and branch lengths of a phylogeny relating
-%arbitrary taxa are not known and must be estimated. Such estimation is most
-%often carried out using some type of genetic data sampled from each of the
-%taxa, either amino acid sequences or gene orders. The resulting phylogeny, also
-%known as a \defn{gene tree}, differs from the time-scaled \defn{species tree}
-%which would contain complete information about past speciation events. In
-%viral phylogenetics, the gene tree is the viral phylogeny, constructed using
-%the genetic sequences of the sampled viruses. On the other hand, the species
-%tree is the \defn{transmission tree}, wherein branching times correspond
-%exactly to transmission times. In general, phylodynamic methods perform
-%inference based on the transmission tree, which must be inferred from a viral
-%phylogeny based on the available sequence data. The inference of the viral
-%phylogeny itself is not an error-free process, as accurate phylogenetic
-%inference is still an active area of research. Moreover, the conversion of the
-%phylogeny into a transmission tree is a process which has the potential to
-%introduce at least three types of error, described below. We use the terms
-%``gene tree'', ``viral phylogeny'', and ``phylogeny'' interchangably, as well
-%as the terms ``species tree'' and ``transmission tree''.
-%
-%Firstly, the branch lengths of the gene tree are measured in genetic distance,
-%and must be somehow converted to units of calendar time used in the species
-%tree. If we assume a constant rate of evolution along the whole tree (a
-%\defn{strict molecular clock}), then this conversion is straightforward - we
-%simply divide each of the branch lengths by the rate of evolution. However, it
-%is well known that rates of evolution are neither constant over time nor
-%constant between lineages, and the general problem of time-scaling a
-%phylogenetic tree is still an active area of research. Phylodynamic inference
-%relies on the assumption of a correctly time-scaled tree, and violations of
-%this assumption can mislead parameter estimates.
-%
-%A second limitation which has perhaps greater potential to mislead phylodynamic
-%inference is the potential discordance between the gene tree and the species
-%tree. In an allopatric speciation, some of the genetic diversity separating the
-%two eventual species may already have been present in the population
-%\emph{before} the geographic isolation occured. In that case, the branching
-%time in the gene tree, which indicates the time when two genetically distinct
-%versions of the gene, may be earlier than the branching point in the species
-%tree. In evolutionary biology, this phenomenon is referred to as
-%\defn{incomplete lineage sorting}. Furthermore, if there was substantial
-%variation within a population which underwent two or more speciation events in
-%close succession, the order in which the species diverged may be different from
-%the order in which their distinct genes arose in the original heterogeneous
-%population. In this case, the topology of the species tree would be different
-%from that of the gene tree. 
-%
-%Finally, there is the problem of rooting the tree, that is, identifying the
-%node corresponding to the most recent common ancestor of all the sampled
-%viruses. The choice of root influences the temporal order of the internal
-%nodes in the phylogeny. If the tips are constrained to the present day, or some
-%other fixed sampling time, the branch lengths in the species tree must also be
-%altered to accomodate the choice of root. 
-%
-%To our knowledge, there has been no theoretical exploration of the quantitative
-%effect of any of these sources of error on the accuracy of phylodynamic
-%inference. Most phylodynamic studies assume, implicitly or explicitly, that the
-%viral phylogeny provides the same information as the transmission tree, and
-%errors introduced by this assumption are generally ignored. Studies employing
-%Bayesian methods eliminate some of the uncertainty associated with constructing
-%the viral phylogeny, but this does not account for the error introduced in the
-%phylogeny-to-transmission-tree conversion process. Our work does not take a
-%Bayesian approach to inferring the phylogeny, and therefore is susceptible to
-%all the sources of error discussed here.
-%
-%\subsection{Contact networks}
-%
-%Compartmental models of epidemic growth and spread often assume that human
-%populations are homogeneously mixed, that is, any person in the population is
-%equally likely to transmit the infection to any other. More sophisticated
-%models allow for the population to be divided into groups with higher or lower
-%contact rates, but these still do not account for individual variation or
-%population structure within compartments. In reality, and especially for
-%sexually-transmitted infections such as HIV, this assumption of homogeneity is
-%not realistic. There is substantial variation in the number of contacts per
-%individual, and potential transmissions are limited by geographic proximity.
-%The aim of using contact networks is to remove these unrealistic assumptions by 
-%explicitly simulating each individual in a population, along with the contacts
-%they have which could possibly lead to a transmission.
-%
-%A \defn{contact network} is a graphical representation of a population over
-%which an epidemic can spread. Contact networks consist of nodes and edges,
-%where the nodes represent people, and edges represent contacts. An edge between
-%two nodes indicate that transmission is possible between the two corresponding
-%individuals. For example, if we are considering an HIV transmission network,
-%the edges may represent sexual contacts or individuals sharing injection drug
-%paraphernalia. For an airborne pathogen such as influenza, an edge may simply
-%indicate that the two people were in the same room. The edges in a contact
-%network may be undirected, indicating that all contacts could possibly transmit
-%to each other, or directed, indicating that transmission risk is one-way. It is
-%possible to simulate an undirected network using directed edges by simply
-%including two directed edges, one in either direction, for each single directed
-%edge. Therefore, we exclusively consider directed contact networks here.
-%
-%Contact networks have been studied extensively in a variety of social,
-%economic, and public health contexts. However, investigation of the effects of
-%contact network structures on viral phylogenies have been much more limited.
-%Existing studies have to focused on a few broad classes of contact network, and
-%how phylogenies deriving from these networks have
-%differed~\autocite{leventhal2012inferring, colijn2014phylogenetic,
-%robinson2013dynamics}. To demonstrate our method, we focus on the same three
-%contact network types as studied in~\autocite{leventhal2012inferring}, namely
-%Erdos-Renyi (ER) graphs, Barabasi-Albert (BA) graphs, and Watts-Strogatz (WS)
-%graphs. ER graphs, also known as random graphs, are the simplest generative
-%graph model~\autocite{erdos1960evolution}. They have a single parameter, $p$,
-%which gives the probability of any edge occuring in the network. BA
-%graphs~\autocite{barabasi1999emergence} model a preferential attachment process
-%where nodes with high degree tend to attract more connections. They have two
-%parameters, $m$ and $\alpha$, and are constructed by repeatedly adding new
-%nodes with $m$ outgoing edges to the network. An existing node $v$ in the
-%network is chosen to be the endpoint of these new edges with probability
-%proportional to $d(v)^\alpha$, where $d(v)$ is the degree of $v$. WS
-%graphs~\autocite{watts1998collective}, also known as small-world graphs, have
-%two parameters, $k$ and $p$. They are constructed by creating a ring lattice
-%with $k$ edges per node, and then randomly rewiring each edge with probability
-%$p$.
-%
 %\subsection{Approximate Bayesian computation}
 
 %Consider a model $M$, with parameters $\theta$, which we wish to fit to some
@@ -336,3 +333,5 @@ tree are not available to the researcher.
 %Approximate Bayesian computation was designed for situations like these, where
 %exact likelihoods are not available, perhaps due to the model involving an
 %algorithm or generative process.
+
+\subsection{Approximate Bayesian computation}

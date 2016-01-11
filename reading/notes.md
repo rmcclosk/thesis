@@ -21,6 +21,10 @@ feature space to be all possible k-tuples, which is only countable when the
 alphabet itself is countable. I think I'm looking for something more similar to
 n-grams.
 
+**[@scholkopf1998nonlinear]**
+
+* The paper which introduces kernel PCA. Only skimmed.
+
 # ABC
 
 **[@sisson2007sequential]**
@@ -137,6 +141,52 @@ transmission events on the accuracy of reconstructing the transmission tree (!).
 Turns out it's not that bad.
 * There are some other references in the discussion about methods to
 simultaneously estimate both trees.
+
+**[@ypma2012unravelling]**
+
+* Combines genetic, geographic, and epidemiological data to estimate
+transmission trees.
+* Assume that the tree data types are independent and take their product to get
+a total likelihood.
+* Apply to a flu outbreak on farms.
+
+**[@cottam2008integrating]**
+
+* "Integrates" genetic data into transmission tree construction by eliminating
+all trees which are inconsistent with known epidemiological data.
+* Uses something like UPGMA to reconstruct the trees.
+
+**[@leitner1996accurate]**
+
+* Use phylogenetic methods to reconstruct a known HIV transmission history by
+eliminating transmission trees not consistent with genetic data.
+* Most of the estimated phylogenies were quite accurate, even though the
+methods were crude.
+* Choice of gene has more of an impact than choice of method or model; more
+data was better.
+
+**[@jombart2011reconstructing]**
+
+* Phylogenetic methods will fail to reconstruct the transmission tree if both
+ancestors and descendants are present in a sample, which the authors claim is
+likely during the early stages of an epidemic.
+* Develop a method to find the optimal phylogeny consistent with known
+infection times, where "optimal" is defined as optimizing a weight function
+such as genetic distance.
+* Worked much better than phylogenetics when there were sampled ancestors.
+Phylogenetics did very poorly in this scenario.
+* Branch lengths are not estimated, only topology.
+* They suggest to use their method in densely sampled early epidemics. 
+
+**[@didelot2014bayesian]**
+
+* Another method to combine genomic and epidemiological data to get a
+transmission tree, this time a Bayesian one.
+* Considers within-host diversity, in contrast to some of the other developed
+methods.
+* Points out that coalescences in the viral phylogeny coincide with
+transmissions when within-host diversity is zero.
+* They also infer the SIR parameters and effective population size.
 
 ## Stochastic Mapping
 
@@ -277,6 +327,25 @@ phylogeny, not a transmission tree. Could be very useful!
 by multiple orders of magnitude, so it's important to take it into account.
 * I should definitely do this one for journal club.
 
+**[@welch2011network]**
+
+* Simulates epidemics over networks with a constant degree sequence but varying
+clustering coefficients.
+* Finds that the trees cannot be distinguished from one another. I wonder
+though, if this would be the same with the tree kernel.
+* Lots of good references in here for how contact network structure influences
+epidemic spread.
+* Suggests that inference of contact network properties should be focused on
+"degree distribution or broader notions of population structure", which is what
+I'm doing.
+* TODO
+
+**[@klovdahl1985social]**
+
+* Canonical reference for the (modern) use of social networks in an
+epidimiological context.
+* TODO
+
 ## Other Phylodynamics
 
 **[@hughes2009molecular]**
@@ -340,6 +409,14 @@ Colless'.
 evaluated, but they caution against generalizing that and advise that all six
 statistics be used.
 
+**[@holmes1995revealing]**
+
+* First reference to using the LTT to estimate epidemic prevalence.
+* This is nostalgic to read. 72 sequences from all over the world. Alignment
+with clustal, then tree building with phylip.
+* HIV underwent exponential growth in the past but more constant in the
+present, whereas HCV was endemic in the past but became epidemic recently.
+
 # ERGMs
 
 **[@robins2007introduction]**
@@ -385,7 +462,7 @@ parameters.
 no" answer to whether a model is a good fit. It's more like a tool to assist in
 model selection by eye.
 
-**[@gillespie1977exact]**
+**[@gillespie1976general]**
 
 * I didn't actually read this one, but it's the reference for performing
 simulations with concurrent Poisson processes.
@@ -464,6 +541,24 @@ better than imbalance.
 
 * I'm using this as a reference for what allopatric speciation is, and the fact
 that it's common. See chapter 3, particularly page 84.
+
+**[@haeckel1866generelle]**
+
+* The first instance of the word "phylogeny".
+
+**[@cavalli1967phylogenetic]**
+
+* Seems to be the first instance of the idea of the "topology" of a tree.
+Possibly also of the "root" concept, although that might be the below.
+
+**[@harding1971probabilities]**
+
+* Might be the first instance of the term "root" for phylogenetics. At any rate
+it gives a nice definition.
+
+**[@buneman1974note]**
+
+* Introduces the 4-point condition for ultrametric trees.
 
 # Software
 
