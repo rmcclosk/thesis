@@ -166,10 +166,11 @@ class Step:
     def get_walltime(self, ntasks):
         """Get a string specifying the amount of walltime for n tasks"""
         wt = self.walltime * ntasks
-        h = int(wt.seconds / 3600)
-        m = int(wt.seconds % 3600 / 60)
-        s = wt.seconds % 60
-        return "{:02d}:{:02d}:{:02d}".format(h, m, s)
+        sec = wt.days * 86400 + wt.seconds
+        h = int(sec / 3600)
+        m = int(sec % 3600 / 60)
+        s = sec % 60
+        return "{}:{:02d}:{:02d}".format(h, m, s)
 
     def find_file(self, parameters):
         """Find the name for a file with a particular set of parameters."""
@@ -368,7 +369,7 @@ class Step:
 
 class Experiment:
     """A computational experiment."""
-    def __init__(self, spec):
+    def __init__(self, spec, skip_sanitize=False):
         """Initialize an experiment from a YAML spec"""
         self.name = spec["Name"]
         self.nproc = spec.get("Processes", 1)
@@ -396,8 +397,9 @@ class Experiment:
                 depends = depends.split(" ")
             self.step_graph[step_name] = depends
 
-        self.sanitize_database()
-        self.sanitize_filesystem()
+        if not skip_sanitize:
+            self.sanitize_database()
+            self.sanitize_filesystem()
 
     def create_database(self):
         self.cur.execute("""
@@ -529,6 +531,7 @@ if __name__ == "__main__":
     parser.add_argument("-q", "--qsub", action="store_true", default=False)
     parser.add_argument("-t", "--tmpdir", default=None)
     parser.add_argument("-s", "--step")
+    parser.add_argument("-k", "--skip-sanitize", action="store_true", default=False)
     parser.add_argument("yaml_file", type=argparse.FileType("r"))
     args = parser.parse_args()
 
@@ -545,5 +548,5 @@ if __name__ == "__main__":
         logging.error("Wrong hostname: expected to be running on {}, but we are on {}".format(hostname_re.pattern, socket.gethostname()))
         sys.exit()
 
-    expt = Experiment(spec)
+    expt = Experiment(spec, args.skip_sanitize)
     expt.run(args.qsub, args.tmpdir, args.step)
