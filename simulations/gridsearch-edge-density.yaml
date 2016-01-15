@@ -27,18 +27,20 @@ Steps:
             close(f)
 
     train-tree:
-        Extension: nwk
+        Extension: nwk.bz2
         Walltime: 00:00:30
         Parameters:
             edge_density: "[i/50000. for i in range(10, 201)]"
             replicate: "range(10)"
             nsimnode: 1000
-            ntip: 1000
+            ntip: [500, 1000]
         Depends: train-network
         Interpreter: bash
         Rule: |
-            echo "#{yaml}" > {train-tree}                                                 
-            bzcat {train-network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> {train-tree}
+            NWKFILE=`echo {train-tree} | sed s/'.bz2'//`
+            echo "#{yaml}" > $NWKFILE
+            bzcat {train-network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> $NWKFILE
+            bzip2 $NWKFILE
 
     test-network:
         Extension: gml.bz2
@@ -46,7 +48,7 @@ Steps:
         Parameters:
             nnode: 5000
             nsimnode: 1000
-            true_edge_density: [0.0004, 0.001, 0.002, 0.0032]
+            true_edge_density: [0.0004, 0.0006, 0.001, 0.0012, 0.0018, 0.002, 0.0032]
             test_replicate: "range(10)"
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
@@ -62,18 +64,20 @@ Steps:
             close(f)
 
     test-tree:
-        Extension: nwk
+        Extension: nwk.bz2
         Walltime: 00:00:30
         Parameters:
-            true_edge_density: [0.0004, 0.001, 0.002, 0.0032]
+            true_edge_density: [0.0004, 0.0006, 0.001, 0.0012, 0.0018, 0.002, 0.0032]
             test_replicate: "range(10)"
             nsimnode: 1000
-            ntip: 1000
+            ntip: [500, 1000]
         Depends: test-network
         Interpreter: bash
         Rule: |
-            echo "#{yaml}" > {test-tree}                                                 
-            bzcat {test-network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> {test-tree}
+            NWKFILE=`echo {test-tree} | sed s/'.bz2'//`
+            echo "#{yaml}" > $NWKFILE
+            bzcat {test-network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> $NWKFILE
+            bzip2 $NWKFILE
 
     kernel:
         Extension: tsv
@@ -81,11 +85,25 @@ Steps:
         Processes: 10
         Walltime: 01:00:00
         Parameters:
-            true_edge_density: [0.0004, 0.001, 0.002, 0.0032]
+            ntip: [500, 1000]
+            true_edge_density: [0.0004, 0.0006, 0.001, 0.0012, 0.0018, 0.002, 0.0032]
             test_replicate: "range(10)"
-            decay_factor: 0.3
-            rbf_variance: 50
+            decay_factor: [0.3, 0.4]
+            rbf_variance: [1, 20]
             nltt: 0
+        Exclusions:
+            -
+                ntip: 500
+                decay_factor: 0.3
+            -
+                ntip: 500
+                rbf_variance: 20
+            -
+                ntip: 1000
+                decay_factor: 0.4
+            -
+                ntip: 1000
+                rbf_variance: 1
         Depends: train-tree test-tree
         Interpreter: bash
         Rule: |
@@ -100,15 +118,16 @@ Steps:
                 treekernel --ladderize --normalize --scale-branches mean \
                            --decay-factor {decay_factor} \
                            --gauss-factor {rbf_variance} \
-                           $NLTT {test-tree} $T >> {kernel}
+                           $NLTT <(bzcat {test-tree}) <(bzcat $T) >> {kernel}
             done
 
     kernel-plot:
         Extension: pdf
         Walltime: 00:02:00
         Parameters:
-            true_edge_density: [0.0004, 0.001, 0.002, 0.0032]
+            true_edge_density: [0.0004, 0.0006, 0.001, 0.0012, 0.0018, 0.002, 0.0032]
             test_replicate: [0, 1, 2]
+            ntip: [500, 1000]
         Depends: kernel train-tree
         Interpreter: R --quiet --vanilla
         Startup: suppressPackageStartupMessages(library(netabc))
@@ -126,6 +145,8 @@ Steps:
     error-plot:
         Extension: pdf
         Walltime: 00:02:00
+        Parameters:
+            ntip: [500, 1000]
         Depends: kernel test-tree train-tree
         Interpreter: R --quiet --vanilla
         Startup: |
@@ -155,6 +176,6 @@ Steps:
 
             # plot the errors
             ggplot(plot.data, aes(x=true_edge_density, y=error, group=true_edge_density)) + 
-                geom_boxplot() + 
+                geom_boxplot() + ggtitle("ntip = {ntip}") +
                 facet_wrap(~error.type, scales="free") + theme_bw()
             ggsave("{error-plot}")

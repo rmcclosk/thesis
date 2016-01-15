@@ -24,18 +24,21 @@ Steps:
             close(f)
 
     train-tree:
-        Extension: nwk
+        Extension: nwk.bz2
         Walltime: 00:00:30
         Parameters:
+            m: 2
             pa_power: "[i/100 for i in range(201)]"
             replicate: "range(10)"
             nsimnode: 1000
-            ntip: 1000
+            ntip: [500, 1000]
         Depends: train-network
         Interpreter: bash
         Rule: |
-            echo "#{yaml}" > {train-tree}                                                 
-            bzcat {train-network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> {train-tree}
+            NWKFILE=`echo {train-tree} | sed s/'.bz2'//`
+            echo "#{yaml}" > $NWKFILE
+            bzcat {train-network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> $NWKFILE
+            bzip2 $NWKFILE
 
     test-network:
         Extension: gml.bz2
@@ -43,7 +46,7 @@ Steps:
         Parameters:
             nnode: 5000
             m: 2
-            true_pa_power: [0.5, 1.0, 1.5]
+            true_pa_power: [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75]
             test_replicate: "range(10)"
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
@@ -56,26 +59,31 @@ Steps:
             close(f)
 
     test-tree:
-        Extension: nwk
+        Extension: nwk.bz2
         Walltime: 00:00:30
         Parameters:
-            true_pa_power: [0.5, 1.0, 1.5]
+            m: 2
+            true_pa_power: [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75]
             test_replicate: "range(10)"
             nsimnode: 1000
-            ntip: 1000
+            ntip: [500, 1000]
         Depends: test-network
         Interpreter: bash
         Rule: |
-            echo "#{yaml}" > {test-tree}                                                 
-            bzcat {test-network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> {test-tree}
+            NWKFILE=`echo {test-tree} | sed s/'.bz2'//`
+            echo "#{yaml}" > $NWKFILE
+            bzcat {test-network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> $NWKFILE
+            bzip2 $NWKFILE
 
     kernel:
-        Extension: tsv
+        Extension: tsv.bz2
         Sleep: 300
         Processes: 10
         Walltime: 01:00:00
         Parameters:
-            true_pa_power: [0.5, 1.0, 1.5]
+            ntip: [500, 1000]
+            m: 2
+            true_pa_power: [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75]
             test_replicate: "range(10)"
             decay_factor: 0.3
             rbf_variance: 5
@@ -83,43 +91,56 @@ Steps:
         Depends: train-tree test-tree
         Interpreter: bash
         Rule: |
-            echo "#{yaml}" > {kernel}
+            TSVFILE=`echo {kernel} | sed s/'.bz2'//`
+            echo "#{yaml}" > $TSVFILE
             if [[ {nltt} -eq 1 ]]; then
                 NLTT="--nLTT"
             else
                 NLTT=""
             fi
             for T in {train-tree}; do
-                echo -n "$T"$'\t' >> {kernel}
+                echo -n "$T"$'\t' >> $TSVFILE
                 treekernel --ladderize --normalize --scale-branches mean \
                            --decay-factor {decay_factor} \
                            --gauss-factor {rbf_variance} \
-                           $NLTT {test-tree} $T >> {kernel}
+                           $NLTT <(bzcat {test-tree}) <(bzcat $T) >> $TSVFILE
             done
+            bzip2 $TSVFILE
 
     kernel-plot:
         Extension: pdf
-        Walltime: 00:02:00
+        Walltime: 00:10:00
         Parameters:
-            true_pa_power: [0.5, 1.0, 1.5]
-            test_replicate: [0, 1, 2]
+            m: 2
         Depends: kernel train-tree
         Interpreter: R --quiet --vanilla
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
-            k <- read.table("{kernel}", row.names=1, col.names=c("", "score"))
-            k <- merge(k, collect.metadata(strsplit("{train-tree}", " ")[[1]]), by=0)
-            pt.est <- with(k, as.numeric(names(which.max(tapply(score, pa_power, mean)))))
-            lines <- data.frame(value=c(pt.est, {true_pa_power}),
-                                pa_power=c("estimated", "true"))
-            ggplot(k, aes(x=pa_power, y=score)) + geom_point() +
-                geom_vline(data=lines, aes(xintercept=value, linetype=pa_power, color=pa_power), show_guide = TRUE) +
+            d <- setDT(collect.data(strsplit("{kernel}", " ")[[1]], header=FALSE))
+            setnames(d, c("V1", "V2"), c("tree", "score"))
+            
+            m <- collect.metadata(strsplit("{train-tree}", " ")[[1]])
+            m$tree <- rownames(m)
+            setDT(m)
+            d <- merge(d, m, by=c("tree", "m", "ntip"))
+            d[,ntip := as.factor(ntip)]
+
+            d[,label := paste("true alpha", true_pa_power)]
+            g <- ggplot(d, aes(x=pa_power, y=score, color=factor(ntip))) + stat_smooth() +
+                facet_wrap(~label) +
+                geom_vline(aes(xintercept=true_pa_power)) + ylim(0.9, 1) +
+                scale_color_discrete(name="number of tips") +
+                labs(x=expression(paste("simulated ", alpha)), y="kernel score") +
                 theme_bw()
+            facet_wrap_labeller(g, expression(paste("true", alpha, d[,sort(unique(true_pa_power))])))
             ggsave("{kernel-plot}")
 
     error-plot:
         Extension: pdf
         Walltime: 00:02:00
+        Parameters:
+            m: 2
+            ntip: [500, 1000]
         Depends: kernel test-tree train-tree
         Interpreter: R --quiet --vanilla
         Startup: |
@@ -149,6 +170,6 @@ Steps:
 
             # plot
             ggplot(plot.data, aes(x=true_pa_power, y=error, group=true_pa_power)) + 
-                geom_boxplot() + 
+                geom_boxplot() + ggtitle("ntip = {ntip}") +
                 facet_wrap(~error.type, scales="free") + theme_bw()
             ggsave("{error-plot}")

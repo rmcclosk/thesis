@@ -30,7 +30,7 @@ Steps:
             rewire_prob: "[i/1000 for i in range(101)]"
             replicate: "range(10)"
             nsimnode: 1000
-            ntip: 1000
+            ntip: [500, 1000]
         Depends: train-network
         Interpreter: bash
         Rule: |
@@ -62,7 +62,7 @@ Steps:
             true_rewire_prob: [0.01, 0.05, 0.09]
             test_replicate: "range(10)"
             nsimnode: 1000
-            ntip: 1000
+            ntip: [500, 1000]
         Depends: test-network
         Interpreter: bash
         Rule: |
@@ -75,6 +75,7 @@ Steps:
         Processes: 10
         Walltime: 01:00:00
         Parameters:
+            ntip: [500, 1000]
             true_rewire_prob: [0.01, 0.05, 0.09]
             test_replicate: "range(10)"
             decay_factor: 0.3
@@ -103,6 +104,7 @@ Steps:
         Parameters:
             true_rewire_prob: [0.01, 0.05, 0.09]
             test_replicate: "range(10)"
+            ntip: [500, 1000]
         Depends: kernel train-tree
         Interpreter: R --quiet --vanilla
         Startup: suppressPackageStartupMessages(library(netabc))
@@ -120,6 +122,8 @@ Steps:
     error-plot:
         Extension: pdf
         Walltime: 00:02:00
+        Parameters:
+            ntip: [500, 1000]
         Depends: kernel test-tree train-tree
         Interpreter: R --quiet --vanilla
         Startup: |
@@ -149,6 +153,6 @@ Steps:
 
             # plot the errors
             ggplot(plot.data, aes(x=true_rewire_prob, y=error, group=true_rewire_prob)) + 
-                geom_boxplot() + 
+                geom_boxplot() + ggtitle("ntip = {ntip}") +
                 facet_wrap(~error.type, scales="free") + theme_bw()
             ggsave("{error-plot}")

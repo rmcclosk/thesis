@@ -30,7 +30,7 @@ Steps:
             m: "range(2, 11)"
             replicate: "range(10)"
             nsimnode: 1000
-            ntip: 1000
+            ntip: [500, 1000]
         Depends: train-network
         Interpreter: bash
         Rule: |
@@ -62,7 +62,7 @@ Steps:
             true_m: [2, 3, 5, 8]
             test_replicate: "range(10)"
             nsimnode: 1000
-            ntip: 1000
+            ntip: [500, 1000]
         Depends: test-network
         Interpreter: bash
         Rule: |
@@ -75,11 +75,25 @@ Steps:
         Processes: 10
         Walltime: 01:00:00
         Parameters:
+            ntip: [500, 1000]
             true_m: [2, 3, 5, 8]
             test_replicate: "range(10)"
-            decay_factor: 0.3
-            rbf_variance: 10
+            decay_factor: [0.3, 0.4]
+            rbf_variance: [1, 10]
             nltt: 0
+        Exclusions:
+            -
+                ntip: 500
+                decay_factor: 0.3
+            -
+                ntip: 500
+                rbf_variance: 10
+            -
+                ntip: 1000
+                decay_factor: 0.4
+            -
+                ntip: 1000
+                rbf_variance: 1
         Depends: train-tree test-tree
         Interpreter: bash
         Rule: |
@@ -103,6 +117,7 @@ Steps:
         Parameters:
             true_m: [2, 3, 5, 8]
             test_replicate: [0, 1, 2]
+            ntip: [500, 1000]
         Depends: kernel train-tree
         Interpreter: R --quiet --vanilla
         Startup: suppressPackageStartupMessages(library(netabc))
@@ -120,6 +135,8 @@ Steps:
     error-plot:
         Extension: pdf
         Walltime: 00:02:00
+        Parameters:
+            ntip: [500, 1000]
         Depends: kernel test-tree train-tree
         Interpreter: R --quiet --vanilla
         Startup: |
@@ -149,6 +166,6 @@ Steps:
 
             # plot the errors
             ggplot(plot.data, aes(x=true_m, y=error, group=true_m)) + 
-                geom_boxplot() + 
+                geom_boxplot() + ggtitle("ntip = {ntip}") +
                 facet_wrap(~error.type, scales="free") + theme_bw()
             ggsave("{error-plot}")

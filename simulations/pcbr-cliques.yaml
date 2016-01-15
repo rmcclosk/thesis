@@ -1,0 +1,249 @@
+Name: pcbr-cliques
+Processes: 20
+Steps:
+    network:
+        Extension: gml.bz2
+        Walltime: 00:15:00
+        Parameters:
+            nnode: 1000
+            replicate: "range(10)"
+            prop_cluster: 0.2
+            ncluster: [10, 20, 40]
+            baseline_rate: [0.01, 0.001, 0.0001, 0.00001, 0.000001]
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            set.seed({seed})
+            g <- make_empty_graph({nnode}, directed=FALSE)
+            cluster.size <- {nnode} * {prop_cluster} / {ncluster}
+            for (i in 1:{ncluster}) {{
+                cluster.nodes <- ((i-1)*cluster.size+1):(i*cluster.size)
+                g <- add_edges(g, c(combn(cluster.nodes, 2)))
+            }}
+            group <- paste0("group", rep(1:{ncluster}, each=cluster.size))
+            V(g)$group <- c(group, rep("NA", {nnode} * (1.0 - {prop_cluster})))
+
+            g <- SIR.net(g)
+            g <- add.baseline.rate(g, {baseline_rate})
+            graph_attr(g, "comment") <- "{yaml}"
+            f <- bzfile("{network}", "wb")
+            write.graph(g, f, format="gml")
+            close(f)
+
+    network-plot:
+        Extension: pdf
+        Walltime: 00:15:00
+        Parameters:
+            nnode: 1000
+            replicate: "range(10)"
+            prop_cluster: 0.2
+            ncluster: [10, 20, 40]
+            baseline_rate: [0.01, 0.001, 0.0001, 0.00001, 0.000001]
+        Depends: network
+        Interpreter: /global/software/R-3.1.2/bin/R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            g <- read.graph(bzfile("{network}"), "gml")
+            g <- delete_edges(g, E(g)[E(g)$transmit == {baseline_rate}])
+            g <- as.undirected(g, mode="collapse")
+            group <- as.factor(ifelse(V(g)$group == "NA", NA, V(g)$group))
+            col <- ifelse(is.na(group), "gray", as.integer(group))
+            pdf("{network-plot}")
+            plot(g, vertex.size=3, vertex.label=NA, vertex.color=col,
+                 main="{nnode} nodes, {ncluster} clusters")
+            dev.off()
+
+    tree:
+        Extension: nwk.bz2
+        Walltime: 00:10:00
+        Parameters:
+            nnode: 1000
+            nsimnode: [100, 200, 500]
+            ntip: [100, 200, 500]
+            replicate: "range(10)"
+            prop_cluster: 0.2
+            ncluster: [10, 20, 40]
+            baseline_rate: [0.01, 0.001, 0.0001, 0.00001, 0.000001]
+        Exclusions:
+            -
+                nsimnode: 200
+                ntip: 500
+            -
+                nsimnode: 100
+                ntip: [200, 500]
+        Depends: network
+        Interpreter: bash
+        Rule: |
+            NWKFILE=`echo {tree} | sed s/'.bz2'//`
+            echo "#{yaml}" > $NWKFILE
+            bzcat {network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> $NWKFILE
+            bzip2 $NWKFILE
+
+    labelled-tree:
+        Extension: nwk.bz2
+        Walltime: 00:10:00
+        Parameters:
+            nnode: 1000
+            nsimnode: [100, 200, 500]
+            ntip: [100, 200, 500]
+            replicate: "range(10)"
+            prop_cluster: 0.2
+            ncluster: [10, 20, 40]
+            baseline_rate: [0.01, 0.001, 0.0001, 0.00001, 0.000001]
+        Depends: network tree
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            g <- read.graph(bzfile("{network}", "rb"), "gml")
+            t <- read.tree("{tree}")
+            graph.id <- as.integer(c(t$tip.label, t$node.label))
+            graph.group <- V(g)$group[graph.id]
+            tree.id <- 1:(2*t$Nnode+1)
+            label <- paste(tree.id, graph.id, graph.group, sep="_")
+            t$tip.label <- label[1:(t$Nnode+1)]
+            t$node.label <- label[(t$Nnode+2):(2*t$Nnode+1)]
+            f <- bzfile("{labelled-tree}", "wb")
+            cat(paste0("#{yaml}", "\n"), f)
+            write.tree(t, f)
+            close(f)
+
+    clustering: 
+        Extension: tsv
+        Walltime: 04:00:00
+        Parameters: 
+            foo: 0
+        Depends: labelled-tree
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            tree.names <- strsplit("{labelled-tree}", " ")[[1]]
+            trees <- lapply(tree.names, read.tree)
+            prop.mono <- sapply(trees, function (t) {{
+                st <- subtrees(t)
+                sum(sapply(st, function (s) {{
+                    grp <- sapply(strsplit(c(s$tip.label, s$node.label), "_"), "[[", 3)
+                    length(unique(grp)) == 1
+                }})) / length(st)
+            }})
+            d <- data.frame(tree=tree.names, prop.mono=prop.mono)
+            write.tsv(d, "{clustering}")
+
+    cmaes-config:
+        Extension: par
+        Walltime: 00:01:00
+        Parameters:
+            tolfun: 1e-2
+        Interpreter: bash
+        Rule: echo "stopTolFun {tolfun}" > {cmaes-config}
+
+    pcbr:
+        Extension: tsv.bz2
+        Walltime: 02:00:00
+        Parameters:
+            nnode: 1000
+            nsimnode: [100, 200, 500]
+            ntip: [100, 200, 500]
+            replicate: "range(10)"
+            prop_cluster: 0.2
+            ncluster: [10, 20, 40]
+            nrates: [0, 2]
+            use_tips: [0, 1]
+            baseline_rate: [0.01, 0.001, 0.0001, 0.00001, 0.000001]
+        Depends: labelled-tree cmaes-config
+        Interpreter: bash
+        Rule: |
+            if [[ {use_tips} -eq 0 ]]; then
+                IGNORE_TIPS="--ignore-tips"
+            else
+                IGNORE_TIPS=""
+            fi
+            TSVFILE=`echo {pcbr} | sed s/'.bz2'//`
+            echo "#{yaml}" > $TSVFILE
+            bzcat {labelled-tree} | pcbr --cmaes-settings {cmaes-config} --rates {nrates} --scale-branches mean $IGNORE_TIPS --seed {seed} -2 1000 -4 1000 >> $TSVFILE
+            bzip2 $TSVFILE
+
+    compare-plot:
+        Extension: pdf
+        Walltime: 00:05:00
+        Parameters:
+            nnode: 1000
+            nsimnode: [100, 200, 500]
+            ntip: [100, 200, 500]
+            replicate: "range(10)"
+            prop_cluster: 0.2
+            ncluster: [10, 20, 40]
+            nrates: [0, 2]
+            use_tips: [0, 1]
+            baseline_rate: [0.01, 0.001, 0.0001, 0.00001, 0.000001]
+        Depends: labelled-tree pcbr
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            t <- read.tree("{labelled-tree}")
+            group <- tryCatch({{
+                sapply(strsplit(c(t$tip.label, t$node.label), "_"), "[[", 3)
+            }}, error = function (e) {{
+                rep("no group", 2*t$Nnode+1)
+            }})
+            group <- as.factor(group)
+            group.edge.col <- as.integer(group[t$edge[,2]])
+
+            d <- setnames(fread("bzcat {pcbr}"), c("node", "rate", "cluster"))
+            rate <- d[match(c(t$tip.label, t$node.label), node), rate]
+            rate <- as.factor(rate)
+            rate.edge.col <- as.integer(rate[t$edge[,2]])
+
+            main.1 <- paste("{nnode} nodes, {ncluster} clusters,",
+                            "{nsimnode} infected, {ntip} tips, baseline rate {baseline_rate}", sep="\n")
+
+            pdf("{compare-plot}", width=14)
+            par(mfrow=c(1, 2))
+            plot(t, show.tip.label=FALSE, edge.color=group.edge.col, main=main.1)
+            legend("topleft", lty=1, col=1:length(levels(group)), legend=levels(group))
+
+            plot(t, show.tip.label=FALSE, edge.color=rate.edge.col, main="estimated rates")
+            legend("topleft", lty=1, col=1:length(levels(rate)), legend=levels(rate))
+            dev.off()
+
+    confusion-matrix:
+        Extension: tsv
+        Walltime: 00:05:00
+        Parameters:
+            nnode: 1000
+            nsimnode: [100, 200, 500]
+            ntip: [100, 200, 500]
+            replicate: "range(10)"
+            prop_cluster: 0.2
+            ncluster: [10, 20, 40]
+            nrates: [0, 2]
+            use_tips: [0, 1]
+            baseline_rate: [0.01, 0.001, 0.0001, 0.00001, 0.000001]
+        Depends: labelled-tree pcbr
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            d <- setnames(fread("bzcat {pcbr}"), c("node", "rate", "cluster"))
+            t <- read.tree("{labelled-tree}")
+            labels <- c(t$tip.label, t$node.label)
+
+            parent.group <- sapply(strsplit(labels[t$edge[,1]], "_"), "[[", 3)
+            child.group <- sapply(strsplit(labels[t$edge[,2]], "_"), "[[", 3)
+            parent.group[parent.group == "NA"] <- NA
+            child.group[child.group == "NA"] <- NA
+
+            parent.rate <- d[match(labels[t$edge[,1]], node), rate]
+            child.rate <- d[match(labels[t$edge[,2]], node), rate]
+
+            min.rate <- d[,min(rate)]
+            parent.fast <- parent.rate > min.rate
+            fast.edge <- parent.rate > min.rate & child.rate > min.rate
+            same.cluster.edge <- parent.group == child.group
+            same.cluster.edge[is.na(same.cluster.edge)] <- FALSE
+
+            tp <- sum(same.cluster.edge & fast.edge)
+            tn <- sum(!same.cluster.edge & !fast.edge)
+            fp <- sum(!same.cluster.edge & fast.edge)
+            fn <- sum(same.cluster.edge & !fast.edge)
+            m <- data.frame(true.pos=tp, true.neg=tn, false.pos=fp, false.neg=fn)
+            cat("#{yaml}\n", file="{confusion-matrix}")
+            write.tsv(m, "{confusion-matrix}", append=TRUE)

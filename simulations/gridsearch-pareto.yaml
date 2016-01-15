@@ -41,7 +41,7 @@ Steps:
             pareto_shape: "[i/100 for i in range(80, 201)]"
             replicate: "range(10)"
             nsimnode: 1000
-            ntip: 1000
+            ntip: [500, 1000]
         Depends: train-network
         Interpreter: bash
         Rule: |
@@ -84,7 +84,7 @@ Steps:
             true_pareto_shape: [1.1, 1.5, 1.9]
             test_replicate: "range(10)"
             nsimnode: 1000
-            ntip: 1000
+            ntip: [500, 1000]
         Depends: test-network
         Interpreter: bash
         Rule: |
@@ -97,11 +97,19 @@ Steps:
         Processes: 10
         Walltime: 01:00:00
         Parameters:
+            ntip: [500, 1000]
             true_pareto_shape: [1.1, 1.5, 1.9]
             test_replicate: "range(10)"
             decay_factor: 0.4
-            rbf_variance: 5
+            rbf_variance: [1, 5]
             nltt: 0
+        Exclusions:
+            -
+                ntip: 500
+                rbf_variance: 5
+            -
+                ntip: 1000
+                rbf_variance: 1
         Depends: train-tree test-tree
         Interpreter: bash
         Rule: |
@@ -125,6 +133,7 @@ Steps:
         Parameters:
             true_pareto_shape: [1.1, 1.5, 1.9]
             test_replicate: [0, 1, 2]
+            ntip: [500, 1000]
         Depends: kernel train-tree
         Interpreter: R --quiet --vanilla
         Startup: suppressPackageStartupMessages(library(netabc))
@@ -142,6 +151,8 @@ Steps:
     error-plot:
         Extension: pdf
         Walltime: 00:02:00
+        Parameters:
+            ntip: [500, 1000]
         Depends: kernel test-tree train-tree
         Interpreter: R --quiet --vanilla
         Startup: |
@@ -171,6 +182,6 @@ Steps:
 
             # plot the errors
             ggplot(plot.data, aes(x=true_pareto_shape, y=error, group=true_pareto_shape)) + 
-                geom_boxplot() +
+                geom_boxplot() + ggtitle("ntip = {ntip}") +
                 facet_wrap(~error.type, scales="free") + theme_bw()
             ggsave("{error-plot}")

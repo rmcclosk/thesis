@@ -7,29 +7,28 @@ The experiments are described in the YAML files and run with the script
 `./expt.py kernel-shapes.yaml`. Each experiment has its own folder, with
 subfolders for each of its steps.
 
-The `expt.py` script is hacked together and not very robust. If a step fails or
-is interrupted, it will not know to delete the file, and you will have to delete
-it manually in order to run the step properly. 
-
 Each experiment has an accompanying SQLite database, which is created and
 updated by `expt.py`. It contains the location of each file and all the
 parameters which went into creating the file. The names of the files in the
-experiment directories are not themselves descriptive, although most of them
-have their parameters embedded in some way.
+experiment directories are not themselves descriptive, although most of the
+files have their parameters recorded in a comment inside the file.
 
 Below I describe what each experiment is on a high level. In the "YAML files"
 section, I detail the structure of the YAML files specifying the experiments.
 
 ## Experiments
 
-All of the kernel-* experiments are testing the tree kernel's ability to
-estimate a particular network parameter. Three or four different values of the
-parameter are chosen, and 100 different networks are generated for each value.
-A tree is simulated from each network. A kernel matrix is computed for the
-trees for several combinations of its two parameters (the decay factor and
-radial basis function variance). Each of these matrices is used to evaluate the
-performance of a kSVM classifier by performing 1000 two-fold cross-validations.
-We also calculate and plot some tree summary statistics.
+### kernel-*
+
+These experiments are testing the tree kernel's ability to distinguish several
+different values of a particular network parameter. Three values of the
+parameter are chosen (arbitrarily), and 100 different networks are generated
+for each value. A tree is simulated from each network. A kernel matrix is
+computed for the trees for several combinations of its two parameters (the
+decay factor and radial basis function variance). Each of these matrices is
+used to evaluate the performance of a kSVM classifier by performing 1000
+two-fold cross-validations.  We also calculate and plot some tree summary
+statistics.
 
 ### kernel-edge-density
 
