@@ -1,8 +1,8 @@
 Name: kernel-pa-power
 Description: Testing if the tree kernel can recover the preferential attachment power in a Barabasi-Albert graph
-Processes: 1
+Processes: 20
 Sleep: 5
-Hostname: (hermes.*)|(litai.*.westgrid.ca)
+Hostname: n[0-9]
 Steps:
     network:
         Extension: gml.bz2
@@ -148,7 +148,6 @@ Steps:
     kernel-matrix:
         Extension: mtx.bz2
         Sleep: 300
-        Processes: 12
         Walltime: 04:00:00
         Memory: 256m
         Parameters:
