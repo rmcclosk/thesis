@@ -184,3 +184,26 @@ marginal.plot <- function (d, truth, limits) {
     do.call(grid.arrange, c(plots, ncol=ceiling(sqrt(length(vary.cols))),        
                             top="1D marginals"))                                 
 }
+
+#' Label wrapped facets.
+#' http://stackoverflow.com/questions/11979017/changing-facet-label-to-math-formula-in-ggplot2
+#' @param gg.plot plot to add facet labels to
+#' @param labels labels to add
+#' @export
+facet_wrap_labeller <- function(gg.plot,labels=NULL) {
+  #works with R 3.0.1 and ggplot2 0.9.3.1
+
+  g <- ggplotGrob(gg.plot)
+  gg <- g$grobs      
+  strips <- grep("strip_t", names(gg))
+
+  for(ii in seq_along(labels))  {
+    modgrob <- getGrob(gg[[strips[ii]]], "strip.text", 
+                       grep=TRUE, global=TRUE)
+    gg[[strips[ii]]]$children[[modgrob$name]] <- editGrob(modgrob,label=labels[ii])
+  }
+
+  g$grobs <- gg
+  class(g) = c("arrange", "ggplot",class(g)) 
+  g
+}
