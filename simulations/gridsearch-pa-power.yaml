@@ -2,7 +2,7 @@ Name: gridsearch-pa-power
 Description: Grid search for preferential attachment power
 Processes: 1
 Sleep: 5
-Hostname: (hermes.*)|(litai.*.westgrid.ca)
+Hostname: (hermes.*)|(litai.*.westgrid.ca)|(Brannigan)
 Memory: 256m
 Steps:
     train-network:
@@ -12,7 +12,7 @@ Steps:
             nnode: 5000
             m: 2
             pa_power: "[i/100 for i in range(201)]"
-            replicate: "range(10)"
+            replicate: "range(15)"
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: | 
@@ -29,7 +29,7 @@ Steps:
         Parameters:
             m: 2
             pa_power: "[i/100 for i in range(201)]"
-            replicate: "range(10)"
+            replicate: "range(15)"
             nsimnode: 1000
             ntip: [500, 1000]
         Depends: train-network
@@ -158,18 +158,18 @@ Steps:
             d <- merge(d, collect.metadata(strsplit("{test-tree}", " ")[[1]]), by=test.cols)
             setDT(d)
 
-            # choose point estimate with highest median kernel score
-            d[,agg := median(score), by=c(test.cols, "pa_power")]
+            d[,median.score := median(score), by=c(test.cols, "pa_power")]
+            d <- d[,.SD[sample(1:nrow(.SD), replace=TRUE, prob=score)], by=test.cols]
+            d[,q05 := quantile(pa_power, 0.05), by=test.cols]
+            d[,q95 := quantile(pa_power, 0.95), by=test.cols]
+            d[,point.est := pa_power[which.max(median.score)], by=test.cols]
+            setkeyv(d, test.cols)
 
-            # compute absolute and relative errors
-            plot.data <- d[,abs(true_pa_power - pa_power[which.max(agg)]), by=test.cols]
-            plot.data <- setNames(plot.data, c(test.cols, "absolute"))
-            plot.data <- plot.data[,relative := absolute / true_pa_power]
-            plot.data <- melt(plot.data, id.vars=test.cols, variable.name="error.type", value.name="error")
-            plot.data <- plot.data[,true_pa_power := as.factor(true_pa_power)]
-
-            # plot
-            ggplot(plot.data, aes(x=true_pa_power, y=error, group=true_pa_power)) + 
-                geom_boxplot() + ggtitle("ntip = {ntip}") +
-                facet_wrap(~error.type, scales="free") + theme_bw()
+            ggplot(unique(d), aes(x=factor(true_pa_power))) + 
+                geom_violin(data=d, aes(y=pa_power)) +
+                geom_point(aes(y=point.est)) +
+                geom_abline(slope=1/4, linetype="dashed") +
+                theme_bw() +
+                labs(x=expression(paste("true ", alpha)), 
+                     y=expression(paste("simulated ", alpha)))
             ggsave("{error-plot}")

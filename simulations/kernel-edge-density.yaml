@@ -1,8 +1,8 @@
 Name: kernel-edge-density
 Description: Testing if the tree kernel can detect the edge density parameter in a random graph
-Processes: 1
+Processes: 20
 Sleep: 5
-Hostname: (hermes.*)|(litai.*.westgrid.ca)
+Hostname: n[0-9]
 Steps:
     network:
         Extension: gml.bz2
@@ -105,7 +105,7 @@ Steps:
         Walltime: 00:01:00
         Parameters:
             statistic: "sackin"
-        Depends: tree statistics
+        Depends: statistics tree
         Interpreter: R --vanilla --silent
         Startup: |
             suppressPackageStartupMessages(library(netabc))
@@ -115,25 +115,45 @@ Steps:
             m <- collect.metadata(strsplit("{tree}", " ")[[1]])
             d <- setDT(merge(d, m, by=0))
             d[,mean_degree := as.factor(mean_degree)]
-            setnames(d, c("ntip.x", "nsimnode.x"), c("tips", "infected"))
+            setnames(d, c("ntip.x", "nsimnode.x"), c("sampled", "infected"))
             ylab <- switch("{statistic}", sackin="Sackin's index")
             ggplot(d, aes(x=mean_degree, y={statistic})) + geom_violin() +
-                facet_grid(tips~infected, labeller="label_both") + theme_bw() +
+                facet_grid(sampled~infected, labeller="label_both") + theme_bw() +
                 labs(x="mean degree", y=ylab) +
                 theme(text=element_text(family="Gillius ADF"))
             ggsave("{stats-plot}")
 
+    stats-classifier:
+        Extension: tsv.bz2
+        Walltime: 00:20:00
+        Sleep: 60
+        Processes: 12
+        Parameters:
+            nsimnode: [500, 1000, 2000]
+            ntip: [100, 500, 1000]
+            statistic: "sackin"
+        Depends: statistics tree
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            x <- fread("{statistics}")[,sackin]
+            y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"mean_degree"]
+            results <- lm.cv(x, y, n.cv=1000, stats=c("rsquared"))
+            f <- bzfile("{stats-classifier}", "wb")
+            cat("#{yaml}\n", file=f)
+            write.tsv(results, f, append=TRUE)
+            close(f)
+
     kernel-matrix:
         Extension: mtx.bz2
         Sleep: 300
-        Processes: 20
         Walltime: 04:00:00
         Memory: 256m
         Parameters:
             nsimnode: [500, 1000, 2000]
             ntip: [100, 500, 1000]
             decay_factor: [0.2, 0.3, 0.4]
-            rbf_variance: [0.125, 0.25, 0.5, 1, 2, 5, 10, 20]
+            rbf_variance: [0.125, 0.25, 0.5, 1, 2, 4, 8]
             nltt: ["yes", "no"]
         Depends: tree
         Interpreter: bash
@@ -144,19 +164,24 @@ Steps:
             else
                 NLTT=""
             fi
+            TF1=`mktemp`
+            TF2=`mktemp`
             echo "%%MatrixMarket matrix array real symmetric" > $MTXFILE
             echo "%{yaml}" >> $MTXFILE
             echo "{$#} {$#}" >> $MTXFILE
             for T1 in {tree}; do
+                bzcat $T1 > $TF1
                 for T2 in {tree}; do
                     if [[ "$T1" < "$T2" || "$T1" == "$T2" ]]; then
+                        bzcat $T2 > $TF2
                         treekernel --ladderize --decay-factor {decay_factor} \
                                    --gauss-factor {rbf_variance} \
                                    --scale-branches mean $NLTT \
-                                   <(bzcat $T1) <(bzcat $T2) >> $MTXFILE
+                                   $TF1 $TF2 >> $MTXFILE
                     fi
                 done
             done
+            rm $TF1 $TF2
             bzip2 $MTXFILE
 
     kpca:
@@ -166,7 +191,7 @@ Steps:
             nsimnode: [500, 1000, 2000]
             ntip: [100, 500, 1000]
             decay_factor: 0.3
-            rbf_variance: 5
+            rbf_variance: 4
             nltt: "no"
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
@@ -185,7 +210,7 @@ Steps:
         Walltime: 00:01:00
         Parameters:
             decay_factor: 0.3
-            rbf_variance: 5
+            rbf_variance: 4
             nltt: "no"
         Depends: kpca
         Interpreter: R --vanilla --silent
@@ -194,17 +219,17 @@ Steps:
             suppressPackageStartupMessages(library(netabc))
         Rule: |
             d <- setDT(collect.data(strsplit("{kpca}", " ")[[1]]))
-            setnames(d, c("ntip", "nsimnode"), c("tips", "infected"))
+            setnames(d, c("ntip", "nsimnode"), c("sampled", "infected"))
             d[,mean.degree := as.factor(mean.degree)]
             ggplot(d, aes(x=PC1, y=PC2, color=mean.degree)) + geom_point() +
-                facet_grid(tips~infected, scales="free", labeller="label_both") +
+                facet_grid(sampled~infected, scales="free", labeller="label_both") +
                 labs(x="first principal component", y="second principal component") +
                 theme_bw() +
                 theme(text=element_text(family="Gillius ADF"),
                       axis.ticks=element_blank(),
                       axis.text=element_blank()) +
                 scale_color_discrete(name="mean degree")
-            ggsave("{kpca-plot}", width=10)
+            ggsave("{kpca-plot}")
 
     classifier:
         Extension: tsv.bz2
@@ -215,7 +240,7 @@ Steps:
             nsimnode: [500, 1000, 2000]
             ntip: [100, 500, 1000]
             decay_factor: [0.2, 0.3, 0.4]
-            rbf_variance: [0.125, 0.25, 0.5, 1, 2, 5, 10, 20]
+            rbf_variance: [0.125, 0.25, 0.5, 1, 2, 4, 8]
             nltt: ["yes", "no"]
         Depends: kernel-matrix tree
         Interpreter: R --vanilla --silent
@@ -234,30 +259,36 @@ Steps:
         Walltime: 00:01:00
         Parameters:
             foo: 0
-        Depends: classifier
+        Depends: classifier stats-classifier
         Interpreter: R --vanilla --silent
         Startup: |
             suppressPackageStartupMessages(library(netabc))
             suppressPackageStartupMessages(library(extrafont))
         Rule: |
             d <- setDT(collect.data(strsplit("{classifier}", " ")[[1]]))
+            d2 <- setDT(collect.data(strsplit("{stats-classifier}", " ")[[1]]))
             by.cols <- c("nsimnode", "ntip", "decay_factor", "rbf_variance", "nltt")
             d <- setnames(d[,mean(rsquared), by=by.cols], "V1", "rsquared")
-            setnames(d, c("ntip", "nsimnode"), c("tips", "infected"))
+            d2 <- setnames(d2[,mean(rsquared), by=c("ntip", "nsimnode")], "V1", "rsquared")
+            setnames(d, c("ntip", "nsimnode"), c("sampled", "infected"))
+            setnames(d2, c("ntip", "nsimnode"), c("sampled", "infected"))
             d[,decay_factor := as.factor(decay_factor)]
             d[,rbf_variance := as.factor(rbf_variance)]
             d[,interaction := paste0(decay_factor, nltt)]
-            ggplot(d, aes(x=rbf_variance, y=rsquared, color=decay_factor,
-                          shape=decay_factor, linetype=nltt, group=interaction)) +
-                geom_point(size=3) + geom_line() + theme_bw() +
-                facet_grid(tips~infected, labeller="label_both") +
+            plot.aes <- aes(x=rbf_variance, y=rsquared, color=decay_factor,
+                            shape=decay_factor, linetype=nltt, group=interaction)
+            ggplot(d) +
+                geom_point(size=3, plot.aes) + geom_line(plot.aes) +
+                geom_point(data=d2, aes(y=rsquared), x=4, size=3, color="black", shape=4) +
+                theme_bw() +
+                facet_grid(sampled~infected, labeller="label_both") +
                 labs(x="radial basis function variance", y=expression(R^2)) +
                 scale_color_discrete(name="decay factor") +
                 scale_shape_discrete(name="decay factor") +
                 scale_linetype_discrete(name="nLTT") +
                 theme(text=element_text(family="Gillius ADF"),
                       axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-            ggsave("{crossv-plot}", width=10)
+            ggsave("{crossv-plot}")
 
     kernel-parameters:
         Extension: tsv
