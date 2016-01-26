@@ -1,4 +1,4 @@
-\documentclass{minimal}
+\documentclass{article}
 \usepackage{tikz}
 \usepackage[T1]{fontenc}
 \usepackage[default]{gillius}
@@ -9,6 +9,7 @@
 \usetikzlibrary{automata}
 
 \begin{document}
+\pagestyle{empty}
 
 \begin{tikzpicture}
   [every node/.style = {circle, draw},
@@ -18,6 +19,8 @@
   \node (c) [below left=of a] {C};
   \node (d) [below=of c] {D};
   \node (e) [below=of b] {E};
+
+  \node [left=2cm of a, draw=none] {\huge{A}};
   
   \draw (a) [red, very thick] to (b);
   \draw (b) to (a);
@@ -43,6 +46,8 @@
   \node (cd) at (2.25, 1) {C};
   \node (acd) at (1.5, 2) {A};
   \node (abcd) at (2.25, 3) {A};
+
+  \node [left=2cm of abcd, draw=none] {\huge{B}};
 
   \draw [red, very thick] (abcd) -- (b);
   \draw (abcd) -- (acd);

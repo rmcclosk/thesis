@@ -1,1 +1,45 @@
 \subsection{Estimable parameters}
+
+\begin{figure}[ht]
+  \centering
+  \label{fig:pacrossv}
+  \includegraphics{kernel_pa_crossv}
+  \caption[Cross-validation performance of kernel support vector machine
+  classifier for preferential attachment power]{
+    Cross-validation performance of kernel support vector machine classifier
+    for preferential attachment power.
+  }
+\end{figure}
+
+The projections show that all three values are well separated from each other
+in many of the scenarios. With smaller trees, it becomes harder to disinguish
+$\alpha = 0.5$ from $\alpha = 1.0$ in two dimensions.
+
+\begin{figure}[ht]
+  \centering
+  \label{fig:pakpca}
+  \includegraphics{kernel_pa_kpca}
+  \caption[Projection of kernel matrix for different attachment power values
+  onto its first two principal components]{
+    Projection of the kernel matrix for different preferential attachment power
+    values onto its first two principal components, for eight simulation
+    scenarios. Each point corresponds to a simulated transmission tree, and is
+    coloured by preferential attachment power. Facets are number of infected
+    nodes (horizontal), and number of sampled tips (vertical). The parameters
+    to the tree kernel were $\lambda = 0.3$ and $\sigma = 5$, and the nLTT was
+    not used. Qualitatively, trees with a larger number of tips are easier to
+    separate in kernel space, regardless of what sampling proportion they
+    represent. In all cases, the highest attachment power can be separated from
+    the other two, but the two lowest values become hand to distinguish with in
+    the 100-tip trees.
+  }
+\end{figure}
+
+\subsection{Accuracy and precision}
+
+\begin{figure}[ht]
+  \centering
+  %\includegraphics{gridsearch_pa_kernel}
+  \caption{Grid search kernel scores.}
+  \label{fig:gridkernel}
+\end{figure}

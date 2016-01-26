@@ -3,8 +3,12 @@ all: main.pdf
 outline.pdf: outline.md outline.sty
 	pandoc -V geometry:margin=2cm --number-sections -H $(word 2, $^) $(word 1, $^) -o $@
 
-main.pdf: main.tex intro.tex methods.tex papers.bib figures
-	pdflatex main && biber main && pdflatex main
+main.pdf: main.tex intro.tex methods.tex objective.tex results.tex papers.bib figures
+	pdflatex main && \
+	biber main && \
+	pdflatex main && \
+	makeglossaries main && \
+	pdflatex main
 
 papers.bib:
 	ln -s ../../reading/$@ .
@@ -14,7 +18,10 @@ figures: figures/speciestree.pdf \
 	figures/pa_power_bounds.pdf \
 	figures/kernel_pa_kpca.pdf \
 	figures/kernel_pa_crossv.pdf \
-	figures/nltt.pdf
+	figures/nltt.pdf \
+	figures/kernel_expt.pdf \
+	figures/gridsearch_expt.pdf \
+	figures/acc_prec.pdf
 
 figures/nltt.pdf: figures/nltt.R
 	cd figures && ./nltt.R
@@ -35,6 +42,23 @@ figures/kernel_pa_kpca.pdf:
 figures/kernel_pa_crossv.pdf:
 	$(eval FIG_PATH := $(shell echo 'SELECT path FROM data WHERE parameter = "mean_degree" AND value = "4" INTERSECT SELECT path FROM data WHERE step = "crossv-plot";' | sqlite3 ../../simulations/kernel-pa-power.sqlite))
 	cp ../../simulations/$(FIG_PATH) $@
+
+figures/gridsearch_pa_kernel.pdf:
+	$(eval FIG_PATH := $(shell echo 'SELECT path FROM data WHERE parameter = "m" AND value = "2" INTERSECT SELECT path FROM data WHERE step = "kernel-plot";' | sqlite3 ../../simulations/gridsearch-pa-power.sqlite))
+	cp ../../simulations/$(FIG_PATH) $@
+
+figures/kernel_expt.pdf: figures/kernel_expt.R figures/kernel_expt.tex
+	cd figures && ./$(notdir $(word 1, $^))
+	cd figures && pdflatex $(notdir $(word 2, $^))
+	cd figures && pdfcrop $(notdir $@) $(notdir $@)
+
+figures/gridsearch_expt.pdf: figures/gridsearch_expt.R figures/gridsearch_expt.tex
+	cd figures && ./$(notdir $(word 1, $^))
+	cd figures && pdflatex $(notdir $(word 2, $^))
+	cd figures && pdfcrop $(notdir $@) $(notdir $@)
+
+figures/acc_prec.pdf: figures/acc_prec.R
+	cd figures && ./$(notdir $^)
 
 figures/gridsearch-pa.pdf:
 	$(eval FIG_PATH := $(shell ls ../../simulations/gridsearch-pa-power/kernel-plot | head -n 1))

@@ -50,15 +50,16 @@ Figure~\ref{fig:speciestree}.
 \label{subsubsec:speciestree}
 
 A \defn{species tree} is a particular type of phylogeny in which the taxa are
-species, and the branching times correspond to historical speciation events. In
-general, we do not have access to the true tree relating a particular group of
-extant species, as this would imply certain knowledge of speciation events in
-the distant past. Therefore, all species trees considered by researchers are
-estimates, based on the genetic or phenotypic similarity of the extant taxa,
-the fossil record, or both. We discuss some of the challenges associated with
-this estimation in subsection \ref{subsubsec:treeconv} below. However, for the
-moment, we ignore these complications and consider what can be said about the
-true species tree.
+species, and the branching times correspond to historical speciation events. By
+speciation events, we mean times when two formerly interbreeding groups of
+organisms ceased to reproduce with each other. In general, we do not have
+access to the true tree relating a particular group of extant species, as this
+would imply certain knowledge of speciation events in the distant past.
+Therefore, all species trees considered by researchers are estimates, based on
+the genetic or phenotypic similarity of the extant taxa, the fossil record, or
+both. We discuss some of the challenges associated with this estimation in
+subsection \ref{subsubsec:treeconv} below. However, for the moment, we ignore
+these complications and consider what can be said about the true species tree.
 
 Speciation, which causes branching in a species tree, often occurs by an
 \defn{allopatric} process, where a sub-population of organisms is isolated from
@@ -71,16 +72,20 @@ present. Of course, this is not necessarily the case, as selection may cause
 one or both of the new sub-populations or their descendants to become extinct.
 On the other hand, selection may favour one of the sub-populations, allowing it
 to expand into new regions or niches and possibly paving the way for subsequent
-speciation events. Therefore, \comment{Is this a fair statement?} we can point
-out two forces primarily responsible for the shapes of species trees:
-geographic barriers, which cause branching, and selection, which controls which
-lineages survive to the present and influences the branching rate.
+speciation events. It must be noted that speciation is not necessarily
+allopatric. \defn{Sympatric} speciation refers to the emergence of a new
+species without any geographic barrier~\autocite{coyne2004speciation}. Indeed,
+there is a whole continuum of possible speciation
+processes~\autocite{fitzpatrick2008if}, ranging from completely allopatric to
+completely \defn{sympatric}. However, at least for eukaryotic organisms,
+allopatric speciation is thought to be by far the most common
+type~\autocite{coyne2004speciation}.
 
 A different type of tree used in the study of pathogens is a \defn{transmission
 tree}. In such trees, tips represent infected hosts, while internal nodes
-correspond to transmissions from one host to another. Transmission trees are
-generally time-scaled \comment{Is this true?} and rooted, with the root
-corresponding to the index case and branching times indicating times of
+correspond to transmissions from one host to another. Transmission trees
+generally have branch lengths in units of calendar time, with a root
+corresponding to the index case, and branching times indicating times of
 transmission. The internal nodes may be labeled with the donor of the
 transmission pair, if this is known. The tips of the tree, rather than being
 fixed at the present day, are placed at the time at which the individual was
@@ -115,7 +120,7 @@ and interpret the results in the context of transmission rates and host
 epidemiology. As a basic example, the lineages-through-time
 plot~\autocite{nee1992tempo}, which plots the historical speciation rate
 against time, can be used to quantify the incidence of new infections over the
-course of an epidemic. \comment{Reference?} In
+course of an epidemic~\autocite{holmes1995revealing}. In
 subsection~\ref{subsubsec:treeshape} below, we review some of these methods in
 more detail, as well as several which have been developed specifically for
 viral phylodynamics, and discuss what these methods can tell us about host
@@ -134,6 +139,57 @@ in the next subsection.
 
 \subsubsection{Gene trees and viral phylogenies}
 \label{subsubsec:genetree}
+
+A \defn{gene tree} is another type of phylogeny which traces the evolutionary
+history of one or more sections of genetic material. Gene trees can be built
+from small parts of genes up to whole genomes, but for ease of exposition we
+will use only the word ``gene''. The tips of a gene tree represent the
+different \defn{alleles}, or versions, of the gene found in the studied taxa.
+The branching points in a gene tree represent genetic divergence events - that
+is, the times when two distinct alleles first came into existence through
+mutation.
+
+Gene trees are usually estimated using the nucleotide or amino acid sequences
+of the genes in question. Although there are methods for estimating gene trees
+using other types of molecular data, such as gene orders, we will focus on
+sequence-based methods here. As with species trees, it is not possible to know
+gene trees with certainty, only to estimate them. However, the problem of
+estimating gene trees directly from data is somewhat better defined than that
+of estimating species trees, because of the quantitative nature of the
+molecular data used to label the tips. In general, methods to estimate gene
+trees fall into three major categories: distance-based, maximum parsimony, and
+model-based~\autocite{nei2000molecular}. The first two categories are generally
+no longer used for phylogenetic inference, since model-based methods have been
+demonstrated to be almost universally more accurate. Therefore, we will review
+in detail only the last category.
+
+Model-based methods include both maximum likelihood and Bayesian approaches. To
+use them, one must first define a parametric model of sequence evolution, here
+denoted $M$. For all possible trees $T$ (with branch lengths) and choices of
+model parameters $\theta$, the model must define a probability density function
+on observed sequence data $D$, denoted $f(D \mid T,\,\theta)$. This is also
+sometimes written $\Pr(D \mid T,\,\theta)$, even though it is a probability
+\emph{density}, not a probability. Maximum likelihood aims to find a particular
+tree and values for the model parameters which optimize the \defn{likelihood
+function} $\L$ for the observed data,
+\[
+  \L(\theta,\, T \mid D) = f(D \mid T,\, \theta).
+\]
+Bayesian methods, rather than trying to find point estimates for $\theta$ and
+$T$, aim to approximate the entire \defn{posterior distribution} for the
+observed data,
+\[
+  f(T,\,\theta \mid D) = \frac{f(D \mid T,\,\theta)f(T,\,\theta)}{f(D)}.
+\]
+Here, $f(T, \theta)$ denotes the prior distribution on $T$ and $\theta$, and
+$f(D)$ is the marginal density of the data (that is, the integral of the
+numerator over all values of $T$ and $\theta$).
+
+A \defn{viral phylogeny} is a particular kind of gene tree which relates the
+genetic sequences of viruses carried within one or more hosts. In this work, we
+consider viral phylogenies constructed from one sequence per infected
+individual, so that the tips of the are associated with both the viral sequence
+and the corresponding host.
 
 \subsubsection{Estimating transmission trees}
 \label{subsubsec:treeconv}
@@ -210,6 +266,10 @@ what phylodynamics can tell us about epidemics, and how it has been applied in
 the past, we will review some of the methods for quantifying the shapes of
 phylogenies and their similarity to each other.
 
+Many tree summary statistics have been developed to assign numerical values to
+phylogenies based on their properties. One of the most widely used is Sackin's
+index, which measures the imbalance or asymmetry in the tree.
+
 \subsubsection{Applications of phylodynamics}
 \label{subsubsec:appphylo}
 
@@ -271,8 +331,58 @@ tree are not available to the researcher.
    individuals, resulting in a tree with heterochronous tips.}
 \end{figure}
 
-\subsubsection{Generative models}
+\subsubsection{Models for contact networks}
 \label{subsubsec:generative}
+
+Throughout this section, the variable $n$ will be used to refer to the number
+of nodes in the network. 
+
+An \defn{Erd\H{o}s-R\'enyi} (ER) network~\autocite{erdos1960evolution}, also
+known as a Bernoulli network, was the first network model described. It has a
+single parameter, $p$, which is the probability that any particular edge is
+present in the network. To construct an ER network, one simply chooses
+$p \times \binom{n}{2}$ distinct pairs of nodes and draws an edge between each
+pair. The average degree of a node in an ER network is equal to $p \times n$.
+
+A \defn{Barab\'asi-Albert} (BA) network~\autocite{barabasi1999emergence},
+incorproates the phenomenon of \defn{preferential attachment} seen in real life
+networks. This means that new connections are more likely to involve nodes
+which already have a high number of connections - popular nodes tend to become
+more popular. In the formulation we consider here, BA networks have two
+parameters, $m$ and $\alpha$, which are used to construct the network via the
+following algorithm. The network begins as a single node, then the remaining
+$n-1$ nodes are added one at a time. Each time a new node is added, it is
+connected to $m$ other nodes. The probability of one of these connections
+involving an existing node of degree $k$ is proportional to $k^\alpha$. Note
+that in the original formulation~\autocite{barabasi1999emergence}, there was an
+additional parameter $m_0$ which indicated the number of initial vertices in
+the network, and the only value of $\alpha$ considered was 1. For our purposes,
+we fix $m_0 = 1$ but allow $\alpha$ to vary. We refer to $\alpha$ throughout
+this work as the \defn{preferential attachment power} or just attachment power.
+
+Networks produced by the BA model are \defn{scale free}, which means that the
+probability of a node having $k$ connections is proportional to $k^\gamma$ for
+some constant $\gamma$. This is also called a \defn{power law} degree
+distribution. An important remark on notation must be made here: in network
+literature, the Greek letter $\alpha$ has often been used to refer to the power
+law exponent of the degree distribution, not the preferential attachment power.
+However, the paper defining the network model~\autocite{barabasi1999emergence}
+uses $\gamma$ for the power law exponent, and $\alpha$ for the attachment
+power, and we shall do likewise. This must be noted because there are reports
+in the literature of the power law exponent being as large as 4, which would
+seem to conflict with our choice (see subsection XX) to bound $\alpha$ above by
+2. The reader should rest assured that it is the attachment power we are
+bounding, not the power law exponent.
+
+WS and BA networks differ from ER networks in an important way: it is possible
+to explicitly calculate the likelihood of the ER model parameter $p$ given an
+observed network, but this cannot be done for the other two models. This is
+because the probability of a particular edge occuring is always equal to $p$ in
+an ER network, regardless of the presence or absence of any other edges. In
+other words, the edges can be viewed as a series of $\binom{n}{2}$ Bernoulli
+trials with success probability $p$, so that the likelihood of $p$ given an
+observed graph with $k$ edges is distributed as 
+Binomial$\left(\binom{n}{2}, p\right)$.
 
 %\subsection{Approximate Bayesian computation}
 
@@ -335,3 +445,139 @@ tree are not available to the researcher.
 %algorithm or generative process.
 
 \subsection{Approximate Bayesian computation}
+
+\subsubsection{Overview and motivation}
+
+Mathematical models can be grouped into three categories in terms of our
+ability to fit them to observed data. First, there is a limited set of models
+which can be fit explicitly by using calculus to minimize a loss function. The
+canonical example of this type of model is a linear regression, with the
+ordinary least-squares loss function. A linear regression is a model of the
+relationship between some data points $x_1, \ldots, x_n$ and outcomes $y_1,
+\ldots, y_n$ which assumes that the outcomes are linearly related to the data,
+modulo some noise caused by measurement errors, environmental fluctuations, and
+so on. In other words, there is a constant $b$ such that 
+\begin{align}
+  \label{eq:regression}
+  y_i = bx_i + \varepsilon_i, 
+\end{align}
+where $\varepsilon_i$ is the error associated with the outcome $y_i$. Notice
+that, if we fix $b$, then since $y_i$ and $x_i$ are both given, $\varepsilon_i$
+is also fixed. The process of fitting a linear model means choosing the
+``best'' $b$. For least squares, this optimal $b$ is defined as the one which
+minimizes the sum of the squared $\varepsilon_i$. 
+
+Now that we have defined what it means to fit a least-squares linear
+regression, there remains the question of how to go about finding this optimal
+$b$ value. Recall that the errors $\varepsilon_i$ are fixed for a particular
+$b$, and our objective is to minimize the loss function, which is the sum of
+the squared errors. Naively, we could simply try many different $b$ values,
+calculate the loss function for each, and choose the $b$ which gives the
+smallest value. This approach, though basic, falls under the umbrella of
+\defn{numerical optimization}, which is the most common way the majority of
+models are fit. Of course, there is a whole field devoted to more sophisticated
+methods for exploring the parameter space, but they all boil down to the basic
+method of trying different values and choosing the one which minimizes the
+loss.
+
+In the case of least-squares linear regression, there is another method we
+could use. Looking at equation~\ref{eq:regression} for the model, it is easy to
+rearrange terms to solve for $\varepsilon_i$ in terms of the other variables:
+we get $\varepsilon_i = y_i - bx_i$. In fact, we can write down the entire loss
+function, which is the sum of the squared $\varepsilon_i$ in terms of $b$:
+\[
+  \sum \varepsilon_i^2 = \sum (y_i - bx_i)^2,
+\]
+where the sums are over all $i$ from 1 to $n$, the number of points in the data
+set. We will not describe the procedure here, but it is possible to explicitly
+minimize the right-hand side by finding the point where the derivative with
+respect to $b$ is zero. However, the method of directly minimizing the loss
+function with calculus is only applicable to a very narrow class of simple
+models. For the majority, the loss function is too complicated to set the
+derivative with respect to the parameters to zero and solve.
+
+Because of the limited space of models which permit exact solutions, numerical
+optimization of a loss function is the most frequently used method to fit a
+model. 
+
+An approximate Bayesian computation approach to least-squares regression might
+be as follows. We will need to make an additional assumption: that the errors
+$\varepsilon_i$ are normally distributed. That is, our linear model is now of
+the form
+\[
+  y_i = bx_i + \N(0, \sigma),
+\]
+where $\N(0, \sigma)$ indicates a normal distribution with mean zero and
+variance $\sigma$. We do not know $\sigma$ in advance, so this is another
+parameter we will need to estimate. There is nothing special about normal
+distributions - we could have chosen any other distribution we deemed
+appropriate. 
+
+The main idea of approximate Bayesian computation is that the ``best''
+parameters will define a model which produces simulated data similar to the
+real data. Suppose we fix values of $b$ and $\sigma$. Then, using the given
+data points $x_i$, we can generate simulated observations $y_i^*$ by adding
+$bx_i$ and a randomly chosen error drawn from $\N(0, \sigma)$.
+
+\subsubsection{Algorithms for ABC}
+\label{subsubsec:abcalg}
+
+Approximate Bayesian computation does not refer to a particular procedure for
+model fitting. Rather, ABC refers to the general strategy of choosing model
+parameters based on the resulting model's propensity to generate data
+resembling the real data. There are three main classes of ABC algorithm which
+have been developed so far: rejection, \gls{MCMC}, and sequential Monte Carlo
+(SMC). 
+
+All of these approaches require some common elements. First, as with all
+Bayesian methods, we are required to specify a \defn{prior distribution},
+denoted $\pi$, on the parameter space. The prior specifies what we already know
+or believe about the model parameters. Second, in order to compare simulated to
+observed data, we need to be able to summarize a data set in a numerical
+format. This is accomplished by a function, denoted $\eta$, which computes a
+vector of hopefully informative summary statistics on a data set. Third, we
+need a distance function $\rho$ which tells us how similar two data sets are to
+each other, based on their summary statistics.
+
+Continuing with the linear model example, we need to specify a prior $\pi(a, b,
+\sigma)$ on the three parameters. We do not have much certain information about
+these parameters except that $\sigma$ has to be at least zero, but it seems
+reasonable to assume that extreme relationships are fairly rare, and that
+positive and negative correlations are equiprobable. Therefore, we will let
+$a$, $b$, and $\sigma$ be independent, $a$ and $b$ be normally distributed,
+and $\sigma$ be log-normally distributed. That is,
+\[
+  \pi(a, b, \sigma) = 
+  \begin{cases}
+    \Pr[\N(0, 1) = a] \cdot \Pr[\N(0, 1) = b] \cdot \Pr[\N(0, 1) = \log\sigma]
+     & \sigma > 0 \\
+    0 & \sigma \le 0.
+  \end{cases}
+\]
+For the vector of summary statistics, we will use the mean and variance of the
+simulated data,
+\[
+  \eta(\vec{y}) = \left<\E[\vec{y}], \Var[\vec{y}]\right>.
+\]
+Finally, for the distance function $\rho$ we take the standard Euclidian
+distance.
+
+Rejection ABC is the simplest method, and also the one which was first
+proposed~\autocite{rubin1984bayesianly}. Effectively, it comes down to the
+approach described in the previous subsection of guessing parameter values
+until one is close enough to the truth. More specificially, a possible set of
+parameters $\theta$ is drawn from the prior distribution, and a simulated data
+set $z$ is generated from the model with those parameters. If the distance
+between the simulated data set and the real data, $\rho(\eta(y), \eta(z))$, is
+small enough, then we accept $\theta$ as a sample from the posterior. This can
+be repeated until as many samples as desired are obtained.
+
+% MCMC
+
+The most recently developed class of algorithms for ABC is sequential
+Monte-Carlo (SMC)~\autocite{sisson2007sequential}. As with the other two
+classes, we want to eventually obtain a sample from the posterior distribution
+$f(\theta \mid D)$. The idea of SMC is to begin with a sample from a
+distribution we know, most often the prior, and approach the posterior smoothly
+by progressing through a series of intermediate distributions.
+

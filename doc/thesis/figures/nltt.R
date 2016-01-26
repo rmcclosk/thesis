@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
 
 library(ape)
+library(extrafont)
 
 t1 <- read.tree(text="(((:1,:1):1,:1):1,:1):0;")
 t2 <- read.tree(text="((((:1,:1):1,:1):1,:1):1,:1):0;")
@@ -11,7 +12,7 @@ sf2 <- stepfun(c(0, 1/3, 2/3), c(0, 1/3, 2/3, 1))
 af1 <- approxfun(c(0, 0.5, 1), c(0, 0.5, 1))
 af2 <- approxfun(c(0, 1/3, 2/3, 1), c(0, 1/3, 2/3, 1))
 
-pdf("nltt.pdf")
+pdf("nltt.pdf", family="Gillius ADF")
 par(mfrow=c(2, 2), lwd=3)
 old.mar <- par("mar")
 par(mar=c(0, 2, 4, 2) + 0.1)

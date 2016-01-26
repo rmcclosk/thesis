@@ -130,18 +130,48 @@ Figure~\ref{fig:nltt}.
 
 \subsubsection{Adaptive sequential Monte-Carlo approximate Bayseian computation}
 
-I implemented the adaptive sequential Monte-Carlo algorithm
-developed in~\autocite{del2012adaptive} for approximate Bayesian computation.
-In contrast to most existing sequential Monte-Carlo methods, this algorithm
-does not require the user to specify a sequence of decreasing tolerances to
-approach the target posterior distribution. Rather, the tolerances are computed
-adaptively at each step, starting from infinity at the first iteration. The
-algorithm may be stopped when the tolerance reaches a user-defined final value,
-or when the rate of acceptance of the MCMC kernel reaches a user-defined
-threshold. Following a heuristic applied by the
-authors~\autocite{del2012adaptive}, we used the latter stopping criterion,
-accepting the SMC approximation to the posterior when the MCMC acceptance rate
-dropped below 1.5\%.
+I implemented the adaptive sequential Monte-Carlo (SMC) algorithm developed by
+Del Moral \etal~\autocite{del2012adaptive} for approximate Bayesian
+computation. 
+
+For ease of exposition, we simplifiy the notation of Del Moral \etal by
+dropping the subscripts on the variables which indicate the current iteration
+of the algorithm. Instead, we will add a superscript $^*$ to indicate the value
+of the variable which will be used in the next iteration (this should become
+clear later on). Let $\set{\theta_i}_{i=1}^{N}$ be a set of $N$ particles,
+which are particular choices of the model parameters $\theta$. For each
+particle $\theta_i$, let $\set{X_{i,j}}_{j=1}^M$ be a set of $M$ simulated
+datasets, generated from the model with parameters $\theta_i$. Let
+$\set{W_i}_{i=1}^N$ be weights associated to each particle. Let $d$ be a
+distance measure on data sets, so that $d(x, y)$ is smaller the more similar
+$x$ and $y$ are to each other. Let $\varepsilon$ be the tolerance level which
+indicates whether a data set is ``close'' to the observed data. That is, if
+$d(x, y) < \varepsilon$, we will say that $x$ and $y$ are close, otherwise they
+are distant.
+
+% begin by sampling from the prior and setting all weights to equal
+
+Next, we calculate the next tolerance $\varepsilon^*$. Before we explain how
+this is done, we first need to define how we adjust the weights on the
+particles. As explained above (see subsection~\ref{subsubsec:abcalg}), the idea
+of sequential Monte-Carlo is to begin with the prior distribution $\pi$,
+progress smoothly through a series of intermediate distributions $\pi_1,
+\ldots, \pi_{n-1}$, and eventually arrive at the target posterior distribution
+$\pi_n$. In the $k$th iteration, the distribution $\pi_k$ is approximated by
+the particles and their weights. 
+
+In contrast to most existing sequential Monte-Carlo methods, this
+algorithm does not require the user to specify a sequence of decreasing
+tolerances to approach the target posterior distribution. Rather, the
+tolerances are computed adaptively at each step, starting from infinity at the
+first iteration. 
+
+The algorithm may be stopped when the tolerance reaches a
+user-defined final value, or when the rate of acceptance of the
+Metropolis-Hastings kernel reaches a user-defined threshold. Following a
+heuristic applied by the authors~\autocite{del2012adaptive}, we used the latter
+stopping criterion, accepting the SMC approximation to the posterior when the
+\gls{MCMC} acceptance rate dropped below 1.5\%.
 
 \subsection{Simulation experiments}
 
@@ -191,12 +221,24 @@ to attract more contacts; small world networks, where nodes are connected to
 their immediate neighbours and the occasional far-flung contact; and full
 networks, where every possible connection is present. I will describe here only
 the procedure and results for the preferential attachment networks. The details
-of the other three types of graph can be found in the supplemental materials.
+of the other three types of graph can be found in the supplemental materials. A
+graphical schematic of the analysis undertaken here is given in
+Figure~\ref{fig:kernelexpt}.
+
+\begin{figure}[ht]
+  \centering
+  \label{fig:kernelexpt}
+  \includegraphics{kernel_expt}
+  \caption[Schematic of first set of simulation experiments]{
+    Schematic of first set of simulation experiments to determine separable
+    parameters in kernel space, along with optimal tree kernel meta-parameters.
+  }
+\end{figure}
 
 The method of testing for separability was described previously
 in~\autocite{poon2015phylodynamic}, but I will reiterate it here for
 completeness. As a concrete example, consider the attachment power parameter
-$\alpha$ of the preferential attachment networks. This parameter describes the
+\gls{alpha} of the preferential attachment networks. This parameter describes the
 strength of attraction to highly connected nodes and is bounded below by zero
 indicating no extra attraction. By qualitative observation, I determined that a
 power of 2.0, which produced networks with very few ``hub'' nodes with
@@ -229,11 +271,12 @@ For each of the values of $\alpha$, I generated 100 networks on 5000 nodes. An
 epidemic was simulated over each network (see subsection X) until 1000 nodes
 were infected, and 500 of those infected nodes were sampled to form a
 transmission tree. This resulted in 300 total simulated transmission trees -
-100 for each of the three values of $\alpha$. Next, I computed the tree
-kernel~\autocite{poon2013mapping} (see subsection~\ref{subsubsec:treeshape})
-for each pair of trees. These values were placed into a 300 $\times$ 300 kernel
-matrix, where the value at the $(i, j)$th position was the tree kernel of the 
-$i$th and $j$th trees. 
+100 for each of the three values of $\alpha$. The data generation steps are
+shown on the left side of Figure~\ref{fig:kernelexpt}. Next, I computed the
+tree kernel~\autocite{poon2013mapping} (see
+subsection~\ref{subsubsec:treeshape}) for each pair of trees. These values were
+placed into a 300 $\times$ 300 kernel matrix, where the value at the $(i, j)$th
+position was the tree kernel of the $i$th and $j$th trees. 
 
 The tree kernel provides a pairwise similarity score between two trees. The
 higher the kernel score, the more similar the trees are to each other.
@@ -252,45 +295,92 @@ themselves. A two-dimensional kPCA projection of the simulated trees is shown
 in Figure~\ref{fig:pakpca}. The scenario just described - 500 samples from 1000
 infected nodes - is the central panel. To ensure that the method could be used
 in a variety of contexts, the same analysis was performed with 500 and 2000
-infected nodes, as well as 100 and 1000 sampled tips. The projections show that
-all three values are well separated from each other in many of the scenarios.
-With smaller trees, it becomes harder to disinguish $\alpha = 0.5$ from $\alpha
-= 1.0$ in two dimensions.
+infected nodes, as well as 100 and 1000 sampled tips. 
 
-\begin{figure}[ht]
-  \centering
-  \label{fig:pakpca}
-  \includegraphics{kernel_pa_kpca}
-  \caption[Projection of kernel matrix for different attachment power values
-  onto its first two principal components]{
-    Projection of the kernel matrix for different preferential attachment power
-    values onto its first two principal components, for eight simulation
-    scenarios. Each point corresponds to a simulated transmission tree, and is
-    coloured by preferential attachment power. Facets are number of infected
-    nodes (horizontal), and number of sampled tips (vertical). The parameters
-    to the tree kernel were $\lambda = 0.3$ and $\sigma = 5$, and the nLTT was
-    not used. Qualitatively, trees with a larger number of tips are easier to
-    separate in kernel space, regardless of what sampling proportion they
-    represent. In all cases, the highest attachment power can be separated from
-    the other two, but the two lowest values become hand to distinguish with in
-    the 100-tip trees.
-  }
-\end{figure}
+The next step was to quantify how well trees simulated with different $\alpha$
+values could be distinguished from each other. As described
+previously~\autocite{poon2015phylodynamic}, this was done by assessing the
+accuracy of a support vector machine regression
+(SVR)~\autocite{smola1997support}. Briefly, an SVR operates by finding a
+hyperplane (in two dimensions, a line) such that the deviation of most of the
+data points from the line is less than some prescribed threshold. Points
+further away than this threshold are ignored in the model. I performed 1000
+replicate 2-fold cross-validations of an SVR predicting preferential attachment
+power on the simulated trees, using the \software{ksvm} function from
+\software{kernlab}~\autocite{karatzoglou2004kernlab}. That is, the SVR was
+trained on a random subset of 150 trees, and then used to predict $\alpha$ of
+the remaining 150 trees. The predictions were correlated against the true
+values of $\alpha$ to obtain an $R^2$, and this procedure was repeated 1000
+times with different subsets of trees.
 
-\begin{figure}[ht]
-  \centering
-  \label{fig:pacrossv}
-  \includegraphics{kernel_pa_crossv}
-  \caption[Cross-validation performance of kernel support vector machine
-  classifier for preferential attachment power]{
-    Cross-validation performance of kernel support vector machine classifier
-    for preferential attachment power.
-  }
-\end{figure}
+The cross-validation had the dual purpose of providing a means to selecting the
+optimal meta-parameters to the tree kernel (see
+subsection~\ref{subsubsec:treeshape}) - they are be those which provide the
+highest average $R^2$. To this end, the cross-validation was repeated for
+several values of $\lambda$ and $\sigma$ as shown in Figure~\ref{fig:kernelexpt}
+Each combination was evaluated with and without multiplying the tree kernel by
+the normalized lineages-through-time (nLTT) statistic, and was further repeated
+for the scenarios with differing numbers of infected and sampled nodes
+described above. To ensure that the tree kernel was the most appropriate
+similarity measure to use for ABC, we also computed the $R^2$ of $\alpha$
+against Sackin's index, a widely used tree balance statistic (see
+subsection~\ref{subsubsec:treeshape}), by the same cross-validation procedure.
 
 \subsubsection{Grid search}
 
+The previous set of simulations were intended to investigate which contact
+network parameters could and could not be inferred by examining transmission
+trees. However, they tell us nothing about the accuracy or precision we might
+expect when inferring those parameters numerically. As illustrated in
+Figure~\ref{fig:accprec}, the ideal situation is one where we are accurate and
+precise, and the worst situation is when we are precise but not accurate.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics{acc_prec}
+  \caption{Illustration of accurate vs. precise kernel score estimates}
+  \label{fig:accprec}
+\end{figure}
+
+Figure~\ref{fig:gridsearch} shows a schematic of this experiment. A number of
+representative values, here denoted $k$, were chosen for the parameter of
+interest. In the case of preferential attachment power $\alpha$, I chose $k =
+8$ testing values, namely $0, 0.25, \ldots, 2.0$. For each of these values, ten
+networks on 5000 nodes were generated, an epidemic of 1000 nodes was simulated
+over each, and a transmission tree of 500 tips was sampled. The resulting $10
+\times k$ simulated transmission trees were referred to as the \defn{testing
+trees}. In addition, I chose a further $n \gg k$ training values spanning the
+range of the parameter. For $\alpha$, these were $0, 0.01, \ldots, 2.0$.
+Fifteen trees were simulated in the same manner for each of these values,
+referred to here as \defn{training trees}.
+
+For each of the testing trees, I computed the tree kernel with all of the
+training trees. This resulted in 15 kernel scores per training value. The
+training value with the highest median kernel score was used as a point
+estimate of the testing value. The kernel scores were then normalized to lie in
+[0, 1], and an interval was found which contained 95\% of the area under the
+curve and was of minimal width. This was used as a 95\% confidence interval for
+the parameter.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics{gridsearch_expt}
+  \caption{Schematic of grid search simulation experiments.}
+  \label{fig:gridsearch}
+\end{figure}
+
 \subsubsection{Approximate Bayesian computation}
+
+Our final set of simulation experiments was to test the ABC-SMC algorithm on
+simulated data. For each replicate, we generated a network on 5000 nodes,
+simulated an epidemic over that network until 1000 nodes were infected, and
+sampled either 500 or all 1000 of those nodes to form a transmission tree.
+Priors were specified as follows: for the total number of nodes in the network,
+$\Uniform(1000, 10000)$; for the number of infected nodes, $\Uniform(500,
+2000)$; for the preferential attachment power, $\Uniform(0, 2)$. The mean
+degree of nodes in the network was fixed at either 4, 10, or 16. The
+algorithm was run with 1000 particles, and was stopped when the \gls{MCMC}
+acceptance probability dropped below 1.5\%.
 
 \subsection{Applications}
 

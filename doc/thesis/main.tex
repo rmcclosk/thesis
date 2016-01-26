@@ -5,15 +5,13 @@
 \usepackage[top=2cm, bottom=2cm, outer=3cm, inner=3cm, heightrounded, 
             marginparwidth=2cm, marginparsep=0.5cm]{geometry}
 \usepackage{setspace}
-
 \usepackage[backend=biber, style=authoryear]{biblatex}
-
 \usepackage{nicefrac}
 \usepackage{amsmath}
-
 \usepackage{algorithm}
 \usepackage{algorithmicx}
 \usepackage{algpseudocode}
+\usepackage[acronym,nonumberlist]{glossaries}
 
 \newcommand{\comment}[1]{\marginnote{\textit{#1}}}
 
@@ -23,15 +21,33 @@
 
 \newcommand{\set}[1]{\left\lbrace#1\right\rbrace}
 \renewcommand{\emptyset}{\varnothing}
+\renewcommand{\vec}[1]{\mathbf{#1}}
+\renewcommand{\star}[1]{#1^*}
 
 \DeclareMathOperator*{\argmin}{arg\,min}
 \DeclareMathOperator*{\argmax}{arg\,max}
 
 \DeclareMathOperator{\Exponential}{Exponential}
 \DeclareMathOperator{\Uniform}{Uniform}
+\DeclareMathOperator{\E}{E}
+\DeclareMathOperator{\Var}{Var}
 
 \DeclareMathOperator{\inc}{in}
 \DeclareMathOperator{\out}{out}
+
+\newcommand{\N}{\mathcal{N}}
+\renewcommand{\L}{\mathcal{L}}
+
+\newacronym{MCMC}{MCMC}{Markov chain Monte-Carlo}
+\newacronym{ER}{ER}{Erd\H{o}s-R\'enyi}
+\newacronym{BA}{BA}{Barab\'asi-Albert}
+\newacronym{WS}{WS}{Watts-Strogatz}
+\newacronym{SI}{SI}{susceptible-infected}
+
+\newglossaryentry{alpha}{
+  name=$\alpha$,
+  description=preferential attachment power parameter
+}
 
 \graphicspath{{figures/}}
 
@@ -40,6 +56,7 @@ Bayesian computation}
 \author{Rosemary M. McCloskey and Art F.Y. Poon}
 
 \addbibresource{papers.bib}
+\makeglossaries
 
 \frenchspacing
 \onehalfspacing
@@ -52,8 +69,15 @@ Bayesian computation}
 
 \listoffigures
 
+\printglossary[title=List of Symbols]
+\printglossary[title=List of Abbreviations,type=\acronymtype]
+
 \section{Introduction}
 \input{intro}
+
+
+\section{Objective}
+\input{objective}
 
 \section{Methods}
 \input{methods}

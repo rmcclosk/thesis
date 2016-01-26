@@ -27,6 +27,11 @@ n-grams.
 
 # ABC
 
+**[@rubin1984bayesianly]**
+
+* Introduces the concept of approximate Bayesian computation, although not by
+that name. Didn't read.
+
 **[@sisson2007sequential]**
 
 * Introduces the sequential Monte Carlo approach to ABC.
@@ -50,6 +55,11 @@ output.
 * Gibbs random fields? Something to look into.
 * It would be easier to directly simulate the summary statistics, rather than 
 simulate the data and then calculate them.
+
+**[@sunnaker2013approximate]**
+
+* Another ABC overview.
+* TODO
 
 **[@wang2014approximate]**
 
@@ -103,6 +113,19 @@ preliminary grid search. Not too complicated.
 * There's a note under theorem 5 that "ABC gives estimates that are at least as
 accurate or more accurate than any other estimators based on the same summary
 statistics."
+
+**[@lintusaari2016identifiability]**
+
+* Previous ABC experiments with simulated data (they list several) have only
+allowed one parameter to vary.
+* Precedent for stopping simulations once a pre-determined number of
+individuals has become infected.
+* Also precedent for doing grid search.
+* Transformation of variables can change uninformative priors into informative
+ones: a uniform prior on the SI model parameters does not translate to a
+uniform prior on the basic reproductive number, because of how these are
+related.
+* Different priors give wildly different posteriors.
 
 # Kernel-ABC
 
@@ -188,6 +211,14 @@ methods.
 transmissions when within-host diversity is zero.
 * They also infer the SIR parameters and effective population size.
 
+**[@stadler2011estimating]**
+
+* A good example of the cutting-edge use of phylodynamics to infer
+epidemiological parameters. 
+* Develops the birth-death model for serially sampled data.
+* The likeilhood can be explicitly calculated. This is very pretty math.
+* 
+
 ## Stochastic Mapping
 
 **[@nielsen2002mapping]**
@@ -254,8 +285,6 @@ distance - I think we knew this already.
 
 * Develop a network-based score (TNS) to determine an individual's transmission
 risk.
-* This paper is a circlejerk. High network degree leads to high network degree
-in the future, says nothing about actual transmission.
 * Specifically targeting ART to high-risk people isn't any better than
 targeting people at random.
 * They don't say whether TNS was correlated with risk factors. I'm guessing
@@ -312,6 +341,18 @@ It's assumed that the removal times are known.
 work.
 * They weren't able to get much information about p in their application. 
 
+**[@groendyke2011bayesian]**
+
+* Extension of Britton 2002 towards an "inferential methodology of practical
+use."
+* Assume an ER network and explicitly calculate the likelihood of an observed
+epidemic. This is possible only because it's ER I think.
+* The MCMC algorithm is very complicated. But they have an R package! It's
+called epinet.
+* They marginalize over the transmission tree. This is troublesome, it seems to
+be a superset of what we are doing.
+* Extensible to ERGMs.
+
 **[@goodreau2006assessing]**
 
 * Uses ERGMs to model HIV contact networks.
@@ -338,13 +379,14 @@ epidemic spread.
 * Suggests that inference of contact network properties should be focused on
 "degree distribution or broader notions of population structure", which is what
 I'm doing.
-* TODO
+* Use some odd summary statistics to show there isn't much difference between
+trees simulated with different levels of clustering.
 
 **[@klovdahl1985social]**
 
 * Canonical reference for the (modern) use of social networks in an
 epidimiological context.
-* TODO
+* This is a very politically incorrect article.
 
 ## Other Phylodynamics
 
@@ -467,6 +509,10 @@ model selection by eye.
 * I didn't actually read this one, but it's the reference for performing
 simulations with concurrent Poisson processes.
 
+**[@smola1997support]**
+
+* The paper which introduced support vector regression. Didn't read.
+
 # HIV Epidemiology
 
 **[@beyrer2012global]**
@@ -542,6 +588,14 @@ better than imbalance.
 * I'm using this as a reference for what allopatric speciation is, and the fact
 that it's common. See chapter 3, particularly page 84.
 
+**[@fitzpatrick2008if]**
+
+* Speciation processes are a continuum from completely allopatric to completely
+sympatric.
+* Points out the implausability of completely sympatric speciation, which
+requires complete panmixia. Unstructured host populations are similarly
+unlikely.
+
 **[@haeckel1866generelle]**
 
 * The first instance of the word "phylogeny".
@@ -560,6 +614,20 @@ it gives a nice definition.
 
 * Introduces the 4-point condition for ultrametric trees.
 
+**[@nei2000molecular]**
+
+* Good general reference book for a lot of the basic phylogenetics concepts.
+
+**[@sokal1958statistical]**
+
+* First instance of UPGMA, and distance-based phylogenetic methods in general.
+
+# Population Genetics
+
+**[@kendall1948generalized]**
+
+* Reference for the birth-death process.
+
 # Software
 
 **[@csardi2006igraph]**
@@ -575,3 +643,7 @@ detail.
 
 * The GSL manual, which is apparently the right way to cite GSL. Check on this,
 it says on the GSL page that I should be citing one by a different guy?
+
+**[@karatzoglou2004kernlab]**
+
+* The reference for kernlab. Didn't read.
