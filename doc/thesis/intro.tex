@@ -1,6 +1,6 @@
-\subsection{Phylogenetics and phylodynamics}
+\section{Phylogenetics and phylodynamics}
 
-\subsubsection{Phylogenetic trees}
+\subsection{Phylogenetic trees}
 
 In evolutionary biology, a \defn{phylogeny}, or \defn{phylogenetic tree}, is a
 graphical representation of the the evolutionary relationships among a group of
@@ -21,15 +21,15 @@ evolutionary distance or calendar time between ancestors and their descendants.
 The term ``evolutionary distance'' is used here imprecisely to mean any sort of
 quantitative measure of evolution, such as the number of differences between
 the DNA sequences of an ancestor its descendant, or the difference in average
-body mass or height. This will be clarified below in
-subsection~\ref{subsubsec:genetree}. A phylogeny with branch lengths in calendar
-time units is often referred to as \defn{time-scaled}. In a time-scaled
-phylogeny, the internal nodes can be mapped onto a timeline by using the tips
-of the tree, which usually map to the present day, as a reference
-point~\autocite{nee1992tempo}. The corresponding points on the timeline are
-called \defn{branching times}, and the rate of their accumulation is referred
-to as the \defn{branching rate}. Rooted trees whose tips are all the same
-distance from the root are called \defn{ultrametric}
+body mass or height. Particular examples of evolutionary distance, based on
+genetic data, will be discussed below in subsection~\ref{subsubsec:genetree}. A
+phylogeny with branch lengths in calendar time units is often referred to as
+\defn{time-scaled}. In a time-scaled phylogeny, the internal nodes can be
+mapped onto a timeline by using the tips of the tree, which usually map to the
+present day, as a reference point~\autocite{nee1992tempo}. The corresponding
+points on the timeline are called \defn{branching times}, and the rate of their
+accumulation is referred to as the \defn{branching rate}. Rooted trees whose
+tips are all the same distance from the root are called \defn{ultrametric}
 trees~\autocite{buneman1974note}. These concepts are illustrated in
 Figure~\ref{fig:speciestree}.
 
@@ -46,7 +46,7 @@ Figure~\ref{fig:speciestree}.
       fish is most distantly related to any other node in the tree.}
 \end{figure}
 
-\subsubsection{Species trees and transmission trees}
+\subsection{Species trees and transmission trees}
 \label{subsubsec:speciestree}
 
 A \defn{species tree} is a particular type of phylogeny in which the taxa are
@@ -54,32 +54,33 @@ species, and the branching times correspond to historical speciation events. By
 speciation events, we mean times when two formerly interbreeding groups of
 organisms ceased to reproduce with each other. In general, we do not have
 access to the true tree relating a particular group of extant species, as this
-would imply certain knowledge of speciation events in the distant past.
+would usually imply certain knowledge of speciation events in the distant past.
 Therefore, all species trees considered by researchers are estimates, based on
 the genetic or phenotypic similarity of the extant taxa, the fossil record, or
 both. We discuss some of the challenges associated with this estimation in
 subsection \ref{subsubsec:treeconv} below. However, for the moment, we ignore
 these complications and consider what can be said about the true species tree.
 
-Speciation, which causes branching in a species tree, often occurs by an
-\defn{allopatric} process, where a sub-population of organisms is isolated from
-the original population by a geographic barrier~\autocite{coyne2004speciation}.
-Over time, differing selection pressures on either side of the barrier, coupled
-with genetic drift, cause the two populations to diverge genetically. This
-eventually results in two distinct species, which will appear as two subtrees
-or \defn{clades} in their species tree if descendants of both survive to the
-present. Of course, this is not necessarily the case, as selection may cause
-one or both of the new sub-populations or their descendants to become extinct.
-On the other hand, selection may favour one of the sub-populations, allowing it
-to expand into new regions or niches and possibly paving the way for subsequent
-speciation events. It must be noted that speciation is not necessarily
-allopatric. \defn{Sympatric} speciation refers to the emergence of a new
-species without any geographic barrier~\autocite{coyne2004speciation}. Indeed,
-there is a whole continuum of possible speciation
+Speciation often occurs by an \defn{allopatric} process, where a sub-population
+of organisms is isolated from the original population by a geographic
+barrier~\autocite{coyne2004speciation}. Over time, differing selection
+pressures on either side of the barrier, coupled with genetic drift, cause the
+two populations to diverge genetically. This eventually results in two distinct
+species, which will appear as two subtrees or \defn{clades} in their species
+tree if descendants of both survive to the present. Speciation is not
+necessarily allopatric: \defn{sympatric} speciation refers to the emergence of
+a new species without any geographic barrier~\autocite{coyne2004speciation}.
+Indeed, there is a whole continuum of possible speciation
 processes~\autocite{fitzpatrick2008if}, ranging from completely allopatric to
-completely \defn{sympatric}. However, at least for eukaryotic organisms,
-allopatric speciation is thought to be by far the most common
+completely sympatric. However, at least for eukaryotic organisms, allopatric
+speciation is thought to be by far the most common
 type~\autocite{coyne2004speciation}.
+
+%Of course, this is not
+%necessarily the case, as selection may cause one or both of the new
+%sub-populations or their descendants to become extinct. On the other hand,
+%selection may favour one of the sub-populations, allowing it to expand into new
+%regions or niches and possibly paving the way for subsequent speciation events.
 
 A different type of tree used in the study of pathogens is a \defn{transmission
 tree}. In such trees, tips represent infected hosts, while internal nodes
@@ -88,15 +89,18 @@ generally have branch lengths in units of calendar time, with a root
 corresponding to the index case, and branching times indicating times of
 transmission. The internal nodes may be labeled with the donor of the
 transmission pair, if this is known. The tips of the tree, rather than being
-fixed at the present day, are placed at the time at which the individual was
-discovered or their pathogen population sampled. Consequently, the transmission
-tree may not be ultrametric, but may have tips located at varying distances
-from the root. Such trees are said to have \defn{heterochronous} taxa or
+fixed at the present day, are placed at the time at which the pathogen
+population of the individual was sampled. Consequently, the transmission tree
+may not be ultrametric, but may have tips located at varying distances from the
+root. Such trees are said to have \defn{heterochronous} taxa or
 samples~\autocite{drummond2003measurably}, in contrast to the
 \defn{isochronous} samples found in macro-organisms species trees. A
-transmission tree is illustrated in Figure~\ref{fig:contactnet} (right).
+transmission tree is illustrated in Figure~\ref{fig:contactnet} (A).
 
-When considering epidemics of RNA viruses, transmission trees and species trees
+\textit{A priori}, transmission trees and species trees have nothing to do with
+each other. One represents the evolutionary history of a group of organisms,
+the other traces the spread of a disease through a host population. However,
+when considering epidemics of RNA viruses, transmission trees and species trees
 are highly related. The viral population within a single host has often been
 referred to as a \defn{quasispecies}~\autocite{domingo2012viral}, and due to
 the fast evolutionary rate of these viruses, two hosts' viral populations are
@@ -137,7 +141,7 @@ within-host forces play a role. Both of these issues are discussed further
 below in subsection~\ref{subsubsec:treeconv}, though we continue to ignore them
 in the next subsection.
 
-\subsubsection{Gene trees and viral phylogenies}
+\subsection{Gene trees and viral phylogenies}
 \label{subsubsec:genetree}
 
 A \defn{gene tree} is another type of phylogeny which traces the evolutionary
@@ -191,21 +195,21 @@ consider viral phylogenies constructed from one sequence per infected
 individual, so that the tips of the are associated with both the viral sequence
 and the corresponding host.
 
-\subsubsection{Estimating transmission trees}
+\subsection{Estimating transmission trees}
 \label{subsubsec:treeconv}
 
 Most applications of viral phylodynamics, including this project, aim to answer
-epidemiological questions~\autocite{volz2013viral}. For example, phylodynamic
-methods have been used to investigate the degree of
+epidemiological questions~\autocite{pybus2009evolutionary, volz2013viral}. For
+example, phylodynamic methods have been used to investigate the degree of
 clustering~\autocite{hughes2009molecular} and the effect of elevated
 transmission risk in acute infection~\autocite{volz2012simple} (a more thorough
 review is given below in subsection~\ref{subsubsec:appphylo}). For these
 applications, we are ultimately interested in the transmission tree, which is a
 representation of an epidemiological process (transmission), as opposed to the
 viral phylogeny, which represents a biological process (viral evolution). As
-discussed above in subsection~\ref{subsubsec:speciestree}, transmission trees and
-are in practice unknown, and must be estimated from available data. Here, we
-review some of the ways to perform such estimation.
+discussed above in subsection~\ref{subsubsec:speciestree}, transmission trees
+and are in practice unknown, and must be estimated from available data. Here,
+we review some of the ways to perform such estimation.
 
 In principle, transmission trees can be reconstructed by on-the-ground
 epidemiological methods, that is, by asking each person who they contacted.
@@ -252,7 +256,7 @@ transmission trees was assigned a likelihood based on infection time and
 geographic separation. 
 
 
-\subsubsection{Tree shapes}
+\subsection{Tree shapes}
 \label{subsubsec:treeshape}
 
 The aim of viral phylodynamics is to glean some kind of knowledge, about the
@@ -268,15 +272,16 @@ phylogenies and their similarity to each other.
 
 Many tree summary statistics have been developed to assign numerical values to
 phylogenies based on their properties. One of the most widely used is Sackin's
-index, which measures the imbalance or asymmetry in the tree.
+index~\cite{shao1990tree}, which measures the imbalance or asymmetry in the
+tree.
 
-\subsubsection{Applications of phylodynamics}
+\subsection{Applications of phylodynamics}
 \label{subsubsec:appphylo}
 
-\subsection{Contact networks}
+\section{Contact networks}
 \label{subsec:contactnet}
 
-\subsubsection{Overview}
+\subsection{Overview}
 
 Epidemics spread through populations of hosts through \defn{contacts} between
 those hosts. The definition of contact depends on the mode of transmission of
@@ -331,7 +336,7 @@ tree are not available to the researcher.
    individuals, resulting in a tree with heterochronous tips.}
 \end{figure}
 
-\subsubsection{Models for contact networks}
+\subsection{Models for contact networks}
 \label{subsubsec:generative}
 
 Throughout this section, the variable $n$ will be used to refer to the number
@@ -384,7 +389,7 @@ trials with success probability $p$, so that the likelihood of $p$ given an
 observed graph with $k$ edges is distributed as 
 Binomial$\left(\binom{n}{2}, p\right)$.
 
-%\subsection{Approximate Bayesian computation}
+%\section{Approximate Bayesian computation}
 
 %Consider a model $M$, with parameters $\theta$, which we wish to fit to some
 %observed data $D$. By ``fit'', we often mean that we want to find particular
@@ -444,28 +449,57 @@ Binomial$\left(\binom{n}{2}, p\right)$.
 %exact likelihoods are not available, perhaps due to the model involving an
 %algorithm or generative process.
 
-\subsection{Approximate Bayesian computation}
+\section{Approximate Bayesian computation}
 
-\subsubsection{Overview and motivation}
+\subsection{Overview and motivation}
 
-Mathematical models can be grouped into three categories in terms of our
-ability to fit them to observed data. First, there is a limited set of models
-which can be fit explicitly by using calculus to minimize a loss function. The
-canonical example of this type of model is a linear regression, with the
-ordinary least-squares loss function. A linear regression is a model of the
-relationship between some data points $x_1, \ldots, x_n$ and outcomes $y_1,
-\ldots, y_n$ which assumes that the outcomes are linearly related to the data,
-modulo some noise caused by measurement errors, environmental fluctuations, and
-so on. In other words, there is a constant $b$ such that 
+\gls{ABC} is the name for a family of techniques which can be used to fit
+complex models to observed data. We shall make this precise below, but to fully
+describe and motivate \gls{ABC}, it is necessary to first make explicit exactly
+what we mean by ``fitting'' a model. 
+
+A linear regression is a model of the relationship between some data points
+$\vec{x} = (x_1, \ldots, x_n)$ and outcomes $\vec{y} = (y_1, \ldots, y_n)$.
+This model assumes that the outcomes are linearly related to the data, modulo
+some noise caused by measurement errors, environmental fluctuations, and so on.
+In other words, there is a constant $b$ such that $y_i = bx_i + \varepsilon_i$,
+where $\varepsilon_i$ is the error associated with the outcome $y_i$. If we
+make the additional assumption that the errors are normally distributed, then
+the model takes the form
 \begin{align}
+  y_i = bx_i + \N(0, \sigma^2).
   \label{eq:regression}
-  y_i = bx_i + \varepsilon_i, 
 \end{align}
-where $\varepsilon_i$ is the error associated with the outcome $y_i$. Notice
-that, if we fix $b$, then since $y_i$ and $x_i$ are both given, $\varepsilon_i$
-is also fixed. The process of fitting a linear model means choosing the
-``best'' $b$. For least squares, this optimal $b$ is defined as the one which
-minimizes the sum of the squared $\varepsilon_i$. 
+When we say that we want to fit this model to observed data, we mean that we
+want to find particular values for $b$ and $\sigma$ which are in some way
+optimal given $\vec{x}$ and $\vec{y}$. We shall make this precise below. Notice
+that, if we fix $b$ and $\sigma$, then we can write down the probability density
+of observing $y_i$ given $x_i$. If $f_\N(\cdot \mid \mu, \sigma)$ is the
+\gls{pdf} of the normal distribution with mean $\mu$ and variance $\sigma^2$,
+and the $y_i$ are all independent, then
+\[
+  f(\vec{y} \mid \vec{x}, b, \sigma) = 
+  \prod_{i=1}^n f_\N(y_i - bx_i \mid 0, \sigma^2).
+\]
+This gives us a natural criterion for choosing the optimal parameters: we want
+to pick $b$ and $\sigma$ which define a model where the probability density of
+our observed data is as high as possible. When performing such an optimization,
+the above density function is also called the \defn{likelihood} of the
+parameters,
+\[
+  \L(b, \sigma \mid \vec{x}, \vec{y}) = f(\vec{y} \mid \vec{x}, b, \sigma).
+\]
+The particular $b$ and $\sigma$ which optimize $\L(b, \sigma)$ are called the
+\gls{ML} estimates.
+
+%Mathematical models can be grouped into three categories in terms of our
+%ability to fit them to observed data. First, there is a limited set of models
+%which can be fit explicitly by using calculus to minimize a loss function. The
+%canonical example of this type of model is a linear regression. 
+%Notice that, if we fix $b$, then since $y_i$ and $x_i$ are both given,
+%$\varepsilon_i$ is also fixed. The process of fitting a linear model means
+%choosing the ``best'' $b$. For least squares, this optimal $b$ is defined as
+%the one which minimizes the sum of the squared $\varepsilon_i$. 
 
 Now that we have defined what it means to fit a least-squares linear
 regression, there remains the question of how to go about finding this optimal
@@ -519,7 +553,7 @@ real data. Suppose we fix values of $b$ and $\sigma$. Then, using the given
 data points $x_i$, we can generate simulated observations $y_i^*$ by adding
 $bx_i$ and a randomly chosen error drawn from $\N(0, \sigma)$.
 
-\subsubsection{Algorithms for ABC}
+\subsection{Algorithms for ABC}
 \label{subsubsec:abcalg}
 
 Approximate Bayesian computation does not refer to a particular procedure for
@@ -573,6 +607,24 @@ small enough, then we accept $\theta$ as a sample from the posterior. This can
 be repeated until as many samples as desired are obtained.
 
 % MCMC
+The second method is \gls{ABC}-\gls{MCMC}. This is similar to ordinary Bayesian
+\gls{MCMC}, except that a ratio of distances to the observed data replaces the
+likelihood ratio. The algorithm begins by sampling a single vector of parameter
+values $\theta$ from the prior distribution $\pi(\theta)$. It then proceeds
+iteratively: a new parameter vector $\theta^*$ is chosen according to a
+proposal distribution $q(\theta^* \mid \theta)$. The proposal distribution $q$
+is often taken to be a Gaussian centred at $\theta$. Then $\theta^*$ is
+accepted as the new $\theta$ with probability
+\[
+  \max\left(1, \text{TODO} \right),
+\]
+or discarded otherwise. This process is iterated until some stopping criterion
+is reached, typically a simple limit on the number of steps. After some initial
+number of iterations, known as \defn{burn-in}, parameters $\theta$ are
+routinely sampled. Since points in parameter space are visited in proportion to
+their posterior probability, these samples can be taken to approximate the
+posterior distribution on $\theta$, and can be used to calculate point
+estimates and confidence intervals.
 
 The most recently developed class of algorithms for ABC is sequential
 Monte-Carlo (SMC)~\autocite{sisson2007sequential}. As with the other two

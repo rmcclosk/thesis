@@ -1,4 +1,4 @@
-\documentclass[12pt]{article}
+\documentclass[12pt]{report}
 \usepackage[osf]{garamondx}
 \usepackage[garamondx,cmbraces]{newtxmath}
 \usepackage{marginnote}
@@ -38,15 +38,46 @@
 \newcommand{\N}{\mathcal{N}}
 \renewcommand{\L}{\mathcal{L}}
 
-\newacronym{MCMC}{MCMC}{Markov chain Monte-Carlo}
+\newacronym{MCMC}{MCMC}{Markov chain Monte Carlo}
 \newacronym{ER}{ER}{Erd\H{o}s-R\'enyi}
 \newacronym{BA}{BA}{Barab\'asi-Albert}
 \newacronym{WS}{WS}{Watts-Strogatz}
 \newacronym{SI}{SI}{susceptible-infected}
+\newacronym{SVM}{SVM}{support vector machine}
+\newacronym{PCA}{PCA}{principal components analysis}
+\newacronym{SMC}{SMC}{sequential Monte Carlo}
+\newacronym{ABC}{ABC}{approximate Bayesian computation}
+\newacronym{nltt}{nLTT}{normalized lineages-through-time}
+\newacronym{pdf}{pdf}{probability density function}
+\newacronym{ML}{ML}{maximum likelihood}
 
 \newglossaryentry{alpha}{
   name=$\alpha$,
-  description=preferential attachment power parameter
+  description=preferential attachment power parameter in Barab\'asi-Albert networks
+}
+\newglossaryentry{m}{
+  name=$m$,
+  description=number of edges added per vertex when constructing a Barab\'asi-Albert network
+}
+\newglossaryentry{N}{
+  name=$n$,
+  description=number of nodes in the network
+}
+\newglossaryentry{I}{
+  name=$n$,
+  description=number of nodes which are eventually infected
+}
+\newglossaryentry{p}{
+  name=$p$,
+  description=edge density parameter in Erd\H{o}s-R\'enyi networks
+}
+\newglossaryentry{lambda}{
+  name=$\lambda$,
+  description=decay factor meta-parameter for tree kernel
+}
+\newglossaryentry{sigma}{
+  name=$\sigma$,
+  description=radial basis function variance meta-parameter for tree kernel
 }
 
 \graphicspath{{figures/}}
@@ -72,9 +103,10 @@ Bayesian computation}
 \printglossary[title=List of Symbols]
 \printglossary[title=List of Abbreviations,type=\acronymtype]
 
-\section{Introduction}
+\chapter{Introduction}
 \input{intro}
 
+\chapter{Body of Thesis}
 
 \section{Objective}
 \input{objective}
@@ -85,7 +117,8 @@ Bayesian computation}
 \section{Results}
 \input{results}
 
-\section{Conclusions}
+
+\chapter{Conclusion}
 
 \printbibliography
 

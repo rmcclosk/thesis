@@ -11,13 +11,19 @@ main.pdf: main.tex intro.tex methods.tex objective.tex results.tex papers.bib fi
 	pdflatex main
 
 papers.bib:
-	ln -s ../../reading/$@ .
+	ln -sf ../../reading/$@ .
 
 figures: figures/speciestree.pdf \
 	figures/contactnet.pdf \
 	figures/pa_power_bounds.pdf \
 	figures/kernel_pa_kpca.pdf \
 	figures/kernel_pa_crossv.pdf \
+	figures/kernel_pa_trees.pdf \
+	figures/kernel_nsimnode_kpca.pdf \
+	figures/kernel_nsimnode_crossv.pdf \
+	figures/kernel_nsimnode_trees.pdf \
+	figures/gridsearch_pa_kernel.pdf \
+	figures/gridsearch_pa_estimates.pdf \
 	figures/nltt.pdf \
 	figures/kernel_expt.pdf \
 	figures/gridsearch_expt.pdf \
@@ -35,17 +41,30 @@ figures/contactnet.pdf: figures/contactnet.tex
 	pdfcrop $@ $@
 
 figures/kernel_pa_kpca.pdf:
-	$(eval FIG_PATH := $(shell echo 'SELECT DISTINCT path FROM data WHERE step = "kpca-plot";' \
-		| sqlite3 ../../simulations/kernel-pa-power.sqlite))
-	cp ../../simulations/$(FIG_PATH) $@
+	cp ../../simulations/kernel-pa-power/kpca-plot/* $@
 
 figures/kernel_pa_crossv.pdf:
-	$(eval FIG_PATH := $(shell echo 'SELECT path FROM data WHERE parameter = "mean_degree" AND value = "4" INTERSECT SELECT path FROM data WHERE step = "crossv-plot";' | sqlite3 ../../simulations/kernel-pa-power.sqlite))
-	cp ../../simulations/$(FIG_PATH) $@
+	cp ../../simulations/kernel-pa-power/crossv-plot/* $@
+
+figures/kernel_pa_trees.pdf:
+	cp ../../simulations/kernel-pa-power/tree-plot/* $@
+	pdfcrop $@ $@
+
+figures/kernel_nsimnode_kpca.pdf:
+	cp ../../simulations/kernel-pa-nsimnode/kpca-plot/* $@
+
+figures/kernel_nsimnode_crossv.pdf:
+	cp ../../simulations/kernel-pa-nsimnode/crossv-plot/* $@
+
+figures/kernel_nsimnode_trees.pdf:
+	cp ../../simulations/kernel-pa-nsimnode/tree-plot/* $@
+	pdfcrop $@ $@
 
 figures/gridsearch_pa_kernel.pdf:
-	$(eval FIG_PATH := $(shell echo 'SELECT path FROM data WHERE parameter = "m" AND value = "2" INTERSECT SELECT path FROM data WHERE step = "kernel-plot";' | sqlite3 ../../simulations/gridsearch-pa-power.sqlite))
-	cp ../../simulations/$(FIG_PATH) $@
+	cp ../../simulations/gridsearch-pa-power/kernel-plot/* $@
+
+figures/gridsearch_pa_estimates.pdf:
+	cp ../../simulations/gridsearch-pa-power/error-plot/* $@
 
 figures/kernel_expt.pdf: figures/kernel_expt.R figures/kernel_expt.tex
 	cd figures && ./$(notdir $(word 1, $^))
