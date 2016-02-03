@@ -261,26 +261,72 @@ geographic separation.
 
 The aim of viral phylodynamics is to glean some kind of knowledge, about the
 epidemic, the virus, or its hosts and their behaviour, by studying a phylogeny,
-most often a transmission tree. Phylogenies are complex objects, and it is not
-immediately obvious how to extract useful information from them with respect to
-fitting a parameter. Standard statistical methods, built for numeric data
-cannot be applied directly - for example, one cannot perform a regression of a
-parameter of interest against a phylogeny. Therefore, before we discuss exactly
-what phylodynamics can tell us about epidemics, and how it has been applied in
-the past, we will review some of the methods for quantifying the shapes of
-phylogenies and their similarity to each other.
+most often a transmission tree~\autocite{pybus2009evolutionary, volz2013viral}.
+Phylogenies are complex objects, and it is not immediately obvious how to
+extract useful information from them with respect to fitting a parameter.
+Standard statistical methods built for numeric data cannot be applied directly
+- for example, one cannot perform a regression of a parameter of interest
+against a phylogeny. Therefore, before we discuss exactly what phylodynamics
+can tell us about epidemics, and how it has been applied in the past, we will
+review some of the methods for quantifying the shapes of phylogenies and their
+similarity to each other.
 
 Many tree summary statistics have been developed to assign numerical values to
 phylogenies based on their properties. One of the most widely used is Sackin's
-index~\cite{shao1990tree}, which measures the imbalance or asymmetry in the
-tree.
+index~\cite{shao1990tree}, which measures the imbalance or asymmetry in a
+rooted tree. For the $i$th tip of the tree, we define $N_i$ to be the number of
+branches between that tip and the root. The unnormalized Sackin's index is
+defined as the sum of all $N_i$. It is called unnormalized because it does not
+account for the number of tips in the tree. Among two trees having the same
+number of tips, the least-balanced tree will have the highest Sackin's index.
+However, among two equally balanced trees, the larger tree will have a higher
+Sackin's index. This makes it challenging to compare balances among trees of
+different sizes. To correct this, \textcite{kirkpatrick1993searching} derive
+the expected value of Sackin' index under the Yule
+model~\autocite{yule1925mathematical}. Dividing by this expected value
+normalizes Sackin's index, so that it can be used to compare trees of different
+sizes.
 
 An alternative to summary statistics are \defn{distance measures} on trees.
 Rather than assigning a numerical value to each tree individually, a distance
 measure assocates each pair of trees with a number, indicating how different
 the trees are from each other. Distance measures allow us to identify groups of
 related phylogenies, for example, local epidemics which are undergoing a
-similar pattern of expansion.
+similar pattern of expansion. One such distance measure is the
+\gls{nltt}~\autocite{janzen2015approximate}, which compares the
+\gls{ltt}~\autocite{nee1992tempo} plots of two trees. Specifically, the two
+\gls{ltt} plots are normalized so that they begin at $(0, 0)$ and end at $(1,
+1)$, and the difference between the two plots is integrated between 0 and 1.
+In the context of infectious diseases, the \gls{nltt} is related to the
+prevalence~\autocite{holmes1995revealing}, so large values may indicate that
+the trees being compared are the products of different epidemic
+trajectories~\autocite{janzen2015approximate}.
+
+Another tree distance measure is the \defn{phylogenetic kernel}, or ``tree
+kernel'' developed by \textcite{poon2013mapping}. Strictly speaking, the tree
+kernel is a \defn{similarity measure}, rather than a distance measure, as it is
+maximized when the two trees being compared are the same. The basis of the tree
+kernel is the kernel trick originally developed for
+\glspl{SVM}~\autocite{burges1998tutorial}. The idea of the kernel trick is to
+compare objects by mapping them into a feature space of very high, possibly
+even infinite, dimension. The similarity between objects is taken to be their
+dot product in the feature space. It is called a ``trick'' because this dot
+product is computed using a \defn{kernel function} without explicitly mapping
+the objects to the feature space, which would be computationally prohibtive. In
+the case of the tree kernel, the feature space is the space of all possible
+\defn{subset trees}, which are subtrees that do not necessarily extend all the
+way to the tips. The subset-tree kernel was originally developed for comparing
+parse trees in natural language processing~\autocite{collins2002new} and did
+not incorporate branch length information. The version developed by
+\textcite{poon2013mapping} includes a radial basis function to compare the
+differences in branch lengths, thus incorporating both the trees' topologies
+and their branch lengths in a single similarity score. The tree kernel was
+later shown to be highly effective in differentiating trees simulated under a
+compartmental model with two risk groups of varying contact
+rates~\autocite{poon2015phylodynamic}. In that paper,
+\citeauthor{poon2015phylodynamic} used the tree kernel as the distance function
+in \gls{ABC} (see Section~\ref{sec:abc}), an approach dubbed kernel-\gls{ABC},
+to fit epidemiological models to observed trees.
 
 \subsection{Applications of phylodynamics}
 \label{subsubsec:appphylo}
@@ -457,6 +503,8 @@ Binomial$\left(\binom{n}{2}, p\right)$.
 %algorithm or generative process.
 
 \section{Approximate Bayesian computation}
+
+\label{sec:abc}
 
 \subsection{Overview and motivation}
 
