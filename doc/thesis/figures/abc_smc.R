@@ -1,7 +1,5 @@
 #!/usr/bin/env Rscript
 
-# This is really messy I need to fix it up
-
 suppressPackageStartupMessages(library(netabc))
 
 post <- rnorm(500)
@@ -9,7 +7,7 @@ abc <- list(runif(500, -3, 3),
             c(runif(250, -3, 3), rnorm(250)),
             c(runif(100, -3, 3), rnorm(400)))
 dens <- lapply(abc, density)
-gradient <- colorRampPalette(c("blue", "white"))(length(dens[[1]]$x)*1.2)
+gradient <- colorRampPalette(c("steelblue1", "steelblue1"))(length(dens[[1]]$x)*1.2)
 
 pdf("abc_smc.pdf", family="Gillius ADF", height=4, width=6)
 par(mfrow=c(2, 3), mgp=c(0, 0, 0), mar=c(1, 1, 2, 1) + 0.1, xpd=TRUE)
@@ -40,13 +38,16 @@ for (i in 1:3) {
     trees <- lapply(colors, function (x) tiny.tree(ntip=4, color=x, ultra=TRUE))
     plot.new()
     for (j in 1:length(trees)) {
-            rasterImage(trees[[j]], coords[j,1]-offset, coords[j,2]-offset, 
-                        coords[j,1]+offset, coords[j,2]+offset)
+        rasterImage(trees[[j]], coords[j,1]-offset, coords[j,2]-offset, 
+                    coords[j,1]+offset, coords[j,2]+offset)
+        if (r[j] > epsilon[i]) {
+            points(coords[j,1], coords[j,2], pch=4, col="red", cex=4)
+        }
     }
     rasterImage(true.tree, 0.5-offset, 0.5-offset, 0.5+offset, 0.5+offset)
     symbols(0.5, 0.5, circles=epsilon[i], lty=2, add=T, inches=F)
-    arrows(0.55, -0.05, epsilon[i] + 0.5, -0.05, angle=90, length=0.05, code=3)
-    text(0.8 - i * 0.05, 0, bquote(epsilon[.(i)]))
+    #arrows(0.55, -0.05, epsilon[i] + 0.5, -0.05, angle=90, length=0.05, code=3)
+    #text(0.8 - i * 0.05, 0, bquote(epsilon[.(i)]))
     if (i == 1)
         text(0, 1, "B", cex=2)
 }

@@ -275,6 +275,13 @@ phylogenies based on their properties. One of the most widely used is Sackin's
 index~\cite{shao1990tree}, which measures the imbalance or asymmetry in the
 tree.
 
+An alternative to summary statistics are \defn{distance measures} on trees.
+Rather than assigning a numerical value to each tree individually, a distance
+measure assocates each pair of trees with a number, indicating how different
+the trees are from each other. Distance measures allow us to identify groups of
+related phylogenies, for example, local epidemics which are undergoing a
+similar pattern of expansion.
+
 \subsection{Applications of phylodynamics}
 \label{subsubsec:appphylo}
 
@@ -453,86 +460,90 @@ Binomial$\left(\binom{n}{2}, p\right)$.
 
 \subsection{Overview and motivation}
 
-\gls{ABC} is the name for a family of techniques which can be used to fit
-complex models to observed data. We shall make this precise below, but to fully
-describe and motivate \gls{ABC}, it is necessary to first make explicit exactly
-what we mean by ``fitting'' a model. 
+\Gls{ABC} is a statistical method designed to fit complex models, which cannot
+be fit using more conventional methods, to observed
+\comment{these are review articles, Beaumont is specific to popgen, the others
+are general}
+data~\autocite{marin2012approximate, sunnaker2013approximate,
+beaumont2010approximate} We shall make this precise below, but to fully
+describe and motivate \gls{ABC}, it is necessary to first explain exactly what
+we mean by ``fitting'' a model. We will illustrate this concept with one of the
+simplest and most ubiquitous models: linear regression.
 
-A linear regression is a model of the relationship between some data points
-$\vec{x} = (x_1, \ldots, x_n)$ and outcomes $\vec{y} = (y_1, \ldots, y_n)$.
-This model assumes that the outcomes are linearly related to the data, modulo
-some noise caused by measurement errors, environmental fluctuations, and so on.
-In other words, there is a constant $b$ such that $y_i = bx_i + \varepsilon_i$,
+A linear regression is a model of the relationship between some data $\vec{x} =
+(x_1, \ldots, x_n)$ and outcomes $\vec{y} = (y_1, \ldots, y_n)$. This model
+assumes that the outcomes are linearly related to the data, modulo some noise
+introduced by, say, measurement errors and environmental fluctuations. It other
+words, there is a constant $\beta$ such that $y_i = \beta x_i + \varepsilon_i$,
 where $\varepsilon_i$ is the error associated with the outcome $y_i$. If we
 make the additional assumption that the errors are normally distributed, then
 the model takes the form
-\begin{align}
-  y_i = bx_i + \N(0, \sigma^2).
-  \label{eq:regression}
-\end{align}
-When we say that we want to fit this model to observed data, we mean that we
-want to find particular values for $b$ and $\sigma$ which are in some way
-optimal given $\vec{x}$ and $\vec{y}$. We shall make this precise below. Notice
-that, if we fix $b$ and $\sigma$, then we can write down the probability density
-of observing $y_i$ given $x_i$. If $f_\N(\cdot \mid \mu, \sigma)$ is the
-\gls{pdf} of the normal distribution with mean $\mu$ and variance $\sigma^2$,
-and the $y_i$ are all independent, then
 \[
-  f(\vec{y} \mid \vec{x}, b, \sigma) = 
-  \prod_{i=1}^n f_\N(y_i - bx_i \mid 0, \sigma^2).
+  y_i = \beta x_i + \N(0, \sigma^2),
 \]
-This gives us a natural criterion for choosing the optimal parameters: we want
-to pick $b$ and $\sigma$ which define a model where the probability density of
-our observed data is as high as possible. When performing such an optimization,
-the above density function is also called the \defn{likelihood} of the
+where $\N(0, \sigma^2)$ indicates a normally distributed random variable with
+mean 0 and variance $\sigma$. We will denote the \gls{pdf} of this random
+variable by $f_\N(\cdot \mid \mu, \sigma)$. In this formulation, the
+coefficient $\beta$ and the error variance $\sigma$ are the two parameters of
+the model. If the $y_i$ are all independent, then for particular choics of
+$\beta$ and $\sigma$, we can write down the probability density of observing
+$\vec{y}$ given $\vec{x}$.
+\[
+  f(\vec{y} \mid \vec{x}, \beta, \sigma) = 
+  \prod_{i=1}^n f_\N(y_i - \beta x_i \mid 0, \sigma^2).
+\]
+The higher the value of this probability density, the more likely the
+observations $\vec{y}$ are given $\vec{x}$ under the model. This gives us a
+natural criterion for choosing the parameters: we want to pick $\beta$ and
+$\sigma$ which define a model where the probability of our observed data is as
+high as possible. When performing such an optimization for fixed data, the
+density function just written is also called the \defn{likelihood} of the
 parameters,
 \[
-  \L(b, \sigma \mid \vec{x}, \vec{y}) = f(\vec{y} \mid \vec{x}, b, \sigma).
+  \L(\beta, \sigma \mid \vec{x}, \vec{y}) = f(\vec{y} \mid \vec{x}, \beta, \sigma).
 \]
-The particular $b$ and $\sigma$ which optimize $\L(b, \sigma)$ are called the
-\gls{ML} estimates.
+The particular $\beta$ and $\sigma$ which optimize $\L(\beta, \sigma \mid
+\vec{x}, \vec{y})$ are called the \gls{ML} estimates. 
 
-%Mathematical models can be grouped into three categories in terms of our
-%ability to fit them to observed data. First, there is a limited set of models
-%which can be fit explicitly by using calculus to minimize a loss function. The
-%canonical example of this type of model is a linear regression. 
-%Notice that, if we fix $b$, then since $y_i$ and $x_i$ are both given,
-%$\varepsilon_i$ is also fixed. The process of fitting a linear model means
-%choosing the ``best'' $b$. For least squares, this optimal $b$ is defined as
-%the one which minimizes the sum of the squared $\varepsilon_i$. 
-
-Now that we have defined what it means to fit a least-squares linear
-regression, there remains the question of how to go about finding this optimal
-$b$ value. Recall that the errors $\varepsilon_i$ are fixed for a particular
-$b$, and our objective is to minimize the loss function, which is the sum of
-the squared errors. Naively, we could simply try many different $b$ values,
-calculate the loss function for each, and choose the $b$ which gives the
-smallest value. This approach, though basic, falls under the umbrella of
-\defn{numerical optimization}, which is the most common way the majority of
-models are fit. Of course, there is a whole field devoted to more sophisticated
-methods for exploring the parameter space, but they all boil down to the basic
-method of trying different values and choosing the one which minimizes the
-loss.
-
-In the case of least-squares linear regression, there is another method we
-could use. Looking at equation~\ref{eq:regression} for the model, it is easy to
-rearrange terms to solve for $\varepsilon_i$ in terms of the other variables:
-we get $\varepsilon_i = y_i - bx_i$. In fact, we can write down the entire loss
-function, which is the sum of the squared $\varepsilon_i$ in terms of $b$:
+\Gls{ML} inference makes use only of the data at hand, in this case
+$\vec{x}$ and $\vec{y}$, to estimate the parameters $\beta$ and $\sigma$.
+However, it is frequently the case that the investigator has some additional
+\defn{prior} information or belief about what $\beta$ and $\sigma$ are likely
+to be. For example, the instrument used to measure the $\vec{y}$ may have a
+known margin of error, or the sign of the slope may be obvious from previous
+experiments. A Bayesian approach to fitting this model would make use of this
+information by codifying the investigator's beliefs as a \defn{prior
+distribution}, denoted $f(\beta, \sigma)$. The optimal parameters are then
+those which maximize the product of the prior and the likelihood,
 \[
-  \sum \varepsilon_i^2 = \sum (y_i - bx_i)^2,
+  f(\vec{y} \mid \vec{x}, \beta, \sigma) f(\beta, \sigma).
 \]
-where the sums are over all $i$ from 1 to $n$, the number of points in the data
-set. We will not describe the procedure here, but it is possible to explicitly
-minimize the right-hand side by finding the point where the derivative with
-respect to $b$ is zero. However, the method of directly minimizing the loss
-function with calculus is only applicable to a very narrow class of simple
-models. For the majority, the loss function is too complicated to set the
-derivative with respect to the parameters to zero and solve.
+Bayes' theorem tells us that this product is proportional to the
+\defn{posterior distribution} $f(\beta, \sigma \mid \vec{y}, \vec{x})$. The
+parameters which optimize the posterior, and hence also optimize the above
+product, are called the \gls{MAP} estimates.
 
-Because of the limited space of models which permit exact solutions, numerical
-optimization of a loss function is the most frequently used method to fit a
-model. 
+Now that we have defined what it means to fit a linear regression, there
+remains the question of how to go about finding this optimal $\beta$ value.
+Na\"{i}vely, we could simply try many different $\beta$ and $\sigma$ values,
+calculate the likelihood of each, and choose those which yield the highest
+value. This approach, though basic, falls under the umbrella of \defn{numerical
+optimization} of the likelihood function. Of course, there is a whole field
+devoted to more sophisticated methods for exploring the parameter space, but
+they all boil down to the basic idea of trying out different values and
+choosing those which give the highest likelihood.
+
+In the case of linear regression, there is another method we could use. We know
+from calculus that the maximum of $\L$ occurs either on the boundary of its
+domain, or at a point where its partial derivatives with respect to $\beta$ and
+$\sigma$ are both zero. Though we will not show it here, it turns out to be
+straightforward to find the $\beta$ and $\sigma$ values where the partial
+derivatives are zero. In fact, these values co-incide with the least-squares
+estimates of $\beta$ and $\sigma$, which minimize the sum of the squared $x_i -
+\beta y_i$. However, the method of directly minimizing the loss function with
+calculus is only applicable to a narrow class of simple models. For the
+majority, the likelihood function is too complicated to set the partial
+derivatives with respect to the parameters to zero and solve.
 
 An approximate Bayesian computation approach to least-squares regression might
 be as follows. We will need to make an additional assumption: that the errors
