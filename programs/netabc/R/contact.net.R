@@ -22,7 +22,7 @@ SIR.net <- function(net, transmit.rate=1, remove.rate=0, mode="mutual")
     net
 }
 
-add.transmission.clusters <- function (net, cluster.size, num.clusters, 
+add.transmission.clusters <- function (net, cluster.size, num.clusters,
                                        cluster.rate=2, connect=FALSE)
 {
     clusters <- list()
@@ -45,7 +45,7 @@ add.transmission.clusters <- function (net, cluster.size, num.clusters,
         }
         clusters[[length(clusters)+1]] <- cluster
     }
-    
+
     pairs <- mapply(expand.grid, clusters, clusters, SIMPLIFY=FALSE)
     pairs <- lapply(pairs, subset, Var1 != Var2)
     pairs <- lapply(pairs, function (x) c(t(x)))
@@ -58,6 +58,29 @@ add.transmission.clusters <- function (net, cluster.size, num.clusters,
     V(g)$cluster <- 0
     for (i in 1:length(clusters)) {
         V(g)[clusters[[i]]]$cluster <- i
+    }
+    g
+}
+
+#' Sample a preferential attachment network with varying power.
+#'
+#' When node i is added to the network, its outgoing edges are connected to 
+#' nodes of degree k in proportion to k^power[i].
+#'
+#' @param n number of nodes in the network
+#' @param m number of edges added per node
+#' @param directed whether to create a directed network
+#' @param power preferential attachment power for each node, must have length n
+#' @return a graph constructed according to the preferential attachment model
+#' @export
+sample_pa_mixed_power <- function (n, m=2, directed=FALSE, power=rep(1, n)) {
+    stopifnot(length(power) == n)
+    g <- make_empty_graph(n=m+1, directed=FALSE)
+    g <- add_edges(g, c(combn(1:(m+1), 2)))
+
+    for (i in (m+2):n) {
+        edges <- c(rbind(i, sample(1:(i-1), m, prob=degree(g)^power[i], replace=FALSE)))
+        g <- add_edges(add_vertices(g, 1), edges)
     }
     g
 }

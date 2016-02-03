@@ -18,5 +18,7 @@ Depends:
     RColorBrewer,
     data.table,
     reshape2,
-    gridExtra
+    gridExtra,
+    png,
+    extrafont
 RoxygenNote: 5.0.1

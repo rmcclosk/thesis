@@ -207,3 +207,36 @@ facet_wrap_labeller <- function(gg.plot,labels=NULL) {
   class(g) = c("arrange", "ggplot",class(g)) 
   g
 }
+
+#' Make a tiny tree icon.
+#'
+#' @param ntip number of tips in the tree
+#' @param color color for the tree
+#' @param ultra if TRUE, make an ultrametric tree
+#' @param lwd line width
+#' @param ... extra options for plot.phylo
+#' @return an image to pass to rasterImage
+#' @export
+tiny.tree <- function (ntip=4, color="black", ultra=FALSE, lwd=8)
+{
+    tf <- tempfile()
+    t <- ifelse(ultra, rcoal, rtree)(ntip)
+    png(tf, bg="transparent", width=100, height=100)
+    par(mar=c(0, 0, 0, 0) + 0.1)
+    plot(t, direction="down", edge.width=lwd, edge.color=color,
+         show.tip.label=FALSE)
+    dev.off()
+    pic <- readPNG(tf)
+    unlink(tf)
+    pic
+}
+
+#' Convert polar co-ordinates to rectangular.
+#'
+#' @param r radii of the points
+#' @param theta angles of the points
+#' @return a two-column matrix with the x and y co-ordinates
+#' @export
+polar2rect <- function (r, theta) {
+    cbind(r*cos(theta), r*sin(theta))
+}
