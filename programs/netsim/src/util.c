@@ -43,6 +43,11 @@ int compare_doubles (const void * a, const void * b)
     return 0;
 }
 
+int compare_strings (const void * a, const void * b)
+{
+    return strcmp((char*) a, (char*) b);
+}
+
 void order(const void *base, int *order, size_t size, int nitems,
         int (*compar) (const void *, const void *))
 {
@@ -108,7 +113,7 @@ int which_max(double *x, int n)
     return which_max;
 }
 
-double sum_doubles(double *x, int n)
+double sum_doubles(const double *x, int n)
 {
     int i;
     double sum = 0;
@@ -118,7 +123,7 @@ double sum_doubles(double *x, int n)
     return sum;
 }
 
-double max_doubles(double *x, int n)
+double max_doubles(const double *x, int n)
 {
     int i;
     double max = x[0];
@@ -140,8 +145,8 @@ void *safe_realloc(void *ptr, size_t size)
 }
 
 void permute(void *v, size_t size, int nitems, const int *perm, 
-             void (get) (const void *, int, void *),
-             void (set) (void *, int, const void *))
+             void (*get) (const void *, int, void *),
+             void (*set) (void *, int, const void *))
 {
     int cyc_start = 0, cur, next;
     int *done = calloc(nitems, sizeof(int));
@@ -169,6 +174,59 @@ void permute(void *v, size_t size, int nitems, const int *perm,
     free(done);
     free(cur_item);
     free(next_item);
+}
+
+void match(const void *x, const void *table, int *pos, size_t size, int nx, int ntable,
+           void (*get) (const void *, int, void *),
+           int (*compar) (const void *, const void *))
+{
+    int i, j;
+    char *a = malloc(size);
+    char *b = malloc(size);
+
+    for (i = 0; i < nx; ++i) {
+        pos[i] = -1;
+        get(x, i, (void *) a);
+        for (j = 0; j < ntable; ++j) {
+            get(table, j, (void *) b);
+            if (compar((void *) a, (void *) b) == 0) {
+                pos[i] = j;
+                break;
+            }
+        }
+    }
+
+    free(a);
+    free(b);
+}
+
+void sample_weighted(const void *x, void *dest, size_t k, size_t n, size_t size, 
+                     const double *prob, int replace, const gsl_rng *rng)
+{
+    int i;
+    double r, total, *p;
+
+    if (fabs(sum_doubles(prob, n) < 1e-5)) {
+        gsl_ran_choose(rng, dest, k, x, n, size);
+        return;
+    }
+        
+    p = malloc(n * sizeof(double));
+    memcpy(p, prob, n * sizeof(double));
+
+    while (k > 0) {
+        r = gsl_rng_uniform(rng) * sum_doubles(p, n);
+        total = 0;
+        i = -1;
+        while (r > total) {
+            total += p[++i];
+        }
+        memcpy(dest + (--k * size), x + (i * size), size);
+        if (!replace) {
+            p[i] = 0;
+        }
+    }
+    free(p);
 }
 
 void set_igraph_vector_t(void *v, int n, const void *value)
@@ -200,4 +258,34 @@ void set_igraph_strvector_t(void *v, int n, const void *value)
 void get_igraph_strvector_t(const void *v, int n, void *value)
 {
     strcpy(value, STR(* (igraph_strvector_t *) v, n));
+}
+
+igraph_attribute_type_t get_igraph_id_type(const igraph_t *g)
+{
+    igraph_strvector_t names[3];
+    igraph_vector_t types[3];
+    int i;
+    igraph_attribute_type_t id_type = IGRAPH_ATTRIBUTE_DEFAULT;
+
+    for (i = 0; i < 3; ++i) {
+        igraph_vector_init(&types[i], 0);
+        igraph_strvector_init(&names[i], 0);
+    }
+
+    igraph_cattribute_list(g, &names[0], &types[0], &names[1], &types[1], 
+                              &names[2], &types[2]);
+
+    for (i = 0; i < igraph_strvector_size(&names[1]); ++i) {
+        if (strcmp(STR(names[1], i), "id") == 0) {
+            id_type = VECTOR(types[1])[i];
+            break;
+        }
+    }
+
+    for (i = 0; i < 3; ++i) {
+        igraph_vector_destroy(&types[i]);
+        igraph_strvector_destroy(&names[i]);
+    }
+
+    return id_type;
 }

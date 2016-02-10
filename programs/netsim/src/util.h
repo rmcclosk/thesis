@@ -6,6 +6,7 @@
 #define UTIL_H
 
 #include <gsl/gsl_rng.h>
+#include <igraph/igraph.h>
 
 /** Set seeds for all random number generators.
  *
@@ -39,6 +40,18 @@ int compare_doubles (const void * a, const void * b);
  * \sa http://man7.org/linux/man-pages/man3/qsort.3.html
  */
 int compare_ints (const void * a, const void * b);
+
+/** Compare two strings.
+ *
+ * This is intended for use as a comparator in qsort and order. It's a thin
+ * wrapper around strcmp.
+ * 
+ * \param[in] a,b strings to compare
+ * \return 0 if a == b, non-zero otherwise
+ * \sa strcmp()
+ * \sa http://man7.org/linux/man-pages/man3/qsort.3.html
+ */
+int compare_strings(const void * a, const void *b);
 
 /** Get the sorting order of an array.
  *
@@ -90,7 +103,7 @@ int which_max(double *x, int n);
  * \param[in] n the number of elements to sum, up to the length of x
  * \return the sum of the first n elements of x
  */
-double sum_doubles(double *x, int n);
+double sum_doubles(const double *x, int n);
 
 /** Find the maximum element in an array of doubles.
  *
@@ -98,7 +111,7 @@ double sum_doubles(double *x, int n);
  * \param[in] n the length of x
  * \return the largest element in x
  */
-double max_doubles(double *x, int n);
+double max_doubles(const double *x, int n);
 
 /** Allocate a block of memory, or abort if out of memory.
  *
@@ -122,8 +135,43 @@ void *safe_realloc(void *ptr, size_t size);
  * \param[in] set sets the nth element of v
  */
 void permute(void *v, size_t size, int nitems, const int *perm, 
-             void (get) (const void *, int, void *),
-             void (set) (void *, int, const void *));
+             void (*get) (const void *, int, void *),
+             void (*set) (void *, int, const void *));
+
+/** Match the elements of two arrays.
+ *
+ * This is like the match function in R. Any values in x which don't have a
+ * match in table will have their corresponding entry in pos set to -1. Like in
+ * permute, you have to supply a getter for the array.
+ *
+ * \param[in] x the values to be matched
+ * \param[in] table the values to be matched against
+ * \param[out] pos the first positions of x in table will be placed here
+ * \param[in] size size of elements in x
+ * \param[in] nx number of elements in x
+ * \param[in] ntable number of elements in table
+ * \param[in] perm permutation to apply
+ * \param[in] get returns a pointer to the nth element of v
+ * \param[in] compar returns zero if and only if its arguments are equal
+ * \sa https://stat.ethz.ch/R-manual/R-devel/library/base/html/match.html
+ */
+void match(const void *x, const void *table, int *pos, size_t size, int nx, int ntable,
+           void (*get) (const void *, int, void *),
+           int (*compar) (const void *, const void *));
+
+/** Take a weighted sample of array elements.
+ *
+ * \param[in] x elements to sample
+ * \param[out] dest sampled elements will be placed here
+ * \param[in] k number of elements to sample
+ * \param[in] n number of elements in x
+ * \param[in] size size of each element in x
+ * \param[in] prob sampling weights of each element in x
+ * \param[in] replace whether to sample with replacement
+ * \param[in] rng GSL random number generator
+ */
+void sample_weighted(const void *x, void *dest, size_t k, size_t n, size_t size, 
+                     const double *prob, int replace, const gsl_rng *rng);
 
 /** Set the nth element of an igraph_vector_t
  *
@@ -190,4 +238,16 @@ void set_igraph_strvector_t(void *v, int n, const void *value);
  * \param[out] value v[n] will be stored here
  */
 void get_igraph_strvector_t(const void *v, int n, void *value);
+
+/** Find the type of ID a graph has.
+ * 
+ * If IGRAPH_ATTRIBUTE_NUMERIC or IGRAPH_ATTRIBUTE_STRING, it means there is a
+ * numeric or string attribute called "id". If it is IGRAPH_ATTRIBUTE_DEFAULT,
+ * it means that there are no "id" attributes, and the vertex indices should be
+ * used as the ids.
+ *
+ * \param[in] g graph to query
+ * \return an igraph_attribute_type_t corresponding to the ID type
+ */
+igraph_attribute_type_t get_igraph_id_type(const igraph_t *g);
 #endif

@@ -400,6 +400,35 @@ START_TEST(test_subsample)
 }
 END_TEST
 
+START_TEST(test_subsample_peerdriven)
+{
+    igraph_t *tree = tree_from_newick("(((t1:1,t2:1):1,(t3:1,t4:1):1):1,((t5:1,t6:1):1,(t7:1,t8:1):1):1);");
+    igraph_t net;
+    int i;
+    char buf[3];
+    gsl_rng *rng = set_seed(0);
+    igraph_vector_t id_num;
+    igraph_strvector_t id_str;
+
+    igraph_vector_init(&id_num, 0);
+    igraph_strvector_init(&id_str, 0);
+
+    // make the network a directed circle
+    igraph_empty(&net, 8, 1);
+    for (i = 0; i < 8; ++i) {
+        sprintf(buf, "t%d", i+1);
+        SETVAS(&net, "id", i, buf);
+        igraph_add_edge(&net, i, (i+1) % 8);
+    }
+
+    subsample_tips_peerdriven(tree, &net, 0, 1, 4, rng);
+
+    gsl_rng_free(rng);
+    igraph_destroy(tree);
+    free(tree);
+}
+END_TEST
+
 Suite *tree_suite(void)
 {
     Suite *s;
@@ -428,6 +457,7 @@ Suite *tree_suite(void)
     tcase_add_test(tc_tree, test_cut_at_time_extant);
     tcase_add_test(tc_tree, test_subsample_tips);
     tcase_add_test(tc_tree, test_subsample);
+    tcase_add_test(tc_tree, test_subsample_peerdriven);
     suite_add_tcase(s, tc_tree);
 
     return s;

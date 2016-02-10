@@ -1,3 +1,9 @@
+/* 
+Inspired by Pierre Lindenbaum's blog post "Parsing the Newick format in C using
+flex and bison."
+
+http://plindenbaum.blogspot.ca/2012/07/parsing-newick-format-in-c-using-flex.html 
+*/
 %{
 #include <stdio.h>
 #include <stdlib.h>
