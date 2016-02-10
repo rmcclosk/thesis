@@ -139,7 +139,7 @@ struct netabc_options get_options(int argc, char **argv)
 
     while (c != -1)
     {
-        c = getopt_long(argc, argv, "ha:cd:e:g:l:m:n:p:q:s:t:", long_options, &i);
+        c = getopt_long(argc, argv, "ha:b:cd:e:g:l:m:n:p:q:s:t:x:", long_options, &i);
         if (c == -1)
             break;
 
