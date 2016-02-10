@@ -598,7 +598,9 @@ void subsample_tips_peerdriven(igraph_t *tree, const igraph_t *net, double p,
                 }
             }
         }
-        sample_weighted(idx, &tip, 1, nt, sizeof(int), prob, 0, rng);
+        do {
+            sample_weighted(idx, &tip, 1, nt, sizeof(int), prob, 0, rng);
+        } while (node_map[tip] == -1);
         sampled[tip] = 1;
         igraph_vector_push_back(&keep_tips, tip);
     }

@@ -404,27 +404,42 @@ START_TEST(test_subsample_peerdriven)
 {
     igraph_t *tree = tree_from_newick("(((t1:1,t2:1):1,(t3:1,t4:1):1):1,((t5:1,t6:1):1,(t7:1,t8:1):1):1);");
     igraph_t net;
-    int i;
+    int i, tip, cur = 0;
     char buf[3];
-    gsl_rng *rng = set_seed(0);
-    igraph_vector_t id_num;
-    igraph_strvector_t id_str;
+    int sampled_tips[4];
+    gsl_rng *rng = set_seed(-1);
+    igraph_strvector_t id;
+    igraph_strvector_init(&id, 0);
 
-    igraph_vector_init(&id_num, 0);
-    igraph_strvector_init(&id_str, 0);
-
-    // make the network a directed circle
+    // make the network a path
     igraph_empty(&net, 8, 1);
     for (i = 0; i < 8; ++i) {
         sprintf(buf, "t%d", i+1);
         SETVAS(&net, "id", i, buf);
-        igraph_add_edge(&net, i, (i+1) % 8);
+        if (i < 7)
+            igraph_add_edge(&net, i, i+1);
     }
 
+    // sample with the baseline probability set to zero, so we have to sample
+    // only peers
     subsample_tips_peerdriven(tree, &net, 0, 1, 4, rng);
+    VASV(tree, "id", &id);
+    for (i = 0; i < igraph_strvector_size(&id); ++i) {
+        fprintf(stderr, "%s\n", STR(id, i));
+        if (sscanf(STR(id, i), "t%d", &tip) != EOF) {
+            sampled_tips[cur++] = tip;
+        }
+    }
+
+    // the sampled tips should be in a sequence
+    qsort(sampled_tips, 4, sizeof(int), compare_ints);
+    ck_assert_int_eq(sampled_tips[0], (sampled_tips[1]-1));
+    ck_assert_int_eq(sampled_tips[1], (sampled_tips[2]-1));
+    ck_assert_int_eq(sampled_tips[2], (sampled_tips[3]-1));
 
     gsl_rng_free(rng);
     igraph_destroy(tree);
+    igraph_strvector_destroy(&id);
     free(tree);
 }
 END_TEST
