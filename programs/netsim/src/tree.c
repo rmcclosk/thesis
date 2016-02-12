@@ -556,7 +556,7 @@ void subsample_tips_peerdriven(igraph_t *tree, const igraph_t *net, double p,
         double a, int ntip, const gsl_rng *rng)
 {
     int i, j, s, tip, nt = igraph_vcount(tree);
-    int *tip_map = malloc(nt * sizeof(int));
+    int *tip_map = malloc(igraph_vcount(net) * sizeof(int));
     int *node_map = malloc(nt * sizeof(int));
     int *sampled = malloc(nt * sizeof(int));
     double *prob = malloc(nt * sizeof(double));
