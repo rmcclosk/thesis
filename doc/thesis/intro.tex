@@ -67,27 +67,25 @@ barrier~\autocite{coyne2004speciation}. Over time, differing selection
 pressures on either side of the barrier, coupled with genetic drift, cause the
 two populations to diverge genetically. This eventually results in two distinct
 species, which will appear as two subtrees or \defn{clades} in their species
-tree if descendants of both survive to the present. Speciation is not
-necessarily allopatric: \defn{sympatric} speciation refers to the emergence of
-a new species without any geographic barrier~\autocite{coyne2004speciation}.
-Indeed, there is a whole continuum of possible speciation
-processes~\autocite{fitzpatrick2008if}, ranging from completely allopatric to
-completely sympatric. However, at least for eukaryotic organisms, allopatric
-speciation is thought to be by far the most common
-type~\autocite{coyne2004speciation}.
-
-%Of course, this is not
-%necessarily the case, as selection may cause one or both of the new
-%sub-populations or their descendants to become extinct. On the other hand,
-%selection may favour one of the sub-populations, allowing it to expand into new
-%regions or niches and possibly paving the way for subsequent speciation events.
+tree if descendants of both survive to the present. Of course, this is not
+necessarily the case, as selection may cause one or both of the new
+sub-populations or their descendants to become extinct. On the other hand,
+selection may favour one of the sub-populations, allowing it to expand into new
+regions or niches and possibly paving the way for subsequent speciation events.
+Speciation is not necessarily allopatric: \defn{sympatric} speciation refers to
+the emergence of a new species without any geographic
+barrier~\autocite{coyne2004speciation}. Indeed, there is a whole continuum of
+possible speciation processes~\autocite{fitzpatrick2008if}, ranging from
+completely allopatric to completely sympatric. However, at least for eukaryotic
+organisms, allopatric speciation is thought to be by far the most common
+type~\autocite{coyne2004speciation}. 
 
 A different type of tree used in the study of pathogens is a \defn{transmission
 tree}. In such trees, tips represent infected hosts, while internal nodes
 correspond to transmissions from one host to another. Transmission trees
 generally have branch lengths in units of calendar time, with a root
 corresponding to the index case, and branching times indicating times of
-transmission. The internal nodes may be labeled with the donor of the
+transmission. The internal nodes may be labelled with the donor of the
 transmission pair, if this is known. The tips of the tree, rather than being
 fixed at the present day, are placed at the time at which the pathogen
 population of the individual was sampled. Consequently, the transmission tree
@@ -97,22 +95,22 @@ samples~\autocite{drummond2003measurably}, in contrast to the
 \defn{isochronous} samples found in macro-organisms species trees. A
 transmission tree is illustrated in Figure~\ref{fig:contactnet} (A).
 
-\textit{A priori}, transmission trees and species trees have nothing to do with
-each other. One represents the evolutionary history of a group of organisms,
-the other traces the spread of a disease through a host population. However,
-when considering epidemics of RNA viruses, transmission trees and species trees
-are highly related. The viral population within a single host has often been
-referred to as a \defn{quasispecies}~\autocite{domingo2012viral}, and due to
-the fast evolutionary rate of these viruses, two hosts' viral populations are
-invariably genetically distinct. The transmission process is functionally
-identical to allopatric speciation, involving geographic isolation of a
-sub-population in a new host and subsequent genetic divergence. However, for
-the most part, it is not selection but rather host epidemiology which causes
-certain lineages to proliferate while driving others to extinction. A host who
-recovers, dies, or is isolated equates to an extinction in the transmission
-tree. On the other hand, dense populations in frequent contact often experience
-rapid epidemic growth, which causes similarly rapid accumulation of branching
-points in the tree. 
+At first glance, transmission trees and species trees seem to have nothing to
+do with each other. One represents the evolutionary history of a group of
+organisms, the other traces the spread of a disease through a host population.
+However, when considering epidemics of RNA viruses, transmission trees and
+species trees are highly related. The viral population within a single host has
+often been referred to as a \defn{quasispecies}~\autocite{domingo2012viral},
+and due to the fast evolutionary rate of these viruses, two hosts' viral
+populations are invariably genetically distinct. The transmission process is
+functionally identical to allopatric speciation, involving geographic isolation
+of a sub-population in a new host and subsequent genetic divergence. However,
+for the most part, it is not selection but rather host epidemiology which
+causes certain lineages to proliferate while driving others to extinction. A
+host who recovers, dies, or is isolated equates to an extinction in the
+transmission tree. On the other hand, dense populations in frequent contact
+often experience rapid epidemic growth, which causes similarly rapid
+accumulation of branching points in the tree. 
 
 The fact that these evolutionary (ie. speciation) and epidemiological processes
 occur on the same time scale for RNA viruses~\autocite{drummond2003measurably}
@@ -131,15 +129,13 @@ viral phylodynamics, and discuss what these methods can tell us about host
 epidemiology.
 
 Finally, we must note two important points. First, we have not yet considered
-the selection pressures operating within a single host, such as immune
-pressure, because these forces do not directly impact transmission trees unless
-they cause a host to recover or die. Second, we reiterate that both
-transmission trees and species trees are theoretical objects which are almost
-never known with certainty for real data. Indeed, the estimation of
-transmission trees is often problematic, and it is in such estimation that
-within-host forces play a role. Both of these issues are discussed further
-below in subsection~\ref{subsubsec:treeconv}, though we continue to ignore them
-in the next subsection.
+the selection pressures operating within a single host, such as the immune
+response. Second, we reiterate that both transmission trees and species trees
+are theoretical objects which are almost never known with certainty for real
+data. Indeed, the estimation of transmission trees is often problematic, and it
+is in such estimation that within-host forces play a role. Both of these issues
+are discussed further below in subsection~\ref{subsubsec:treeconv}, though we
+continue to ignore them in the next subsection.
 
 \subsection{Gene trees and viral phylogenies}
 \label{subsubsec:genetree}
@@ -289,7 +285,7 @@ sizes.
 
 An alternative to summary statistics are \defn{distance measures} on trees.
 Rather than assigning a numerical value to each tree individually, a distance
-measure assocates each pair of trees with a number, indicating how different
+measure associates each pair of trees with a number, indicating how different
 the trees are from each other. Distance measures allow us to identify groups of
 related phylogenies, for example, local epidemics which are undergoing a
 similar pattern of expansion. One such distance measure is the
@@ -312,7 +308,7 @@ compare objects by mapping them into a feature space of very high, possibly
 even infinite, dimension. The similarity between objects is taken to be their
 dot product in the feature space. It is called a ``trick'' because this dot
 product is computed using a \defn{kernel function} without explicitly mapping
-the objects to the feature space, which would be computationally prohibtive. In
+the objects to the feature space, which would be computationally prohibitive. In
 the case of the tree kernel, the feature space is the space of all possible
 \defn{subset trees}, which are subtrees that do not necessarily extend all the
 way to the tips. The subset-tree kernel was originally developed for comparing
@@ -403,7 +399,7 @@ $p \times \binom{n}{2}$ distinct pairs of nodes and draws an edge between each
 pair. The average degree of a node in an ER network is equal to $p \times n$.
 
 A \defn{Barab\'asi-Albert} (BA) network~\autocite{barabasi1999emergence},
-incorproates the phenomenon of \defn{preferential attachment} seen in real life
+incorporates the phenomenon of \defn{preferential attachment} seen in real life
 networks. This means that new connections are more likely to involve nodes
 which already have a high number of connections - popular nodes tend to become
 more popular. In the formulation we consider here, BA networks have two
@@ -435,7 +431,7 @@ bounding, not the power law exponent.
 WS and BA networks differ from ER networks in an important way: it is possible
 to explicitly calculate the likelihood of the ER model parameter $p$ given an
 observed network, but this cannot be done for the other two models. This is
-because the probability of a particular edge occuring is always equal to $p$ in
+because the probability of a particular edge occurring is always equal to $p$ in
 an ER network, regardless of the presence or absence of any other edges. In
 other words, the edges can be viewed as a series of $\binom{n}{2}$ Bernoulli
 trials with success probability $p$, so that the likelihood of $p$ given an
@@ -502,6 +498,83 @@ Binomial$\left(\binom{n}{2}, p\right)$.
 %exact likelihoods are not available, perhaps due to the model involving an
 %algorithm or generative process.
 
+
+\section{Sequential Monte Carlo}
+
+\Gls{SMC} is a statistical inference method which samples from a sequence of
+probability distributions in a fixed order~\autocite{del2006sequential}. This
+idea of \defn{sequential sampling} is useful several contexts, but we consider
+here its application to model fitting in a Bayesian setting. 
+
+\texttt{TODO: move the basics of model fitting (likelihoods and priors) to here}
+
+Our objective is to obtain samples from, and summary statistics of, the
+posterior distribution on the model of interest's parameters. \gls{SMC} can be
+applied in this context by defining a sequence of distributions, starting from
+the posterior and ending at the prior, which constitute a ``smooth''
+trajectory. The main \gls{SMC} algorithm for this problem was developed by
+\textcite{del2006sequential}, based on an existing methodology called
+\gls{SIS}. \gls{SIS} is also designed to sample from a sequence of
+distributions, but rather than all being defined on the same space (such as
+model parameters), they are defined on nested spaces of increasing dimension.
+Following \textcite{del2006sequential} and other reviews of
+\gls{SMC}~\autocite{doucet2001introduction}, we will begin this section by
+describing \gls{SIS}, and then turn to the adaptation of the method to the case
+when the sequence of distributions are all defined on the same space. Note that
+\textcite{del2006sequential} use the variable $\pi$ for the target
+distributions, but \textcite{doucet2001introduction} use $\pi$ to indicate the
+importance distributions. We again follow the former and denote target
+distributions by $\pi$ and importance distributions by $\eta$.
+
+The basis of \gls{SIS} is \gls{IS}, which is a method of estimating summary
+statistics of distributions which are known only up to a normalizing constant,
+and therefore cannot be sampled from directly. That is, if $\pi$ is such a
+distribution and $f$ is any real-valued function, \gls{IS} is concerned with
+estimating
+\[
+  \pi(f) = \int f(x)\pi(x)\d x = \int f(x) \frac{\gamma(x)}{Z} \d x,
+\]
+where the integral is over the space on which $\pi$ is defined, $\gamma(x)$ is
+known, and $Z$ is the unknown normalizing constant, $Z = \int \gamma(x) \d x$.
+The posterior distributions of all but the simplest models' parameters fall
+into this category. Suppose we have at hand another distribution $\eta$, called
+the \defn{importance distribution}, from which we are able to sample. Define
+the \defn{importance weight} as the ratio ratio $w(x) = \gamma(x)/\eta(x)$. We
+can express the normalizing constant $Z$ in terms of the importance weight and
+distribution, $Z = \int w(x) \eta(x) \d x$, and in turn write the original
+integral of interest as
+\[
+  \int f(x) \pi(x) \d x = \frac{\int f(x) \gamma(x) \d x}
+                               {\int w(x) \eta(x) \d x}.
+\]
+If we sample a large number of points from $\eta$, then $\eta(x)$ can be
+approximated at each of them by an empirical distribution. Since the remaining
+quantities $f$, $\gamma$, and $w$ can all be evaluated pointwise, these are all
+the ingredients we need to obtain an estimate of $\pi(f)$. Although this is a
+simple and elegant approach, the drawback is that the variance of the estimate
+is proportional to the variance of the importance
+weights~\autocite{liu2008monte}, which may be quite large if $\eta$ and
+$\gamma$ are very different. Therefore, the practical use of \gls{IS} on its
+own is limited, since it depends on finding an importance distribution which is
+similar to $\pi$, which we usually know very little about \textit{a priori}.
+
+However, an ideal context for the use of \gls{IS} is when we want to sample
+from a sequence of nested probability distributions $\pi_1, \ldots, \pi_n$.
+By \defn{nested}, we mean that $\pi_{i+1}$ is defined on a space of dimension
+$i+1$ and admits $\pi_i$ as a marginal. That is,
+\[
+  \pi_{i+1}(x_1, \ldots, x_{i+1}) = \pi_i(x_1, \ldots, x_i) f_{i+1}(x_1, \ldots, x_{i+1}),
+\]
+where $f_{i+1}$ is a function which yields a distribution when multiplied with
+$\pi_i$. This situation may seem somewhat contrived, but it arises naturally
+when trying to infer the hidden sequence of parameters of a stateful model. For
+example, \textcite{doucet2001introduction} discuss the case when $\pi_i$ is the
+posterior distribution over the first $i-1$ states of a \gls{HMM}, conditional
+on the observed data up to time $i-i$. We assume that either $\pi_1$ is known
+explicitly, or we have enough information about it to find an adequate
+importance distribution. In the \gls{HMM} example, $\pi_1$ was taken to be the
+prior distribution on the starting state.
+
 \section{Approximate Bayesian computation}
 
 \label{sec:abc}
@@ -533,7 +606,7 @@ where $\N(0, \sigma^2)$ indicates a normally distributed random variable with
 mean 0 and variance $\sigma$. We will denote the \gls{pdf} of this random
 variable by $f_\N(\cdot \mid \mu, \sigma)$. In this formulation, the
 coefficient $\beta$ and the error variance $\sigma$ are the two parameters of
-the model. If the $y_i$ are all independent, then for particular choics of
+the model. If the $y_i$ are all independent, then for particular choice of
 $\beta$ and $\sigma$, we can write down the probability density of observing
 $\vec{y}$ given $\vec{x}$.
 \[
@@ -606,11 +679,14 @@ parameter we will need to estimate. There is nothing special about normal
 distributions - we could have chosen any other distribution we deemed
 appropriate. 
 
-The main idea of approximate Bayesian computation is that the ``best''
-parameters will define a model which produces simulated data similar to the
-real data. Suppose we fix values of $b$ and $\sigma$. Then, using the given
-data points $x_i$, we can generate simulated observations $y_i^*$ by adding
-$bx_i$ and a randomly chosen error drawn from $\N(0, \sigma)$.
+The main idea of \gls{ABC} is to replace the traditional likelihood-based
+criteria for model ``goodness'' with one based on simulated data generated by
+the model. Good models should be able to simulate data which closely resemble
+reality. In \gls{ABC}, we are no longer interested in the posterior
+distribution, but rather in the distribution of model parameters which produce
+data sufficiently ``close'' to the real data. To formalize this, let $d(\cdot,
+\cdot)$ be a distance function on datasets, and $\varepsilon$ be a tolerance
+level. The objective of \gls{ABC} is to recover the distribution\ldots
 
 \subsection{Algorithms for ABC}
 \label{subsubsec:abcalg}
@@ -658,7 +734,7 @@ distance.
 Rejection ABC is the simplest method, and also the one which was first
 proposed~\autocite{rubin1984bayesianly}. Effectively, it comes down to the
 approach described in the previous subsection of guessing parameter values
-until one is close enough to the truth. More specificially, a possible set of
+until one is close enough to the truth. More specifically, a possible set of
 parameters $\theta$ is drawn from the prior distribution, and a simulated data
 set $z$ is generated from the model with those parameters. If the distance
 between the simulated data set and the real data, $\rho(\eta(y), \eta(z))$, is

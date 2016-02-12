@@ -1,74 +1,98 @@
-\subsection{Programs}
+\subsection{Computer program}
 
-Most of the computer programs used for this work were written in the C
-programming language. Contact networks were generated using the
-\software{igraph} library~\autocite{csardi2006igraph}, which was also used to
-store phylogenetic trees. Hash tables, and the dynamic programming matrices for
-computing the tree kernel, were stored using Judy
-arrays~\autocite{baskins2004judy}. The GNU Scientific Library
-(GSL)~\autocite{gough2009gnu} was used to generate random draws from
-probability distributions, and to perform the bisection step in the ABC-SMC
-algorithm.
+I implemented the adaptive \gls{SMC} algorithm for \gls{ABC} developed by
+\textcite{del2012adaptive}. The program was written in the
+\software{C} programming language. The \software{igraph}
+library~\autocite{csardi2006igraph} was used to generate and store contact
+networks and phylogenies. Judy arrays~\autocite{baskins2004judy} were used for
+hash tables and dynamic programming arrays. The
+\gls{GSL}~\autocite{gough2009gnu} was used to generate random draws from
+probability distributions, and to perform the bisection step in the
+\gls{ABC}-\gls{SMC} algorithm.
 
-\subsubsection{Epidemic simulation over a network}
+For ease of exposition, we simplifiy the notation of \textcite{del2012adaptive}
+by dropping the subscripts on the variables which indicate the current
+iteration number. Instead, we will add a prime $'$ to indicate a value which
+will be used in the next iteration (this should become clear later on). 
 
-I implemented method of~\autocite{gillespie1977exact} for simulating epidemics,
-and the corresponding transmission trees, over static contact networks. This
-method has been applied previously for the same
-purpose~\autocite{robinson2013dynamics, leventhal2012inferring}, however no
-existing open source implementations were available.
+In the algorithm, we keep track of a population of $n$ sets of model
+parameters, called \defn{particles}, denoted $\set{X_i}_{i=1}^{n}$. For the
+\gls{BA} model, the particles would be 4-tuples (\gls{N}, \gls{I}, \gls{m},
+\gls{alpha}). Each particle $X_i$ is associated with a set of \gls{M} simulated
+datasets, denoted $\set{X_{i,j}}_{j=1}^M$, and a weight $W_i$. 
 
-Let $G = (V, E)$ be a directed contact network. Each directed edge $e = (u, v)$
-in the network is associated with a transmission rate $\beta_e$, which indicates
-that, once $u$ becomes infected, $u$ will infect $v$ with rate $\beta_e$. In
-other words, the time between $u$ becoming infected and the infection passing
-from $u$ to $v$ is a random variable with distribution $\Exponential(\beta_e)$.
-Note that $v$ may become infected before this time has elapsed, if $v$ has
-other incoming edges. Each vertex $v$ also has a removal rate $\gamma_v$, which
-is the rate at which $v$ is removed from the population after becoming
-infected. Removal may correspond to death or recovery with immunity, or a
-combination of both, but in our implementation recovered nodes never re-enter
-the susceptible population. Borrowing a term from HIV epidemiology, a
-\defn{discordant edge} in $G$ is an edge $(u, v)$ where $u$ is infected and $v$
-is uninfected. 
+The particles are initially drawn from the prior distribution.
+
+Let $d$ be a
+distance measure on data sets, so that $d(x, y)$ is smaller the more similar
+$x$ and $y$ are to each other. Let $\varepsilon$ be the tolerance level which
+indicates whether a data set is ``close'' to the observed data. That is, if
+$d(x, y) < \varepsilon$, we will say that $x$ and $y$ are close, otherwise they
+are distant.
+
+I implemented a Gillespie simulation algorithm~\autocite{gillespie1976general}
+for simulating epidemics, and the corresponding transmission trees, over static
+contact networks. This method has been independently implemented and applied by
+several authors~\autocite[\textit{e.g.}][]{o2010contact, robinson2013dynamics,
+leventhal2012inferring, groendyke2011bayesian}.
+\textcite{groendyke2011bayesian} published their implementation as an
+\software{R} package, but since the \gls{SMC} algorithm is quite
+computationally intensive, we chose to implement our own version in
+\software{C}.
+
+Let $G = (V, E)$ be a directed contact network. The individual nodes and edges
+of $G$ follow the dynamics of the \gls{SIR}
+model~\autocite{kermack1927contribution}. Each directed edge $e = (u, v)$ in
+the network is associated with a transmission rate $\beta_e$, which indicates
+that, once $u$ becomes infected, the waiting time until $u$ infects $v$ is
+distributed as $\Exponential(\beta_e)$. Note that $v$ may become infected
+before this time has elapsed, if $v$ has other incoming edges. $v$ also has a
+removal rate $\gamma_v$, so that the waiting time until removal of $v$ from the
+population is $\Exponential(\gamma_v)$. Removal may correspond to death or
+recovery with immunity, or a combination of both, but in our implementation
+recovered nodes never re-enter the susceptible population. We define a
+\defn{discordant edge} as an edge $(u, v)$ where $u$ is infected and $v$
+has never been infected.
 
 To describe the algorithm, we introduce some notation and variables. Let
 $\inc(v)$ be the set of incoming edges to $v$, and $\out(v)$ be the set of
 outgoing edges from $v$. Let $I$ be the set of infected nodes in the network,
-$R$ be the set of removed nodes, and $S$ be the remaining susceptible nodes.
-Let $D$ be the set of discordant edges in the network, $\beta$ be the 
-total transmission rate over all discordant edges, and $\gamma$ be the total
-removal rate of all infected nodes. That is,
+$R$ be the set of removed nodes, and $S$ be the remaining susceptible nodes,
+and $D$ be the set of discordant edges in the network. Let $\beta$ be the total
+transmission rate over all discordant edges, and $\gamma$ be the total removal
+rate of all infected nodes,
 \[
   \beta = \sum_{e \in D} \beta_e, \quad
   \gamma = \sum_{v \in I} \gamma_v.
 \]
 The variables $S$, $I$, $R$, $D$, $\beta$, and $\gamma$ are all updated as the
-simulation progresses, but since these updates are very straightforward we do
-not write them explicitly in the algorithm. When a new node $v$ is infected, it
-is deleted from $S$ and added to $I$, any formerly discordant edges in $\in(v)$
-are deleted from $D$, and edges in $\out(v)$ to nodes in $S$ are added to $D$.
-If $v$ is later removed, it is deleted from $I$ and added to $R$, and any
-discordant edges in $\out(v)$ are deleted from $D$. In both cases, the
-variables $\beta$ and $\gamma$ are updated to reflect the changes. 
+simulation progresses. When a node $v$ becomes infected, it is deleted from $S$
+and added to $I$, any formerly discordant edges in $\in(v)$ are deleted from
+$D$, and edges in $\out(v)$ to nodes in $S$ are added to $D$. If $v$ is later
+removed, it is deleted from $I$ and added to $R$, and any discordant edges in
+$\out(v)$ are deleted from $D$. In both cases, the variables $\beta$ and
+$\gamma$ are updated to reflect the changes. Since these updates are
+straightforward, we do not write them explicitly in the algorithm.
 
 \newcommand{\tip}{\mathrm{tip}}
 
-The full algorithm is shown in Algorithm \ref{alg:nettree}. The transmission
-tree $T$ is simulated along with the epidemic. We keep a map called $\tip$,
-which maps infected nodes in $I$ to the tips of $T$. The variable $n$ counts
-the number of nodes, both extant and internal, in $T$. The simulation continues
-until either there are no discordant edges left in the network, or we reach a
-user-defined cutoff of time ($t_{\max}$) or number of infections ($I_{\max}$). 
+The Gillespie simulation algorithm is given as Algorithm~\ref{alg:nettree}. The
+transmission tree $T$ is simulated along with the epidemic. We keep a map
+called $\tip$, which maps infected nodes in $I$ to the tips of $T$. The
+simulation continues until either there are no discordant edges left in the
+network, or we reach a user-defined cutoff of time ($t_{\max}$) or number of
+infections ($I_{\max}$). We use the notation $\Uniform(0, 1)$ to indicate a
+number drawn from a uniform distribution on $(0, 1)$, and likewise for
+$\Exponential(\lambda)$. The combined number of internal nodes and tips in $T$
+is denoted $|T|$.
 
 \begin{algorithm}
   \label{alg:nettree}
   \caption{Simulation of an epidemic and transmission tree over a contact network}
   \begin{algorithmic}
-    \State infect one node $v$ at random
-    \State let $T$ be a single node with index $1$
+    \State infect a node $v$ at random, updating $S$, $I$, $D$, $\beta$ and $\gamma$
+    \State $T \gets$ a single node with label $1$
     \State $\tip[v] \gets 1$
-    \State $n \gets 1$
     \State $t \gets 0$
     \While{$D \neq \emptyset$ and $|I| + |R| < I_{\max}$ and $t < t_{\max}$}
       \State $s \gets \min(t_{\max} - t, \Exponential(\beta + \gamma))$
@@ -77,18 +101,18 @@ user-defined cutoff of time ($t_{\max}$) or number of infections ($I_{\max}$).
       \EndFor
       \State $t \gets t + s$
       \If{$t < t_{\max}$}
-        \If{$\Uniform(0, 1) < \nicefrac{\beta}{\beta + \gamma}$}
+        \If{$\Uniform(0, \beta + \gamma) < \beta$}
           \State choose an edge $e = (u, v)$ from $D$ with probability $\beta_e / \beta$
                  and infect $v$
-          \State add nodes with labels $n+1$ and $n+2$ to $T$
-          \State connect $n+1$ and $n+2$ to $\tip[v]$ in $T$, with branch lengths $0$
-          \State $\tip[v] \gets n + 1$
-          \State $\tip[u] \gets n + 2$
-          \State $n \gets n + 2$
+          \State add tips with labels $(|T|+1)$ and $(|T|+2)$ to $T$
+          \Comment $|T|$ increased by 2
+          \State connect the new nodes to $\tip[v]$ in $T$, with branch lengths $0$
+          \State $\tip[v] \gets |T|-1$
+          \State $\tip[u] \gets |T|$
         \Else
           \State choose a node $v$ from $I$ with probability $\gamma_v / \gamma$
                  and remove $v$
-          \State remove $v$ from $\tip$
+          \State delete $v$ from $\tip$
         \EndIf
         \State update $S$, $I$, $R$, $D$, $\beta$, and $\gamma$
       \EndIf
@@ -128,26 +152,6 @@ Figure~\ref{fig:nltt}.
   \label{fig:nltt}
 \end{figure}
 
-\subsubsection{Adaptive sequential Monte-Carlo approximate Bayseian computation}
-
-I implemented the adaptive sequential Monte-Carlo (SMC) algorithm developed by
-Del Moral \etal~\autocite{del2012adaptive} for approximate Bayesian
-computation. 
-
-For ease of exposition, we simplifiy the notation of Del Moral \etal by
-dropping the subscripts on the variables which indicate the current iteration
-of the algorithm. Instead, we will add a superscript $^*$ to indicate the value
-of the variable which will be used in the next iteration (this should become
-clear later on). Let $\set{\theta_i}_{i=1}^{N}$ be a set of $N$ particles,
-which are particular choices of the model parameters $\theta$. For each
-particle $\theta_i$, let $\set{X_{i,j}}_{j=1}^M$ be a set of $M$ simulated
-datasets, generated from the model with parameters $\theta_i$. Let
-$\set{W_i}_{i=1}^N$ be weights associated to each particle. Let $d$ be a
-distance measure on data sets, so that $d(x, y)$ is smaller the more similar
-$x$ and $y$ are to each other. Let $\varepsilon$ be the tolerance level which
-indicates whether a data set is ``close'' to the observed data. That is, if
-$d(x, y) < \varepsilon$, we will say that $x$ and $y$ are close, otherwise they
-are distant.
 
 % begin by sampling from the prior and setting all weights to equal
 

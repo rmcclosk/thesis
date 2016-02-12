@@ -23,6 +23,7 @@
 \renewcommand{\emptyset}{\varnothing}
 \renewcommand{\vec}[1]{\mathbf{#1}}
 \renewcommand{\star}[1]{#1^*}
+\renewcommand{\d}{\mathrm{d}\,}
 
 \DeclareMathOperator*{\argmin}{arg\,min}
 \DeclareMathOperator*{\argmax}{arg\,max}
@@ -53,6 +54,11 @@
 \newacronym{rv}{rv}{random variable}
 \newacronym{ML}{ML}{maximum likelihood}
 \newacronym{MAP}{MAP}{maximum \textit{a posteriori}}
+\newacronym{GSL}{GSL}{GNU scientific library}
+\newacronym{SIR}{SIR}{susceptible-infected-recovered}
+\newacronym{IS}{IS}{importance sampling}
+\newacronym{SIS}{SIS}{sequential importance sampling}
+\newacronym{HMM}{HMM}{hidden Markov model}
 
 \newglossaryentry{alpha}{
   name=$\alpha$,
@@ -81,6 +87,14 @@
 \newglossaryentry{sigma}{
   name=$\sigma$,
   description=radial basis function variance meta-parameter for tree kernel
+}
+\newglossaryentry{n}{
+  name=$n$,
+  description=number of particles used for ABC-SMC
+}
+\newglossaryentry{M}{
+  name=$M$,
+  description=number of simulated datasets per particle in ABC-SMC
 }
 
 \graphicspath{{figures/}}
@@ -119,7 +133,6 @@ Bayesian computation}
 
 \section{Results}
 \input{results}
-
 
 \chapter{Conclusion}
 
