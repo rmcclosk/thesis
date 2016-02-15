@@ -1,0 +1,140 @@
+Name: abc-pa-free-m
+Description: ABC inference on 2-parameter preferential attachment networks with free "m"
+Processes: 1
+Sleep: 5
+Steps:
+    network:
+        Extension: gml
+        Walltime: 00:00:30
+        Parameters:
+            nnode: 5000
+            m: [2, 3, 4]
+            power: [0.0, 0.5, 1, 1.5, 2.0]
+            replicate: "range(3)"
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: | 
+            set.seed({seed})
+            g <- sample_pa({nnode}, m={m}, power={power}, directed=FALSE)
+            graph_attr(g, "comment") <- "{yaml}"
+            write.graph(SIR.net(g), "{network}", format="gml")
+
+    tree:
+        Extension: nwk
+        Walltime: 00:00:30
+        Parameters:
+            m: [2, 3, 4]
+            power: [0.0, 0.5, 1, 1.5, 2.0]
+            replicate: "range(3)"
+            nsimnode: [1000, 2000]
+            ntip: 500
+        Depends: network
+        Interpreter: bash
+        Rule: |
+            echo "#{yaml}" > {tree}
+            nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} {network} >> {tree}
+
+    abc-config:
+        Extension: yaml
+        Walltime: 00:00:30
+        Parameters:
+            nnode_min: 500
+            nnode_max: 15000
+            nsimnode_min: 500
+            nsimnode_max: 5000
+            m_min: 1
+            m_max: 6
+            power_min: 0
+            power_max: 2
+        Interpreter: bash
+        Rule: |
+            echo "nodes: [\"uniform\", {nnode_min}, {nnode_max}]" > {abc-config}
+            echo "sim_nodes: [\"uniform\", {nsimnode_min}, {nsimnode_max}]" >> {abc-config}
+            echo "sim_time: 0" >> {abc-config}
+            echo "transmit: 1" >> {abc-config}
+            echo "remove: 0" >> {abc-config}
+            echo "edges_per_vertex: [\"uniform\", {m_min}, {m_max}]" >> {abc-config}
+            echo "attach_power: [\"uniform\", {power_min}, {power_max}]" >> {abc-config}
+
+    abc:
+        Extension: tsv.bz2
+        Processes: 15
+        Threads: 16
+        Walltime: 012:00:00
+        Sleep: 600
+        Parameters:
+            nnode: 5000
+            m: [2, 3, 4]
+            power: [0.0, 0.5, 1, 1.5, 2.0]
+            replicate: "range(3)"
+            nsimnode: [1000, 2000]
+            ntip: 500
+            nnode_min: 500
+            nnode_max: 15000
+            nsimnode_min: 500
+            nsimnode_max: 5000
+            m_min: 1
+            m_max: 6
+            power_min: 0
+            power_max: 2
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+            nparticle: 1000
+            nsample: 5
+            quality: 0.95
+            final_epsilon: 0.0
+            final_accept: 0.015
+        Depends: tree abc-config
+        Interpreter: bash
+        Rule: |
+            TSVFILE=`echo {abc} | sed s/'.bz2'//`
+            echo "#{yaml}" > $TSVFILE
+            if [[ "{nltt}" == "1" ]]; then
+                NLTT=--nltt
+            else
+                NLTT=""
+            fi
+            netabc --num-threads 16 --decay-factor {decay_factor} \
+                   --rbf-variance {rbf_variance} --num-particles {nparticle} \
+                   --num-samples {nsample} --quality {quality} --seed {seed} \
+                   --final-epsilon {final_epsilon} --final-accept {final_accept} \
+                   $NLTT --net-type pa --trace $TSVFILE --seed {seed} {tree} {abc-config}
+            echo "EOF" >> $TSVFILE
+            bzip2 $TSVFILE
+
+    point-estimate:
+        Processes: 0
+        Extension: tsv
+        Walltime: 00:30:00
+        Memory: 2048m
+        Parameters:
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+            nparticle: 1000
+            m_min: 1
+        Depends: abc
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            trace.files <- strsplit("{abc}", " ")[[1]]
+            lines <- sapply(paste("bzcat", trace.files, "| wc -l"), system, intern=TRUE)
+            end <- as.integer(lines)-1
+            start <- end - {nparticle} + 1
+            cmd <- paste0("bzcat ", trace.files, " | sed -n -e 1,2p -e ", start, ",", end, "p")
+            d <- lapply(cmd, fread)
+            md <- collect.metadata(trace.files)
+            d <- rbindlist(mapply(cbind, by(md, 1:nrow(md), as.data.table), d, SIMPLIFY=FALSE))
+
+            by.cols <- c("ntip", "nnode", "nsimnode", "m", "power", "replicate")
+            d <- d[,.SD[iter == max(iter),], by=by.cols]
+            d <- d[,.SD[sample(1:nrow(.SD), prob=weight, replace=TRUE),], by=by.cols]
+            d <- d[,nodes := density(nodes)$x[which.max(density(nodes)$y)], by=by.cols]
+            d <- d[,sim_nodes := density(sim_nodes)$x[which.max(density(sim_nodes)$y)], by=by.cols]
+            d <- d[,attach_power := density(attach_power)$x[which.max(density(attach_power)$y)], by=by.cols]
+            d <- d[,edges_per_vertex := density(edges_per_vertex)$x[which.max(density(edges_per_vertex)$y)], by=by.cols]
+            d <- setkeyv(d, by.cols)
+            d <- unique(d)
+            cat("#{yaml}\n", file="{point-estimate}")
+            write.tsv(d, "{point-estimate}", append=TRUE)

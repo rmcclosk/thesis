@@ -8,9 +8,9 @@ Steps:
         Walltime: 00:00:30
         Parameters:
             nnode: 5000
-            m: 2
-            power: [0.0, 0.5, 1, 1.5]
-            replicate: 0
+            m: [2, 5, 8]
+            power: [0.0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2.0]
+            replicate: "range(10)"
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: | 
@@ -23,11 +23,11 @@ Steps:
         Extension: nwk
         Walltime: 00:00:30
         Parameters:
-            m: 2
-            power: [0.0, 0.5, 1, 1.5]
-            replicate: 0
+            m: [2, 5, 8]
+            power: [0.0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2.0]
+            replicate: "range(10)"
             nsimnode: 1000
-            ntip: [500, 1000]
+            ntip: 500
         Depends: network
         Interpreter: bash
         Rule: |
@@ -41,12 +41,12 @@ Steps:
             nnode: 5000
             nnode_min: 1000
             nnode_max: 10000
-            nnode_prior: ["uniform", "delta"]
+            nnode_prior: ["delta", "uniform"]
             nsimnode: 1000
             nsimnode_min: 500
             nsimnode_max: 2000
-            nsimnode_prior: ["uniform", "delta"]
-            m: 2
+            nsimnode_prior: ["delta", "uniform"]
+            m: [2, 5, 8]
             power_min: 0
             power_max: 2
         Interpreter: bash
@@ -68,21 +68,21 @@ Steps:
             echo "attach_power: [\"uniform\", {power_min}, {power_max}]" >> {abc-config}
 
     abc:
-        Extension: tsv
-        Processes: 0
-        Threads: 24
-        Walltime: 08:00:00
+        Extension: tsv.bz2
+        Processes: 12
+        Threads: 16
+        Walltime: 012:00:00
         Sleep: 600
         Parameters:
-            nnode_prior: ["uniform", "delta"]
-            nsimnode_prior: ["uniform", "delta"]
-            ntip: [500, 1000]
-            m: 2
-            power: [0.0, 0.5, 1, 1.5]
-            replicate: 0
+            nnode_prior: ["delta", "uniform"]
+            nsimnode_prior: ["delta", "uniform"]
+            ntip: 500
+            m: [2, 5, 8]
+            power: [0.0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2.0]
+            replicate: "range(10)"
             decay_factor: 0.3
-            rbf_variance: [2, 5]
-            nltt: [0, 1]
+            rbf_variance: [4, 5]
+            nltt: 0
             nparticle: 1000
             nsample: 5
             quality: 0.95
@@ -90,37 +90,54 @@ Steps:
             final_accept: 0.015
         Exclusions:
             -
-                ntip: 1000
-                nsimnode_prior: "uniform"
+                nnode_prior: "delta"
+                replicate: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+            -
+                nnode_prior: "delta"
+                m: [5, 8]
+            -
+                nnode_prior: "delta"
+                rbf_variance: 4
+            -
+                nsimnode_prior: "delta"
+                replicate: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+            -
+                nsimnode_prior: "delta"
+                m: [5, 8]
+            -
+                nsimnode_prior: "delta"
+                rbf_variance: 4
         Depends: tree abc-config
         Interpreter: bash
         Rule: |
-            echo "#{yaml}" > {abc}
+            TSVFILE=`echo {abc} | sed s/'.bz2'//`
+            echo "#{yaml}" > $TSVFILE
             if [[ "{nltt}" == "1" ]]; then
                 NLTT=--nltt
             else
                 NLTT=""
             fi
-            netabc --num-threads 24 --decay-factor {decay_factor} \
+            netabc --num-threads 16 --decay-factor {decay_factor} \
                    --rbf-variance {rbf_variance} --num-particles {nparticle} \
                    --num-samples {nsample} --quality {quality} --seed {seed} \
                    --final-epsilon {final_epsilon} --final-accept {final_accept} \
-                   $NLTT --net-type pa --trace {abc} --seed {seed} {tree} {abc-config}
-            echo "EOF" >> {abc}
+                   $NLTT --net-type pa --trace $TSVFILE --seed {seed} {tree} {abc-config}
+            echo "EOF" >> $TSVFILE
+            bzip2 $TSVFILE
 
     iter-plot:
         Extension: pdf
         Processes: 1
         Parameters:
-            nnode_prior: ["uniform", "delta"]
-            nsimnode_prior: ["uniform", "delta"]
-            m: 2
-            power: [0.0, 0.5, 1, 1.5]
-            replicate: 0
+            nnode_prior: "uniform"
+            nsimnode_prior: "uniform"
+            m: [2, 5, 8]
+            power: [0.0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2.0]
+            replicate: "range(10)"
             decay_factor: 0.3
-            rbf_variance: [2, 5]
-            nltt: [0, 1]
-            ntip: [500, 1000]
+            rbf_variance: [4, 5]
+            nltt: 0
+            ntip: 500
             nparticle: 1000
             nsample: 5
             quality: 0.95
@@ -133,7 +150,7 @@ Steps:
             suppressPackageStartupMessages(library(ggplus))
             suppressPackageStartupMessages(library(data.table))
         Rule: |
-            d <- fread("head -n -1 {abc}")
+            d <- fread("bzcat {abc} | head -n -1")
             d <- d[,.SD[sample(1:nrow(.SD), prob=weight, replace=TRUE),], by=iter]
             pdf("{iter-plot}")
             p <- ggplot(d, aes(x=attach_power)) + geom_density() + 
@@ -144,19 +161,18 @@ Steps:
             facet_multiple(p, facets="iter", nrow=3, ncol=3)
             dev.off()
 
-    posterior-plot:
+    posterior-plot-alpha:
         Extension: pdf
         Processes: 1
         Parameters:
-            nnode_prior: ["uniform", "delta"]
-            nsimnode_prior: ["uniform", "delta"]
+            nnode_prior: "uniform"
+            nsimnode_prior: "uniform"
             m: 2
-            power: [0.0, 0.5, 1, 1.5]
             replicate: 0
             decay_factor: 0.3
-            rbf_variance: [2, 5]
-            nltt: [0, 1]
-            ntip: [500, 1000]
+            rbf_variance: 4
+            nltt: 0
+            ntip: 500
             nparticle: 1000
             nsample: 5
             quality: 0.95
@@ -166,62 +182,207 @@ Steps:
         Interpreter: R --vanilla --silent
         Startup: |
             suppressPackageStartupMessages(library(netabc))
-            suppressPackageStartupMessages(library(ggplus))
-            suppressPackageStartupMessages(library(data.table))
+            suppressPackageStartupMessages(library(grid))
         Rule: |
-            d <- fread("head -n -1 {abc}")
-            d <- subset(d, iter == d[,max(iter)])
-            d <- d[,.SD[sample(1:nrow(.SD), prob=weight, replace=TRUE),], by=iter]
-            p1 <- ggplot(d, aes(x=attach_power)) + geom_density() + theme_bw() + 
-                  labs(title="attachment power") + xlim({power_min}, {power_max}) +
-                  geom_vline(xintercept={power}, lty=2)
-            p2 <- ggplot(d, aes(x=nodes)) + geom_density() + theme_bw() + 
-                  labs(title="total nodes") + xlim(1000, 10000) +
-                  geom_vline(xintercept=5000, lty=2)
-            p3 <- ggplot(d, aes(x=sim_nodes)) + geom_density() + theme_bw() + 
-                  labs(title="infected nodes") + xlim(500, 2000) +
-                  geom_vline(xintercept=1000, lty=2)
-            pdf("{posterior-plot}")
-            grid.arrange(p1, p2, p3, ncol=2, 
-                         top="ntip = {ntip}, nnode_prior = {nnode_prior}, nsimnode_prior = {nsimnode_prior}\nlambda = {decay_factor}, sigma = {rbf_variance}, nLTT = {nltt}")
+            m <- collect.metadata(strsplit("{abc}", " ")[[1]])
+            m <- m[order(as.numeric(m$power)),]
+            files <- rownames(subset(m, power %in% c(0.5, 1.0, 1.5)))
+            d <- lapply(files, function (f) fread(paste("bzcat", f, "| head -n -1")))
+            d <- lapply(d, function (x) subset(x, iter == x[,max(iter)]))
+            d <- lapply(d, function (x) x[,.SD[sample(1:nrow(.SD), prob=weight, replace=TRUE),], by=iter])
+            true.power <- c(0.5, 1.0, 1.5)
+            d <- lapply(1:3, function (i) d[[i]][,power := true.power[i]])
+            p <- lapply(d, function (x) {{
+                p1 <- ggplot(x, aes(x=attach_power)) + geom_density() + theme_bw() + 
+                      labs(x=expression(alpha), y="", title=paste("true alpha =", x[1,power])) + xlim({power_min}, {power_max}) +
+                      geom_vline(xintercept=x[1,power], lty=2) +
+                      theme(axis.text.y=element_blank(),
+                            axis.ticks.y=element_blank())
+                p2 <- ggplot(x, aes(x=nodes)) + geom_density() + theme_bw() + 
+                      labs(x="N", y="", title=paste("true alpha =", x[1,power])) +
+                      xlim(1000, 10000) +
+                      geom_vline(xintercept=5000, lty=2) +
+                      theme(axis.text.y=element_blank(),
+                            axis.ticks.y=element_blank())
+                p3 <- ggplot(x, aes(x=sim_nodes)) + geom_density() + theme_bw() + 
+                      labs(x="I", y="", title=paste("true alpha =", x[1,power])) +
+                      xlim(500, 2000) +
+                      geom_vline(xintercept=1000, lty=2) +
+                      theme(axis.text.y=element_blank(),
+                            axis.ticks.y=element_blank())
+                list(p1, p2, p3)
+            }})
+            p <- c(p[[1]], p[[2]], p[[3]])
+            pdf("{posterior-plot-alpha}")
+            do.call(grid.arrange, c(p, ncol=3))
+            dev.off()
+
+    posterior-plot-m:
+        Extension: pdf
+        Processes: 1
+        Parameters:
+            nnode_prior: "uniform"
+            nsimnode_prior: "uniform"
+            power: 1
+            replicate: 0
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+            ntip: 500
+            nparticle: 1000
+            nsample: 5
+            quality: 0.95
+            power_min: 0
+            power_max: 2
+        Depends: abc
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(grid))
+        Rule: |
+            files <- strsplit("{abc}", " ")[[1]]
+            d <- lapply(files, function (f) fread(paste("bzcat", f, "| head -n -1")))
+            d <- lapply(d, function (x) subset(x, iter == x[,max(iter)]))
+            d <- lapply(d, function (x) x[,.SD[sample(1:nrow(.SD), prob=weight, replace=TRUE),], by=iter])
+            true.m <- c(2, 5, 8)
+            d <- lapply(1:3, function (i) d[[i]][,m := true.m[i]])
+            p <- lapply(d, function (x) {{
+                p1 <- ggplot(x, aes(x=attach_power)) + geom_density() + theme_bw() + 
+                      labs(x=expression(alpha), y="", title=paste("m =", x[1,m])) + xlim({power_min}, {power_max}) +
+                      geom_vline(xintercept=x[1,power], lty=2) +
+                      theme(axis.text.y=element_blank(),
+                            axis.ticks.y=element_blank())
+                p2 <- ggplot(x, aes(x=nodes)) + geom_density() + theme_bw() + 
+                      labs(x="N", y="", title=paste("m =", x[1,m])) +
+                      xlim(1000, 10000) +
+                      geom_vline(xintercept=5000, lty=2) +
+                      theme(axis.text.y=element_blank(),
+                            axis.ticks.y=element_blank())
+                p3 <- ggplot(x, aes(x=sim_nodes)) + geom_density() + theme_bw() + 
+                      labs(x="I", y="", title=paste("m =", x[1,m])) +
+                      xlim(500, 2000) +
+                      geom_vline(xintercept=1000, lty=2) +
+                      theme(axis.text.y=element_blank(),
+                            axis.ticks.y=element_blank())
+                list(p1, p2, p3)
+            }})
+            p <- c(p[[1]], p[[2]], p[[3]])
+            pdf("{posterior-plot-m}")
+            do.call(grid.arrange, c(p, ncol=3))
             dev.off()
 
     accuracy-plot:
         Extension: pdf
         Processes: 1
+        Walltime: 00:30:00
         Parameters:
             decay_factor: 0.3
-            rbf_variance: [2, 5]
-            nltt: [0, 1]
-            ntip: [500, 1000]
+            rbf_variance: 5
+            nltt: 0
+            ntip: 500
+            m: 2
+            replicate: 0
         Depends: abc
         Interpreter: R --vanilla --silent
         Startup: |
             suppressPackageStartupMessages(library(netabc))
-            suppressPackageStartupMessages(library(ggplus))
-            suppressPackageStartupMessages(library(data.table))
+            suppressPackageStartupMessages(library(extrafont))
         Rule: |
             by.cols <- c("decay_factor", "rbf_variance", "nltt", "ntip", 
                          "nnode_prior", "nsimnode_prior", "power")
-            d <- setDT(na.omit(collect.data(strsplit("{abc}", " ")[[1]], na.strings="EOF", fill=NA)))
+            d <- setDT(collect.data(strsplit("{abc}", " ")[[1]], 
+                       na.strings="EOF", fill=NA))
+            d <- d[!is.na(iter),]
             d <- d[,.SD[iter == max(iter),], by=by.cols]
             d <- d[,.SD[sample(1:nrow(.SD), prob=weight, replace=TRUE),], by=by.cols]
             d[,prior := paste(nnode_prior, nsimnode_prior, sep='-')]
-            title <- "ntip = {ntip}, lambda = {decay_factor}, sigma = {rbf_variance}, nLTT = {nltt}"
+            d <- subset(d, power %in% c(0.5, 1.0, 1.5))
             pdf("{accuracy-plot}")
             ggplot(d, aes(x=factor(power), y=attach_power, fill=prior)) + 
                 geom_boxplot() + theme_bw() + scale_fill_brewer(palette="Set3") + 
-                geom_hline(yintercept=c(0, 0.5, 1, 1.5), linetype="dashed") +
-                labs(x="true attach power", y="posterior attach power", title=title) +
-                ylim(0, 2) 
+                geom_hline(yintercept=c(0.5, 1, 1.5), linetype="dashed") +
+                labs(x="true attach power", y="posterior attach power") +
+                ylim(0, 2)  +
+                scale_fill_discrete(name="prior (N-I)") +
+                theme(text=element_text(family="Gillius ADF"))
             ggplot(d, aes(x=factor(power), y=nodes, fill=prior)) + 
                 geom_boxplot() + theme_bw() + scale_fill_brewer(palette="Set3") + 
                 geom_hline(yintercept=5000, linetype="dashed") +
                 ylim(1000, 10000) +
-                labs(x="true attach power", y="posterior total nodes", title=title)
+                labs(x="true attach power", y="posterior total nodes") +
+                scale_fill_discrete(name="prior (N-I)") +
+                theme(text=element_text(family="Gillius ADF"))
             ggplot(d, aes(x=factor(power), y=sim_nodes, fill=prior)) + 
                 geom_boxplot() + theme_bw() + scale_fill_brewer(palette="Set3") + 
                 geom_hline(yintercept=1000, linetype="dashed") +
                 ylim(500, 2000) + 
-                labs(x="true attach power", y="posterior infected nodes", title=title)
+                labs(x="true attach power", y="posterior infected nodes") +
+                scale_fill_discrete(name="prior (N-I)") +
+                theme(text=element_text(family="Gillius ADF"))
             dev.off()
+
+    estimates:
+        Processes: 0
+        Extension: tsv
+        Walltime: 00:10:00
+        Memory: 2048m
+        Parameters:
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+            ntip: 500
+            m: [2, 5, 8]
+            nnode_prior: ["delta", "uniform"]
+            nsimnode_prior: ["delta", "uniform"]
+        Depends: abc
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            by.cols <- c("decay_factor", "rbf_variance", "nltt", "ntip",
+                         "nnode_prior", "nsimnode_prior", "power", "replicate")
+            d <- setDT(collect.data(strsplit("{abc}", " ")[[1]], na.strings="EOF", fill=NA))
+            d <- d[!is.na(iter),]
+            d <- d[,.SD[iter == max(iter),], by=by.cols]
+            d <- d[,.SD[sample(1:nrow(.SD), prob=weight, replace=TRUE),], by=by.cols]
+            d <- d[,nodes.median := median(nodes), by=by.cols]
+            d <- d[,nodes.05 := quantile(nodes, 0.05), by=by.cols]
+            d <- d[,nodes.95 := quantile(nodes, 0.95), by=by.cols]
+            d <- d[,nodes.point := density(nodes)$x[which.max(density(nodes)$y)], by=by.cols]
+            d <- d[,sim_nodes.median := median(sim_nodes), by=by.cols]
+            d <- d[,sim_nodes.05 := quantile(sim_nodes, 0.05), by=by.cols]
+            d <- d[,sim_nodes.95 := quantile(sim_nodes, 0.95), by=by.cols]
+            d <- d[,sim_nodes.point := density(sim_nodes)$x[which.max(density(sim_nodes)$y)], by=by.cols]
+            d <- d[,attach_power.median := median(attach_power), by=by.cols]
+            d <- d[,attach_power.05 := quantile(attach_power, 0.05), by=by.cols]
+            d <- d[,attach_power.95 := quantile(attach_power, 0.95), by=by.cols]
+            d <- d[,attach_power.point := density(attach_power)$x[which.max(density(attach_power)$y)], by=by.cols]
+            d <- setkeyv(d, by.cols)
+            d <- unique(d)
+            cat("#{yaml}", "\n", file="{estimates}")
+            write.tsv(d, "{estimates}", append=TRUE)
+
+    point-estimate-plot:
+        Extension: pdf
+        Walltime: 01:00:00
+        Parameters:
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+            ntip: 500
+            nnode_prior: "uniform"
+            nsimnode_prior: "uniform"
+        Depends: estimates
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(extrafont))
+        Rule: |
+            d <- collect.data(strsplit("{estimates}", " ")[[1]])
+            ggplot(d, aes(x=factor(power), y=attach_power.point)) +
+                geom_point() + theme_bw() +
+                facet_grid(~m, labeller="label_both") +
+                labs(x="true attachment power", 
+                     y="estimated attachment power") +
+                geom_abline(intercept=-2/9, slope=2/8, linetype=2) +
+                theme(text=element_text(family="Gillius ADF"))
+            ggsave("{point-estimate-plot}", height=3)
