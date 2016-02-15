@@ -120,6 +120,24 @@ void collapse_singles(igraph_t *tree);
  */
 void subsample_tips(igraph_t *tree, int ntip, const gsl_rng *rng);
 
+/** Subsample tips from a tree in a peer-driven fashion.
+ *
+ * If any of a nodes's peers has been sampled, then sample the node with
+ * probability proportional to p + a. Otherwise, sample with probability
+ * proportional to p. Repeat this until ntip tips have been sampled. The nodes
+ * of the tree and network are matched by their "id" attribute if they have
+ * one, otherwise by index.
+ *
+ * \param[in,out] tree tree to subsample
+ * \param[in] net contact network on the same nodes as the tree's tips
+ * \param[in] p baseline sampling probability
+ * \param[in] a additional sampling probability for nodes with a sampled peer
+ * \param[in] ntip number of tips to sample
+ * \param[in] rng GSL random number generator object
+ */
+void subsample_tips_peerdriven(igraph_t *tree, const igraph_t *net, double p, 
+        double a, int ntip, const gsl_rng *rng);
+
 /** Subsample proportions of tips from a tree longitudinally.
  *
  * The sampling times are processed in order from earliest (ie. nearest the

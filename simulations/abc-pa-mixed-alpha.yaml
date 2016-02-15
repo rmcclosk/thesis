@@ -1,0 +1,145 @@
+Name: abc-pa-mixed-alpha
+Description: ABC inference on 2-parameter preferential attachment networks with "mixed" power
+Processes: 1
+Steps:
+    network:
+        Extension: gml
+        Walltime: 00:00:30
+        Parameters:
+            nnode: 5000
+            m: 2
+            power_1: 0.5
+            power_2: 1.5
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: | 
+            set.seed({seed})
+            power <- rep(c({power_1}, {power_2}), each={nnode}/2)
+            g <- sample_pa_mixed_power({nnode}, m={m}, power=power, directed=FALSE)
+            graph_attr(g, "comment") <- "{yaml}"
+            write.graph(SIR.net(g), "{network}", format="gml")
+
+    tree:
+        Extension: nwk
+        Walltime: 00:00:30
+        Parameters:
+            nsimnode: 1000
+            ntip: 500
+        Depends: network
+        Interpreter: bash
+        Rule: |
+            echo "#{yaml}" > {tree}
+            nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} {network} >> {tree}
+
+    abc-config:
+        Extension: yaml
+        Walltime: 00:00:30
+        Parameters:
+            m_min: [1, 2]
+            m_max: 6
+            nnode_min: 500
+            nnode_max: 15000
+            nsimnode_min: 500
+            nsimnode_max: 5000
+            power_min: 0
+            power_max: 2
+        Interpreter: bash
+        Rule: |
+            echo "nodes: [\"uniform\", {nnode_min}, {nnode_max}]" > {abc-config}
+            echo "sim_nodes: [\"uniform\", {nsimnode_min}, {nsimnode_max}]" >> {abc-config}
+            echo "sim_time: 0" >> {abc-config}
+            echo "transmit: 1" >> {abc-config}
+            echo "remove: 0" >> {abc-config}
+            echo "edges_per_vertex: [\"uniform\", {m_min}, {m_max}]" >> {abc-config}
+            echo "attach_power: [\"uniform\", {power_min}, {power_max}]" >> {abc-config}
+
+    abc:
+        Extension: tsv.bz2
+        Threads: 16
+        Sleep: 600
+        Parameters:
+            m_min: [1, 2]
+            m_max: 6
+            nnode_min: 500
+            nnode_max: 15000
+            nsimnode_min: 500
+            nsimnode_max: 5000
+            power_min: 0
+            power_max: 2
+            decay_factor: 0.3
+            rbf_variance: 4
+            nparticle: 1000
+            nsample: 5
+            quality: 0.95
+            final_epsilon: 0.0
+            final_accept: 0.015
+        Depends: tree abc-config
+        Interpreter: bash
+        Rule: |
+            TSVFILE=`echo {abc} | sed s/'.bz2'//`
+            echo "#{yaml}" > $TSVFILE
+            netabc --num-threads 16 --decay-factor {decay_factor} \
+                   --rbf-variance {rbf_variance} --num-particles {nparticle} \
+                   --num-samples {nsample} --quality {quality} --seed {seed} \
+                   --final-epsilon {final_epsilon} --final-accept {final_accept} \
+                   --net-type pa --trace $TSVFILE --seed {seed} {tree} {abc-config}
+            echo "EOF" >> $TSVFILE
+            bzip2 $TSVFILE
+
+    posterior-plot:
+        Extension: pdf
+        Processes: 1
+        Parameters:
+            m: 2
+            m_min: [1, 2]
+            m_max: 6
+            nnode: 5000
+            nnode_min: 500
+            nnode_max: 15000
+            nsimnode: 1000
+            nsimnode_min: 500
+            nsimnode_max: 5000
+            power_1: 0.5
+            power_2: 1.5
+            power_min: 0
+            power_max: 2
+            decay_factor: 0.3
+            rbf_variance: 4
+            nparticle: 1000
+            nsample: 5
+            quality: 0.95
+            final_epsilon: 0.0
+            final_accept: 0.015
+        Depends: abc
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            d <- fread("bzcat {abc} | head -n -1")[iter == max(iter)]
+            d <- d[sample(1:nrow(d), prob=weight, replace=TRUE)]
+            vars <- c("nodes", "sim_nodes", "edges_per_vertex", "attach_power")
+            priors <- data.table(variable=vars, 
+                                 min=c({nnode_min}, {nsimnode_min}, {m_min}, {power_min}),
+                                 max=c({nnode_max}, {nsimnode_max}, {m_max}-1, {power_max}))
+            truth <- data.table(variable=rep(vars, c(1, 1, 1, 2)), 
+                                value=c({nnode}, {nsimnode}, {m}, {power_1}, {power_2}))
+            d <- melt(d[,vars,with=FALSE], measure.vars=vars)
+            d <- merge(d, priors, by="variable")
+
+            d[,label := "N"]
+            d[variable == "sim_nodes", label := "I"]
+            d[variable == "edges_per_vertex", label := "m"]
+            d[variable == "attach_power", label := "alpha"]
+            plots <- by(d, d[,variable], function (by.d) {{
+                p <- ggplot(by.d, aes(x=value)) + geom_density() + theme_bw() +
+                    by.d[1,xlim(min, max)] +
+                    geom_vline(xintercept=truth[variable==by.d[1,variable], value], linetype=2) +
+                    theme(axis.text.y=element_blank(),
+                          axis.ticks.y=element_blank())
+                if (by.d[1,label] == "alpha")
+                    p + labs(x=expression(alpha), y="")
+                else
+                    p + labs(x=by.d[1, label], y="")
+            }})
+            pdf("{posterior-plot}")
+            do.call(grid.arrange, c(plots, ncol=2))
+            dev.off()

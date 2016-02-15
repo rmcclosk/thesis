@@ -166,10 +166,125 @@ START_TEST (test_permute_vector_bool)
 }
 END_TEST
 
+START_TEST (test_id_type_numeric)
+{
+    int i;
+    igraph_t g;
+    igraph_empty(&g, 5, 0);
+    for (i = 0; i < igraph_vcount(&g); ++i) {
+        SETVAN(&g, "id", i, i);
+    }
+    ck_assert_int_eq(get_igraph_id_type(&g), IGRAPH_ATTRIBUTE_NUMERIC);
+    igraph_destroy(&g);
+}
+END_TEST
+
+START_TEST (test_id_type_string)
+{
+    int i;
+    igraph_t g;
+    igraph_empty(&g, 5, 0);
+    char buf[3];
+    for (i = 0; i < igraph_vcount(&g); ++i) {
+        sprintf(buf, "t%d", i);
+        SETVAS(&g, "id", i, buf);
+    }
+    ck_assert_int_eq(get_igraph_id_type(&g), IGRAPH_ATTRIBUTE_STRING);
+    igraph_destroy(&g);
+}
+END_TEST
+
+START_TEST (test_id_type_none)
+{
+    int i;
+    igraph_t g;
+    igraph_empty(&g, 5, 0);
+    ck_assert_int_eq(get_igraph_id_type(&g), IGRAPH_ATTRIBUTE_DEFAULT);
+    igraph_destroy(&g);
+}
+END_TEST
+
+START_TEST (test_match_vector)
+{
+    int i, index[3];
+    igraph_vector_t x, tbl;
+
+    igraph_vector_init(&x, 3);
+    igraph_vector_init(&tbl, 3);
+
+    for (i = 0; i < 3; ++i) {
+        VECTOR(x)[i] = i;
+        VECTOR(tbl)[i] = i+1;
+    }
+
+    match(&x, &tbl, index, sizeof(double), 3, 3, get_igraph_vector_t, compare_doubles);
+
+    ck_assert_int_eq(index[0], -1);
+    ck_assert_int_eq(index[1], 0);
+    ck_assert_int_eq(index[2], 1);
+
+    igraph_vector_destroy(&x);
+    igraph_vector_destroy(&tbl);
+}
+END_TEST
+
+START_TEST (test_match_strvector)
+{
+    int i, index[3];
+    igraph_strvector_t x, tbl;
+
+    igraph_strvector_init(&x, 0);
+    igraph_strvector_init(&tbl, 0);
+
+    igraph_strvector_add(&x, "e");
+    igraph_strvector_add(&x, "a");
+    igraph_strvector_add(&x, "c");
+
+    igraph_strvector_add(&tbl, "a");
+    igraph_strvector_add(&tbl, "b");
+    igraph_strvector_add(&tbl, "c");
+    igraph_strvector_add(&tbl, "d");
+    igraph_strvector_add(&tbl, "e");
+
+    match(&x, &tbl, index, 1, 3, 5, get_igraph_strvector_t, compare_strings);
+
+    ck_assert_int_eq(index[0], 4);
+    ck_assert_int_eq(index[1], 0);
+    ck_assert_int_eq(index[2], 2);
+
+    igraph_strvector_destroy(&x);
+    igraph_strvector_destroy(&tbl);
+}
+END_TEST
+
+START_TEST (test_sample)
+{
+    int x[5] = {0, 1, 2, 3, 4};
+    double prob[5] = {0, 0, 1, 0, 0};
+    int s[2];
+    gsl_rng *r = set_seed(0);
+
+    sample_weighted(x, s, 1, 5, sizeof(int), prob, 0, r);
+    ck_assert_int_eq(s[0], 2);
+
+    sample_weighted(x, s, 2, 5, sizeof(int), prob, 1, r);
+    ck_assert_int_eq(s[0], 2);
+    ck_assert_int_eq(s[1], 2);
+
+    prob[0] = 1;
+    sample_weighted(x, s, 2, 5, sizeof(int), prob, 0, r);
+    ck_assert( (s[0] == 0 && s[1] == 2) || (s[0] == 2 && s[1] == 0) );
+
+    gsl_rng_free(r);
+}
+END_TEST
+
 Suite *util_suite(void)
 {
     Suite *s;
     TCase *tc_core;
+
+    igraph_i_set_attribute_table(&igraph_cattribute_table);
 
     s = suite_create("util");
 
@@ -184,6 +299,12 @@ Suite *util_suite(void)
     tcase_add_test(tc_core, test_permute_vector);
     tcase_add_test(tc_core, test_permute_strvector);
     tcase_add_test(tc_core, test_permute_vector_bool);
+    tcase_add_test(tc_core, test_id_type_numeric);
+    tcase_add_test(tc_core, test_id_type_string);
+    tcase_add_test(tc_core, test_id_type_none);
+    tcase_add_test(tc_core, test_match_vector);
+    tcase_add_test(tc_core, test_match_strvector);
+    tcase_add_test(tc_core, test_sample);
     suite_add_tcase(s, tc_core);
 
     return s;

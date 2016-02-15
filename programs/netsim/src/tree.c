@@ -52,9 +52,13 @@ int _collapse_singles(igraph_t *tree, int root, igraph_vector_t *vdel,
         igraph_vector_t *work, double *bl);
 void _depths(const igraph_t *tree, double *depths, igraph_vector_t *work, 
         int root, double parent_depth, int use_branch_lengths);
+
+/* other helpers */
 tree_attrs *_get_tree_attrs(const igraph_t *tree);
 void _permute_tree_attrs(igraph_t *tree, tree_attrs *a, const int *perm);
 void _tree_attrs_destroy(tree_attrs *a);
+void _get_node_ids(const igraph_t *g, igraph_strvector_t *ids);
+void _make_maps(const igraph_t *tree, const igraph_t *net, int *tip_map, int *node_map);
 
 igraph_t *parse_newick(FILE *f)
 {
@@ -548,6 +552,91 @@ void subsample_tips(igraph_t *tree, int ntip, const gsl_rng *rng)
     igraph_vector_ptr_destroy_all(&nbhd);
 }
 
+void subsample_tips_peerdriven(igraph_t *tree, const igraph_t *net, double p, 
+        double a, int ntip, const gsl_rng *rng)
+{
+    int i, j, s, tip, nt = igraph_vcount(tree);
+    int *tip_map = malloc(igraph_vcount(net) * sizeof(int));
+    int *node_map = malloc(nt * sizeof(int));
+    int *sampled = malloc(nt * sizeof(int));
+    double *prob = malloc(nt * sizeof(double));
+    int *idx = malloc(nt * sizeof(int));
+    igraph_adjlist_t al;
+    igraph_vector_t degree, keep_tips, keep_all, drop, *elem;
+    igraph_vector_int_t *peers;
+    igraph_vector_ptr_t nbhd;
+
+    if (ntip <= 0 || (nt + 1) / 2 <= ntip) {
+        return;
+    }
+
+    igraph_vector_init(&degree, 0);
+    igraph_vector_init(&keep_tips, 0);
+    igraph_vector_init(&keep_all, 0);
+    igraph_vector_init(&drop, 0);
+    igraph_vector_ptr_init(&nbhd, 0);
+    igraph_adjlist_init(net, &al, IGRAPH_ALL);
+
+    igraph_degree(net, &degree, igraph_vss_all(), IGRAPH_ALL, 0);
+    _make_maps(tree, net, tip_map, node_map);
+    for (i = 0; i < nt; ++i) {
+        sampled[i] = (node_map[i] == -1 ? 1 : 0);
+        idx[i] = i;
+    }
+
+    for (s = 0; s < ntip; ++s) {
+        memset(prob, 0, nt * sizeof(double));
+        for (i = 0; i < nt; ++i) {
+            if (!sampled[i]) {
+                prob[i] = p;
+                peers = igraph_adjlist_get(&al, node_map[i]);
+                for (j = 0; j < VECTOR(degree)[node_map[i]]; ++j) {
+                    if (tip_map[VECTOR(*peers)[j]] != -1 && sampled[tip_map[VECTOR(*peers)[j]]]) {
+                        prob[i] = p + a;
+                        break;
+                    }
+                }
+            }
+        }
+        do {
+            sample_weighted(idx, &tip, 1, nt, sizeof(int), prob, 0, rng);
+        } while (node_map[tip] == -1);
+        sampled[tip] = 1;
+        igraph_vector_push_back(&keep_tips, tip);
+    }
+
+    igraph_neighborhood(tree, &nbhd, igraph_vss_vector(&keep_tips), INT_MAX, IGRAPH_IN, 0);
+
+    for (i = 0; i < igraph_vector_ptr_size(&nbhd); ++i) {
+        elem = (igraph_vector_t *) igraph_vector_ptr_e(&nbhd, i);
+        for (j = 0; j < igraph_vector_size(elem); ++j) {
+            igraph_vector_push_back(&keep_all, VECTOR(*elem)[j]);
+        }
+        igraph_vector_destroy(elem);
+    }
+
+    igraph_vector_sort(&keep_all);
+    for (i = 0; i < igraph_vcount(tree); ++i) {
+        if (!igraph_vector_binsearch2(&keep_all, i))
+            igraph_vector_push_back(&drop, i);
+    }
+
+    igraph_delete_vertices(tree, igraph_vss_vector(&drop));
+    collapse_singles(tree);
+
+    igraph_vector_destroy(&drop);
+    igraph_vector_destroy(&keep_tips);
+    igraph_vector_destroy(&keep_all);
+    igraph_vector_destroy(&degree);
+    igraph_vector_ptr_destroy_all(&nbhd);
+    igraph_adjlist_destroy(&al);
+    free(tip_map);
+    free(node_map);
+    free(sampled);
+    free(prob);
+    free(idx);
+}
+
 void subsample(igraph_t *tree, int ntime, const double *prop, const double *t, gsl_rng *rng)
 {
     int i, j, sample, v, nextant;
@@ -893,4 +982,56 @@ int _collapse_singles(igraph_t *tree, int root, igraph_vector_t *vdel,
 
         return root;
     }
+}
+
+void _get_node_ids(const igraph_t *g, igraph_strvector_t *ids)
+{
+    igraph_attribute_type_t id_type = get_igraph_id_type(g);
+    char buf[BUFSIZ];
+    int i;
+
+    for (i = 0; i < igraph_vcount(g); ++i) {
+        switch (id_type) {
+            case IGRAPH_ATTRIBUTE_NUMERIC:
+                sprintf(buf, "%d", (int) VAN(g, "id", i));
+                break;
+            case IGRAPH_ATTRIBUTE_STRING:
+                sprintf(buf, "%s", VAS(g, "id", i));
+                break;
+            default:
+                sprintf(buf, "%d", i);
+                break;
+        }
+        igraph_strvector_add(ids, buf);
+    }
+}
+
+void _make_maps(const igraph_t *tree, const igraph_t *net, int *tip_map, int *node_map)
+{
+    int i;
+    igraph_vector_t degree;
+    igraph_strvector_t tree_ids, net_ids;
+
+    igraph_vector_init(&degree, 0);
+    igraph_strvector_init(&tree_ids, 0);
+    igraph_strvector_init(&net_ids, 0);
+
+    _get_node_ids(tree, &tree_ids);
+    _get_node_ids(net, &net_ids);
+
+    // set all the non-tip nodes' ids to null
+    igraph_degree(tree, &degree, igraph_vss_all(), IGRAPH_OUT, 0);
+    for (i = 0; i < igraph_vcount(tree); ++i) {
+        if ((int) VECTOR(degree)[i] > 0) {
+            igraph_strvector_set(&tree_ids, i, "\0");
+        }
+    }
+    match(&tree_ids, &net_ids, node_map, BUFSIZ, igraph_vcount(tree),
+          igraph_vcount(net), get_igraph_strvector_t, compare_strings);
+    match(&net_ids, &tree_ids, tip_map, BUFSIZ, igraph_vcount(net),
+          igraph_vcount(tree), get_igraph_strvector_t, compare_strings);
+
+    igraph_vector_destroy(&degree);
+    igraph_strvector_destroy(&tree_ids);
+    igraph_strvector_destroy(&net_ids);
 }

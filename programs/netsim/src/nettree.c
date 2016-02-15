@@ -17,6 +17,8 @@ struct nettree_options {
     double tree_height;
     int extant_only;
     int ntip;
+    double sample_baseline;
+    double sample_peer;
     FILE *net_file;
     FILE *tree_file;
     int seed;
@@ -33,6 +35,8 @@ struct option long_options[] =
     {"sim-nodes", required_argument, 0, 'n'},
     {"tree-height", required_argument, 0, 'r'},
     {"tree-tips", required_argument, 0, 't'},
+    {"sample-baseline", required_argument, 0, 'b'},
+    {"sample-peer", required_argument, 0, 'x'},
     {"extant-only", no_argument, 0, 'e'},
     {"seed", required_argument, 0, 'd'},
     {"sample-time", required_argument, 0, 'm'},
@@ -49,6 +53,8 @@ void usage(void)
     fprintf(stderr, "  -n, --sim-nodes           stop simulation after this many nodes are infected (default infinity)\n");
     fprintf(stderr, "  -r, --tree-height         cut the tree at this height (default infinity)\n");
     fprintf(stderr, "  -t, --tree-tips           sample this many tips from the tree (default infinity)\n");
+    fprintf(stderr, "  -b, --sample-baseline     baseline sampling probability (default 1)\n");
+    fprintf(stderr, "  -x, --sample-peer         additional peer-driven sampling probability (default 0)\n");
     fprintf(stderr, "  -e, --extant-only         sample only extant tips (default false)\n");
     fprintf(stderr, "  -d, --seed                random seed\n");
     fprintf(stderr, "  -m, --sample-time         sample some tips at this time\n");
@@ -64,6 +70,8 @@ struct nettree_options get_options(int argc, char **argv)
         .tree_height = DBL_MAX,
         .extant_only = 0,
         .ntip = 0,
+        .sample_baseline = 1,
+        .sample_peer = 0,
         .net_file = stdin,
         .tree_file = stdout,
         .seed = -1,
@@ -74,7 +82,7 @@ struct nettree_options get_options(int argc, char **argv)
 
     while (c != -1)
     {
-        c = getopt_long(argc, argv, "hs:m:p:n:r:t:ed:", long_options, &i);
+        c = getopt_long(argc, argv, "b:hs:m:p:n:r:t:ed:x:", long_options, &i);
         if (c == -1)
             break;
 
@@ -83,6 +91,9 @@ struct nettree_options get_options(int argc, char **argv)
             case 'h':
                 usage();
                 exit(EXIT_SUCCESS);
+            case 'b':
+                opts.sample_baseline = atof(optarg);
+                break;
             case 's':
                 opts.sim_time = atof(optarg);
                 break;
@@ -109,6 +120,9 @@ struct nettree_options get_options(int argc, char **argv)
                 break;
             case 'd':
                 opts.seed = atoi(optarg);
+                break;
+            case 'x':
+                opts.sample_peer = atof(optarg);
                 break;
             case '?':
             case 0:
@@ -233,7 +247,14 @@ int main (int argc, char **argv)
 
         // post-process the tree
         cut_at_time(tree, opts.tree_height, opts.extant_only);
-        subsample_tips(tree, opts.ntip, rng);
+        if (opts.sample_peer == 0) {
+            subsample_tips(tree, opts.ntip, rng);
+        }
+        else {
+            subsample_tips_peerdriven(tree, &net, opts.sample_baseline,
+                    opts.sample_peer, opts.ntip, rng);
+        }
+
         if (opts.nsample > 0) {
             subsample(tree, opts.nsample, opts.sample_prop, opts.sample_time, rng);
         }

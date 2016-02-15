@@ -1,3 +1,7 @@
+/** \file netabc.c
+ * \brief Main program for the netabc binary.
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <getopt.h>
@@ -38,6 +42,8 @@ struct netabc_options {
     int nparticle;
     int nsample;
     int nltt;
+    double sample_baseline;
+    double sample_peer;
     net_type net;
     double decay_factor;
     double rbf_variance;
@@ -54,6 +60,8 @@ struct option long_options[] =
     {"decay-factor", required_argument, 0, 'l'},
     {"rbf-variance", required_argument, 0, 'g'},
     {"nltt", no_argument, 0, 'c'},
+    {"sample-baseline", required_argument, 0, 'b'},
+    {"sample-peer", required_argument, 0, 'x'},
     {"num-particles", required_argument, 0, 'n'},
     {"num-samples", required_argument, 0, 'p'},
     {"quality", required_argument, 0, 'q'},
@@ -96,6 +104,8 @@ void usage(void)
     fprintf(stderr, "  -l, --decay-factor        decay factor for tree kernel\n");
     fprintf(stderr, "  -g, --rbf-variance        variance for tree kernel radial basis function\n");
     fprintf(stderr, "  -c, --nltt                multiply tree kernel by nLTT statistic\n");
+    fprintf(stderr, "  -b, --sample-baseline     baseline sampling probability (default 1)\n");
+    fprintf(stderr, "  -x, --sample-peer         additional peer-driven sampling probability (default 0)\n");
     fprintf(stderr, "  -n, --num-particles       number of particles for SMC\n");
     fprintf(stderr, "  -p, --num-samples         number of sampled datasets per particle\n");
     fprintf(stderr, "  -q, --quality             tradeoff between speed and accuracy (0.9=fast, 0.99=accurate)\n");
@@ -120,6 +130,8 @@ struct netabc_options get_options(int argc, char **argv)
         .decay_factor = 0.2,
         .rbf_variance = 2,
         .nltt = 0,
+        .sample_baseline = 1,
+        .sample_peer = 0,
         .quality = 0.95,
         .final_epsilon = 0.01,
         .final_accept_rate = 0.015
@@ -127,7 +139,7 @@ struct netabc_options get_options(int argc, char **argv)
 
     while (c != -1)
     {
-        c = getopt_long(argc, argv, "ha:cd:e:g:l:m:n:p:q:s:t:", long_options, &i);
+        c = getopt_long(argc, argv, "ha:b:cd:e:g:l:m:n:p:q:s:t:x:", long_options, &i);
         if (c == -1)
             break;
 
@@ -140,6 +152,9 @@ struct netabc_options get_options(int argc, char **argv)
                 exit(EXIT_SUCCESS);
             case 'a':
                 opts.final_accept_rate = atof(optarg);
+                break;
+            case 'b':
+                opts.sample_baseline = atof(optarg);
                 break;
             case 'c':
                 opts.nltt = 1;
@@ -188,6 +203,9 @@ struct netabc_options get_options(int argc, char **argv)
                 break;
             case 't':
                 opts.nthread = atoi(optarg);
+                break;
+            case 'x':
+                opts.sample_peer = atof(optarg);
                 break;
             case '?':
                 break;
@@ -330,7 +348,7 @@ void get_parameters(FILE *f, smc_distribution *priors, double *prior_params, net
                             priors[param] = GAUSSIAN;
                         }
                         else if (strcmp(event.data.scalar.value, "delta") == 0) {
-                            priors[param] = GAUSSIAN;
+                            priors[param] = DELTA;
                         }
                         else {
                             fprintf(stderr, "Error: unrecognized distribution \"%s\"\n",
@@ -440,6 +458,8 @@ struct sample_dataset_arg {
     double decay_factor;
     double rbf_variance;
     int nltt;
+    double sample_baseline;
+    double sample_peer;
     int (*sample_network) (igraph_t *, gsl_rng *, igraph_rng_t *rng, const double *);
 };
 
@@ -512,6 +532,8 @@ void sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void *X)
     int ntip = sarg->ntip;
     double decay_factor = sarg->decay_factor;
     double rbf_variance = sarg->rbf_variance;
+    double sample_baseline = sarg->sample_baseline;
+    double sample_peer = sarg->sample_peer;
     int nltt = sarg->nltt;
 
     igraph_rng_init(&igraph_rng, &igraph_rngtype_mt19937);
@@ -552,7 +574,13 @@ void sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void *X)
         memset(tree, 0, sizeof(igraph_t));
     }
     else {
-        subsample_tips(tree, ntip, rng);
+        if (sample_peer == 0) {
+            subsample_tips(tree, ntip, rng);
+        } 
+        else {
+            subsample_tips_peerdriven(tree, &net, sample_baseline, sample_peer,
+                                      ntip, rng);
+        }
         ladderize(tree);
         scale_branches(tree, MEAN);
         k = kernel(tree, tree, decay_factor, rbf_variance, 1);

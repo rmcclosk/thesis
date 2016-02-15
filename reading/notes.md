@@ -1,5 +1,8 @@
 # Tree Kernel
 
+**[@collins2002new]**
+* Original definition of the subset tree kernel for NLP.
+
 **[@moschitti2006making]**
 
 * Fast algorithm for computing the tree kernel by ordering nodes by production
@@ -24,6 +27,10 @@ n-grams.
 **[@scholkopf1998nonlinear]**
 
 * The paper which introduces kernel PCA. Only skimmed.
+
+**[@burges1998tutorial]**
+
+* A commonly used reference for the "kernel trick" as applied to SVM.
 
 # ABC
 
@@ -85,6 +92,20 @@ version developed by Sisson et al. 2007.
 * See Joyce & Marjoram 2008 for a method of systematically choosing among
 summary statistics.
 
+**[@del2006sequential]**
+
+* This is an important paper in the development of SMC. It goes over some of
+the problems with MCMC in the introduction.
+* In importance sampling, the variance in estimates of the expected value (or
+any statistic) is proportional to the variance in importance weights. For this
+reason, it is important to select importance distributions which are "close" to
+the true distribution of interest.
+* Ah this is beautiful.
+* In its original formulation, SMC is meant for sequentially sampling from
+distributions defined on spaces of increasing dimension. To sample from
+distributions on the *same* dimension, the authors introduce $n$-dimensional
+distributions which admit the $n$th distribution of interest as a marginal.
+
 **[@del2012adaptive]**
 
 * Develop a version of ABC-SMC with an adaptive tolerance schedule.
@@ -96,6 +117,29 @@ accepted with probability equal to a Metropolis-Hastings ratio.
 * Tolerances at each step are chosen so that the estimated sample size of the
 particle population decreases by a small amount (between 1% and 10%) each
 iteration (Equation 12).
+
+**[@doucet2001introduction]**
+
+* One of the primary motivations of SMC was that MCMC is not designed for
+recursive problems, like sequential Bayes.
+* Develops SMC by first describing IS, then SIS, and then finally the
+"bootstrap filter" which combines SIS with resampling according to the
+importance weights.
+
+**[@liu2001theoretical]**
+
+* Gives some history of the development of SIS.
+* Nice definition of Monte Carlo: "any computation of expectations... can be
+replaced to an acceptable degree of accuracy by using the empirical
+distribution resulting from the discrete sample."
+* A more intuitive explanation of SIS: instead of sampling from a series of
+distributions on increasing dimensions, we only want to sample from a single
+distribution on n dimensions, but we break this up into n terms using the
+"telescope" law of probability.
+
+**[@liu2008monte]**
+
+* TODO
 
 **[@fearnhead2012constructing]**
 
@@ -441,6 +485,10 @@ This is like the MMPP, but simpler (a Cox process).
 * Phylogenetic estimation (admittedly they only discuss parsimony and UPGMA)
 tends to be biased towards producing more unbalanced trees.
 
+**[@yule1925mathematical]**
+
+* Origin of the Yule model.
+
 **[@kirkpatrick1993searching]**
 
 * Another early phylodynamics paper, without the word "phylodynamics".
@@ -622,11 +670,23 @@ it gives a nice definition.
 
 * First instance of UPGMA, and distance-based phylogenetic methods in general.
 
+**[@shao1990tree]**
+
+* Defines Sackin's index.
+
 # Population Genetics
 
 **[@kendall1948generalized]**
 
-* Reference for the birth-death process.
+* Birth-death process.
+
+**[@kingman1982coalescent]**
+
+* Coalescent process.
+
+**[@kermack1927contribution]**
+
+* The SIR model.
 
 # Software
 

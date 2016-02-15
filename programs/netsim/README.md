@@ -10,10 +10,10 @@ There are quite a number of these I'm afraid. You need the following shared
 libraries. 
 
 * [GSL](http://www.gnu.org/software/gsl/)
-* [igraph](http://igraph.org/c/)
 * [Judy](http://judy.sourceforge.net/)
 * [libyaml](http://pyyaml.org/wiki/LibYAML)
 * [check](http://check.sourceforge.net/)
+* [igraph (my fork)](https://github.com/rmcclosk/igraph)
 
 You also need the pthreads API, and a fairly recent version of Flex and Bison.
 If you're on unix these are probably already installed. If you're not on unix,
