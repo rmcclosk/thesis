@@ -11,17 +11,15 @@
 #include "../src/smc.h"
 #include "../src/util.h"
 
-Suite *smc_suite(void);
-
-void toy_propose(gsl_rng *rng, double *theta, const void *params)
+void toy_propose(gsl_rng *rng, double *theta, const void *feedback, const void *arg)
 {
-    double var = *((double *) params);
+    double var = *((double *) feedback);
     *theta += gsl_ran_gaussian(rng, sqrt(2*var));
 }
 
-double toy_proposal_density(const double *from, const double *to, const void *params)
+double toy_proposal_density(const double *from, const double *to, const void *feedback, const void *arg)
 {
-    double var = * ((double *) params);
+    double var = * ((double *) feedback);
     return gsl_ran_gaussian_pdf(*to - *from, sqrt(2*var));
 }
 
@@ -42,15 +40,25 @@ double toy_distance(const void *x, const void *y, const void *arg)
     return fabs(*(double *) x - *(double *) y);
 }
 
-void toy_feedback(const double *theta, int nparticle, void *params)
+void toy_feedback(const double *theta, int nparticle, void *feedback, const void *arg)
 {
     double var = gsl_stats_variance(theta, 1, nparticle);
-    memcpy(params, &var, sizeof(double));
+    memcpy(feedback, &var, sizeof(double));
 }
 
 void toy_destroy_dataset(void *z)
 {
     return;
+}
+
+void toy_sample_from_prior(gsl_rng *rng, double *theta, const void *arg)
+{
+    *theta = gsl_ran_flat(rng, -10, 10);
+}
+
+double toy_prior_density(double *theta, const void *arg)
+{
+    gsl_ran_flat_pdf(*theta, -10, 10);
 }
 
 smc_functions toy_functions = {
@@ -59,7 +67,9 @@ smc_functions toy_functions = {
     .sample_dataset = toy_sample_dataset,
     .distance = toy_distance,
     .feedback = toy_feedback,
-    .destroy_dataset = toy_destroy_dataset
+    .destroy_dataset = toy_destroy_dataset,
+    .sample_from_prior = toy_sample_from_prior,
+    .prior_density = toy_prior_density
 };
 
 void plot(const double *x, const double *y, int nx, const char *pdf, 
@@ -89,14 +99,7 @@ void plot(const double *x, const double *y, int nx, const char *pdf,
     unlink(fn);
 }
 
-void toy_setup_config(smc_config *config)
-{
-    config->priors = malloc(sizeof(smc_distribution));
-    config->prior_params = malloc(MAX_DIST_PARAMS * sizeof(double));
-    config->priors[0] = UNIFORM;
-    config->prior_params[0] = -10;
-    config->prior_params[1] = 10;
-}
+Suite *smc_suite(void);
 
 START_TEST (test_smc_toy)
 {
@@ -115,7 +118,6 @@ START_TEST (test_smc_toy)
         .feedback_size = sizeof(double)
     };
 
-    toy_setup_config(&config);
     smc_result *res = abc_smc(config, toy_functions, 0, 1, (void *) &y, NULL);
 
     for (i = 0; i < config.nparticle; ++i) {
@@ -125,8 +127,6 @@ START_TEST (test_smc_toy)
     plot(res->theta[res->niter], NULL, config.nparticle, "check_smc_hist.pdf",
          "plot(density(d[,1]), xlim=c(-3, 3), ylim=c(0, 2.5), xlab=\"theta\", ylab=\"density\", main=NA); polygon(density(d[,1]), col=\"gray\"); x <- seq(-3, 3, 0.01); lines(x, 0.5*dnorm(x, sd=1) + 0.5*dnorm(x, sd=0.1))");
     smc_result_free(res);
-    free(config.priors);
-    free(config.prior_params);
 }
 END_TEST
 
@@ -146,7 +146,6 @@ START_TEST (test_smc_toy_steps)
         .feedback_size = sizeof(double)
     };
 
-    toy_setup_config(&toy_config);
     smc_result *res = abc_smc(toy_config, toy_functions, 0, 8, (void *) &y, NULL);
 
     // same number of steps as in Del Moral 2012
@@ -179,7 +178,6 @@ START_TEST (test_smc_distance)
         .feedback_size = sizeof(double)
     };
 
-    toy_setup_config(&config);
     fprintf(trace, "iter\tweight\ttheta\tX0\tX1\n");
     smc_result *res = abc_smc(config, toy_functions, 0, 1, (void *) &y, trace);
     fflush(trace);
@@ -206,12 +204,10 @@ Suite *smc_suite(void)
     s = suite_create("smc");
 
     tc_smc = tcase_create("Core");
-    /*
     tcase_add_test(tc_smc, test_smc_toy);
     tcase_add_test(tc_smc, test_smc_toy_steps);
     tcase_add_test(tc_smc, test_smc_distance);
     tcase_set_timeout(tc_smc, 60);
-    */
     suite_add_tcase(s, tc_smc);
 
     return s;

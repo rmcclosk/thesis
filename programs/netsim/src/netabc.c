@@ -19,19 +19,65 @@
 #include "simulate.h"
 #include "smc.h"
 #include "util.h"
+#include "stats.h"
 
 #define MAX_PARAMS 7
-#define SIMULATE_MAX_TRIES 100
+#define MAX_REJECTIONS 100
 #ifndef INFINITY
 #define INFINITY DBL_MAX
 #endif
 
+/** Available contact network models. */
 typedef enum {
-    PREF_ATTACH,
-    RANDOM_GNP,
-    SMALL_WORLD,
-    PARETO
+    NET_TYPE_PA = 0,
+    NET_TYPE_GNP = 1,
+    NET_TYPE_SMALLWORLD = 2
 } net_type;
+
+/** 
+ * Number of parameters each network model has. Must be kept in sync with
+ * net_type enum.
+ */
+static const int NUM_PARAMS[3] = {7, 6, 7};
+
+/** 
+ * All the network parameters. Parameters for individual networks come after
+ * the UNIVERSAL ones and must be in sequential order.
+ */
+typedef enum {
+    UNIVERSAL_N = 0,
+    UNIVERSAL_I = 1,
+    UNIVERSAL_TIME = 2,
+    UNIVERSAL_TRANSMIT_RATE = 3,
+    UNIVERSAL_REMOVE_RATE = 4,
+
+    // for preferential attachment networks
+    PA_M = 5,
+    PA_ALPHA = 6,
+
+    // for random networks
+    GNP_P = 5,
+
+    // for smallworld networks
+    SMALLWORLD_NEI = 5,
+    SMALLWORLD_P = 6,
+} net_parameter;
+
+/**
+ * Names for the network parameters. Must be kept in sync with the
+ * net_parameter and net_type enums.
+ */
+static char *PARAM_NAMES[3][7] = {
+    {"N", "I", "time", "transmit_rate", "remove_rate", "m", "alpha"},
+    {"N", "I", "time", "transmit_rate", "remove_rate", "p"},
+    {"N", "I", "time", "transmit_rate", "remove_rate", "nei", "p"}
+};
+
+static const char ZEROES[BUFSIZ] = {0};
+
+/*******************************************************************************
+ * Command line options.                                                       *
+ ******************************************************************************/
 
 struct netabc_options {
     FILE *tree_file;
@@ -42,8 +88,6 @@ struct netabc_options {
     int nparticle;
     int nsample;
     int nltt;
-    double sample_baseline;
-    double sample_peer;
     net_type net;
     double decay_factor;
     double rbf_variance;
@@ -60,8 +104,6 @@ struct option long_options[] =
     {"decay-factor", required_argument, 0, 'l'},
     {"rbf-variance", required_argument, 0, 'g'},
     {"nltt", no_argument, 0, 'c'},
-    {"sample-baseline", required_argument, 0, 'b'},
-    {"sample-peer", required_argument, 0, 'x'},
     {"num-particles", required_argument, 0, 'n'},
     {"num-samples", required_argument, 0, 'p'},
     {"quality", required_argument, 0, 'q'},
@@ -71,28 +113,6 @@ struct option long_options[] =
     {"final-accept-rate", required_argument, 0, 'a'},
     {0, 0, 0, 0}
 };
-
-typedef enum {
-    NNODE = 0,
-    NSIMNODE = 1,
-    SIM_TIME = 2,
-    TRANSMIT_RATE = 3,
-    REMOVE_RATE = 4,
-
-    // for random networks
-    PR_EDGE = 5,
-
-    // for preferential attachment networks
-    EDGES_PER_VERTEX = 5,
-    ATTACH_POWER = 6,
-
-    // for smallworld networks
-    NBHD_SIZE = 5,
-    REWIRE_PROB = 6,
-
-    // for Pareto networks
-    PARETO_SHAPE = 5
-} net_parameter;
 
 void usage(void)
 {
@@ -104,13 +124,11 @@ void usage(void)
     fprintf(stderr, "  -l, --decay-factor        decay factor for tree kernel\n");
     fprintf(stderr, "  -g, --rbf-variance        variance for tree kernel radial basis function\n");
     fprintf(stderr, "  -c, --nltt                multiply tree kernel by nLTT statistic\n");
-    fprintf(stderr, "  -b, --sample-baseline     baseline sampling probability (default 1)\n");
-    fprintf(stderr, "  -x, --sample-peer         additional peer-driven sampling probability (default 0)\n");
     fprintf(stderr, "  -n, --num-particles       number of particles for SMC\n");
     fprintf(stderr, "  -p, --num-samples         number of sampled datasets per particle\n");
     fprintf(stderr, "  -q, --quality             tradeoff between speed and accuracy (0.9=fast, 0.99=accurate)\n");
     fprintf(stderr, "  -d, --trace               write population and weights at each iteration to this file\n");
-    fprintf(stderr, "  -m, --net-type            type of network (pa/gnp/sw/pareto)\n");
+    fprintf(stderr, "  -m, --net-type            type of network (pa/gnp/smallworld)\n");
     fprintf(stderr, "  -e, --final-epsilon       last epsilon for SMC\n");
     fprintf(stderr, "  -a, --final-accept-rate   stop when particle acceptance rate drops below this value\n");
 }
@@ -126,12 +144,10 @@ struct netabc_options get_options(int argc, char **argv)
         .seed = -1,
         .nparticle = 1000,
         .nsample = 5,
-        .net = RANDOM_GNP,
-        .decay_factor = 0.2,
-        .rbf_variance = 2,
+        .net = NET_TYPE_PA,
+        .decay_factor = 0.3,
+        .rbf_variance = 4,
         .nltt = 0,
-        .sample_baseline = 1,
-        .sample_peer = 0,
         .quality = 0.95,
         .final_epsilon = 0.01,
         .final_accept_rate = 0.015
@@ -139,7 +155,7 @@ struct netabc_options get_options(int argc, char **argv)
 
     while (c != -1)
     {
-        c = getopt_long(argc, argv, "ha:b:cd:e:g:l:m:n:p:q:s:t:x:", long_options, &i);
+        c = getopt_long(argc, argv, "ha:cd:e:g:l:m:n:p:q:s:t:", long_options, &i);
         if (c == -1)
             break;
 
@@ -152,9 +168,6 @@ struct netabc_options get_options(int argc, char **argv)
                 exit(EXIT_SUCCESS);
             case 'a':
                 opts.final_accept_rate = atof(optarg);
-                break;
-            case 'b':
-                opts.sample_baseline = atof(optarg);
                 break;
             case 'c':
                 opts.nltt = 1;
@@ -176,16 +189,13 @@ struct netabc_options get_options(int argc, char **argv)
                 break;
             case 'm':
                 if (strcmp(optarg, "pa") == 0) {
-                    opts.net = PREF_ATTACH;
+                    opts.net = NET_TYPE_PA;
                 }
                 else if (strcmp(optarg, "gnp") == 0) {
-                    opts.net = RANDOM_GNP;
+                    opts.net = NET_TYPE_GNP;
                 }
-                else if (strcmp(optarg, "sw") == 0) {
-                    opts.net = SMALL_WORLD;
-                }
-                else if (strcmp(optarg, "pareto") == 0) {
-                    opts.net = PARETO;
+                else if (strcmp(optarg, "smallworld") == 0) {
+                    opts.net = NET_TYPE_SMALLWORLD;
                 }
                 else {
                     fprintf(stderr, "Error: unrecognized network type \"%s\"\n", optarg);
@@ -204,9 +214,6 @@ struct netabc_options get_options(int argc, char **argv)
             case 't':
                 opts.nthread = atoi(optarg);
                 break;
-            case 'x':
-                opts.sample_peer = atof(optarg);
-                break;
             case '?':
                 break;
             default:
@@ -215,7 +222,6 @@ struct netabc_options get_options(int argc, char **argv)
         }
     }
 
-    // TODO: safety
     if (optind < argc) {
         opts.tree_file = fopen(argv[optind++], "r");
     }
@@ -226,58 +232,32 @@ struct netabc_options get_options(int argc, char **argv)
     return opts;
 }
 
-void set_parameter_defaults(smc_distribution *priors, double *prior_params, net_type net)
-{
-    priors[NNODE] = DELTA;
-    prior_params[NNODE * MAX_DIST_PARAMS] = 5000;
+/*******************************************************************************
+ * Priors.                                                                     *
+ ******************************************************************************/
 
-    priors[NSIMNODE] = DELTA;
-    prior_params[NSIMNODE * MAX_DIST_PARAMS] = 1000;
+struct prior_data {
+    int nparam;
+    distribution *dist;
+    double **params;
+};
 
-    priors[SIM_TIME] = DELTA;
-    prior_params[SIM_TIME * MAX_DIST_PARAMS] = DBL_MAX;
-
-    priors[TRANSMIT_RATE] = DELTA;
-    prior_params[TRANSMIT_RATE * MAX_DIST_PARAMS] = 1;
-
-    priors[REMOVE_RATE] = DELTA;
-    prior_params[REMOVE_RATE * MAX_DIST_PARAMS] = 0;
-
-    if (net == PREF_ATTACH) {
-        priors[EDGES_PER_VERTEX] = DELTA;
-        prior_params[EDGES_PER_VERTEX * MAX_DIST_PARAMS] = 2;
-
-        priors[ATTACH_POWER] = UNIFORM;
-        prior_params[ATTACH_POWER * MAX_DIST_PARAMS] = 0;
-        prior_params[ATTACH_POWER * MAX_DIST_PARAMS + 1] = 1;
-    }
-    else if (net == RANDOM_GNP) {
-        priors[PR_EDGE] = UNIFORM;
-        prior_params[PR_EDGE * MAX_DIST_PARAMS] = 1.0 / 5000.0;
-        prior_params[PR_EDGE * MAX_DIST_PARAMS + 1] = 20.0 / 5000.0;
-    }
-    else if (net == SMALL_WORLD) {
-        priors[NBHD_SIZE] = DELTA;
-        prior_params[NBHD_SIZE * MAX_DIST_PARAMS] = 2;
-
-        priors[REWIRE_PROB] = UNIFORM;
-        prior_params[REWIRE_PROB * MAX_DIST_PARAMS] = 0;
-        prior_params[REWIRE_PROB * MAX_DIST_PARAMS + 1] = 0.1;
-    }
-    else if (net == PARETO) {
-        priors[PARETO_SHAPE] = UNIFORM;
-        prior_params[PARETO_SHAPE * MAX_DIST_PARAMS] = 1;
-        prior_params[PARETO_SHAPE * MAX_DIST_PARAMS + 1] = 2;
-    }
-}
-
-void get_parameters(FILE *f, smc_distribution *priors, double *prior_params, net_type net)
+struct prior_data *read_priors(FILE *f, net_type net)
 {
     int key = 1, seq = 0, seq_cur = 0, param;
     yaml_parser_t parser;
     yaml_event_t event;
 
-    set_parameter_defaults(priors, prior_params, net);
+    struct prior_data *pdata = malloc(sizeof(struct prior_data));
+
+    pdata->dist = malloc(NUM_PARAMS[net] * sizeof(distribution));
+    pdata->nparam = NUM_PARAMS[net];
+    pdata->params = malloc(NUM_PARAMS[net] * sizeof(double *));
+
+    for (param = 0; param < pdata->nparam; ++param) {
+        pdata->dist[param] = 0;
+    }
+
     if (f == NULL) {
         return;
     }
@@ -300,38 +280,32 @@ void get_parameters(FILE *f, smc_distribution *priors, double *prior_params, net
                 break;
             case YAML_SCALAR_EVENT:
                 if (key) {
-                    if (strcmp(event.data.scalar.value, "nodes") == 0) {
-                        param = NNODE;
+                    if (strcmp(event.data.scalar.value, "N") == 0) {
+                        param = UNIVERSAL_N;
                     }
-                    else if (strcmp(event.data.scalar.value, "sim_nodes") == 0) {
-                        param = NSIMNODE;
+                    else if (strcmp(event.data.scalar.value, "I") == 0) {
+                        param = UNIVERSAL_I;
                     }
-                    else if (strcmp(event.data.scalar.value, "sim_time") == 0) {
-                        param = SIM_TIME;
+                    else if (strcmp(event.data.scalar.value, "time") == 0) {
+                        param = UNIVERSAL_TIME;
                     }
-                    else if (strcmp(event.data.scalar.value, "transmit") == 0) {
-                        param = TRANSMIT_RATE;
+                    else if (strcmp(event.data.scalar.value, "transmit_rate") == 0) {
+                        param = UNIVERSAL_TRANSMIT_RATE;
                     }
-                    else if (strcmp(event.data.scalar.value, "remove") == 0) {
-                        param = REMOVE_RATE;
+                    else if (strcmp(event.data.scalar.value, "remove_rate") == 0) {
+                        param = UNIVERSAL_REMOVE_RATE;
                     }
-                    else if (strcmp(event.data.scalar.value, "pr_edge") == 0) {
-                        param = PR_EDGE;
+                    else if (strcmp(event.data.scalar.value, "p") == 0) {
+                        param = net == NET_TYPE_GNP ? GNP_P : SMALLWORLD_P;
                     }
-                    else if (strcmp(event.data.scalar.value, "edges_per_vertex") == 0) {
-                        param = EDGES_PER_VERTEX;
+                    else if (strcmp(event.data.scalar.value, "m") == 0) {
+                        param = PA_M;
                     }
-                    else if (strcmp(event.data.scalar.value, "attach_power") == 0) {
-                        param = ATTACH_POWER;
+                    else if (strcmp(event.data.scalar.value, "alpha") == 0) {
+                        param = PA_ALPHA;
                     }
-                    else if (strcmp(event.data.scalar.value, "nbhd_size") == 0) {
-                        param = NBHD_SIZE;
-                    }
-                    else if (strcmp(event.data.scalar.value, "rewire_prob") == 0) {
-                        param = REWIRE_PROB;
-                    }
-                    else if (strcmp(event.data.scalar.value, "pareto_shape") == 0) {
-                        param = PARETO_SHAPE;
+                    else if (strcmp(event.data.scalar.value, "nei") == 0) {
+                        param = SMALLWORLD_NEI;
                     }
                     else {
                         fprintf(stderr, "Error: unrecognized parameter \"%s\" in YAML file\n",
@@ -342,13 +316,16 @@ void get_parameters(FILE *f, smc_distribution *priors, double *prior_params, net
                 else if (seq) {
                     if (seq_cur == 0) {
                         if (strcmp(event.data.scalar.value, "uniform") == 0) {
-                            priors[param] = UNIFORM;
+                            pdata->dist[param] = UNIFORM;
+                            pdata->params[param] = malloc(2 * sizeof(double));
                         }
                         else if (strcmp(event.data.scalar.value, "gaussian") == 0) {
-                            priors[param] = GAUSSIAN;
+                            pdata->dist[param] = GAUSSIAN;
+                            pdata->params[param] = malloc(2 * sizeof(double));
                         }
                         else if (strcmp(event.data.scalar.value, "delta") == 0) {
-                            priors[param] = DELTA;
+                            pdata->dist[param] = DELTA;
+                            pdata->params[param] = malloc(sizeof(double));
                         }
                         else {
                             fprintf(stderr, "Error: unrecognized distribution \"%s\"\n",
@@ -356,18 +333,15 @@ void get_parameters(FILE *f, smc_distribution *priors, double *prior_params, net
                             exit(EXIT_FAILURE);
                         }
                     }
-                    else if (seq_cur <= MAX_DIST_PARAMS) {
-                        prior_params[MAX_DIST_PARAMS * param + seq_cur - 1] = atof(event.data.scalar.value);
-                    } 
                     else {
-                        fprintf(stderr, "Error: too many distribution parameters\n");
-                        exit(EXIT_FAILURE);
-                    }
+                        pdata->params[param][seq_cur-1] = atof(event.data.scalar.value);
+                    } 
                     ++seq_cur;
                 }
                 else {
-                    priors[param] = DELTA;
-                    prior_params[MAX_DIST_PARAMS * param] = atof(event.data.scalar.value);
+                    pdata->dist[param] = DELTA;
+                    pdata->params[param] = malloc(sizeof(double));
+                    pdata->params[param][0] = atof(event.data.scalar.value);
                 }
 
                 if (!seq) {
@@ -385,43 +359,69 @@ void get_parameters(FILE *f, smc_distribution *priors, double *prior_params, net
 
     yaml_event_delete(&event);
     yaml_parser_delete(&parser);
+
+    for (param = 0; param < pdata->nparam; ++param) {
+        if (pdata->dist[param] == 0) {
+            fprintf(stderr, "ERROR: values for some priors are missing\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+    return pdata;
 }
 
-void propose(gsl_rng *rng, double *theta, const void *params, int nparam)
+void print_priors(struct prior_data *pdata, net_type net) 
 {
     int i;
-    double *var = (double *) params;
+
+    for (i = 0; i < pdata->nparam; ++i) {
+        fprintf(stderr, "%-13s ", PARAM_NAMES[net][i]);
+        switch(pdata->dist[i]) {
+            case UNIFORM:
+                fprintf(stderr, "Uniform(%.1f, %.1f)\n", pdata->params[i][0], pdata->params[i][1]);
+                break;
+            case GAUSSIAN:
+                fprintf(stderr, "Gaussian(%.1f, %.1f)\n", pdata->params[i][0], pdata->params[i][1]);
+                break;
+            case DELTA:
+                fprintf(stderr, "Delta(%.1f)\n", pdata->params[i][0]);
+                break;
+            default:
+                fprintf(stderr, "ERROR: unknown distribution type %d\n", pdata->dist[i]);
+                exit(EXIT_FAILURE);
+        }
+    }
+}
+
+/*******************************************************************************
+ * User-supplied functions for SMC.                                            *
+ ******************************************************************************/
+
+struct kernel_data {
+    int ntip;
+    double decay_factor;
+    double rbf_variance;
+    int nltt;
+    net_type type;
+};
+
+void propose(gsl_rng *rng, double *theta, const void *feedback, const void *arg)
+{
+    int i;
+    double *var = (double *) feedback;
+    int nparam = * ((int *) arg);
     for (i = 0; i < nparam; ++i) {
         theta[i] += gsl_ran_gaussian(rng, sqrt(2*var[i]));
     }
 }
 
-void propose_gnp(gsl_rng *rng, double *theta, const void *params)
-{
-    propose(rng, theta, params, 6);
-}
-
-void propose_pa(gsl_rng *rng, double *theta, const void *params)
-{
-    propose(rng, theta, params, 7);
-}
-
-void propose_sw(gsl_rng *rng, double *theta, const void *params) {
-    propose(rng, theta, params, 7);
-}
-
-void propose_pareto(gsl_rng *rng, double *theta, const void *params)
-{
-    propose(rng, theta, params, 6);
-}
-
-double proposal_density(const double *from, const double *to, const void *params, int nparam)
+double proposal_density(const double *from, const double *to, const void *feedback, const void *arg)
 {
     int i;
-    double *var = (double *) params;
+    double *var = (double *) feedback;
+    int nparam = * ((int *) arg);
     double p = 1;
 
-    if (to[NSIMNODE] > to[NNODE]) {
+    if (to[UNIVERSAL_I] > to[UNIVERSAL_N]) {
         return 0;
     }
 
@@ -433,160 +433,80 @@ double proposal_density(const double *from, const double *to, const void *params
     return p;
 }
 
-double proposal_density_gnp(const double *from, const double *to, const void *params)
-{
-    return proposal_density(from, to, params, 6);
-}
-
-double proposal_density_pa(const double *from, const double *to, const void *params)
-{
-    return proposal_density(from, to, params, 7);
-}
-
-double proposal_density_sw(const double *from, const double *to, const void *params)
-{
-    return proposal_density(from, to, params, 7);
-}
-
-double proposal_density_pareto(const double *from, const double *to, const void *params)
-{
-    return proposal_density(from, to, params, 6);
-}
-
-struct sample_dataset_arg {
-    int ntip;
-    double decay_factor;
-    double rbf_variance;
-    int nltt;
-    double sample_baseline;
-    double sample_peer;
-    int (*sample_network) (igraph_t *, gsl_rng *, igraph_rng_t *rng, const double *);
-};
-
-int sample_network_gnp(igraph_t *net, gsl_rng *rng, igraph_rng_t *igraph_rng, const double *theta)
-{
-    igraph_erdos_renyi_game(net, IGRAPH_ERDOS_RENYI_GNP, (int) theta[NNODE], 
-                            theta[PR_EDGE], 0, 0);
-    return 0;
-}
-
-int sample_network_pa(igraph_t *net, gsl_rng *rng, igraph_rng_t *igraph_rng, const double *theta)
-{
-    igraph_barabasi_game(net, (int) theta[NNODE], theta[ATTACH_POWER], (int) theta[EDGES_PER_VERTEX],
-                         NULL, 0, 1, 0, IGRAPH_BARABASI_PSUMTREE, NULL, igraph_rng);
-    return 0;
-}
-
-int sample_network_sw(igraph_t *net, gsl_rng *rng, igraph_rng_t *igraph_rng, const double *theta)
-{
-    igraph_watts_strogatz_game(net, 1, (int) theta[NNODE], (int) theta[NBHD_SIZE], 
-                               theta[REWIRE_PROB], 0, 0);
-    return 0;
-}
-
-int sample_network_pareto(igraph_t *net, gsl_rng *rng, igraph_rng_t *igraph_rng, const double *theta)
-{
-    int done = 0, i = 0, j, is_graphical;
-    igraph_vector_t s;
-
-    igraph_vector_init(&s, (int) theta[NNODE]);
-
-    igraph_set_error_handler(igraph_error_handler_ignore);
-    while (!done) {
-        if (i == SIMULATE_MAX_TRIES) {
-            fprintf(stderr, "Too many tries to generate a network with parameter %f\n",
-                            theta[PARETO_SHAPE]);
-            return 1;
-        }
-
-        for (j = 0; j < (int) theta[NNODE]; ++j) {
-            VECTOR(s)[j] = floor(gsl_ran_pareto(rng, theta[PARETO_SHAPE], 1));
-        }
-        igraph_is_graphical_degree_sequence(&s, NULL, &is_graphical);
-        if (!is_graphical) {
-            VECTOR(s)[0] += 1;
-        }
-        igraph_is_graphical_degree_sequence(&s, NULL, &is_graphical);
-        if (is_graphical)
-        {
-            done = !igraph_degree_sequence_game(net, &s, NULL, IGRAPH_DEGSEQ_VL);
-        }
-        ++i;
-    }
-    igraph_set_error_handler(igraph_error_handler_abort);
-    igraph_vector_destroy(&s);
-    return 0;
-}
-
 void sample_dataset(gsl_rng *rng, const double *theta, const void *arg, void *X)
 {
     int i, failed = 0;
-    igraph_t net;
-    igraph_t *tree = (igraph_t *) X;
+    igraph_t net, *tree = (igraph_t *) X;
     igraph_vector_t v;
     igraph_rng_t igraph_rng;
     unsigned long int igraph_seed = gsl_rng_get(rng);
-    double k;
 
-    struct sample_dataset_arg *sarg = (struct sample_dataset_arg *) arg;
-    int ntip = sarg->ntip;
-    double decay_factor = sarg->decay_factor;
-    double rbf_variance = sarg->rbf_variance;
-    double sample_baseline = sarg->sample_baseline;
-    double sample_peer = sarg->sample_peer;
-    int nltt = sarg->nltt;
+    struct kernel_data *karg = (struct kernel_data *) arg;
+    int ntip = karg->ntip;
+    double decay_factor = karg->decay_factor;
+    double rbf_variance = karg->rbf_variance;
+    int nltt = karg->nltt;
 
     igraph_rng_init(&igraph_rng, &igraph_rngtype_mt19937);
     igraph_rng_seed(&igraph_rng, igraph_seed);
 
-    igraph_vector_init(&v, (int) theta[NNODE]);
+    igraph_vector_init(&v, (int) theta[UNIVERSAL_N]);
 
-    failed = sarg->sample_network(&net, rng, &igraph_rng, theta);
-    if (!failed) {
-        igraph_to_directed(&net, IGRAPH_TO_DIRECTED_MUTUAL);
-        
-        igraph_vector_fill(&v, theta[REMOVE_RATE]);
-        SETVANV(&net, "remove", &v);
-        for (i = 0; i < (int) theta[NNODE]; ++i) {
-            VECTOR(v)[i] = i;
-        }
-        SETVANV(&net, "id", &v);
+    switch (karg->type) {
+        case NET_TYPE_PA:
+            igraph_barabasi_game(&net, (int) theta[UNIVERSAL_N], theta[PA_ALPHA],
+                    (int) theta[PA_M], NULL, 0, 1, 0,
+                    IGRAPH_BARABASI_PSUMTREE, NULL, &igraph_rng);
+            break;
+        case NET_TYPE_GNP:
+            igraph_erdos_renyi_game(&net, IGRAPH_ERDOS_RENYI_GNP, (int)
+                    theta[UNIVERSAL_N], theta[GNP_P], 0, 0);
+            break;
+        case NET_TYPE_SMALLWORLD:
+            igraph_watts_strogatz_game(&net, 1, (int) theta[UNIVERSAL_N], 
+                    (int) theta[SMALLWORLD_NEI], theta[SMALLWORLD_P], 0, 0);
+            break;
+        default:
+            fprintf(stderr, "BUG: unknown network type %d\n", karg->type);
+            memset(&net, 0, sizeof(igraph_t));
+            break;
+    }
+    igraph_to_directed(&net, IGRAPH_TO_DIRECTED_MUTUAL);
     
-        igraph_vector_resize(&v, igraph_ecount(&net));
-        igraph_vector_fill(&v, theta[TRANSMIT_RATE]);
-        SETEANV(&net, "transmit", &v);
-        
-        simulate_phylogeny(tree, &net, rng, theta[SIM_TIME], theta[NSIMNODE], 1);
-        i = 0;
-        while (igraph_vcount(tree) < (ntip - 1) / 2) {
-            if (i == 20) {
-                fprintf(stderr, "Too many tries to simulate a tree\n");
-                failed = 1;
-                break;
-            }
-            igraph_destroy(tree);
-            simulate_phylogeny(tree, &net, rng, theta[SIM_TIME], theta[NSIMNODE], 1);
-            ++i;
+    igraph_vector_fill(&v, theta[UNIVERSAL_REMOVE_RATE]);
+    SETVANV(&net, "remove", &v);
+    for (i = 0; i < (int) theta[UNIVERSAL_N]; ++i) {
+        VECTOR(v)[i] = i;
+    }
+    SETVANV(&net, "id", &v);
+
+    igraph_vector_resize(&v, igraph_ecount(&net));
+    igraph_vector_fill(&v, theta[UNIVERSAL_TRANSMIT_RATE]);
+    SETEANV(&net, "transmit", &v);
+    
+    simulate_phylogeny(tree, &net, rng, theta[UNIVERSAL_TIME], theta[UNIVERSAL_I], 1);
+    i = 0;
+    while (igraph_vcount(tree) < (ntip - 1) / 2) {
+        if (i == 20) {
+            fprintf(stderr, "Too many tries to simulate a tree\n");
+            failed = 1;
+            break;
         }
+        igraph_destroy(tree);
+        simulate_phylogeny(tree, &net, rng, theta[UNIVERSAL_TIME], theta[UNIVERSAL_I], 1);
+        ++i;
     }
 
     if (failed) {
         memset(tree, 0, sizeof(igraph_t));
     }
     else {
-        if (sample_peer == 0) {
-            subsample_tips(tree, ntip, rng);
-        } 
-        else {
-            subsample_tips_peerdriven(tree, &net, sample_baseline, sample_peer,
-                                      ntip, rng);
-        }
+        subsample_tips(tree, ntip, rng);
         ladderize(tree);
         scale_branches(tree, MEAN);
-        k = kernel(tree, tree, decay_factor, rbf_variance, 1);
-        SETGAN(tree, "kernel", k);
-        igraph_destroy(&net);
+        SETGAN(tree, "kernel", kernel(tree, tree, decay_factor, rbf_variance, 1));
     }
+    igraph_destroy(&net);
 
     igraph_rng_destroy(&igraph_rng);
     igraph_vector_destroy(&v);
@@ -596,57 +516,34 @@ double distance(const void *x, const void *data, const void *arg)
 {
     igraph_t *gx = (igraph_t *) x;
     igraph_t *gy = (igraph_t *) data;
-    double decay_factor = ((double *) arg)[0];                                   
-    double rbf_variance = ((double *) arg)[1]; 
-    int nltt = (int) ((double *) arg)[2];
-    char *zeroes = calloc(sizeof(igraph_t), 1);
+    struct kernel_data *kdata = (struct kernel_data *) arg;
     double k, kx, ky, dist;
 
-    if (memcmp(x, zeroes, sizeof(igraph_t)) == 0 ||
-        memcmp(data, zeroes, sizeof(igraph_t)) == 0) {
+    if (memcmp(x, ZEROES, sizeof(igraph_t)) == 0 ||
+        memcmp(data, ZEROES, sizeof(igraph_t)) == 0) {
         dist = INFINITY;
     }
     else {
         ky = GAN(gy, "kernel");
         kx = GAN(gx, "kernel");
-        k = kernel(gx, gy, decay_factor, rbf_variance, 1);
-        if (nltt) {
+        k = kernel(gx, gy, kdata->decay_factor, kdata->rbf_variance, 1);
+        if (kdata->nltt) {
             k *= (1.0 - nLTT(gx, gy));
         }
         dist = 1.0 - k / sqrt(kx) / sqrt(ky);
     }
 
-    free(zeroes);
     return dist;
 }
 
-void feedback(const double *theta, int nparticle, void *params, int nparam)
+void feedback(const double *theta, int nparticle, void *params, const void *arg)
 {
     int i;
     double *var = (double *) params;
+    int nparam = *((int *) arg);
     for (i = 0; i < nparam; ++i) {
         var[i] = gsl_stats_variance(&theta[i], nparam, nparticle);
     }
-}
-
-void feedback_gnp(const double *theta, int nparticle, void *params)
-{
-    feedback(theta, nparticle, params, 6);
-}
-
-void feedback_pa(const double *theta, int nparticle, void *params)
-{
-    feedback(theta, nparticle, params, 7);
-}
-
-void feedback_sw(const double *theta, int nparticle, void *params)
-{
-    feedback(theta, nparticle, params, 7);
-}
-
-void feedback_pareto(const double *theta, int nparticle, void *params)
-{
-    feedback(theta, nparticle, params, 6);
 }
 
 void destroy_dataset(void *z)
@@ -654,10 +551,40 @@ void destroy_dataset(void *z)
     igraph_destroy((igraph_t *) z);
 }
 
+void sample_from_prior(gsl_rng *rng, double *theta, const void *arg)
+{
+    struct prior_data *parg = (struct prior_data *) arg;
+    int tries = 0;
+
+    do {
+        sample_distribution(parg->nparam, theta, rng, parg->dist, parg->params);
+        ++tries;
+    } while (theta[UNIVERSAL_N] < theta[UNIVERSAL_I] && tries < MAX_REJECTIONS);
+
+    if (tries == MAX_REJECTIONS) {
+        fprintf(stderr, "ERROR: not enough prior density on N > I\n");
+        exit(1);
+    }
+}
+
+double prior_density(double *theta, const void *arg)
+{
+    struct prior_data *parg = (struct prior_data *) arg;
+    if (theta[UNIVERSAL_N] < theta[UNIVERSAL_I]) {
+        return 0;
+    }
+    return density_distribution(parg->nparam, theta, parg->dist, parg->params);
+}
+
 smc_functions functions = {
+    .propose = propose,
+    .proposal_density = proposal_density,
     .sample_dataset = sample_dataset,
     .distance = distance,
-    .destroy_dataset = destroy_dataset
+    .feedback = feedback,
+    .destroy_dataset = destroy_dataset,
+    .sample_from_prior = sample_from_prior,
+    .prior_density = prior_density
 };
 
 smc_config config = {
@@ -665,17 +592,20 @@ smc_config config = {
     .dataset_size = sizeof(igraph_t)
 };
 
+/*******************************************************************************
+ * Main.                                                                       *
+ ******************************************************************************/
+
 int main (int argc, char **argv)
 {
     int i;
     struct netabc_options opts = get_options(argc, argv);
     igraph_t *tree;
     smc_result *result;
-    double distance_arg[3];
-    struct sample_dataset_arg sarg;
-    smc_distribution *priors = malloc(MAX_PARAMS * sizeof(smc_distribution));
-    double *prior_params = malloc(MAX_PARAMS * MAX_DIST_PARAMS * sizeof(double));
-    double k;
+
+    double *darg = malloc(3 * sizeof(double));
+    struct kernel_data kdata;
+    struct prior_data *pdata;
 
 #if IGRAPH_THREAD_SAFE == 0
     if (opts.nthread > 1)
@@ -687,10 +617,12 @@ int main (int argc, char **argv)
     }
 #endif
 
-    get_parameters(opts.yaml_file, priors, prior_params, opts.net);
-    if (opts.yaml_file != NULL) {
-        fclose(opts.yaml_file);
-    }
+    // pars the priors
+    pdata = read_priors(opts.yaml_file, opts.net);
+    fclose(opts.yaml_file);
+    fprintf(stderr, "Priors\n======\n");
+    print_priors(pdata, opts.net);
+    fprintf(stderr, "\n");
 
     igraph_i_set_attribute_table(&igraph_cattribute_table);
     tree = parse_newick(opts.tree_file);
@@ -700,81 +632,48 @@ int main (int argc, char **argv)
 
     ladderize(tree); 
     scale_branches(tree, MEAN);
-    k = kernel(tree, tree, opts.decay_factor, opts.rbf_variance, 1);
-    SETGAN(tree, "kernel", k);
+    SETGAN(tree, "kernel", kernel(tree, tree, opts.decay_factor, opts.rbf_variance, 1));
 
-    // set up SMC configuration
+    // SMC configuration
     config.nparticle = opts.nparticle;
     config.ess_tolerance = opts.nparticle / 2;
     config.nsample = opts.nsample;
     config.quality = opts.quality;
     config.final_epsilon = opts.final_epsilon;
     config.final_accept_rate = opts.final_accept_rate;
+    config.nparam = NUM_PARAMS[opts.net];
+    config.feedback_size = config.nparam * sizeof(double);
 
-    config.priors = priors;
-    config.prior_params = prior_params;
+    // fill and attach arguments for the user-supplied functions
+    kdata.ntip = NTIP(tree);
+    kdata.decay_factor = opts.decay_factor;
+    kdata.rbf_variance = opts.rbf_variance;
+    kdata.nltt = opts.nltt;
+    kdata.type = opts.net;
 
-    sarg.ntip = NTIP(tree);
-    sarg.decay_factor = opts.decay_factor;
-    sarg.rbf_variance = opts.rbf_variance;
-    sarg.nltt = opts.nltt;
-
-    switch (opts.net) {
-        case PREF_ATTACH:
-            sarg.sample_network = sample_network_pa;
-            functions.propose = propose_pa;
-            functions.proposal_density = proposal_density_pa;
-            functions.feedback = feedback_pa;
-            config.nparam = 7;
-            config.feedback_size = 7 * sizeof(double);
-            break;
-        case SMALL_WORLD:
-            sarg.sample_network = sample_network_sw;
-            functions.propose = propose_sw;
-            functions.proposal_density = proposal_density_sw;
-            functions.feedback = feedback_sw;
-            config.nparam = 7;
-            config.feedback_size = 7 * sizeof(double);
-            break;
-        case PARETO:
-            sarg.sample_network = sample_network_pareto;
-            functions.propose = propose_pareto;
-            functions.proposal_density = proposal_density_pareto;
-            functions.feedback = feedback_pareto;
-            config.nparam = 6;
-            config.feedback_size = 6 * sizeof(double);
-            break;
-        default:
-            sarg.sample_network = sample_network_gnp;
-            functions.propose = propose_gnp;
-            functions.proposal_density = proposal_density_gnp;
-            functions.feedback = feedback_gnp;
-            config.nparam = 6;
-            config.feedback_size = 6 * sizeof(double);
-            break;
-    }
-    config.sample_dataset_arg = &sarg;
-
-    distance_arg[0] = opts.decay_factor;
-    distance_arg[1] = opts.rbf_variance;
-    distance_arg[2] = opts.nltt;
-    config.distance_arg = &distance_arg;
+    config.propose_arg = &config.nparam;
+    config.proposal_density_arg = &config.nparam;
+    config.sample_dataset_arg = &kdata;
+    config.distance_arg = &kdata;
+    config.feedback_arg = &config.nparam;
+    config.sample_from_prior_arg = pdata;
+    config.prior_density_arg = pdata;
 
     if (opts.trace_file != NULL) {
-        fprintf(opts.trace_file, "iter\tweight\tnodes\tsim_nodes\tsim_time\ttransmit\tremove\t");
+        fprintf(opts.trace_file, "iter\tweight\tN\tI\ttime\ttransmit\tremove\t");
         switch (opts.net) {
-            case PREF_ATTACH:
-                fprintf(opts.trace_file, "edges_per_vertex\tattach_power");
+            case NET_TYPE_PA:
+                fprintf(opts.trace_file, "m\talpha");
                 break;
-            case SMALL_WORLD:
-                fprintf(opts.trace_file, "nbhd_size\trewire_prob");
+            case NET_TYPE_SMALLWORLD:
+                fprintf(opts.trace_file, "nei\tp");
                 break;
-            case PARETO:
-                fprintf(opts.trace_file, "pareto_shape");
+            case NET_TYPE_GNP:
+                fprintf(opts.trace_file, "p");
                 break;
             default:
-                fprintf(opts.trace_file, "pr_edge");
-                break;
+                fprintf(stderr, "BUG: unrecognized network type %d\n", opts.net);
+                exit(EXIT_FAILURE);
         }
 
         for (i = 0; i < opts.nsample; ++i) {
@@ -783,8 +682,7 @@ int main (int argc, char **argv)
         fprintf(opts.trace_file, "\n");
     }
     else {
-        fprintf(stderr, "Warning: no trace file specified\n");
-        fprintf(stderr, "Output will not be recorded\n");
+        fprintf(stderr, "WARNING: no trace file specified, output will not be recorded\n");
     }
 
     result = abc_smc(config, functions, opts.seed, opts.nthread, tree, opts.trace_file);
@@ -795,7 +693,5 @@ int main (int argc, char **argv)
 
     igraph_destroy(tree);
     smc_result_free(result);
-    free(priors);
-    free(prior_params);
     return EXIT_SUCCESS;
 }

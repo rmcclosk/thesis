@@ -1,4 +1,4 @@
-#include <stdlib.h>
+# include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
@@ -9,6 +9,7 @@
 #include <gsl/gsl_statistics_double.h>
 #include "smc.h"
 #include "util.h"
+#include "stats.h"
 
 #define RESIZE_AMOUNT 100
 #define BISECTION_MAX_ITER 10000
@@ -59,21 +60,18 @@ smc_workspace smc_work;
 pthread_mutex_t smc_accept_mutex;
 pthread_mutex_t smc_alive_mutex;
 
+/* Helper functions for SMC. */
 void resample(gsl_rng *rng);
 double next_epsilon(void);
 double epsilon_objfun(double epsilon, void *params);
 double ess(const double *W, int n);
 void *initialize(void *args);
 void *perturb(void *args);
-void sample(int n, double *theta, gsl_rng *rng, const smc_distribution *dist,
-            const double *params);
-double density(int n, const double *theta, const smc_distribution *dist, 
-               const double *params);
 
 // see Del Moral et al. 2012: An adaptive sequential Monte Carlo method for
 // approximate Bayesian computation
 smc_result *abc_smc(const smc_config config, const smc_functions functions,
-                    int seed, int nthread, const void *data, FILE *trace_file)
+        int seed, int nthread, const void *data, FILE *trace_file)
 {
     // allocate space for the data in the workspace
     char *z = malloc(config.dataset_size * nthread);
@@ -140,20 +138,21 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
     rng = set_seed(seed);
 
     // step 0: sample particles from prior
-    // TODO: handle errors properly
+    smc_work.alive = 0;
     for (i = 0; i < nthread; ++i) {
         status = pthread_create(&threads[i], &attr, initialize, (void *) &thread_args[i]);
     }
     for (i = 0; i < nthread; ++i) {
         status = pthread_join(threads[i], NULL);
     }
+    fprintf(stderr, "\n");
 
     niter = 0;
-    fprintf(stderr, "niter\tepsilon\tMCMC_accept\n");
+    printf("iter\tepsilon\tMCMC_accept\n");
     while (smc_work.epsilon != config.final_epsilon)
     {
-        fprintf(stderr, "%d\t%f\t%f\n", niter, smc_work.epsilon,
-                (double) smc_work.accept / (double) smc_work.alive);
+        printf("%d\t%f\t%f\n", niter, smc_work.epsilon,
+               (double) smc_work.accept / (double) smc_work.alive);
 
         smc_work.accept = 0;
         smc_work.alive = 0;
@@ -168,7 +167,7 @@ smc_result *abc_smc(const smc_config config, const smc_functions functions,
         }
 
         // step 3: perturb particles
-        functions.feedback(smc_work.theta, config.nparticle, fdbk);
+        functions.feedback(smc_work.theta, config.nparticle, fdbk, config.feedback_arg);
         smc_work.accept = 0;
         smc_work.alive = 0;
         for (i = 0; i < nthread; ++i) {
@@ -271,63 +270,6 @@ void smc_result_free(smc_result *r)
 
 /* Private. */
 
-void sample(int n, double *theta, gsl_rng *rng, const smc_distribution *dist,
-            const double *params)
-{
-    int i, cur = 0;
-
-    for (i = 0; i < n; ++i)
-    {
-        cur = i * MAX_DIST_PARAMS;
-        switch (dist[i])
-        {
-            case UNIFORM:
-                theta[i] = gsl_ran_flat(rng, params[cur], params[cur+1]);
-                break;
-            case GAUSSIAN:
-                theta[i] = gsl_ran_gaussian(rng, params[cur]);
-                break;
-            case DELTA:
-                theta[i] = params[cur];
-                break;
-            default:
-                fprintf(stderr, "BUG: tried to sample from unknown distribution\n");
-                theta[i] = 0;
-                break;
-        }
-    }
-}
-
-double density(int n, const double *theta, const smc_distribution *dist, 
-               const double *params)
-{
-    int i, cur = 0;
-    double dens = 1;
-    for (i = 0; i < n; ++i)
-    {
-        cur = i * MAX_DIST_PARAMS;
-        switch (dist[i])
-        {
-            case UNIFORM:
-                if (theta[i] < params[cur] || theta[i] > params[cur+1]) {
-                    return 0;
-                }
-                dens *= 1.0 / (params[cur+1] - params[cur]);
-                break;
-            case GAUSSIAN:
-                dens *= gsl_ran_gaussian_pdf(theta[i], params[cur]);
-                break;
-            case DELTA:
-                dens *= theta[i] == params[cur];
-                break;
-            default:
-                fprintf(stderr, "BUG: tried to calculate density for unknown distribution\n");
-                break;
-        }
-    }
-    return dens;
-}
-
 double next_epsilon(void)
 {
     int status, iter = 0;
@@ -358,7 +300,7 @@ double next_epsilon(void)
 
     // TODO: handle running out of iterations?
     if (iter == BISECTION_MAX_ITER) {
-        fprintf(stderr, "Warning: hit max iterations solving for next epsilon\n");
+        fprintf(stderr, "WARNING: hit max iterations solving for next epsilon\n");
         r = smc_work.config->final_epsilon;
     }
 
@@ -491,8 +433,7 @@ void *initialize(void *args)
     for (i = start; i < end; ++i)
     {
         particle = &smc_work.theta[i * nparam];
-        sample(nparam, particle, rng,
-                smc_work.config->priors, smc_work.config->prior_params); 
+        smc_work.functions->sample_from_prior(rng, particle, smc_work.config->sample_from_prior_arg);
         smc_work.W[i] = 1. / nparticle;
         for (j = 0; j < nsample; ++j)
         {
@@ -500,6 +441,13 @@ void *initialize(void *args)
             smc_work.X[i * nsample + j] = smc_work.functions->distance(z, smc_work.data, smc_work.config->distance_arg);
             smc_work.functions->destroy_dataset(z);
         }
+
+        pthread_mutex_lock(&smc_alive_mutex);
+        ++smc_work.alive;
+        if (smc_work.alive * 10 / nparticle != (smc_work.alive - 1) * 10 / nparticle) {
+            fprintf(stderr, "Sampling initial particles (%d%%)\n", smc_work.alive * 100 / nparticle);
+        }
+        pthread_mutex_unlock(&smc_alive_mutex);
     }
 }
 
@@ -514,8 +462,6 @@ void *perturb(void *args)
     size_t dataset_size = smc_work.config->dataset_size;
     char *fdbk = smc_work.fdbk;
     double epsilon = smc_work.epsilon;
-    smc_distribution *priors = smc_work.config->priors;
-    double *prior_params = smc_work.config->prior_params;
 
     // get arguments for this thread
     thread_data *tdata = (thread_data *) args;
@@ -544,19 +490,19 @@ void *perturb(void *args)
         memcpy(cur_theta, prev_theta, nparam * sizeof(double));
 
         // perturb the particle
-        smc_work.functions->propose(rng, cur_theta, fdbk);
+        smc_work.functions->propose(rng, cur_theta, fdbk, smc_work.config->propose_arg);
 
         // prior ratio
-        mh_ratio = density(nparam, cur_theta, priors, prior_params) /
-                   density(nparam, prev_theta, priors, prior_params);
+        mh_ratio = smc_work.functions->prior_density(cur_theta, smc_work.config->prior_density_arg) /
+                   smc_work.functions->prior_density(prev_theta, smc_work.config->prior_density_arg);
 
         if (mh_ratio == 0) {
             continue;
         }
 
         // proposal ratio
-        mh_ratio *= smc_work.functions->proposal_density(cur_theta, prev_theta, fdbk) /
-                    smc_work.functions->proposal_density(prev_theta, cur_theta, fdbk);
+        mh_ratio *= smc_work.functions->proposal_density(cur_theta, prev_theta, fdbk, smc_work.config->proposal_density_arg) /
+                    smc_work.functions->proposal_density(prev_theta, cur_theta, fdbk, smc_work.config->proposal_density_arg);
 
         if (mh_ratio == 0) {
             continue;

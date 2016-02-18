@@ -2,14 +2,9 @@
 #define SMC_H
 
 #include <gsl/gsl_rng.h>
+#include "stats.h"
 
 #define MAX_DIST_PARAMS 2
-
-typedef enum {
-    UNIFORM,
-    GAUSSIAN,
-    DELTA
-} smc_distribution;
 
 typedef struct {
     int nparam; /**< number of parameters in the model */
@@ -25,20 +20,24 @@ typedef struct {
     size_t dataset_size; /**< size of data objects */
     size_t feedback_size; /**< size of feedback objects */
 
-    smc_distribution *priors; /**< prior distributions */
-    double *prior_params; /**< parameters for priors */
-
+    void *propose_arg; /**< extra argument for propose function */
+    void *proposal_density_arg; /**< extra argument for proposal_density function */
     void *sample_dataset_arg; /**< extra argument for sample_dataset function */
     void *distance_arg; /**< extra argument for distance function */
+    void *feedback_arg; /**< extra argument for feedback function */
+    void *sample_from_prior_arg; /**< extra argument for sample_from_prior function */
+    void *prior_density_arg; /**< extra argument for sample_from_prior function */
 } smc_config;
 
 typedef struct {
-    void   (*propose)           (gsl_rng *rng, double *, const void *);
-    double (*proposal_density)  (const double *, const double *, const void *);
+    void   (*propose)           (gsl_rng *rng, double *, const void *, const void *);
+    double (*proposal_density)  (const double *, const double *, const void *, const void *);
     void   (*sample_dataset)    (gsl_rng *rng, const double *, const void *, void *);
     double (*distance)          (const void *, const void *, const void *);
-    void   (*feedback)          (const double *, int, void *);
+    void   (*feedback)          (const double *, int, void *, const void *);
     void   (*destroy_dataset)   (void *);
+    void   (*sample_from_prior) (gsl_rng *rng, double *, const void *);
+    double (*prior_density)     (double *, const void *);
 } smc_functions;
 
 typedef struct {
