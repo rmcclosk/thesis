@@ -1,16 +1,11 @@
 \subsection{Separable parameters}
 
 Our first simulation-based experiment was designed to determine which network
-model parameters were potentially estimable by kernel-ABC. To do this, we
-simulated trees under three distinct values of each parameter of interest, and
-evaluated the accuracy of a kernel-\gls{SVM} classifier for the parameter. This
-is the same approach taken by \textcite{poon2015phylodynamic}, and has the dual
-purpose of allowing us to identify the optimal kernel meta-parameters
-\gls{sigma} and \gls{lambda}. The parameters of the \gls{ER}, \gls{WS}, and
-\gls{BA} network models were examined, but we will discuss only the results for
-the $\alpha$ and prevalence parameters of the \gls{BA} model in the main text.
-The results for the remaining models and their parameters can be found in the
-supplemental material.
+model parameters were potentially estimable by kernel-ABC, and to find the best
+set of kernel meta-parameters to carry through to future experiments. To do
+this, we simulated trees under three distinct values of each parameter of the
+\gls{BA} model, and evaluated the accuracy of a kernel-\gls{SVM} classifier for
+the parameter.
 
 In Figure~\ref{fig:patrees}, we show that trees simulated under different
 values of \gls{alpha} are visibly quite distinctive. In particular, higher

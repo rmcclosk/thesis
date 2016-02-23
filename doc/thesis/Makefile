@@ -1,5 +1,9 @@
 all: main.pdf
 
+clean:
+	rm -f *.acn *.acr *.alg *.aux *.bbl *.bcf *.blg *.glg *.glo *.gls *.ist \
+		  *.lof *.log *.out *.pdf *.xml *.toc 
+
 outline.pdf: outline.md outline.sty
 	pandoc -V geometry:margin=2cm --number-sections -H $(word 2, $^) $(word 1, $^) -o $@
 

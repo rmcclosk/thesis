@@ -68,20 +68,27 @@ Finally, a third group of studies has used Bayesian methods to infer a
 structural network parameter from observed infection and recovery times. This
 third group is most similar in aims to our own work; rather than using
 epidemiological observations, we employ viral phylogenies. The pioneering study
-in this group was by
-\citeauthor{britton2002bayesian}~(\citeyear{britton2002bayesian}), who
-developed a Bayesian method to infer the $p$ parameter of an \gls{ER} network,
-along with the $\beta$ and $\gamma$ parameters of \gls{SI} model. Their method
-is able to use either infection and removal times, or removal times only.
-However, it is designed for only a small number of observations (15 and 42
-cases in their applications), and their estimates of $p$ for real outbreaks
-were mostly uninformative (95\% confidence intervals [0.11-0.96] and
-0.055-0.96]; $p$ is bounded in [0, 1]).
-\citeauthor{groendyke2011bayesian}~(\citeyear{groendyke2011bayesian})
-significantly updated and extended the methodology of
-\citeauthor{britton2002bayesian}, and applied it to a measles outbreak
-affecting 188 individuals. They were able to obtain a much more informative
-estimate of $p$, although this data set included both symptom onset and
-recovery times for all individuals. They also assumed that the entire network
-was infected, so that the network size was exactly 188. It is unclear how well
-their method would scale to networks with thousands of nodes.
+in this group was by \textcite{britton2002bayesian}, who developed a Bayesian
+method to infer the $p$ parameter of an \gls{ER} network, along with the
+$\beta$ and $\gamma$ parameters of \gls{SI} model. Their method is able to use
+either infection and removal times, or removal times only. However, it is
+designed for only a small number of observations (15 and 42 cases in their
+applications), and their estimates of $p$ for real outbreaks were mostly
+uninformative (95\% confidence intervals [0.11-0.96] and 0.055-0.96]; $p$ is
+bounded in [0, 1]).
+\textcite{groendyke2011bayesian} significantly updated and extended the
+methodology of \citeauthor{britton2002bayesian}, and applied it to a measles
+outbreak affecting 188 individuals. They were able to obtain a much more
+informative estimate of $p$, although this data set included both symptom onset
+and recovery times for all individuals. They also assumed that the entire
+network was infected, so that the network size was exactly 188. It is unclear
+how well their method would scale to networks with thousands of nodes.
+
+% TODO: I don't know where to put this so it's going here for now.
+Several studies~\autocite{little2014using, wang2015targeting,
+brown2011transmission, schneeberger2004scale} have found that the preferential
+attachment model provides a good fit to MSM networks.
+
+The phylogenetic network may show little to no agreement with a contact data
+obtained through epidemiological methods~\autocite{yirrell1998molecular,
+resik2007limitations}.
