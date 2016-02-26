@@ -87,8 +87,7 @@ collect.metadata <- function (data.files)
     metadata <- mapply(function (df, new) {
         if (length(new) > 0) {
             cbind(df, as.data.frame(setNames(as.list(rep(NA, length(new))), new)))
-        }
-        else {
+        } else {
             df
         }
     }, metadata, new.cols, SIMPLIFY=FALSE)
@@ -96,6 +95,7 @@ collect.metadata <- function (data.files)
     # put all together and set row names to files
     metadata <- do.call(rbind, metadata)
     rownames(metadata) <- data.files
+    colnames(metadata)[colnames(metadata) == "FALSE."] <- "N" # hack
     metadata
 }
 
@@ -118,7 +118,20 @@ collect.data <- function (data.files, header=TRUE, ...)
     metadata <- collect.metadata(data.files)
     data <- lapply(data.files, process.archive, read.table, header=header, ...)
     data <- suppressWarnings(mapply(cbind, data, 
-                                    by(metadata, 1:nrow(metadata), identity),
+                                    by(metadata, 1:nrow(metadata), identity, simplify=FALSE),
                                     SIMPLIFY=FALSE))
+
+    # same thing as with metadata, find the common column names and fill the
+    # rest with NA
+    all.cols <- Reduce(union, lapply(data, colnames))
+    new.cols <- mapply(setdiff, list(all.cols), lapply(data, colnames), SIMPLIFY=FALSE)
+    data <- mapply(function (df, new) {
+        if (length(new) > 0) {
+            cbind(df, as.data.frame(setNames(as.list(rep(NA, length(new))), new)))
+        } else {
+            df
+        }
+    }, data, new.cols, SIMPLIFY=FALSE)
+
     do.call(rbind, data)
 }
