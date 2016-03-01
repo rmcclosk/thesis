@@ -1,5 +1,3 @@
-
-
 \subsection{Separable parameters}
 
 Our first simulation-based experiment was designed to determine which network
@@ -80,52 +78,40 @@ different \gls{alpha} values.
   }
 \end{figure}
 
-We also considered the possibility of inferring the number of infected nodes,
-or \defn{prevalence}, under this model. All parameters except \gls{I} were
-fixed at the following values: \gls{N} = 5000, \gls{alpha} = 1.0, and \gls{m} =
-2. As shown in Figure~\ref{fig:prevtrees}, the prevalence had no obvious effect
-on the tree shape. However, a kernel-\gls{SVM} classifier was able to
-distinguish the number of infected nodes with high accuracy ($R^2 > 0.9$;
-Figure~\ref{fig:prevcrossv}). Moreover, the use of the \gls{nltt} statistic
-improved classification accuracy by a small amount, in contrast to the results
-for \gls{alpha}. In contrast, a Sackin's index-based classifier displayed
-extremely poor performance ($R^2$ < 0.1, not shown). 
-
-It is important to note that, if we cut off the epidemic simulation when 500
-nodes are infected, the resulting tree will be shorter (in calendar time) than
-if we continue until 2000 nodes are infected. However, this information is not
-used when building the classifier, since the branch lengths in each tree are
-scaled by their mean. Therefore, the high performance of the classifier is due
-to structural differences captured by the tree kernel, rather than the trees
-simply having different heights.
+Figure~\ref{fig:rsquared} shows the cross-validation accuracy of classifiers
+for all four parameters of the \gls{BA} model. The classifier for \gls{I} also
+exhibited high performance, although not quite as high as that for \gls{alpha}.
+The average $R^2$ values were 0.70 for 100-tip trees, or 0.93 for 500-tip
+trees. On the other hand, $m$ and $N$ were much harder to classsify. For $m$,
+all $R^2$ values were below 0.5, falling to virtually zero in four scenarios.
+The $R^2$ values for $N$ were highly variable, ranging from 0.08 to 0.82
+depending on $I$ and the number of tips in the tree. In almost all cases, both
+the nLTT and Sackin's index classifiers were worse than the tree kernel, except
+for classifying $N$ with $I = 2000$ and $100$ tips, where the nLTT gave a small
+advantage (see the supplements). The greatest disadvantage for the Sackin's
+index-based classifier was on the $I$ parameter, where it had an $R^2$ of less
+than 0.1, despite the relatively high accuracy of the tree kernel (see the
+supplements).
 
 \begin{figure}[ht]
   \centering
-  \label{fig:prevtrees}
-  \includegraphics{kernel_nsimnode_trees}
-  \caption[Similarly shaped simulated under three values of \gls{I}]{
-    Epidemics were simulated on networks of size 5000 until \gls{I} = 500,
-    1000, or 2000 nodes were infected. When scaled to the same height, there is
-    no immediately visible distinction in shape between trees simulated under
-    different \gls{I} values.
-  }
+  \includegraphics{kernel_rsquared}
+  \caption[Cross-validation accuracy of kSVM classifiers for \gls{BA}
+  model parameters.]{Cross-validation $R^2$ values of kernel-SVM classifier for
+    \gls{BA} model parameters. Points and ranges are median and 95\% quantiles
+    over 1000 2-fold cross-validations.}
+  \label{fig:rsquared}
 \end{figure}
 
-\begin{figure}[ht]
-  \centering
-  \label{fig:prevcrossv}
-  \includegraphics{kernel_nsimnode_crossv}
-  \caption[Cross-validation performance of kernel-\gls{SVM} classifier for
-           prevalence]{
-    For \gls{BA} networks of size \gls{N} = 5000, a kernel-\gls{SVM} classifier
-    is very accurate at predicting \gls{I}. Epidemics were simulated until
-    \gls{I} = 500, 1000, or 2000 nodes were infected, and either 100 or 500
-    nodes were sampled for inclusion in a transmission tree. The parameters of
-    the \gls{BA} network were \gls{alpha} = 1.0 and \gls{m} = 2. A Sackin's
-    index-based classifier performed very poorly on these data ($R^2 = $ TODO
-    for 100-tip trees and blah for 500-tip trees, not shown).
-  }
-\end{figure}
+% needs to go in methods
+
+%It is important to note that, if we cut off the epidemic simulation when 500
+%nodes are infected, the resulting tree will be shorter (in calendar time) than
+%if we continue until 2000 nodes are infected. However, this information is not
+%used when building the classifier, since the branch lengths in each tree are
+%scaled by their mean. Therefore, the high performance of the classifier is due
+%to structural differences captured by the tree kernel, rather than the trees
+%simply having different heights.
 
 \subsection{Accuracy of marginal estimates}
 
@@ -167,57 +153,3 @@ values.
 \end{figure}
 
 \subsection{Accuracy of estimates with full ABC}
-
-
-
-We used kernel-\gls{ABC} to estimate the parameters of the \gls{BA} model 
-on simulated trees where the true parameter values were known. Point estimates
-for each parameter are shown in Figure~\ref{fig:abcpt}. Of the four parameters,
-$\alpha$ was the most accurately estimated, with a median [IQR] absolute error
-of 
-    0.11 
-    [0.04-0.18].
-The accuracy of the estimates was not significantly different between values of
-$m$ or $I$ (both one-way ANOVA,
-    $p$ = 0.18
-and 
-    0.47),
-although the errors when the true value of $\alpha$ was zero were
-significantly greater than the other values 
-    (Wilcoxon rank-sum test, $p$ = \ensuremath{1.02\times 10^{-3}}).
-The error in the estimated value of $I$ was
-    337.22 
-    [105.39-592.01].
-Errors were significantly higher for $\alpha \geq 1$
-    (Wilcoxon rank-sum test, $p$ = \ensuremath{1.03\times 10^{-3}})
-and for $I$ = 2000
-    ($p$ = \ensuremath{2.26\times 10^{-7}}),
-but not for any values of $m$
-    (one-way ANOVA, $p$ = 0.34).
-The $m$ parameter was estimated correctly in
-    33 \%
-of simulations, with an error of one in
-    43 \%
-and of two or more in 
-    23 \%
-(the only possible $m$ values were 2, 3, 4, or 5). The true values of
-$m$ and $I$ did not significantly affect the error
-    (one-way ANOVA, $p$ = 0.44 and
-                          0.68),
-but the accuracy was significantly lower for integral than non-integral
-values of $\alpha$
-    (Wilcoxon rank-sum test, $p$ = \ensuremath{8.4\times 10^{-4}}).
-Finally, the total number of nodes $N$ was consistently over-estimated by about
-a factor of two
-    (error \ensuremath{6.74\times 10^{3}} 
-    [\ensuremath{5.28\times 10^{3}}-\ensuremath{8.29\times 10^{3}}]).
-No other parameters influenced the accuracy of the $N$ estimates 
-    (one-way ANOVA, $p \geq$ NA).
-
-Figure~\ref{fig:abcex} shows the \gls{ABC} approximation to the
-posterior distribution on the \gls{BA} parameters for one simulation
-(equivalent plots for all the simulations can be found in the supplemental
-materials). \gls{HPD} intervals around $\alpha$ and $I$ were narrow relative
-to the region of nonzero prior density, whereas the intervals for $m$ and $N$
-were widely dispersed. Table~\ref{tab:abchpd} shows point estimates and 95\%
-\gls{HPD} intervals averaged over all simulations.

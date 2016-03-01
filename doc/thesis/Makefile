@@ -12,7 +12,9 @@ main.pdf: main.tex intro.tex methods.tex objective.tex results.tex papers.bib fi
 	biber main && \
 	pdflatex main && \
 	makeglossaries main && \
-	pdflatex main
+	pdflatex main && \
+	pdflatex main && \
+	R -e "extrafont::embed_fonts('main.pdf')"
 
 results.tex: results.Rnw
 	R -e "knitr::knit('$^')"
@@ -24,19 +26,26 @@ figures: figures/speciestree.pdf \
 	figures/virustrees.pdf \
 	figures/contactnet.pdf \
 	figures/pa_power_bounds.pdf \
-	figures/kernel_pa_kpca.pdf \
-	figures/kernel_pa_crossv.pdf \
-	figures/kernel_pa_trees.pdf \
-	figures/kernel_nsimnode_kpca.pdf \
-	figures/kernel_nsimnode_crossv.pdf \
-	figures/kernel_nsimnode_trees.pdf \
+	figures/kernel_alpha_kpca.pdf \
+	figures/kernel_alpha_crossv.pdf \
+	figures/kernel_alpha_tree.pdf \
+	figures/kernel_I_kpca.pdf \
+	figures/kernel_I_crossv.pdf \
+	figures/kernel_I_tree.pdf \
+	figures/kernel_m_kpca.pdf \
+	figures/kernel_m_crossv.pdf \
+	figures/kernel_m_tree.pdf \
+	figures/kernel_N_kpca.pdf \
+	figures/kernel_N_crossv.pdf \
+	figures/kernel_N_tree.pdf \
 	figures/gridsearch_pa_kernel.pdf \
 	figures/gridsearch_pa_estimates.pdf \
 	figures/nltt.pdf \
 	figures/kernel_expt.pdf \
 	figures/gridsearch_expt.pdf \
 	figures/acc_prec.pdf \
-	figures/separable.pdf
+	figures/separable.pdf \
+	figures/kernel_rsquared.pdf
 
 figures/nltt.pdf: figures/nltt.R
 	cd figures && ./nltt.R
@@ -50,25 +59,12 @@ figures/speciestree.pdf figures/contactnet.pdf figures/missing.pdf figures/virus
 	cd figures && pdflatex $(notdir $^)
 	pdfcrop $@ $@
 
-figures/kernel_pa_kpca.pdf:
-	cp ../../simulations/kernel-pa-power/kpca-plot/* $@ || cp figures/missing.pdf $@
-
-figures/kernel_pa_crossv.pdf:
-	cp ../../simulations/kernel-pa-power/crossv-plot/* $@ || cp figures/missing.pdf $@
-
-figures/kernel_pa_trees.pdf:
-	cp ../../simulations/kernel-pa-power/tree-plot/* $@ || cp figures/missing.pdf $@
+figures/kernel_rsquared.pdf:
+	cp ../../simulations/aggregates/classifier-plot/* $@ || cp figures/missing.pdf $@
 	pdfcrop $@ $@
 
-figures/kernel_nsimnode_kpca.pdf:
-	cp ../../simulations/kernel-pa-nsimnode/kpca-plot/* $@ || cp figures/missing.pdf $@
-
-figures/kernel_nsimnode_crossv.pdf:
-	cp ../../simulations/kernel-pa-nsimnode/crossv-plot/* $@ || cp figures/missing.pdf $@
-
-figures/kernel_nsimnode_trees.pdf:
-	cp ../../simulations/kernel-pa-nsimnode/tree-plot/* $@ || cp figures/missing.pdf $@
-	pdfcrop $@ $@
+figures/kernel_%.pdf:
+	cp ../../simulations/kernel-$(word 1, $(subst _, ,$*))/$(word 2, $(subst _, ,$*))-plot/* $@ || cp figures/missing.pdf $@
 
 figures/gridsearch_pa_kernel.pdf:
 	cp ../../simulations/gridsearch-pa-power/kernel-plot/* $@ || cp figures/missing.pdf $@
