@@ -1,4 +1,53 @@
-\documentclass[12pt]{article}
+\documentclass[12pt]{article}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
 \usepackage[osf]{garamondx}
 \usepackage[garamondx,cmbraces]{newtxmath}
 \usepackage{marginnote}
@@ -46,7 +95,6 @@
 \newacronym{SMC}{SMC}{sequential Monte-Carlo}
 \newacronym{ABC}{ABC}{approximate Bayesian computation}
 \newacronym{MSM}{MSM}{men who have sex with men}
-\newacronym{HPD}{HPD}{highest posterior density}
 
 \graphicspath{{figures/}}
 
@@ -58,14 +106,12 @@ Bayesian computation}
 
 \frenchspacing
 \onehalfspacing
-
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \begin{document}
 
 \maketitle
 
-<<setup, include=FALSE>>=
-    library(netabc)
-@
+
 
 \section*{Background}
 
@@ -242,74 +288,49 @@ index or the \gls{nLTT}.
 
 \subsection*{ABC simulations}
 
-<<point_est, include=FALSE>>=
-    f <- Sys.glob("../../simulations/abc-pa-free-m/point-estimate/*")
-    d <- fread(f)
-    d[,m := floor(m)]
-    d[,alpha_error := abs(true_alpha - alpha)]
-    d[,N_error := abs(true_N - N)]
-    d[,I_error := abs(true_I - I)]
-    d[,m_error := abs(true_m - m)]
 
-    alpha.av <- anova(lm(alpha_error ~ factor(true_alpha) + factor(true_m) + factor(true_I), d))
-    m.av <- anova(lm(m_error ~ factor(true_alpha) + factor(true_m) + factor(true_I), d))
-    N.av <- anova(lm(N_error ~ factor(true_alpha) + factor(true_m) + factor(true_I), d))
-    I.av <- anova(lm(I_error ~ factor(true_alpha) + factor(true_m) + factor(true_I), d))
-
-    m.tbl <- d[,prop.table(table(m_error))]
-    zero.alpha.test <- wilcox.test(d[true_alpha == 0, alpha_error], 
-                                   d[true_alpha != 0, alpha_error])
-    alpha.I.test <- wilcox.test(d[true_alpha < 1, I_error],
-                                d[true_alpha >= 1, I_error])
-    I.I.test <- wilcox.test(d[true_I == 1000, I_error],
-                            d[true_I == 2000, I_error])
-    alpha.m.test <- wilcox.test(d[true_alpha == 0 | true_alpha == 1, m_error],
-                                d[true_alpha == 0.5 | true_alpha == 1.5, m_error])
-
-    options(scipen=-1, digits=2)
-@
 
 Point estimates for each parameter are shown in Figure~\ref{fig:abcpt}. Of the
 four parameters, $\alpha$ was the most accurately estimated, with a median
 [IQR] absolute error of 
-    \Sexpr{d[,median(alpha_error)]} 
-    [\Sexpr{d[,quantile(alpha_error, 0.25)]}-\Sexpr{d[,quantile(alpha_error, 0.75)]}].
+    0.11 
+    [0.04-0.18].
 The accuracy of the estimates was not significantly different between values of
 $m$ or $I$ (both one-way ANOVA,
-    $p$ = \Sexpr{alpha.av["factor(true_m)", "Pr(>F)"]}
+    $p$ = 0.18
 and 
-    \Sexpr{alpha.av["factor(true_I)", "Pr(>F)"]}),
+    0.47),
 although the errors when the true value of $\alpha$ was zero were
 significantly greater than the other values 
-    (Wilcoxon rank-sum test, $p$ = \Sexpr{zero.alpha.test$p.value}).
+    (Wilcoxon rank-sum test, $p$ = \ensuremath{1.02\times 10^{-3}}).
 The error in the estimated value of $I$ was
-    \Sexpr{d[,median(I_error)]} 
-    [\Sexpr{d[,quantile(I_error, 0.25)]}-\Sexpr{d[,quantile(I_error, 0.75)]}].
+    337.22 
+    [105.39-592.01].
 Errors were significantly higher for $\alpha \geq 1$
-    (Wilcoxon rank-sum test, $p$ = \Sexpr{alpha.I.test$p.value})
+    (Wilcoxon rank-sum test, $p$ = \ensuremath{1.03\times 10^{-3}})
 and for $I$ = 2000
-    ($p$ = \Sexpr{I.I.test$p.value}),
+    ($p$ = \ensuremath{2.26\times 10^{-7}}),
 but not for any values of $m$
-    (one-way ANOVA, $p$ = \Sexpr{I.av["factor(true_m)", "Pr(>F)"]}).
+    (one-way ANOVA, $p$ = 0.34).
 The $m$ parameter was estimated correctly in
-    \Sexpr{as.integer(m.tbl[1] * 100)} \%
+    33 \%
 of simulations, with an error of one in
-    \Sexpr{as.integer(m.tbl[2] * 100)} \%
+    43 \%
 and of two or more in 
-    \Sexpr{as.integer(sum(m.tbl[3:length(m.tbl)]) * 100)} \%
-(the only possible $m$ values were 1, 2, 3, 4, or 5). The true values of $m$
-and $I$ did not significantly affect the error
-    (one-way ANOVA, $p$ = \Sexpr{m.av["factor(true_m)", "Pr(>F)"]} and
-                          \Sexpr{m.av["factor(true_I)", "Pr(>F)"]}),
+    23 \%
+(the only possible $m$ values were 2, 3, 4, or 5). The true values of
+$m$ and $I$ did not significantly affect the error
+    (one-way ANOVA, $p$ = 0.44 and
+                          0.68),
 but the accuracy was significantly lower for integral than non-integral
 values of $\alpha$
-    (Wilcoxon rank-sum test, $p$ = \Sexpr{alpha.m.test$p.value}).
-Finally, the total number of nodes $N$ was consistently over-estimated by about
-a factor of two
-    (error \Sexpr{d[,median(N_error)]} 
-    [\Sexpr{d[,quantile(N_error, 0.25)]}-\Sexpr{d[,quantile(N_error, 0.75)]}]).
+    (Wilcoxon rank-sum test, $p$ = \ensuremath{8.4\times 10^{-4}}).
+Finally, the total number of nodes $N$ was consistently over-estimated by about a factor of two (error
+    \ensuremath{6.74\times 10^{3}} 
+    [\ensuremath{5.28\times 10^{3}}-\ensuremath{8.29\times 10^{3}}]).
 No other parameters influenced the accuracy of the $N$ estimates 
-    (one-way ANOVA, $p \geq$ \Sexpr{min(N.av[,"Pr(>F)"])}).
+    (one-way ANOVA, $p \geq$ NA).
+
 
 \begin{figure}
     \includegraphics{missing}
@@ -318,91 +339,29 @@ No other parameters influenced the accuracy of the $N$ estimates
     \label{fig:abcpt}
 \end{figure}
 
-Figure~\ref{fig:abcex} shows the \gls{ABC} approximation to the
-posterior distribution on the \gls{BA} parameters for one simulation
-(equivalent plots for all the simulations can be found in the supplemental
-materials). \gls{HPD} intervals around $\alpha$ and $I$ were narrow relative
-to the region of nonzero prior density, whereas the intervals for $m$ and $N$
-were widely dispersed. Table~\ref{tab:abchpd} shows point estimates and 95\%
-\gls{HPD} intervals averaged over all simulations.
-
-\begin{figure}
-    \includegraphics{missing}
-    \caption{\gls{ABC} approximations of posterior distribution on
-\gls{BA} model parameters for one simulated tree.}
-    \label{fig:abcpt}
-\end{figure}
-
-\begin{table}
-    \begin{tabular}{ccc}
-        parameter & true value & MAP [95\% HPD] \\
-        \hline
-        $\alpha$ & 0.0 & & \\
-        $\alpha$ & 0.5 & & \\
-        $\alpha$ & 1.0 & & \\
-        $\alpha$ & 0.5 & & \\
-        $I$ & 1000 & & \\
-        $I$ & 2000 & & \\
-        $m$ & 2 & & \\
-        $m$ & 3 & & \\
-        $m$ & 4 & & \\
-        $N$ & 5000 & & \\
-        \hline
-    \end{tabular}
-    \caption{Average \gls{HPD} interval widths for \gls{ABC} model parameter
-             estimates.}
-    \label{tab:abchpd}
-\end{table}
-
-\subsection*{Published data}
-
 \section*{Discussion}
 
-Contact networks can have a strong influence on epidemic progression, and are
-potentially useful as a public health tool. Despite this, few methods exist for
-investigating contact network parameters in a phylodynamic framework.
-Kernel-ABC is a model-agnostic method which can be used to investigate any
-quantity that affects tree shape. In this work, we developed a kernel-ABC-based
-method to infer the parameters of a contact network model. The method is
-general, and could be applied to any model from which contact networks can be
-simulated. We demonstrated the method on the \gls{BA} model, which is a simple 
-model incorprorating the preferential attachment feature commonly seen in
-real-world networks. 
+The $m$ and $N$ parameters were much harder to recover than $\alpha$ and $I$,
+suggesting differing influences of these parameters on tree shape. The $\alpha$
+parameter in particular was accurately estimated in most cases, implying that
+the strength of preferential attachment has a strong impact on the shape of the
+transmission tree.
 
-With respect to the \gls{BA} model, we found that the $\alpha$ and $I$
-parameters, representing preferential attachment power and number of infected
-nodes, had a strong influence on tree shape. Kernel-PCA projections showed that
-variations in these these parameters produced trees well segregated in the tree
-kernel's feature space, which was reflected in the accuracy of kernel-ABC
-estimates. On the other hand, the $m$ and $N$ parameters did not produce much
-variation in tree shape, resulting in poor kernel-ABC estimates. 
-
-Our investigation of published HIV datasets indicated heterogeneity in the
-contact network structures underlying several distinct epidemics.
-
-We caution, however, that the \gls{BA} model is quite simple and most likely
-misspecified for these data. In particular, the average degree of a node in the
-network is equal to $2m$, and therefore is constrained to be a multiple of 2.
-Furthermore, we considered the case $m = 1$, where the network has no cycles,
-to be implausable and assigned it zero prior probability. This forces the
-average degree to be at least four, which may be unrealistically high for
-sexual networks. Additional modelling assumptions, include the network being
-connected and static, the epidemic following simple \gls{SI} dynamics, and the
-underlying behaviour of all nodes is the same. This last is particularly
-problematic, as we showed by simulating a network where some nodes exhibited a
-higher attachment power than others. The estimated attachment power was simply
-the average of the two values, indicating that, although we could characterize
-the network in aggregate, the estimated parameters could not be said to apply
-to any individual node. 
-
-Our method itself has of caveats, perhaps the most significant being that it
+Our method has a number of caveats, perhaps the most significant being that it
 takes a transmission tree as input. In reality, true transmission trees are not
 available and must be estimated, often by way of a viral phylogeny. Although
 this has been demonstrated to work in practice~\autocite{leitner1996accurate},
 the topologies of a viral phylogeny and transmission tree can differ
-significantly~\autocite{ypma2013relating}. In addition, it is computationally
-intensive, taking about a day when run on 20 cores in parallel with the setings
-described in Methods.
+significantly~\autocite{ypma2013relating}. Additionally, the \gls{BA} model
+that we fitted here makes a number of unrealistic modelling assumptions, such
+as that the network is connected and static, the nodes obey \gls{SI} dynamics,
+and that the underlying behaviour of all nodes is the same. This last is
+particularly problematic, as we showed by simulating a network where some nodes
+exhibited a higher attachment power than others. The estimated attachment power
+was simply the average of the two values, indicating that, although we could
+characterize the network in aggregate, the estimated parameters could not be
+said to apply to any individual node. Finally, the method is computationally
+intensive, taking about a day when run on 20 cores in parallel.
 
 \section*{Conclusions}
 

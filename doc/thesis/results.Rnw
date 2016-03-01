@@ -1,4 +1,6 @@
-
+<<setup, include=FALSE>>=
+    library(netabc)
+@
 
 \subsection{Separable parameters}
 
@@ -168,51 +170,76 @@ values.
 
 \subsection{Accuracy of estimates with full ABC}
 
+<<point_est, include=FALSE>>=
+    f <- Sys.glob("../../simulations/abc-pa-free-m/point-estimate/*")
+    d <- fread(f)
+    d[,m := floor(m)]
+    d[,alpha_error := abs(true_alpha - alpha)]
+    d[,N_error := abs(true_N - N)]
+    d[,I_error := abs(true_I - I)]
+    d[,m_error := abs(true_m - m)]
 
+    alpha.av <- anova(lm(alpha_error ~ factor(true_alpha) + factor(true_m) + factor(true_I), d))
+    m.av <- anova(lm(m_error ~ factor(true_alpha) + factor(true_m) + factor(true_I), d))
+    N.av <- anova(lm(N_error ~ factor(true_alpha) + factor(true_m) + factor(true_I), d))
+    I.av <- anova(lm(I_error ~ factor(true_alpha) + factor(true_m) + factor(true_I), d))
+
+    m.tbl <- d[,prop.table(table(m_error))]
+    zero.alpha.test <- wilcox.test(d[true_alpha == 0, alpha_error], 
+                                   d[true_alpha != 0, alpha_error])
+    alpha.I.test <- wilcox.test(d[true_alpha < 1, I_error],
+                                d[true_alpha >= 1, I_error])
+    I.I.test <- wilcox.test(d[true_I == 1000, I_error],
+                            d[true_I == 2000, I_error])
+    alpha.m.test <- wilcox.test(d[true_alpha == 0 | true_alpha == 1, m_error],
+                                d[true_alpha == 0.5 | true_alpha == 1.5, m_error])
+
+    options(scipen=-1, digits=2)
+@
 
 We used kernel-\gls{ABC} to estimate the parameters of the \gls{BA} model 
 on simulated trees where the true parameter values were known. Point estimates
 for each parameter are shown in Figure~\ref{fig:abcpt}. Of the four parameters,
 $\alpha$ was the most accurately estimated, with a median [IQR] absolute error
 of 
-    0.11 
-    [0.04-0.18].
+    \Sexpr{d[,median(alpha_error)]} 
+    [\Sexpr{d[,quantile(alpha_error, 0.25)]}-\Sexpr{d[,quantile(alpha_error, 0.75)]}].
 The accuracy of the estimates was not significantly different between values of
 $m$ or $I$ (both one-way ANOVA,
-    $p$ = 0.18
+    $p$ = \Sexpr{alpha.av["factor(true_m)", "Pr(>F)"]}
 and 
-    0.47),
+    \Sexpr{alpha.av["factor(true_I)", "Pr(>F)"]}),
 although the errors when the true value of $\alpha$ was zero were
 significantly greater than the other values 
-    (Wilcoxon rank-sum test, $p$ = \ensuremath{1.02\times 10^{-3}}).
+    (Wilcoxon rank-sum test, $p$ = \Sexpr{zero.alpha.test$p.value}).
 The error in the estimated value of $I$ was
-    337.22 
-    [105.39-592.01].
+    \Sexpr{d[,median(I_error)]} 
+    [\Sexpr{d[,quantile(I_error, 0.25)]}-\Sexpr{d[,quantile(I_error, 0.75)]}].
 Errors were significantly higher for $\alpha \geq 1$
-    (Wilcoxon rank-sum test, $p$ = \ensuremath{1.03\times 10^{-3}})
+    (Wilcoxon rank-sum test, $p$ = \Sexpr{alpha.I.test$p.value})
 and for $I$ = 2000
-    ($p$ = \ensuremath{2.26\times 10^{-7}}),
+    ($p$ = \Sexpr{I.I.test$p.value}),
 but not for any values of $m$
-    (one-way ANOVA, $p$ = 0.34).
+    (one-way ANOVA, $p$ = \Sexpr{I.av["factor(true_m)", "Pr(>F)"]}).
 The $m$ parameter was estimated correctly in
-    33 \%
+    \Sexpr{as.integer(m.tbl[1] * 100)} \%
 of simulations, with an error of one in
-    43 \%
+    \Sexpr{as.integer(m.tbl[2] * 100)} \%
 and of two or more in 
-    23 \%
+    \Sexpr{as.integer(sum(m.tbl[3:length(m.tbl)]) * 100)} \%
 (the only possible $m$ values were 2, 3, 4, or 5). The true values of
 $m$ and $I$ did not significantly affect the error
-    (one-way ANOVA, $p$ = 0.44 and
-                          0.68),
+    (one-way ANOVA, $p$ = \Sexpr{m.av["factor(true_m)", "Pr(>F)"]} and
+                          \Sexpr{m.av["factor(true_I)", "Pr(>F)"]}),
 but the accuracy was significantly lower for integral than non-integral
 values of $\alpha$
-    (Wilcoxon rank-sum test, $p$ = \ensuremath{8.4\times 10^{-4}}).
+    (Wilcoxon rank-sum test, $p$ = \Sexpr{alpha.m.test$p.value}).
 Finally, the total number of nodes $N$ was consistently over-estimated by about
 a factor of two
-    (error \ensuremath{6.74\times 10^{3}} 
-    [\ensuremath{5.28\times 10^{3}}-\ensuremath{8.29\times 10^{3}}]).
+    (error \Sexpr{d[,median(N_error)]} 
+    [\Sexpr{d[,quantile(N_error, 0.25)]}-\Sexpr{d[,quantile(N_error, 0.75)]}]).
 No other parameters influenced the accuracy of the $N$ estimates 
-    (one-way ANOVA, $p \geq$ NA).
+    (one-way ANOVA, $p \geq$ \Sexpr{min(N.av[,"Pr(>F)"])}).
 
 Figure~\ref{fig:abcex} shows the \gls{ABC} approximation to the
 posterior distribution on the \gls{BA} parameters for one simulation

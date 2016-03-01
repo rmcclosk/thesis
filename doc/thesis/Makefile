@@ -14,6 +14,9 @@ main.pdf: main.tex intro.tex methods.tex objective.tex results.tex papers.bib fi
 	makeglossaries main && \
 	pdflatex main
 
+results.tex: results.Rnw
+	R -e "knitr::knit('$^')"
+
 papers.bib:
 	ln -sf ../../reading/$@ .
 
