@@ -129,17 +129,15 @@ Steps:
     cluster:
         Extension: tsv
         Parameters:
-            cutoff: 0.14
+            target: 200
         Depends: tree
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
             t <- read.tree("{tree}")
-            cph <- cophenetic(t)
-            adjmat <- cph <= {cutoff}
-            g <- graph.adjacency(adjmat, mode="undirected", diag=FALSE)
-            cl <- clusters(g)
-            cl.nodes <- names(cl$memb[cl$memb == which.max(cl$csize)])
+            st <- subtrees(t)
+            st <- st[[which.min(abs(sapply(st, Nnode) - {target}))]]
+            cl.nodes <- st$tip.label
             write.table(cl.nodes, "{cluster}", col.names=F, row.names=F, quote=F)
 
     subtree:
