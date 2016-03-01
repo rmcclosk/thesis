@@ -11,7 +11,7 @@
 \usepackage{algorithm}
 \usepackage{algorithmicx}
 \usepackage{algpseudocode}
-\usepackage{hyperref}
+\usepackage[hidelinks]{hyperref}
 \usepackage[acronym,nonumberlist]{glossaries}
 
 \newcommand{\comment}[1]{\marginnote{\textit{#1}}}
@@ -139,5 +139,13 @@ Bayesian computation}
 \chapter{Conclusion}
 
 \printbibliography
+
+\chapter{Supplemental Materials}
+
+\setcounter{table}{0}
+\renewcommand{\thetable}{S\arabic{table}}
+\setcounter{figure}{0}
+\renewcommand{\thefigure}{S\arabic{figure}}
+\input{supplements}
 
 \end{document}

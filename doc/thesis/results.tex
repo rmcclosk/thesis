@@ -1,22 +1,27 @@
-\subsection{Separable parameters}
+\subsection{Kernel-SVM classifiers}
 
 Our first simulation-based experiment was designed to determine which network
-model parameters were potentially estimable by kernel-ABC, and to find the best
-set of kernel meta-parameters to carry through to future experiments. To do
-this, we simulated trees under three distinct values of each parameter of the
-\gls{BA} model, and evaluated the accuracy of a kernel-\gls{SVM} classifier for
-the parameter.
+model parameters were potentially estimable by kernel-\gls{ABC}, and to find
+the best set of kernel meta-parameters to carry through to future experiments.
+We simulated trees under three distinct values of each parameter of the
+\gls{BA} model, and calculated the cross-validation accuracy of a
+kernel-\gls{SVM} classifier. Many of the figures in this section pertain to the
+attachment power parameter $\alpha$ only, but equivalent figures for the other
+three parameters can be found in the supplemental materials.
 
-In Figure~\ref{fig:patrees}, we show that trees simulated under different
-values of \gls{alpha} are visibly quite distinctive. In particular, higher
-values of \gls{alpha} result in networks with a small number of highly
-connected nodes (see Figure~\ref{fig:pabounds}) which, once infected, are
-likely to transmit to many other nodes. This results in a more unbalanced,
-ladder-like structure in the phylogeny. Kernel-\gls{PCA} projections show that
-all three \gls{alpha} values are well separated from each other under several
-different sampling scenarios (Figure~\ref{fig:pakpca}). With smaller trees,
-it becomes harder to visually disinguish \gls{alpha} = 0.5 from \gls{alpha} =
-1.0 using the first two principal components.
+Trees simulated under different values of \gls{alpha} are visibly quite
+distinctive (Figure~\ref{fig:patrees}). In particular, higher values of
+\gls{alpha} result in networks with a small number of highly connected nodes
+(see Figure~\ref{fig:pabounds}) which, once infected, are likely to transmit to
+many other nodes. This results in a more unbalanced, ladder-like structure in
+the phylogeny. 
+
+
+Kernel-\gls{PCA} projections show that all three \gls{alpha} values are well
+separated from each other under several different sampling scenarios
+(Figure~\ref{fig:pakpca}). For smaller trees, though, it becomes harder to
+visually disinguish \gls{alpha} = 0.5 from \gls{alpha} = 1.0 using the first
+two principal components.
 
 With suitably chosen meta-parameters, the accuracy of the kernel-\gls{SVM}
 classifier for \gls{alpha} was very high under a variety of prevalence and
@@ -27,9 +32,7 @@ center panel). However, even for trees of size 100 sampled from an epidemic on
 accuracy of a Sackin's index-based classifier was also quite high, at about
 0.75. The fact that Sackin's index is informative of \gls{alpha} was
 unsurprising, given the clear differences in tree balance observed under
-different \gls{alpha} values. The \gls{nltt}
-statistic~\autocite{janzen2015approximate} did not improve the classifier, but
-rather slightly reduced the $R^2$ in most cases. 
+different \gls{alpha} values. 
 
 \begin{figure}[ht]
   \centering
@@ -75,52 +78,40 @@ rather slightly reduced the $R^2$ in most cases.
   }
 \end{figure}
 
-We also considered the possibility of inferring the number of infected nodes,
-or \defn{prevalence}, under this model. All parameters except \gls{I} were
-fixed at the following values: \gls{N} = 5000, \gls{alpha} = 1.0, and \gls{m} =
-2. As shown in Figure~\ref{fig:prevtrees}, the prevalence had no obvious effect
-on the tree shape. However, a kernel-\gls{SVM} classifier was able to
-distinguish the number of infected nodes with high accuracy ($R^2 > 0.9$;
-Figure~\ref{fig:prevcrossv}). Moreover, the use of the \gls{nltt} statistic
-improved classification accuracy by a small amount, in contrast to the results
-for \gls{alpha}. In contrast, a Sackin's index-based classifier displayed
-extremely poor performance ($R^2$ < 0.1, not shown). 
-
-It is important to note that, if we cut off the epidemic simulation when 500
-nodes are infected, the resulting tree will be shorter (in calendar time) than
-if we continue until 2000 nodes are infected. However, this information is not
-used when building the classifier, since the branch lengths in each tree are
-scaled by their mean. Therefore, the high performance of the classifier is due
-to structural differences captured by the tree kernel, rather than the trees
-simply having different heights.
+Figure~\ref{fig:rsquared} shows the cross-validation accuracy of classifiers
+for all four parameters of the \gls{BA} model. The classifier for \gls{I} also
+exhibited high performance, although not quite as high as that for \gls{alpha}.
+The average $R^2$ values were 0.70 for 100-tip trees, or 0.93 for 500-tip
+trees. On the other hand, $m$ and $N$ were much harder to classsify. For $m$,
+all $R^2$ values were below 0.5, falling to virtually zero in four scenarios.
+The $R^2$ values for $N$ were highly variable, ranging from 0.08 to 0.82
+depending on $I$ and the number of tips in the tree. In almost all cases, both
+the nLTT and Sackin's index classifiers were worse than the tree kernel, except
+for classifying $N$ with $I = 2000$ and $100$ tips, where the nLTT gave a small
+advantage (see the supplements). The greatest disadvantage for the Sackin's
+index-based classifier was on the $I$ parameter, where it had an $R^2$ of less
+than 0.1, despite the relatively high accuracy of the tree kernel (see the
+supplements).
 
 \begin{figure}[ht]
   \centering
-  \label{fig:prevtrees}
-  \includegraphics{kernel_nsimnode_trees}
-  \caption[Similarly shaped simulated under three values of \gls{I}]{
-    Epidemics were simulated on networks of size 5000 until \gls{I} = 500,
-    1000, or 2000 nodes were infected. When scaled to the same height, there is
-    no immediately visible distinction in shape between trees simulated under
-    different \gls{I} values.
-  }
+  \includegraphics{kernel_rsquared}
+  \caption[Cross-validation accuracy of kSVM classifiers for \gls{BA}
+  model parameters.]{Cross-validation $R^2$ values of kernel-SVM classifier for
+    \gls{BA} model parameters. Points and ranges are median and 95\% quantiles
+    over 1000 2-fold cross-validations.}
+  \label{fig:rsquared}
 \end{figure}
 
-\begin{figure}[ht]
-  \centering
-  \label{fig:prevcrossv}
-  \includegraphics{kernel_nsimnode_crossv}
-  \caption[Cross-validation performance of kernel-\gls{SVM} classifier for
-           prevalence]{
-    For \gls{BA} networks of size \gls{N} = 5000, a kernel-\gls{SVM} classifier
-    is very accurate at predicting \gls{I}. Epidemics were simulated until
-    \gls{I} = 500, 1000, or 2000 nodes were infected, and either 100 or 500
-    nodes were sampled for inclusion in a transmission tree. The parameters of
-    the \gls{BA} network were \gls{alpha} = 1.0 and \gls{m} = 2. A Sackin's
-    index-based classifier performed very poorly on these data ($R^2 = $ TODO
-    for 100-tip trees and blah for 500-tip trees, not shown).
-  }
-\end{figure}
+% needs to go in methods
+
+%It is important to note that, if we cut off the epidemic simulation when 500
+%nodes are infected, the resulting tree will be shorter (in calendar time) than
+%if we continue until 2000 nodes are infected. However, this information is not
+%used when building the classifier, since the branch lengths in each tree are
+%scaled by their mean. Therefore, the high performance of the classifier is due
+%to structural differences captured by the tree kernel, rather than the trees
+%simply having different heights.
 
 \subsection{Accuracy of marginal estimates}
 

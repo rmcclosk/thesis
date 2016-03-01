@@ -1,0 +1,242 @@
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage{garamondx}
+\usepackage[garamondx,cmbraces]{newtxmath}
+\usepackage{fullpage}
+\usepackage[backend=biber, sorting=none]{biblatex}
+\usepackage{setspace}
+
+\newcommand{\sw}[1]{\textit{#1}}
+\newcommand{\etal}{\textit{et al.}}
+
+\title{Phylogenetic estimation of contact network parameters with kernel-ABC}
+\author{Rosemary McCloskey \and Art FY Poon}
+\addbibresource{papers.bib}
+
+\begin{document}
+
+\maketitle
+
+\onehalfspacing
+
+\section{Abstract}
+
+Models of the spread of HIV in a population often make the simplifying
+assumption that the population is homogeneously mixed, or is divided into
+homogeneously mixed compartments. However, human populations are likely to have
+complex structures formed by social contacts; this structure can have a
+significant influence on the rate of epidemic spread. Contact network models
+capture this structure by explicitly representing each possible transmission. 
+
+We developed a tree kernel-based approximate Bayesian computation (kernel-ABC)
+method for estimating structural parameters of the contact network underlying
+an observed HIV transmission tree, and used it to investigate the preferential
+attachment (PA) power parameter of the Barab\'asi-Albert network model. To
+validate the method, we constructed networks of 5000 nodes with mean degree 4
+and PA power values \{0, 0.25, \ldots, 2\}. Epidemics were simulated over these
+networks until 1000 nodes were infected, then transmission trees were obtained
+by sub-sampling 500 tips each. We also applied the method to a viral phylogeny
+relating a cluster of 399 HIV infections in British Columbia.
+
+On simulated data, we were able to estimate the PA power: the median [IQR]
+absolute deviation of our estimate from the true value was 0.08 [0.03-0.18],
+with 95\% confidence intervals of width 0.57 [0.38-0.73]. However, our estimates
+of the number of infected nodes in these networks, using a uniform prior on
+[500, 2000], were mostly uninformative (1130, 95\% CI [645-1761], true value
+1000). The estimated PA power of the contact network for the HIV phylogeny in
+British Columbia was 1.01 (0.94-1.05).
+
+Using a novel kernel-ABC method to estimate contact network parameters from
+virus phylogenies, we found that structural parameters such as PA power can be
+recovered. Our method offers the potential to quantitatively investigate social
+network dynamics underlying the spread of viral epidemics.
+
+
+\section{Background}
+
+The domain of this work is the emerging field of
+phylodynamics~\autocite{grenfell2004unifying}. Briefly, phylodynamics is the
+study of the interaction between epidemiological and evolutionary processes, in
+organisms such as RNA viruses where these occur on the same time
+scale~\autocite{drummond2003measurably}. In particular, phylodynamic methods
+provide a way to use evolutionary data, like phylogenies, to estimate
+epidemiological quantities, like transmission rates.
+
+One type of epidemiological data we might want to investigate with
+phylodynamics is the structure of the host population. This includes questions
+such as how many connections a person has on average, or whether there are
+``superspreaders'' responsible for a disproportionately high number of
+transmissions. A contact network is a graphical representation of a population
+of individuals (nodes) and potential transmissions between them (edges).
+Contact networks models remove the assumption of homogeneously mixed
+populations used in many epidemiological investigations, and can potentially
+offer much more detailed information about the structure of a population
+experiencing an epidemic. However, contact network models can be challenging to
+work with. Unlike standard compartmental models, one cannot generally write
+down a set of equations describing the epidemic behaviour over time, nor
+calculate the likelihood of observed data for a given contact network.
+
+Approximate Bayesian computation (ABC) is a statistical method for estimating
+parameters of models for which explicit likelihoods cannot be calculated. The
+idea of ABC is to simulate data according to a broad range of possible model
+parameters, and prefer parameters which produce simulated data similar to the
+observed data. Contact network models are a good candidate for the use of ABC,
+since simulating networks, and transmission trees over those networks, is
+straightforward.
+
+\section{Objective}
+
+The goal of this work is to develop and validate a method to quantitatively
+infer structural parameters of contact networks from observed transmission
+trees. This idea fits in between three established bodies of work. First, there
+are phylodynamic studies which estimate epidemiological parameters, such as the
+transmission rate or basic reproductive number
+(e.g.~\autocite{stadler2011estimating, volz2012simple}). These studies have
+provided valuable insight into emerging epidemics, however they typically
+either ignored any population structure or assumed the population was
+panmictic. Second, there have been several \emph{qualitative} investigations of
+the impact of contact network structure on phylogeny shape
+(e.g.~\autocite{leventhal2012inferring, colijn2014phylogenetic, o2010contact}).
+Third, there have been a couple of attempts to discern contact network
+parameters from other epidemiological data, like infection and recovery
+times~\autocite{britton2002bayesian, groendyke2011bayesian}, but these have
+been limited to the edge density parameter $p$ in networks with randomly chosen
+edges. So far as we are aware, there have been no attempts to
+\emph{quantitatively} estimate contact network parameters other than $p$, and
+no attempts at all to estimate these parameters directly from viral sequence
+data.
+
+\section{Methods}
+
+\subsection{Programs}
+
+Three software programs were written for this work: \sw{nettree},
+\sw{treekernel}, and \sw{netabc}. \sw{Nettree} simulates a transmission tree
+over a supplied contact network using Gillespie
+simulation~\autocite{gillespie1976general}. \sw{Treekernel} is a fast
+implementation of the phylogenetic kernel of Poon
+\etal~\autocite{poon2013mapping} using the algorithm of
+Moschitti~\autocite{moschitti2006making}. \sw{Netabc} is an implementation of
+the adaptive sequential Monte-Carlo algorithm developed by Del Moral
+\etal~\autocite{del2012adaptive}, tailored for approximate Bayesian computation
+using the phylogenetic kernel (kernel-ABC).
+
+\subsection{Simulation experiments}
+
+I performed three sets of simulation experiments to validate the kernel-ABC
+method. The first two sets have either already been performed, or will be in
+the near future, for all the parameters of three contact network models:
+Erd\H{o}s-R\`enyi or random networks~\autocite{erdos1960evolution},
+Watts-Strogatz or small-world networks~\autocite{watts1998collective}, and
+Barab\'asi-Albert or preferential attachment
+networks~\autocite{barabasi1999emergence}. However, due to computational
+constraints, I have so far only performed the third set of experiments for the
+preferential attachment power parameter (henceforth $\alpha$) of the
+Barab\'asi-Albert network model. Therefore, I will focus only on this parameter
+for this meeting. $\alpha$ indicates the strength of attraction to popular
+nodes: as $\alpha$ increases, so does the tendency of other nodes to attach
+themselves to nodes of high degree.
+
+The first experiment was similar to the validation performed previously by
+Poon~\autocite{poon2015phylodynamic}. It is designed to ensure that the chosen
+parameters are identifiable, in that they produce transmission trees which are
+different enough from each other that the parameter can be recovered. This
+analysis also serves the purpose of checking that the tree kernel is the most
+effective distance measure to use for ABC, and of identifying the optimal
+meta-parameters for tuning the kernel. I simulated 100 trees each under three
+different values of $\alpha$ (0.5, 1.0, and 1.5), constructed a pairwise
+distance matrix relating the 300 trees, and estimated the accuracy of a
+kernel-SVM classifier trained with this matrix by cross-validation. This was
+repeated for several different sets of simulation and tree kernel parameters.
+
+The second experiment was a marginal grid search, designed to investigate our
+ability to infer a particular model parameter when all others are fixed. For
+each of nine different $\alpha$ values (0.0, 0.25, \ldots, 2.0), ten testing
+trees were simulated. These were compared using the tree kernel to 6030
+training trees, which had been simulated on a finely spaced grid of $\alpha$
+values between 0 and 2. The $\alpha$ value with the highest median tree kernel
+score was taken as the point estimate of $\alpha$ for the testing tree. These
+point estimates were compared to the true values.
+
+The third and final experiment tested the ability of the full ABC algorithm to
+infer the $\alpha$ parameter. Ten transmission trees were simulated under each
+of the same nine $\alpha$ values as in the previous experiment. The
+simulations were performed on networks of 5000 nodes, 1000 of which eventually
+became infected. We assumed a uniform prior on $[1000, 10000]$ for the number
+of nodes in the network, on $[500, 2000]$ for the number of infected nodes, and
+$[0, 2]$ for $\alpha$. The mean degree of the network was fixed at either 4,
+10, or 16. In each case, we evaluated the accuracy and precision of the
+posterior distributions on $\alpha$, as well as those on the number of nodes
+and number of infected.
+
+\subsection{Real world application}
+
+I applied the ABC algorithm to a phylogeny relating 399 HIV infections in
+British Columbia, which had previously been identified as being part of a
+phylogenetic cluster. The priors used were the same as in the previous section.
+Because this application involved only one replicate, I ran the ABC algorithm
+with a ten-fold higher number of particles, to increase the resolution and
+hopefully obtain a narrower confidence interval.
+
+\section{Results}
+
+\subsection{Simulation experiments}
+
+The first validation experiment showed that trees simulated under different
+values of the $\alpha$ parameter were sufficiently distinct to be identifiable
+with the tree kernel. With suitable kernel meta-parameters, the $R^2$ of the
+kernel-SVM classifier was above 0.95 for 1000- and 500- tip trees, dropping to
+0.85 for 100-tip trees. Surprisingly, multiplication of the tree kernel by the
+normalized lineages-through-time statistic
+(see~\autocite{janzen2015approximate}) actually reduced accuracy somewhat. This
+prompted us to perform a sanity check by doing the same type of experiment for
+the number of infected nodes (henceforth $I$) under a full network model, where
+every node is connected to every other node. The full graph satisfies the
+assumption of panmixia required for Kingman's coalescent, so the
+lineages-through-time statistic should be informative. We found that under the
+full model, the $R^2$ did improve slightly with the addition of the
+lineages-through-time statistic.
+
+In the second experiment using grid search, we found that the point estimates
+for $\alpha$ were quite accurate. The least accurate estimates were for the
+true value of $\alpha = 0$, which had a mean of 0.17 and a standard error of
+0.05 across replicates. The most accurate were for the true value of $\alpha =
+1.25$, which had a mean of 1.25 with standard error 0.01. 
+
+Finally, in the third experiment using the full ABC algorithm, we were able to
+recover the $\alpha$ parameter well in most cases, although the accuracy was
+lower than with grid search. This was expected, since we were not fixing the
+other model parameters. The least accurate point estimates were again for
+$\alpha = 0$, with mean 0.31 and standard error 0.03. The most accurate were
+for $\alpha = 1.25$, with mean 1.2 and standard error 0.01. The 95\% confidence
+intervals on the parameters were fairly wide, averaging 0.64 across all
+experiments. The estimates of the number of nodes and number of infected nodes
+were mostly uninformative, with 95\% confidence intervals spanning almost the
+entire prior region (average width 7313 and 1033 respectively, for prior
+regions [1000, 10000] and [500, 2000]).
+
+\subsection{Real world application}
+
+We estimated the preferential attachment power of the real HIV network to be
+1.01, with a 95\% confidence interval of [0.94, 1.05]. The reduced size of the
+confidence interval compared to our simulations was likely due to the increased
+number of particles in the ABC algorithm. As before, the estimates of numbers
+of total nodes and infected nodes were uninformative, however the estimate of
+$\alpha$ was robust to changing the mean degree of nodes in the network.
+
+\section{Future work}
+
+Two major tasks remain. First, I plan to perform the ABC validation experiments
+for other parameters and network model types, namely random
+networks~\autocite{erdos1960evolution} and small-world
+networks~\autocite{watts1998collective}. This is a straightforward modification
+of the existing experimental setup for $\alpha$, although the actual experiment
+will take significant time. Second, I would like to find additional real-world
+datasets to which to apply the method. Currently, I am running the algorithm on
+a dataset from the CRF07 subtype of HIV in China, and am curating additional
+datasets from Genbank.
+
+\singlespacing
+\printbibliography
+
+\end{document}

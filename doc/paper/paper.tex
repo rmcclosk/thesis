@@ -1,4 +1,53 @@
-\documentclass[12pt]{article}
+\documentclass[12pt]{article}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
 \usepackage[osf]{garamondx}
 \usepackage[garamondx,cmbraces]{newtxmath}
 \usepackage[top=2cm, bottom=2cm, outer=3cm, inner=3cm, heightrounded, 
@@ -52,13 +101,10 @@ Bayesian computation}
 
 \frenchspacing
 \onehalfspacing
-
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \begin{document}
 
-<<setup, include=FALSE>>=
-    library(netabc)
-    library(xtable)
-@
+
 
 \maketitle
 
@@ -239,13 +285,12 @@ investigated are given in Table~\ref{tab:data}.
     \hline
     \autocite{wang2015targeting} & 173 & Beijing, China & MSM & \textit{pol} \\
     \autocite{cuevas2009hiv} & 287 & Basque Country, Spain & mixed & \textit{pol} \\
-    \autocite{novitsky2013phylogenetic} & \multirow{2}{*}{201^*} &
-    \multirow{2}{*}{Mochudi, Botswana} & \multirow{2}{*}{mixed} &
-    \multirow{2}{*}{\textit{env}} \\ \autocite{novitsky2014impact} \\
+    \autocite{novitsky2013phylogenetic} & \multirow{2}{*}{1299} & \multirow{2}{*}{Mochudi, Botswana} & \multirow{2}{*}{mixed} & \multirow{2}{*}{\textit{env}} \\
+    \autocite{novitsky2014impact} \\
     \hline
   \end{tabular}
   \caption{Characteristics of published datasets investigated with kernel-ABC.
-  Acronyms: MSM, men who have sex with men. $^*$ Sub-sampled from 1299.}
+  Acronyms: MSM, men who have sex with men.}
   \label{tab:data}
 \end{table}
 
@@ -261,18 +306,15 @@ Path-o-Gen \autocite[distributed as part of \software{BEAST},
 ][]{drummond2007beast}, as described
 previously~\autocite{poon2015phylodynamic}. 
 
-Three additional steps were undertaken for the
+Two additional steps were undertaken for the
 \textcite{novitsky2013phylogenetic, novitsky2014impact} data. First, before
-performing the multiple sequence alignment, we aligned each sequence pairwise
-to the HXB2 reference sequence (GenBank accession number HIVHXB2CG) using
-\software{MAFFT} version 7.130b \autocite{katoh2013mafft} and clipped out the
-hypervariable regions with \software{Biopython} version 1.66+
-\autocite{cock2009biopython}. Second, after multiple sequence alignment, the
-sequences were trimmed to an informative region with \software{trimAl} version
-1.4.rev15 \autocite{capella2009trimal}. Third, to reduce the dataset to a size
-comparable to the others, we selected a clade of 201 sequences from the
-phylogeny relating the entire 1299 sequence dataset. A second, smaller
-phylogeny was constructed for this clade.
+performing the multiple sequence alignment, we aligned each
+sequence pairwise to the HXB2 reference sequence (GenBank accession number
+HIVHXB2CG) using \software{MAFFT} version 7.130b \autocite{katoh2013mafft} and
+clipped out the hypervariable regions with \software{Biopython}
+version 1.66+ \autocite{cock2009biopython}. Second, after multiple sequence
+alignment, the sequences were trimmed to an informative region with
+\software{trimAl} version 1.4.rev15 \autocite{capella2009trimal}.
 
 Kernel-ABC was used to fit the \gls{BA} model to each dataset. To make the
 analyses comparable, the same priors and configuration parameters were used for
@@ -286,47 +328,27 @@ The kernel meta-parameters and SMC configuration were the same as in the
 
 \subsection*{Kernel classifiers}
 
-<<classifiers, include=FALSE>>=
-    get.kernel.data <- function (param) {
-        md <- collect.metadata(paste0('../../simulations/kernel-', param, '/classifier/*'))
-        md <- subset(md, rbf_variance == 4 & decay_factor == 0.3)
-        if (param == 'alpha') {
-            md <- subset(md, m == 2)
-        }
-        d <- setDT(collect.data(rownames(md)))
-        if (param %in% c('alpha', 'm')) {
-            d[,list(rsquared=mean(rsquared)), by=c('nsimnode', 'ntip')]
-        } else if (param == 'I') {
-            d[,list(rsquared=mean(rsquared)), by=ntip]
-        } else {
-            d[,list(rsquared=mean(rsquared)), by=c('I', 'ntip')]
-        }
-    }
-    kernel.alpha <- get.kernel.data('alpha')
-    kernel.m <- get.kernel.data('m')
-    kernel.I <- get.kernel.data('I')
-    kernel.N <- get.kernel.data('N')
-@
+
 
 Accuracy of the \gls{kSVM} classifiers varied based on the parameter being
 tested. For appropriate choices of the kernel meta-parameters, the classifier
 had an $R^2$ above 
-    \Sexpr{kernel.alpha[,min(rsquared %/% 0.05 * 0.05)]} 
+    0.8 
 for all combinations of tree size and epidemic size. The $I$ parameter was also
 classified accurately, with an average $R^2$ of 
-    \Sexpr{kernel.I[ntip == 500, round(mean(rsquared), 2)]} 
+    0.93 
 for 500-tip trees or 
-    \Sexpr{kernel.I[ntip == 100, round(mean(rsquared), 2)]} 
+    0.7 
 for 100-tip trees. The $m$ parameter was much harder to classify, with $R^2$
 varying between 
-    \Sexpr{kernel.m[,round(min(rsquared), 3)]}
+    0.004
 and
-    \Sexpr{kernel.m[,round(max(rsquared), 2)]}
+    0.36
 depending on $I$ and the tree size. Finally, the accuracy of the classifier for
 $N$ varied widely, from 
-    \Sexpr{kernel.N[,round(min(rsquared), 2)]}
+    0.08
 to
-    \Sexpr{kernel.N[,round(max(rsquared), 2)]}.
+    0.82.
 Figure~\ref{fig:crossv} shows the results for $\alpha$; similar figures for the
 other parameters can be found in the supplemental materials. Based on
 inspection of the cross-validation results, we chose to use the meta-parameters
@@ -342,17 +364,12 @@ index or the \gls{nLTT}.
 
 \subsection*{ABC simulations}
 
-Across replicates and other model parameters, the mean absolute difference
-between the estimated and true values of $\alpha$ was X, with a standard error
-of X. 
-
 Figure~\ref{fig:abcpt} shows point estimates for the simulations with $m = 2$.
 The results for the other values of $m$ are similar and can be found in the
 supplemental materials.
 
 The marginal approximated posterior distributions for one simulated dataset are
 shown in Figure~\ref{fig:abcex}.
-
 
 \begin{figure}
     \includegraphics{abc-point-est}
