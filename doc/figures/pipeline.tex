@@ -15,7 +15,7 @@
   \node (align) [below=of dl] {multiple sequence alignment with MUSCLE};
   \node (clip) [below=of align, dashed] {remove hypervariable regions};
   \node (tree) [right=of dl] {estimate unrooted phylogeny with FastTree2};
-  \node (cluster) [below=of tree, dashed] {select cluster by patristic distance};
+  \node (cluster) [below=of tree, dashed] {select cluster (patristic distance) or subtree};
   \node (root) [below=of cluster] {root and scale phylogeny with root-to-tip regression};
   
   \draw (dl) -- (align);

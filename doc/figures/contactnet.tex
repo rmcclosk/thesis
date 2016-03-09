@@ -9,6 +9,8 @@
 \usetikzlibrary{arrows}
 \usetikzlibrary{automata}
 
+\graphicspath{{stock/}}
+
 \begin{document}
 \pagestyle{empty}
 
@@ -20,12 +22,12 @@
   \def\pht{1.5cm}
   \node (a) at (0, 1) {\includegraphics[height=\pht]{person}};
   \node at (a.south) [label] {\huge a};
-  \node (c) at (2, 0) {\includegraphics[height=\pht]{person}};
-  \node at (c.south) [label] {\huge d};
-  \node (d) at (4, 0) {\includegraphics[height=\pht]{person}};
-  \node at (d.south) [label] {\huge c};
   \node (b) at (5.5, 3) {\includegraphics[height=\pht]{person}};
   \node at (b.south) [label] {\huge b};
+  \node (c) at (4, 0) {\includegraphics[height=\pht]{person}};
+  \node at (c.south) [label] {\huge c};
+  \node (d) at (2, 0) {\includegraphics[height=\pht]{person}};
+  \node at (d.south) [label] {\huge d};
 
   \node (cd) at (3, 2) {\includegraphics[height=\pht]{person}};
   \node at (cd.south) [label] {\huge c};
@@ -34,12 +36,12 @@
   \node (abcd) at (3, 6) {\includegraphics[height=\pht]{person}};
   \node at (abcd.south) [label] {\huge a};
 
-  \draw (abcd) -- (b);
-  \draw (abcd) -- (acd);
-  \draw (acd) -- (cd);
-  \draw (acd) -- (a);
-  \draw (cd) -- (c);
-  \draw (cd) -- (d);
+  \draw [red] (abcd) -- (b);
+  \draw [-, dashed] (abcd) -- (acd);
+  \draw [blue] (acd) -- (cd);
+  \draw [-, dashed] (acd) -- (a);
+  \draw [-, dashed] (cd) -- (c);
+  \draw [green!80!black] (cd) -- (d);
 
   \draw (8, 7) -- (8, -1) node [time] {time};
   \node at (8.2, 6) [time] {\large a infects b};
@@ -66,12 +68,15 @@
   \node [below=of c] (d) {\includegraphics[height=\pht]{person}};
   \node at (d.south) [label] {\huge d};
 
-  \draw [-] (a) -- (b);
-  \draw [-] (a) -- (c);
-  \draw [-] (b) -- (e);
-  \draw [-] (c) -- (d);
-  \draw [-] (a) -- (e);
-  \draw [-] (b) -- (d);
+  \fill [shade, opacity=0.2] (a.east) -- (c.north) -- (c.north west) -- (a.south east) -- cycle;
+  \draw [blue] ($(a.east) + (0, -12pt)$) -- ($(c.north) + (-8pt, 0)$);
+  \fill [shade, opacity=0.2] (a.west) -- (b.north) -- (b.north east) -- (a.south west) -- cycle;
+  \draw [red] ($(a.west) + (0, -12pt)$) -- ($(b.north) + (8pt, 0)$);
+  \fill [shade, opacity=0.2] (a.south) -- (a.south west) -- (e.north) -- (e.north east) -- cycle;
+  \fill [shade, opacity=0.2] (b.south west) -- (b.south) -- (e.north) -- (e.north west) -- cycle;
+  \fill [shade, opacity=0.2] ($(c.south) + (-8pt, 0)$) -- ++(16pt, 0) -- ($(d.north) + (8pt, 0)$) -- ++(-16pt, 0) -- cycle;
+  \fill [shade, opacity=0.2] (b.east) -- (b.south east) -- (d.west) -- (d.north west) -- cycle;
+  \draw [green!80!black] (c) -- (d);
 
   \draw [-, thin, dotted] (-1.5, 6.5) -- (-1.5, -1);
 \end{tikzpicture}
