@@ -1,0 +1,36 @@
+\section{Extensions}
+
+% ergm
+
+An alternative approach is the deterministic framework outlined by
+\textcite{morris1993epidemiology}, who proposes to apply the standard
+compartmental modelling framework to contact networks by assigning each
+individual their own compartment. Thus, each individual is associated with a
+single \gls{ODE}, with the entire \gls{ODE} system parameterized by the
+adjacency matrix of the contact network. \citeauthor{morris1993epidemiology}
+proposes to use log-linear models to parameterize the matrix. This framework is
+highly expressive, and allows straightforward incorporation of time-dependent
+dynamics. However, simulating a transmission tree would require the numerical
+solution of a very large system of \glspl{ODE}. Given the large number of
+simulations required for kernel-\gls{ABC}, it is not clear if this method would
+be computationally feasible in this context.
+
+% spatial networks, see section 5.4 in keeling2005networks
+
+% Caveats
+
+It is important to note that our kernel-ABC method takes a transmission tree as
+input, rather than a viral phylogeny. Thus, we have left the estimation of a
+transmission tree up to the user. There were two reasons for this choice. First
+and foremost, we wished to avoid the extra complexity and keep the number of
+estimated parameters small. In theory, it is possible to incorporate the
+process by which a viral phylogeny is generated along with a transmission tree
+into our method, for example by simulating within-host dynamics. Although this
+may be an avenue for future extension, we felt that it would obscure the
+primary purpose of this work, which is to study contact network parameters.
+Second, there are a number of different methods available for inferring
+transmission trees~\autocite{didelot2014bayesian, yima2012unravelling,
+jombart2011reconstructing, cottam2008integrating, poon2015phylodynamic}, some
+of which incorporate geographic and/or epidemiological data not accomodated by
+our method. We therefore felt it would be best to allow researchers to use
+their own preferred tree building method.

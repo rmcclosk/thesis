@@ -6,7 +6,8 @@
 #' @param mm.file MatrixMarket formatted file
 collect.metadata.mm <- function (mm.file)
 {
-    as.data.frame(yaml.load(substring(process.archive(mm.file, readLines, n=2)[2], 2)))
+    as.data.frame(yaml.load(substring(process.archive(mm.file, readLines, n=2)[2], 2)),
+                  stringsAsFactors=FALSE)
 }
 
 #' Collect YAML-formatted metadata from a Newick file
@@ -17,7 +18,8 @@ collect.metadata.mm <- function (mm.file)
 #' @param nwk.file Newick formatted file
 collect.metadata.newick <- function (nwk.file)
 {
-    as.data.frame(yaml.load(substring(process.archive(nwk.file, readLines, n=1)[1], 2)))
+    as.data.frame(yaml.load(substring(process.archive(nwk.file, readLines, n=1)[1], 2)),
+                  stringsAsFactors=FALSE)
 }
 
 #' Collect YAML-formatted metadata from a TSV file
@@ -29,7 +31,8 @@ collect.metadata.newick <- function (nwk.file)
 #' @param tsv.file tab-separated value file
 collect.metadata.tsv <- function (tsv.file)
 {
-    as.data.frame(yaml.load(substring(process.archive(tsv.file, readLines, n=1)[1], 2)))
+    as.data.frame(yaml.load(substring(process.archive(tsv.file, readLines, n=1)[1], 2)),
+                  stringsAsFactors=FALSE)
 }
 
 #' Collect YAML-formatted metadata from a GML file
@@ -44,7 +47,8 @@ collect.metadata.gml <- function (gml.file)
     getter <- function (f) { 
         strsplit(grep("comment", readLines(f, n=20), value=TRUE), '"')[[1]][2]
     }
-    as.data.frame(yaml.load(process.archive(gml.file, getter)))
+    as.data.frame(yaml.load(process.archive(gml.file, getter)),
+                  stringsAsFactors=FALSE)
 }
 
 #' Collect YAML-formatted metadata from several files.
@@ -86,7 +90,8 @@ collect.metadata <- function (data.files)
     # fill in the fields each file doesn't have with NA 
     metadata <- mapply(function (df, new) {
         if (length(new) > 0) {
-            cbind(df, as.data.frame(setNames(as.list(rep(NA, length(new))), new)))
+            cbind(df, as.data.frame(setNames(as.list(rep(NA, length(new))), new),
+                                    stringsAsFactors=FALSE))
         } else {
             df
         }
@@ -96,6 +101,7 @@ collect.metadata <- function (data.files)
     metadata <- do.call(rbind, metadata)
     rownames(metadata) <- data.files
     colnames(metadata)[colnames(metadata) == "FALSE."] <- "N" # hack
+    metadata[which(metadata == "FALSE", arr.ind=TRUE)] <- "N" # another hack
     metadata
 }
 

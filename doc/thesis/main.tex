@@ -2,25 +2,31 @@
 \usepackage[osf]{garamondx}
 \usepackage[garamondx,cmbraces]{newtxmath}
 \usepackage{marginnote}
-\usepackage[top=2cm, bottom=2cm, outer=3cm, inner=3cm, heightrounded, 
-            marginparwidth=2cm, marginparsep=0.5cm]{geometry}
+\usepackage{fullpage}
 \usepackage{setspace}
-\usepackage[backend=biber, style=authoryear]{biblatex}
+\usepackage[backend=biber, style=numeric-comp, sorting=none]{biblatex}
 \usepackage{nicefrac}
 \usepackage{amsmath}
 \usepackage{algorithm}
 \usepackage{algorithmicx}
 \usepackage{algpseudocode}
+\usepackage{multicol}
+\usepackage{multirow}
 \usepackage[hidelinks]{hyperref}
 \usepackage[acronym,nonumberlist]{glossaries}
+\usepackage{glossary-mcols}
+\usepackage{cleveref}
+\usepackage{array}
 
-\newcommand{\comment}[1]{\marginnote{\textit{#1}}}
+\newcommand{\comment}[1]{(\textbf{#1})}
 
 \newcommand{\defn}[1]{\textit{#1}}
 \newcommand{\software}[1]{\textit{#1}}
 \newcommand{\etal}{\textit{et al.}}
+\newcommand{\eg}{\textit{e.g.}}
 
 \newcommand{\set}[1]{\left\lbrace#1\right\rbrace}
+\newcommand{\sett}[1]{\{#1\}}
 \renewcommand{\emptyset}{\varnothing}
 \renewcommand{\vec}[1]{\mathbf{#1}}
 \renewcommand{\star}[1]{#1^*}
@@ -62,6 +68,9 @@
 \newacronym{HMM}{HMM}{hidden Markov model}
 \newacronym{iid}{i.i.d.}{independent and identically distributed}
 \newacronym{HPD}{HPD}{highest posterior density}
+\newacronym{HIV}{HIV}{human immunodeficiency virus}
+\newacronym{ODE}{ODE}{ordinary differential equation}
+\newacronym{GLM}{GLM}{generalized linear model}
 
 \newglossaryentry{alpha}{
   name=$\alpha$,
@@ -78,6 +87,10 @@
 \newglossaryentry{I}{
   name=$I$,
   description=number of nodes which are eventually infected
+}
+\newglossaryentry{gamma}{
+  name=$\gamma$,
+  description=exponent of power-law degree distribution in scale-free networks
 }
 \newglossaryentry{p}{
   name=$p$,
@@ -100,7 +113,10 @@
   description=number of simulated datasets per particle in ABC-SMC
 }
 
-\graphicspath{{figures/}}
+\graphicspath{{../figures/}}
+\newcommand{\tablepath}{../tables}
+\frenchspacing
+\onehalfspacing
 
 \title{Phylodynamic inference of contact network parameters through approximate
 Bayesian computation}
@@ -109,18 +125,13 @@ Bayesian computation}
 \addbibresource{papers.bib}
 \makeglossaries
 
-\frenchspacing
-\onehalfspacing
-
 \begin{document}
 
 \maketitle
-
 \tableofcontents
-
 \listoffigures
-
 \printglossary[title=List of Symbols]
+\setglossarystyle{mcolindex}
 \printglossary[title=List of Abbreviations,type=\acronymtype]
 
 \chapter{Introduction}
@@ -138,15 +149,16 @@ Bayesian computation}
 \input{results}
 
 \chapter{Conclusion}
+\input{conclusion}
 
 \printbibliography
 
-\chapter{Supplemental Materials}
-
-\setcounter{table}{0}
-\renewcommand{\thetable}{S\arabic{table}}
-\setcounter{figure}{0}
-\renewcommand{\thefigure}{S\arabic{figure}}
-\input{supplements}
+%\chapter{Supplemental Materials}
+%
+%\setcounter{table}{0}
+%\renewcommand{\thetable}{S\arabic{table}}
+%\setcounter{figure}{0}
+%\renewcommand{\thefigure}{S\arabic{figure}}
+%\input{supplements}
 
 \end{document}

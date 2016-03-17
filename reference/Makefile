@@ -1,4 +1,5 @@
-CRAN_URL = http://cran.stat.sfu.ca/
+CRAN_URL = http://cran.stat.sfu.ca
+CTAN_URL = ftp://ctan.math.ca/tex-archive
 fetch = curl -L -z $(2) -o $(2) $(1)
 
 .SECONDEXPANSION:
@@ -35,6 +36,7 @@ all: dirs \
 	 R/roxygen2.pdf \
 	 R/ggplot2.pdf \
 	 R/ks.pdf \
+	 R/gridExtra.pdf \
 	 R/vignettes/ergm/ergm.pdf \
 	 python/python-library.pdf \
 	 bin/pandoc.pdf \
@@ -42,11 +44,15 @@ all: dirs \
 	 bin/autoconf.pdf \
 	 bin/autoconf-archive.pdf \
 	 bin/make.pdf \
+	 latex/biblatex.pdf \
+	 latex/glossaries.pdf \
+	 latex/cleveref.pdf \
+	 latex/array.pdf \
 	 spec/gml-technical-report.pdf \
 	 spec/MMformat.pdf
 
 dirs:
-	mkdir -p bin C R spec arx
+	mkdir -p bin C R spec arx latex
 
 bin/$(DOXYGEN_LATEST).pdf: arx/$(DOXYGEN_LATEST).pdf.zip
 	unzip -f $^ -d $(dir $@)
@@ -118,5 +124,17 @@ spec/MMformat.pdf: FORCE
 	if test `curl -I -z $@ http://math.nist.gov/MatrixMarket/reports/MMformat.ps -w %{http_code} -o /dev/null` -eq 200; then \
 		curl http://math.nist.gov/MatrixMarket/reports/MMformat.ps | ps2pdf - $@; \
 	fi
+
+latex/glossaries.pdf: FORCE
+	$(call fetch, $(CTAN_URL)/macros/latex/contrib/glossaries/glossaries-user.pdf, $@)
+
+latex/cleveref.pdf: FORCE
+	$(call fetch, $(CTAN_URL)/macros/latex/contrib/cleveref/cleveref.pdf, $@)
+
+latex/array.pdf: FORCE
+	$(call fetch, $(CTAN_URL)/macros/latex/required/tools/array.pdf, $@)
+
+latex/%.pdf: FORCE
+	$(call fetch, $(CTAN_URL)/macros/latex/contrib/$*/doc/$*.pdf, $@)
 
 FORCE:

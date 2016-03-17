@@ -40,55 +40,15 @@ population, such as whether there exists a high-risk subgroup, but not about
 the \emph{local} structure, such as the average number of contacts each
 individual has. 
 
-A second, more recent group of studies has evaluated the effect of network
-structure on transmission tree shape. The use of models which assume a
-\defn{panmictic} (that is, homogeneously mixed) population in phylodynamics has
-become widespread, so it is natural that some researchers have investigated the
-effects of this assumption. In particular, since phylodynamic methods use
-phylogenies as their data source, several studies have examined the shapes of
-phylogenies arising from non-panmictic populations. 
-\citeauthor{o2010contact}~(\citeyear{o2010contact}) simulated epidemics over
-networks with four types of degree distribution. They then estimated the
-Bayesian skyride~\autocite{minin2008smooth} population size trajectory in two
-ways: from the phylogeny, using \gls{MCMC}; and from the incidence and
-prevalence trajectories, using the method developed by Volz
-\etal~\autocite{volz2009phylodynamics}. They found that the concordance between
-the two skyrides, as well as the relationship between the skyride and
-prevalence curve, was qualitatively different for each degree distribution.
-\citeauthor{leventhal2012inferring} simulated transmission trees over \gls{ER},
-\gls{WS}, \gls{BA}, and full networks with fixed number of nodes and mean
-degree. They calculated Sackin's index of the simulated trees while varying the
-epidemic, network, and sampling parameters, and found that the relationship
-between these parameters and Sackin's index varies considerably among the
-different network models. In summary, studies in this group have demonstrated
-that network structure profoundly influences tree shape, but have not attempted
-to quantitatively infer network parameters from observed trees.
+The use of models which assume a \defn{panmictic} (that is, homogeneously
+mixed) population in phylodynamics has become widespread, so it is natural that
+some researchers have investigated the effects of this assumption. In
+particular, since phylodynamic methods use phylogenies as their data source,
+several studies have examined the shapes of phylogenies arising from
+non-panmictic populations.
 
 Finally, a third group of studies has used Bayesian methods to infer a
 structural network parameter from observed infection and recovery times. This
 third group is most similar in aims to our own work; rather than using
-epidemiological observations, we employ viral phylogenies. The pioneering study
-in this group was by \textcite{britton2002bayesian}, who developed a Bayesian
-method to infer the $p$ parameter of an \gls{ER} network, along with the
-$\beta$ and $\gamma$ parameters of \gls{SI} model. Their method is able to use
-either infection and removal times, or removal times only. However, it is
-designed for only a small number of observations (15 and 42 cases in their
-applications), and their estimates of $p$ for real outbreaks were mostly
-uninformative (95\% confidence intervals [0.11-0.96] and 0.055-0.96]; $p$ is
-bounded in [0, 1]).
-\textcite{groendyke2011bayesian} significantly updated and extended the
-methodology of \citeauthor{britton2002bayesian}, and applied it to a measles
-outbreak affecting 188 individuals. They were able to obtain a much more
-informative estimate of $p$, although this data set included both symptom onset
-and recovery times for all individuals. They also assumed that the entire
-network was infected, so that the network size was exactly 188. It is unclear
-how well their method would scale to networks with thousands of nodes.
-
-% TODO: I don't know where to put this so it's going here for now.
-Several studies~\autocite{little2014using, wang2015targeting,
-brown2011transmission, schneeberger2004scale} have found that the preferential
-attachment model provides a good fit to MSM networks.
-
-The phylogenetic network may show little to no agreement with a contact data
-obtained through epidemiological methods~\autocite{yirrell1998molecular,
-resik2007limitations}.
+epidemiological observations, we employ viral phylogenies. These were discussed
+in \cref{subsec:netoverview}.

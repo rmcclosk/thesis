@@ -30,6 +30,9 @@ indicates whether a data set is ``close'' to the observed data. That is, if
 $d(x, y) < \varepsilon$, we will say that $x$ and $y$ are close, otherwise they
 are distant.
 
+\subsubsection*{Epidemic simulation}
+\label{subsubsec:nettree}
+
 I implemented a Gillespie simulation algorithm~\autocite{gillespie1976general}
 for simulating epidemics, and the corresponding transmission trees, over static
 contact networks. This method has been independently implemented and applied by
@@ -148,7 +151,7 @@ Figure~\ref{fig:nltt}.
      of the two trees is non-zero due to the differing numbers of internal
      branches. Using linear interpolation, the nLTT is zero (right). The lines
      on the right graph have been offset for visibility.}
-  \includegraphics[scale=0.75]{nltt}
+  \includegraphics{nltt.pdf}
   \label{fig:nltt}
 \end{figure}
 
@@ -199,7 +202,7 @@ Figure~\ref{fig:separable}.
 
 \begin{figure}[ht]
   \centering
-  \includegraphics{separable}
+  \includegraphics{separable.pdf}
   \caption[Separable versus non-separable pararameters in kernel space]{
     Separable versus non-separable parameters in kernel space. Trees have been
     simulated under three sets of parameters, represented as blue, red, and
@@ -215,24 +218,15 @@ Figure~\ref{fig:separable}.
   \label{fig:separable}
 \end{figure}
 
-Before undertaking a complete ABC analysis, I analysed four simple contact
-network models to determine whether their parameters could be separated in tree
-kernel space. The four models are described in detail in
-subsection~\ref{subsubsec:generative} of the introduction. Briefly, they are:
-random networks, where each possible contact has a fixed probability of
-occuring; preferential attachment networks, where highly connected nodes tend
-to attract more contacts; small world networks, where nodes are connected to
-their immediate neighbours and the occasional far-flung contact; and full
-networks, where every possible connection is present. I will describe here only
-the procedure and results for the preferential attachment networks. The details
-of the other three types of graph can be found in the supplemental materials. A
-graphical schematic of the analysis undertaken here is given in
+Before undertaking a complete ABC analysis, I analysed the parameters of the
+\gls{BA} network model to to determine whether they could be separated in tree
+kernel space. A graphical schematic of the analysis undertaken here is given in
 Figure~\ref{fig:kernelexpt}.
 
 \begin{figure}[ht]
   \centering
   \label{fig:kernelexpt}
-  \includegraphics{kernel_expt}
+  \includegraphics{kernel-expt.pdf}
   \caption[Schematic of first set of simulation experiments]{
     Schematic of first set of simulation experiments to determine separable
     parameters in kernel space, along with optimal tree kernel meta-parameters.
@@ -240,24 +234,23 @@ Figure~\ref{fig:kernelexpt}.
 \end{figure}
 
 The method of testing for separability was described previously
-in~\autocite{poon2015phylodynamic}, but I will reiterate it here for
-completeness. As a concrete example, consider the attachment power parameter
-\gls{alpha} of the preferential attachment networks. This parameter describes the
-strength of attraction to highly connected nodes and is bounded below by zero
-indicating no extra attraction. By qualitative observation, I determined that a
-power of 2.0, which produced networks with very few ``hub'' nodes with
-extremely high degree, was a suitable upper bound (see
-Figure~\ref{fig:pabounds}). Therefore, I chose to test the values 0.5, 1.0, and
-1.5 for separability. The other parameters were fixed: the number of nodes in
-the network was 5000, and the mean degree of each node in the network was four.
-As discussed in subsection~\ref{subsubsec:generative}, this is the smallest
-mean degree value for preferential attachment networks which produces networks
-which are more than trees. 
+in~\autocite{poon2015phylodynamic}. As a concrete example, consider the
+attachment power parameter \gls{alpha}. This parameter describes the strength
+of attraction to highly connected nodes and is bounded below by zero indicating
+no extra attraction. By qualitative observation, I determined that a power of
+2.0, which produced networks with very few ``hub'' nodes with extremely high
+degree, was a suitable upper bound (see Figure~\ref{fig:alphabds}). Therefore,
+I chose to test the values 0.5, 1.0, and 1.5 for separability. The other
+parameters were fixed: the number of nodes in the network was 5000, and the
+mean degree of each node in the network was four. As discussed in
+subsection~\ref{subsubsec:generative}, this is the smallest mean degree value
+for preferential attachment networks which produces networks which are more
+than trees. 
 
 \begin{figure}[ht]
   \centering
-  \label{fig:pabounds}
-  \includegraphics{pa_power_bounds}
+  \label{fig:alphabds}
+  \includegraphics{alpha-bounds.pdf}
   \caption[Upper and lower bounds on preferential attachment power]{
     Qualitative justification for choice of zero and two as lower and upper
     bounds on preferential attachment power $\alpha$. (A) Preferential
@@ -271,16 +264,17 @@ which are more than trees.
   }
 \end{figure}
 
-For each of the values of $\alpha$, I generated 100 networks on 5000 nodes. An
-epidemic was simulated over each network (see subsection X) until 1000 nodes
-were infected, and 500 of those infected nodes were sampled to form a
-transmission tree. This resulted in 300 total simulated transmission trees -
-100 for each of the three values of $\alpha$. The data generation steps are
-shown on the left side of Figure~\ref{fig:kernelexpt}. Next, I computed the
-tree kernel~\autocite{poon2013mapping} (see
-subsection~\ref{subsubsec:treeshape}) for each pair of trees. These values were
-placed into a 300 $\times$ 300 kernel matrix, where the value at the $(i, j)$th
-position was the tree kernel of the $i$th and $j$th trees. 
+For each of the values of $\alpha$, I generated 100 networks, each with 5000
+nodes. An epidemic was simulated over each network (see
+\cref{subsubsec:nettree}) until 1000 nodes were infected, and 500 of those
+infected nodes were sampled to form a transmission tree. This resulted in 300
+total simulated transmission trees - 100 for each of the three values of
+$\alpha$. The data generation steps are shown on the left side of
+Figure~\ref{fig:kernelexpt}. Next, I computed the tree
+kernel~\autocite{poon2013mapping} (see subsection~\ref{subsubsec:treeshape})
+for each pair of trees. These values were placed into a 300 $\times$ 300 kernel
+matrix, where the value at the $(i, j)$th position was the tree kernel of the
+$i$th and $j$th trees. 
 
 The tree kernel provides a pairwise similarity score between two trees. The
 higher the kernel score, the more similar the trees are to each other.
@@ -341,7 +335,7 @@ precise, and the worst situation is when we are precise but not accurate.
 
 \begin{figure}[ht]
   \centering
-  \includegraphics{acc_prec}
+  \includegraphics{acc-prec.pdf}
   \caption{Illustration of accurate vs. precise kernel score estimates}
   \label{fig:accprec}
 \end{figure}
@@ -368,7 +362,7 @@ the parameter.
 
 \begin{figure}[ht]
   \centering
-  \includegraphics{gridsearch_expt}
+  \includegraphics{gridsearch-expt.pdf}
   \caption{Schematic of grid search simulation experiments.}
   \label{fig:gridsearch}
 \end{figure}
@@ -386,6 +380,32 @@ degree of nodes in the network was fixed at either 4, 10, or 16. The
 algorithm was run with 1000 particles, and was stopped when the \gls{MCMC}
 acceptance probability dropped below 1.5\%.
 
-\subsection{Applications}
+\subsubsection{Characterization of power-law exponent in Barab\'asi-Albert networks}
 
-\subsubsection{HIV in British Columubia}
+Most studies of social network or transmission network
+parameters~\autocite[e.g.][]{liljeros2001web, jones2003assessment,
+schneeberger2004scale, brown2011transmission} report the coefficient
+\gls{gamma} of the power law degree distribution. To make our results
+comparable to previous work, we used simulated networks to investigate the
+relationship between the \gls{BA} model parameters and \gls{gamma}. A network
+was simulated for each element of the Cartesian product of these parameters:
+\gls{N} = \sett{500, 600, \ldots, 15000}, \gls{m} = \sett{1, 2, \ldots, 8}, and
+\gls{alpha} = \sett{0.00, 0.01, \ldots, 2.00}. A power law distribution was
+fitted to the degree distribution of each simulated network using the
+\software{fit\_power\_law} function in \software{igraph} with the `R.mle'
+implementation. We fitted a \gls{GLM} with Gamma-distributed errors and a log
+link function to the observed distribution of \gls{gamma} values, with
+\gls{alpha}, \gls{m}, \gls{N}, and all possible interaction terms as
+predictors.
+
+\subsection{Real data experiments}
+
+We applied kernel-ABC to six published HIV datasets, summarized in
+\cref{tab:realdata}.
+
+\begin{table}
+  \centering
+  \input{\tablepath/realdata-bc}
+  \caption{Characteristics of published HIV datasets analysed with kernel-ABC.}
+  \label{tab:realdata}
+\end{table}

@@ -1,4 +1,5 @@
 \section{Phylogenetics and phylodynamics}
+\label{sec:phylo}
 
 \subsection{Phylogenetic trees}
 
@@ -30,12 +31,11 @@ called \defn{branching times}, and the rate of their accumulation is referred
 to as the \defn{branching rate}. Rooted trees whose tips are all the same
 distance from the root are called \defn{ultrametric}
 trees~\autocite{buneman1974note}. These concepts are illustrated in
-Figure~\ref{fig:speciestree}.
+\cref{fig:speciestree}.
 
 \begin{figure}[ht]
   \centering
-  \label{fig:speciestree}
-  \includegraphics{speciestree}
+  \includegraphics{speciestree.pdf}
   \caption[Illustration of a rooted, ultrametric, time-scaled phylogeny]
     {Illustration of a rooted, ultrametric, time-scaled phylogeny. The tips of
       the tree, which represent extant taxa, are placed at the present day on
@@ -43,14 +43,15 @@ Figure~\ref{fig:speciestree}.
       the extant taxa, fall in the past. The topology of the tree indicates
       that cats and dogs are the most closely related pair of species, whereas
       fish is most distantly related to any other node in the tree.}
+  \label{fig:speciestree}
 \end{figure}
 
-\subsection{Transmission trees and epidemiology}
+\subsection{Transmission trees}
 
 In epidemiology, a \defn{transmission tree} is a graphical representation of an
 epidemic's progress through a population. Like phylogenies, transmission trees
 have tips, nodes, edges, and branch lengths. However, rather than recording an
-evolutionary process (speciation), they record an epidemiolgical process
+evolutionary process (speciation), they record an epidemiological process
 (transmission). The tips of a transmission tree represent infected hosts, while
 internal nodes correspond to transmissions from one host to another.
 Transmission trees generally have branch lengths in units of calendar time,
@@ -63,19 +64,42 @@ isolation, behaviour change, or migration. Consequently, the transmission tree
 may not be ultrametric, but may have tips located at varying distances from the
 root. Such trees are said to have \defn{heterochronous}
 taxa~\autocite{drummond2003measurably}, in contrast to the
-\defn{isochronous} taxa found in the phylogenies of macro-organisms.  A
-transmission tree is illustrated in Figure~\ref{fig:virustrees}.
+\defn{isochronous} taxa found in the phylogenies of macro-organisms. A
+transmission tree is illustrated in \cref{fig:contactnet} (right). 
+
+In a transmission tree, each sampled individual appears as a tip when they are
+removed from the infected population. In addition, they appear as an internal
+node each time they transmit to an individual who is either eventually sampled,
+or who transmits directly or indirectly to a sampled individual. This is not
+the same as the transmission \emph{network}, in which each infected individual
+appears exactly once, and edges are in one-to-one correspondence with
+transmissions~\autocite{welch2011statistical, keeling2005networks}.
+Transmission networks are discussed further in \cref{sec:contactnet}, and the
+distinction between the two objects is illustrated in \cref{fig:contactnet}.
+However, since transmission networks generally have no cycles (unless
+re-infection occurs), they are trees in the graph theoretical sense, and hence
+are sometimes also referred to as transmission
+trees~\autocite[\eg][]{kenah2015algorithms}. In this work, we reserve the term
+``transmission tree'' for the objects depicted on the right side of
+\cref{fig:contactnet}, following~\autocite[\eg][]{stadler2013uncovering}. The
+term ``transmission network'' is taken to mean the subgraph of the contact
+network along which transmissions occured,
+following~\autocite{welch2011statistical, keeling2005networks}.
 
 \begin{figure}
     \centering
-    \includegraphics{virustrees}
-    \label{fig:virustrees}
-    \caption[Illustration of a transmission tree]{
-        A transmission tree representing an epidemic's progress through
-        four individuals. The index case, patient $a$, transmitted the
-        virus to patients $b$ and $c$; patient $c$ went on to infect
-        patient $d$. 
+    \includegraphics[width=\textwidth]{contactnet.pdf}
+    \caption[Illustration of a contact network and transmission tree]{
+      Illustration of epidemic spread over a contact network, and the
+      corresponding transmission tree. (Left) A contact network with five
+      hosts, labelled $a$ through $e$. Thick shaded edges indicate symmetric
+      contacts among the hosts. The transmission network is indicated by
+      coloured arrows. The epidemic began with node $a$, who transmitted to
+      nodes $b$ and $c$. Node $c$ further transmitted to node $d$. Node $e$ was
+      not infected. (Right) The transmission tree corresponding to this
+      scenario, with a timeline of transmission and removal times.
     }
+    \label{fig:contactnet}
 \end{figure}
 
 Since transmission trees are essentially a detailed record of an epidemic's
@@ -88,21 +112,21 @@ transmission trees, such as the degree of
 clustering~\autocite{hughes2009molecular} and the effect of elevated
 transmission risk in acute infection~\autocite{volz2012simple}. However, in all
 but the most well-studied of epidemics, this is not possible to obtain through
-traditional epidemiological methods. The time and effort to conduct detailed
-interviews and contact tracing of a sufficient number of infected individuals
-is usually prohibitive. Even when the resources for such methods are available,
-patients may not always recall whom they contacted and when, especially in the
-case of airborne transmission. Consequently, the transmission tree must be
-estimated using other methods. Most commonly, this is done by exploiting the
-relationship between transmission trees and viral phylogenies.
+traditional epidemiological methods~\autocite{welch2011statistical}. The time
+and effort to conduct detailed interviews and contact tracing of a sufficient
+number of infected individuals is usually prohibitive. Even when the resources
+for such methods are available, patients may not always recall whom they
+contacted and when, especially in the case of airborne transmission.
+Consequently, the transmission tree must be estimated using other methods. Most
+commonly, this is done by exploiting the relationship between transmission
+trees and viral phylogenies~\autocite{volz2013viral}.
 
-\subsection{Estimating transmission trees from viral phylogenies}
+\subsection{Relationship between transmission trees and viral phylogenies}
 
 In general, \defn{viral phylogenies} are simply phylogenetic trees relating
-virus strains. \comment{Is ``strain'' the best word here?} In phylodynamics, we
-often consider \defn{inter-host} phylogenies, which relate one viral genotype
-from each host in a population. The tips of the tree are labelled with both the
-virus and its host. The crux of
+virus strains. In phylodynamics, we often consider \defn{inter-host}
+phylogenies, which relate one viral genotype from each host in a population.
+The tips of the tree are labelled with both the virus and its host. The crux of
 \defn{phylodynamics}~\autocite{grenfell2004unifying} is the fact that the
 processes generating these two types of tree - epidemiological processes, for
 transmission trees, and evolutionary processes, for viral phylogenies - occur
@@ -123,26 +147,25 @@ methods of phylogenetic reconstruction produce unrooted trees whose branch
 lengths measure genetic distance in units of expected substitutions per site,
 whereas transmission trees are rooted with branches measuring calendar time. We
 generally assume that sampling a virus from the individual also corresponds to
-their removal from the transmission tree\comment{needs a reference}, so the
-positions of the tips in time are fixed. Therefore, to transform a viral
-phylogeny into an estimated transmission tree, we must find a root and an
-assignment of branch lengths such that the tips are placed at their proscribed
-times. Of course, there are an infinite number of possible combinations of root
-and branch lengths which result in the correct placement of the tips, so we
-would also like to find values which are the most ``reasonable'' given our
-data. By reasonable, we mean that the variation in \defn{evolutionary rate},
-which is the ratio of a branch's length in genetic distance to its length in
-calendar time, is low across the tree. While there is some variation among
-hosts, due to immunological and other factors, we generally expect to observe
-globally similar evolutionary rates. Methods for time-scaling a phylogeny
-include root-to-tip regression~\autocite{shankarappa1999consistent,
-korber2000timing, drummond2003inference}, which we apply in this work, and
-least-square dating~\autocite{to2015fast}. Both of these methods can be used to
-root the tree, by simply trying all possible root positions and choosing the
-one which minimizes a loss function ($1-R^2$, or root-mean-square error, for
-root-to-tip regression; sum of squared errors for least-square dating).
-Alternatively, the tree may be rooted with an outgroup~\autocite{li1988rates}
-before time-scaling.
+their removal from the transmission tree, so the positions of the tips in time
+are fixed. Therefore, to transform a viral phylogeny into an estimated
+transmission tree, we must find a root and an assignment of branch lengths such
+that the tips are placed at their proscribed times. Of course, there are an
+infinite number of possible combinations of root and branch lengths which
+result in the correct placement of the tips, so we would also like to find
+values which are the most ``reasonable'' given our data. By reasonable, we mean
+that the variation in \defn{evolutionary rate}, which is the ratio of a
+branch's length in genetic distance to its length in calendar time, is low
+across the tree. While there is some variation among hosts, due to
+immunological and other factors, we generally expect to observe globally
+similar evolutionary rates. Methods for time-scaling a phylogeny include
+root-to-tip regression~\autocite{shankarappa1999consistent, korber2000timing,
+drummond2003inference}, which we apply in this work, and least-square
+dating~\autocite{to2015fast}. Both of these methods can be used to root the
+tree, by simply trying all possible root positions and choosing the one which
+minimizes a loss function ($1-R^2$, or root-mean-square error, for root-to-tip
+regression; sum of squared errors for least-square dating). Alternatively, the
+tree may be rooted with an outgroup~\autocite{li1988rates} before time-scaling.
 
 A second, perhaps more insidious problem is the fact that the correspondence
 between the topologies of the viral phylogeny and transmission tree is not
@@ -173,12 +196,12 @@ complex topic which we will not discuss in detail here (see e.g.
 \autocite{nei2000molecular} for a full review). Most modern analyses use
 model-based methods, which simultaneously estimate the phylogeny with branch
 lengths and the parameters of a model of evolution. Although they usually work
-well in practice \comment{needs a reference}, the estimated topology can vary
-based on the model used and, in the case of Bayesian analysis, the priors.  In
-addition, intra-host viral populations are genetically heterogeneous, so
-choosing a single representative genotype per host is necessarily imprecise.
-One can use either the genotype of a specific virion sampled from the host, or
-a synthetic genotype, such as a consensus or reconstructed ancestral sequence.
+well in practice, the estimated topology can vary based on the model used and,
+in the case of Bayesian analysis, the priors.  In addition, intra-host viral
+populations are genetically heterogeneous, so choosing a single representative
+genotype per host is necessarily imprecise. One can use either the genotype of
+a specific virion sampled from the host, or a synthetic genotype, such as a
+consensus or reconstructed ancestral sequence.
 
 What we have just discussed is a two-step procedure for estimating the
 transmission tree. First, a viral phylogeny is constructed from genetic
@@ -193,11 +216,12 @@ clock} model. A molecular clock is a hypothesis about the evolutionary rates
 along the branches of the tree, such as that they are all equal (a \defn{strict
 clock}) or that they are \gls{iid} from a common distribution (a \defn{relaxed
 clock}). This inference is usually done in a Bayesian framework using
-\gls{MCMC}, so that prior information (including the tip dates) \comment{are
-tip dates part of the prior?} can be included in the analysis, and the
-so-called nuisance parameters of the molecular clock model can be marginalized
-out. Software packages for performing these analyses include
-BEAST~\autocite{bouckaert2014beast} and MrBayes~\autocite{ronquist2012mrbayes}.
+\gls{MCMC}, so that prior information (including the tip dates) 
+%\comment{are tip dates part of the prior?} 
+can be included in the analysis, and the so-called nuisance parameters of the
+molecular clock model can be marginalized out. Software packages for performing
+these analyses include BEAST~\autocite{bouckaert2014beast} and
+MrBayes~\autocite{ronquist2012mrbayes}.
 
 Several other authors have developed methods tailor-made for inferring
 transmission trees. \textcite{didelot2014bayesian} develop a Bayesian version
@@ -210,12 +234,16 @@ method which enumerates all transmission trees consistent with an established
 phylogeny, assigning each a likelihood based on other epidemiological data. 
 This approach is novel in its integration of data from multiple sources,
 however because it enumerates a large portion of the tree space, it is unlikely
-to scale to larger epidemics. A different approach is undertaken by
-\textcite{jombart2011reconstructing}, who describe a method to build
-transmission trees directly from sequence data, contingent on the common
-ancestors also being sampled. This makes the method attractive for
-slow-evolving pathogens, but less practical for viral outbreaks where samples
-from common ancestors are unlikely to be available.
+to scale to larger epidemics. \textcite{ypma2012unravelling} develop a joint 
+likelihood function integrating temporal, geographic, and genetic observations, 
+and use Bayesian \gls{MCMC} to estimate both the tree and the parameters of the
+likelihood function. Their approach can handle missing data and produces high
+resolution transmission trees when multiple types of data are available. A
+different approach is undertaken by \textcite{jombart2011reconstructing}, who
+describe a method to build transmission trees directly from sequence data,
+contingent on the common ancestors also being sampled. This makes the method
+attractive for slow-evolving pathogens, but less practical for viral outbreaks
+where samples from common ancestors are unlikely to be available.
 
 \subsection{Tree shapes}
 \label{subsubsec:treeshape}
@@ -223,37 +251,30 @@ from common ancestors are unlikely to be available.
 The aim of viral phylodynamics is to glean some kind of knowledge, about the
 epidemic, the virus, or its hosts and their behaviour, by studying a phylogeny,
 most often an estimated transmission tree~\autocite{pybus2009evolutionary,
-volz2013viral}. Phylogenies are complex objects, and it is not immediately
-obvious how to extract useful information from them with respect to fitting a
-parameter. Standard statistical methods built for numeric data cannot be
-applied directly - for example, one cannot perform a regression of a parameter
-of interest against a phylogeny. Therefore, before we discuss exactly what
-phylodynamics can tell us about epidemics, and how it has been applied in the
-past, we will review some of the methods for quantifying the shapes of
-phylogenies and their similarity to each other.
+volz2013viral}. What is informative about a phylogeny, beyond the demographic
+characteristics of the individuals it relates, is its \defn{shape}. The shape
+of a phylogeny has two components: the topology, and the distribution of branch
+lengths~\autocite{mooers1997inferring}. Methods of quantifying tree shape fall
+into two categories: summary statistics, and pairwise measures.
 
-The shape of a phylogeny consists of two components: the topology, and the
-distribution of branch lengths~\autocite{mooers1997inferring}. Many tree
-summary statistics have been developed to assign numerical values to
-phylogenies based on their shapes. One of the most widely used is Sackin's
-index~\autocite{shao1990tree}, which measures the imbalance or asymmetry in a
-rooted tree. For the $i$th tip of the tree, we define $N_i$ to be the number of
-branches between that tip and the root. The unnormalized Sackin's index is
-defined as the sum of all $N_i$. It is called unnormalized because it does not
-account for the number of tips in the tree. Among two trees having the same
-number of tips, the least-balanced tree will have the highest Sackin's index.
-However, among two equally balanced trees, the larger tree will have a higher
-Sackin's index. This makes it challenging to compare balances among trees of
-different sizes. To correct this, \textcite{kirkpatrick1993searching} derive
-the expected value of Sackin' index under the Yule
-model~\autocite{yule1925mathematical}. Dividing by this expected value
-normalizes Sackin's index, so that it can be used to compare trees of different
-sizes.
+Summary statistics assign a numeric value to each individual tree. One of the
+most widely used is Sackin's index~\autocite{shao1990tree}, which measures the
+imbalance or asymmetry in a rooted tree. For the $i$th tip of the tree, we
+define $N_i$ to be the number of branches between that tip and the root. The
+unnormalized Sackin's index is defined as the sum of all $N_i$. It is called
+unnormalized because it does not account for the number of tips in the tree.
+Among two trees having the same number of tips, the least-balanced tree will
+have the highest Sackin's index. However, among two equally balanced trees, the
+larger tree will have a higher Sackin's index. This makes it challenging to
+compare balances among trees of different sizes. To correct this,
+\textcite{kirkpatrick1993searching} derive the expected value of Sackin' index
+under the Yule model~\autocite{yule1925mathematical}. Dividing by this expected
+value normalizes Sackin's index, so that it can be used to compare trees of
+different sizes.
 
-An alternative to summary statistics are \defn{distance measures} on trees.
-Rather than assigning a numerical value to each tree individually, a distance
-measure associates each pair of trees with a number, indicating how different
-the trees are from each other. Distance measures allow us to identify groups of
+Rather than assigning numbers to individual trees, pairwise measures associate
+a numeric value to each \textit{pair} of trees, indicating how different the
+trees are from each other. Distance measures allow us to identify groups of
 related phylogenies, for example, local epidemics which are undergoing a
 similar pattern of expansion. One such distance measure is the
 \gls{nltt}~\autocite{janzen2015approximate}, which compares the
@@ -266,17 +287,16 @@ the trees being compared are the products of different epidemic
 trajectories~\autocite{janzen2015approximate}.
 
 Another tree distance measure is the \defn{phylogenetic kernel}, or ``tree
-kernel'' developed by \textcite{poon2013mapping}. Strictly speaking, the tree
-kernel is a \defn{similarity measure}, rather than a distance measure, as it is
-maximized when the two trees being compared are the same. The basis of the tree
-kernel is the kernel trick originally developed for
+kernel'' developed by \textcite{poon2013mapping}. As opposed to the \gls{nltt},
+the tree kernel is maximized when the two trees being compared are the same.
+The basis of the tree kernel is the kernel trick originally developed for
 \glspl{SVM}~\autocite{burges1998tutorial}. The idea of the kernel trick is to
 compare objects by mapping them into a feature space of very high, possibly
 even infinite, dimension. The similarity between objects is taken to be their
 dot product in the feature space. It is called a ``trick'' because this dot
 product is computed using a \defn{kernel function} without explicitly mapping
-the objects to the feature space, which would be computationally prohibitive. In
-the case of the tree kernel, the feature space is the space of all possible
+the objects to the feature space, which would be computationally prohibitive.
+In the case of the tree kernel, the feature space is the space of all possible
 \defn{subset trees}, which are subtrees that do not necessarily extend all the
 way to the tips. The subset-tree kernel was originally developed for comparing
 parse trees in natural language processing~\autocite{collins2002new} and did
@@ -288,123 +308,174 @@ later shown to be highly effective in differentiating trees simulated under a
 compartmental model with two risk groups of varying contact
 rates~\autocite{poon2015phylodynamic}. In that paper,
 \citeauthor{poon2015phylodynamic} used the tree kernel as the distance function
-in \gls{ABC} (see Section~\ref{sec:abc}), an approach dubbed kernel-\gls{ABC},
-to fit epidemiological models to observed trees.
-
-\subsection{Applications of phylodynamics}
-\label{subsubsec:appphylo}
-
+in \gls{ABC} (see \cref{sec:abc}), to fit epidemiological models to observed
+trees. This is an example of kernel-ABC~\autocite{nakagome2013kernel}, which
+will be discussed further in \cref{sec:abc}.
 
 \section{Contact networks}
-\label{subsec:contactnet}
+\label{sec:contactnet}
 
 \subsection{Overview}
+\label{subsec:netoverview}
 
 Epidemics spread through populations of hosts through \defn{contacts} between
 those hosts. The definition of contact depends on the mode of transmission of
 the pathogen in question. For an airborne pathogen like influenza, a contact
-may be simple physical proximity, while for a sexually transmitted pathogen
-like HIV, contacts would be sexual partnerships. A \defn{contact network} is a
-graphical representation of a host population and the contacts among its
-members. The \defn{nodes} in the network represent hosts, and \defn{edges}
-represent contacts between them. 
+may be simple physical proximity, while for \gls{HIV}, contact could be via
+unprotected sexual relations or blood-to-blood contact (such as through needle
+sharing). A \defn{contact network} is a graphical representation of a host
+population and the contacts among its members~\autocite{klovdahl1985social,
+morris1993epidemiology, keeling2005networks}. The \defn{nodes} in the network
+represent hosts, and \defn{edges} or \defn{links} represent contacts between
+them. A contact network is shown in \cref{fig:contactnet} (left).
 
 Edges in a contact networks may be \defn{directed}, representing one-way
 transmission risk, or \defn{undirected}, representing symmetric transmission
 risk. For example, a network for an airborne epidemic would use undirected
 edges, because the same physical proximity is required for a host to infect or
-to become infected. However, a blood-borne infection spread through
-transfusions would use undirected edges, since the donor has no chance of
-transmitting to the recipient. Directed edges are also useful when the
-transmission risk is not equal between the hosts, such as with HIV
-transmission, where acting as the receptive partner carries a higher risk of
-infection than acting as the insertive partner. In this case, a contact could
-be represented by two directed edges, one in each direction between the two
-hosts, with the edges annotated by what kind of risk they imply. In fact, it is
-possible to represent an undirected edge by two symmetric directed edges. For
-this reason, we consider only contact networks with directed edges in the
-sequel. A directed contact network is shown in Figure \ref{fig:contactnet}
-(left).
+to become infected. However, an infection which may be spread through
+blood-to-blood contact through transfusions transfusions would use undirected
+edges, since the donor has no chance of transmitting to the recipient. Directed
+edges are also useful when the transmission risk is not equal between the
+hosts, such as with HIV transmission, where acting as the receptive partner
+carries a higher risk of infection than acting as the insertive partner. In
+this case, a contact could be represented by two directed edges, one in each
+direction between the two hosts, with the edges annotated by what kind of risk
+they imply~\autocite{wasserman1994social}. An undirected contact network is
+equivalent to a directed network where each contact is represented by two
+symmetric directed edges. The \defn{degree} of a node in the network is how
+many contacts it has. In directed networks, we may make the distinction between
+\defn{out-degree} and \defn{in-degree}, which count respectively the number
+incoming and outgoing edges. The set of edges attached to a node are referred
+to as its \defn{incident} edges.
 
-The path an epidemic takes through a contact network determines the topology of
-the transmission tree relating the infected hosts. The initially infected node
-who introduces the epidemic becomes the root of the tree. Each time a
-transmission occurs, the lineage corresponding to the donor host in the tree
-splits into two, representing the recipient lineage and the continuation of the
-donor lineage. This correspondence is illustrated in figure
-\ref{fig:contactnet}. It's important to note that, although the order and
-timing of transmissions determines the tree topology uniquely, the converse
-does not hold. That is, there are generally several orders of infection which
-could lead to the same topology, since the labels on the internal nodes of the
-tree are not available to the researcher.
+The path an epidemic takes through a contact network defines the
+\defn{transmission network}, which is the subgraph of the contact network
+consisting of infected nodes and the edges which led to their
+infections~\autocite{welch2011statistical} (\cref{fig:contactnet}, left). The
+transmission network determines the topology of the transmission tree relating
+the infected hosts. The initially infected node who introduces the epidemic
+into the network, also known as the \defn{index case}, becomes the root of the
+tree. Each time a transmission occurs, the lineage corresponding to the donor
+host in the tree splits into two, representing the recipient lineage and the
+continuation of the donor lineage. \Cref{fig:contactnet} illustrates this
+correspondence. It's important to note that, although the order and timing of
+transmissions determines the tree topology uniquely, the converse does not
+hold. That is, for any given topology, there are in general many transmission
+networks which would lead to that topology. In other words, it impossible to
+distinguish who transmitted to whom from a transmission tree
+alone~\autocite{bernard2007hiv}.
 
-\begin{figure}[ht]
-  \centering
-  \label{fig:contactnet}
-  \includegraphics{contactnet}
-  \caption[Illustration of a epidemic spread over a contact network]
-  {Illustration of epidemic spread over a contact network. On the left, a
-   contact network with five hosts, labelled A through E. Directed edges
-   indicate six symmetric contacts among the hosts. Coloured, bolded edges
-   represent transmissions. The epidemic began with node A, who transmitted to
-   nodes B and C. Node C further transmitted to node D, and node E was not
-   infected. On the right, the transmission tree topology corresponding to this
-   scenario. Note that individual B was sampled before the other infected
-   individuals, resulting in a tree with heterochronous tips.}
-\end{figure}
+From a public health perspective, knowledge of contact networks has the
+potential to be extremely useful. On a population level, network structure can
+dramatically affect the speed and pattern of epidemic
+spread~\autocite[\eg][]{barthelemy2005dynamical}. For example, epidemics are
+expected to spread more rapidly in networks having the ``small world''
+property, where the average path length between two nodes in the network is
+relatively low~\autocite{watts1998collective}. Some sexually transmitted
+infections would not be expected to survive in a homogeneously mixed
+population, but their long-term persistance can be explained by contact
+heterogeneity~\autocite{anderson1992infectious, pastor2001epidemic}. Hence, the
+contact network can provide an idea of what to expect as an epidemic unfolds.
+In terms of actionable information, vaccination strategies which would
+irradicate an epidemic in a random network might not work if the network is
+scale-free~\autocite[][see \cref{subsec:pa}]{keeling2005networks}. On a local
+level, contact networks can be informative about the groups or individuals who
+are at highest risk of acquiring or transmitting infection, and would therefore
+benefit most from public health interventions~\autocite{wang2015targeting,
+little2014using}.
 
-\subsection{Models for contact networks}
-\label{subsubsec:generative}
+Contact networks are a challenging type of data to collect, requiring extensive
+epidemiological investigation in the form of contact
+tracing~\autocite{morris1993epidemiology, welch2011statistical,
+keeling2005networks}. Several less resource-intensive alternatives have been
+explored. Some work focuses on the phylogenetic network, detecting patterns
+such as clustering. However, the phylogenetic network may show little to no
+agreement with a contact data obtained through epidemiological
+methods~\autocite{yirrell1998molecular, resik2007limitations}. Some
+studies~\autocite{brown2011transmission} have focused on parameters of the
+transmission network, rather than the more complete contact network, because it
+is possible to derive an estimate of the transmission network phylogenetically. 
 
-Throughout this section, the variable $n$ will be used to refer to the number
-of nodes in the network. 
+Rather than considering entire social networks, some epidemiological research
+has focused on properties which can be investigated without extensive contact
+tracing. The most common of these properties is the \defn{degree distribution}
+of the network, which denotes the probability that a node has any given number
+of links. Degree distributions for sexual networks can be estimated by simply
+asking each person how many contacts they had in, say, the last
+year~\autocite{liljeros2001web, schneeberger2004scale, colgate1989risk}.
 
-An \defn{Erd\H{o}s-R\'enyi} (ER) network~\autocite{erdos1960evolution}, also
-known as a Bernoulli network, was the first network model described. It has a
-single parameter, $p$, which is the probability that any particular edge is
-present in the network. To construct an ER network, one simply chooses
-$p \times \binom{n}{2}$ distinct pairs of nodes and draws an edge between each
-pair. The average degree of a node in an ER network is equal to $p \times n$.
+There have been a few statistical methods developed to infer contact network
+parameters without extensive contact tracing. The pioneering study in this
+group was by \textcite{britton2002bayesian}, who developed a Bayesian method to
+infer the $p$ parameter of an \gls{ER} network, along with the transmission and
+removal rate parameters of the \gls{SI} model. Their method is able to use
+either observed infection and removal times, or removal times only. However, it
+is designed for only a small number of observations (fifteen and 42 cases in
+their applications), and their estimates of $p$ for real outbreaks were mostly
+uninformative (95\% confidence intervals [0.11-0.96] and [0.055-0.96]; $p$ is
+bounded in [0, 1]). \textcite{groendyke2011bayesian} significantly updated and
+extended the methodology of \citeauthor{britton2002bayesian}, and applied it to
+a measles outbreak affecting 188 individuals. They were able to obtain a much
+more informative estimate of $p$, although this data set included both symptom
+onset and recovery times for all individuals. They also assumed that the entire
+network was infected, so that the network size was exactly 188. It is unclear
+how well their method would scale to networks with thousands of nodes.
 
-A \defn{Barab\'asi-Albert} (BA) network~\autocite{barabasi1999emergence},
-incorporates the phenomenon of \defn{preferential attachment} seen in real life
-networks. This means that new connections are more likely to involve nodes
-which already have a high number of connections - popular nodes tend to become
-more popular. In the formulation we consider here, BA networks have two
-parameters, $m$ and $\alpha$, which are used to construct the network via the
-following algorithm. The network begins as a single node, then the remaining
-$n-1$ nodes are added one at a time. Each time a new node is added, it is
-connected to $m$ other nodes. The probability of one of these connections
-involving an existing node of degree $k$ is proportional to $k^\alpha$. Note
-that in the original formulation~\autocite{barabasi1999emergence}, there was an
-additional parameter $m_0$ which indicated the number of initial vertices in
-the network, and the only value of $\alpha$ considered was 1. For our purposes,
-we fix $m_0 = 1$ but allow $\alpha$ to vary. We refer to $\alpha$ throughout
-this work as the \defn{preferential attachment power} or just attachment power.
+\subsection{Scale-free networks and preferential attachment}
+\label{subsec:pa}
 
-Networks produced by the BA model are \defn{scale free}, which means that the
-probability of a node having $k$ connections is proportional to $k^\gamma$ for
-some constant $\gamma$. This is also called a \defn{power law} degree
-distribution. An important remark on notation must be made here: in network
-literature, the Greek letter $\alpha$ has often been used to refer to the power
-law exponent of the degree distribution, not the preferential attachment power.
-However, the paper defining the network model~\autocite{barabasi1999emergence}
-uses $\gamma$ for the power law exponent, and $\alpha$ for the attachment
-power, and we shall do likewise. This must be noted because there are reports
-in the literature of the power law exponent being as large as 4, which would
-seem to conflict with our choice (see subsection XX) to bound $\alpha$ above by
-2. The reader should rest assured that it is the attachment power we are
-bounding, not the power law exponent.
+A \defn{scale-free} network is one whose degree distribution follows a power
+law, meaning that the number of nodes in the network with degree $k$ is
+proportional to $k^{-\gamma}$ for some constant
+$\gamma$~\autocite{barabasi1999emergence}. Scale-free networks are
+characterized by a large number of nodes of low degree, with relatively few
+``hub'' nodes of very high degree.
 
-WS and BA networks differ from ER networks in an important way: it is possible
-to explicitly calculate the likelihood of the ER model parameter $p$ given an
-observed network, but this cannot be done for the other two models. This is
-because the probability of a particular edge occurring is always equal to $p$ in
-an ER network, regardless of the presence or absence of any other edges. In
-other words, the edges can be viewed as a series of $\binom{n}{2}$ Bernoulli
-trials with success probability $p$, so that the likelihood of $p$ given an
-observed graph with $k$ edges is distributed as 
-Binomial$\left(\binom{n}{2}, p\right)$.
+Epidemiological surveys have indicated that human sexual networks tend to be
+scale-free~\autocite{liljeros2001web, schneeberger2004scale, colgate1989risk}.
+In this context, the high-degree hub nodes are known as
+\defn{superspreaders}~\autocite{kemper1980identification}.
+
+One mechanism which has been shown to lead to scale-free networks is
+\defn{preferential attachment}~\autocite{simon1955class, barabasi1999emergence}.
+Under this process, networks are formed by starting with a small number $m_0$
+of nodes. New nodes are added one at a time until there are a total of $N$ in
+the network. Each time a new node is added, $m \geq 1$ edges are added from it
+to other nodes in the graph. In the original
+formulation~\autocite{barabasi1999emergence}, the partners of the new node are
+chosen with probability linearly proportional to their degree. However,
+\citeauthor{barabasi1999emergence} suggest extending the model such that the
+probability of choosing a partner of degree $d$ is proportional to $d^\alpha$
+for some constant $\alpha$, and we use this extension here.
+
+There has been some contention of the idea that sexual networks are scale-free.
+\textcite{handcock2004likelihood} fit several stochastic models of partner
+formation to empirical degree distributions derived from population surveys of
+sexual behaviour. They found that a negative binomial distribution, rather than
+a power law, was the best fit to five out of six datasets, although the
+difference in goodness of fit was extremely small in four out of these five.
+
+\subsection{Relationship between network structure and transmission trees}
+
+Clearly, the shape of a transmission tree is shaped by the underlying contact
+network (\cref{fig:contactnet}). A number of studies have made progress in
+quantifying this relationship. \textcite{o2010contact} simulated epidemics over
+networks with four types of degree distribution. They then estimated the
+Bayesian skyride~\autocite{minin2008smooth} population size trajectory in two
+ways: from the phylogeny, using \gls{MCMC}; and from the incidence and
+prevalence trajectories, using the method developed by Volz
+\etal~\autocite{volz2009phylodynamics}. They found that the concordance between
+the two skyrides, as well as the relationship between the skyride and
+prevalence curve, was qualitatively different for each degree distribution.
+\citeauthor{leventhal2012inferring} simulated transmission trees over \gls{ER},
+\gls{WS}, \gls{BA}, and full networks with fixed number of nodes and mean
+degree. They calculated Sackin's index of the simulated trees while varying the
+epidemic, network, and sampling parameters, and found that the relationship
+between these parameters and Sackin's index varies considerably among the
+different network models. In summary, studies in this group have demonstrated
+that network structure profoundly influences tree shape, but have not attempted
+to quantitatively infer network parameters from observed trees.
 
 %\section{Approximate Bayesian computation}
 
@@ -467,92 +538,14 @@ Binomial$\left(\binom{n}{2}, p\right)$.
 %algorithm or generative process.
 
 
-\section{Sequential Monte Carlo}
-
-\Gls{SMC} is a statistical inference method which samples from a sequence of
-probability distributions in a fixed order~\autocite{del2006sequential}. This
-idea of \defn{sequential sampling} is useful several contexts, but we consider
-here its application to model fitting in a Bayesian setting. 
-
-\texttt{TODO: move the basics of model fitting (likelihoods and priors) to here}
-
-Our objective is to obtain samples from, and summary statistics of, the
-posterior distribution on the model of interest's parameters. \gls{SMC} can be
-applied in this context by defining a sequence of distributions, starting from
-the posterior and ending at the prior, which constitute a ``smooth''
-trajectory. The main \gls{SMC} algorithm for this problem was developed by
-\textcite{del2006sequential}, based on an existing methodology called
-\gls{SIS}. \gls{SIS} is also designed to sample from a sequence of
-distributions, but rather than all being defined on the same space (such as
-model parameters), they are defined on nested spaces of increasing dimension.
-Following \textcite{del2006sequential} and other reviews of
-\gls{SMC}~\autocite{doucet2001introduction}, we will begin this section by
-describing \gls{SIS}, and then turn to the adaptation of the method to the case
-when the sequence of distributions are all defined on the same space. Note that
-\textcite{del2006sequential} use the variable $\pi$ for the target
-distributions, but \textcite{doucet2001introduction} use $\pi$ to indicate the
-importance distributions. We again follow the former and denote target
-distributions by $\pi$ and importance distributions by $\eta$.
-
-The basis of \gls{SIS} is \gls{IS}, which is a method of estimating summary
-statistics of distributions which are known only up to a normalizing constant,
-and therefore cannot be sampled from directly. That is, if $\pi$ is such a
-distribution and $f$ is any real-valued function, \gls{IS} is concerned with
-estimating
-\[
-  \pi(f) = \int f(x)\pi(x)\d x = \int f(x) \frac{\gamma(x)}{Z} \d x,
-\]
-where the integral is over the space on which $\pi$ is defined, $\gamma(x)$ is
-known, and $Z$ is the unknown normalizing constant, $Z = \int \gamma(x) \d x$.
-The posterior distributions of all but the simplest models' parameters fall
-into this category. Suppose we have at hand another distribution $\eta$, called
-the \defn{importance distribution}, from which we are able to sample. Define
-the \defn{importance weight} as the ratio ratio $w(x) = \gamma(x)/\eta(x)$. We
-can express the normalizing constant $Z$ in terms of the importance weight and
-distribution, $Z = \int w(x) \eta(x) \d x$, and in turn write the original
-integral of interest as
-\[
-  \int f(x) \pi(x) \d x = \frac{\int f(x) \gamma(x) \d x}
-                               {\int w(x) \eta(x) \d x}.
-\]
-If we sample a large number of points from $\eta$, then $\eta(x)$ can be
-approximated at each of them by an empirical distribution. Since the remaining
-quantities $f$, $\gamma$, and $w$ can all be evaluated pointwise, these are all
-the ingredients we need to obtain an estimate of $\pi(f)$. Although this is a
-simple and elegant approach, the drawback is that the variance of the estimate
-is proportional to the variance of the importance
-weights~\autocite{liu2008monte}, which may be quite large if $\eta$ and
-$\gamma$ are very different. Therefore, the practical use of \gls{IS} on its
-own is limited, since it depends on finding an importance distribution which is
-similar to $\pi$, which we usually know very little about \textit{a priori}.
-
-However, an ideal context for the use of \gls{IS} is when we want to sample
-from a sequence of nested probability distributions $\pi_1, \ldots, \pi_n$.
-By \defn{nested}, we mean that $\pi_{i+1}$ is defined on a space of dimension
-$i+1$ and admits $\pi_i$ as a marginal. That is,
-\[
-  \pi_{i+1}(x_1, \ldots, x_{i+1}) = \pi_i(x_1, \ldots, x_i) f_{i+1}(x_1, \ldots, x_{i+1}),
-\]
-where $f_{i+1}$ is a function which yields a distribution when multiplied with
-$\pi_i$. This situation may seem somewhat contrived, but it arises naturally
-when trying to infer the hidden sequence of parameters of a stateful model. For
-example, \textcite{doucet2001introduction} discuss the case when $\pi_i$ is the
-posterior distribution over the first $i-1$ states of a \gls{HMM}, conditional
-on the observed data up to time $i-i$. We assume that either $\pi_1$ is known
-explicitly, or we have enough information about it to find an adequate
-importance distribution. In the \gls{HMM} example, $\pi_1$ was taken to be the
-prior distribution on the starting state.
 
 \section{Approximate Bayesian computation}
-
 \label{sec:abc}
 
 \subsection{Overview and motivation}
 
 \Gls{ABC} is a statistical method designed to fit complex models, which cannot
 be fit using more conventional methods, to observed
-\comment{these are review articles, Beaumont is specific to popgen, the others
-are general}
 data~\autocite{marin2012approximate, sunnaker2013approximate,
 beaumont2010approximate} We shall make this precise below, but to fully
 describe and motivate \gls{ABC}, it is necessary to first explain exactly what
@@ -736,3 +729,80 @@ $f(\theta \mid D)$. The idea of SMC is to begin with a sample from a
 distribution we know, most often the prior, and approach the posterior smoothly
 by progressing through a series of intermediate distributions.
 
+\section{Sequential Monte Carlo}
+
+\Gls{SMC} is a statistical inference method which samples from a sequence of
+probability distributions in a fixed order~\autocite{del2006sequential}. This
+idea of \defn{sequential sampling} is useful several contexts, but we consider
+here its application to model fitting in a Bayesian setting. 
+
+\texttt{TODO: move the basics of model fitting (likelihoods and priors) to here}
+
+Our objective is to obtain samples from, and summary statistics of, the
+posterior distribution on the model of interest's parameters. \gls{SMC} can be
+applied in this context by defining a sequence of distributions, starting from
+the posterior and ending at the prior, which constitute a ``smooth''
+trajectory. The main \gls{SMC} algorithm for this problem was developed by
+\textcite{del2006sequential}, based on an existing methodology called
+\gls{SIS}. \gls{SIS} is also designed to sample from a sequence of
+distributions, but rather than all being defined on the same space (such as
+model parameters), they are defined on nested spaces of increasing dimension.
+Following \textcite{del2006sequential} and other reviews of
+\gls{SMC}~\autocite{doucet2001introduction}, we will begin this section by
+describing \gls{SIS}, and then turn to the adaptation of the method to the case
+when the sequence of distributions are all defined on the same space. Note that
+\textcite{del2006sequential} use the variable $\pi$ for the target
+distributions, but \textcite{doucet2001introduction} use $\pi$ to indicate the
+importance distributions. We follow the former and denote target distributions
+by $\pi$ and importance distributions by $\eta$.
+
+\subsection{Sequential importance sampling}
+
+The basis of \gls{SIS} is \gls{IS}, which is a method of estimating summary
+statistics of distributions which are known only up to a normalizing constant,
+and therefore cannot be sampled from directly. That is, if $\pi$ is such a
+distribution and $f$ is any real-valued function, \gls{IS} is concerned with
+estimating
+\[
+  \pi(f) = \int f(x)\pi(x)\d x = \int f(x) \frac{\gamma(x)}{Z} \d x,
+\]
+where the integral is over the space on which $\pi$ is defined, $\gamma(x)$ is
+known, and $Z$ is the unknown normalizing constant, $Z = \int \gamma(x) \d x$.
+The posterior distributions of all but the simplest models' parameters fall
+into this category. Suppose we have at hand another distribution $\eta$, called
+the \defn{importance distribution}, from which we are able to sample. Define
+the \defn{importance weight} as the ratio ratio $w(x) = \gamma(x)/\eta(x)$. We
+can express the normalizing constant $Z$ in terms of the importance weight and
+distribution, $Z = \int w(x) \eta(x) \d x$, and in turn write the original
+integral of interest as
+\[
+  \int f(x) \pi(x) \d x = \frac{\int f(x) \gamma(x) \d x}
+                               {\int w(x) \eta(x) \d x}.
+\]
+If we sample a large number of points from $\eta$, then $\eta(x)$ can be
+approximated at each of them by an empirical distribution. Since the remaining
+quantities $f$, $\gamma$, and $w$ can all be evaluated pointwise, these are all
+the ingredients we need to obtain an estimate of $\pi(f)$. Although this is a
+simple and elegant approach, the drawback is that the variance of the estimate
+is proportional to the variance of the importance
+weights~\autocite{liu2008monte}, which may be quite large if $\eta$ and
+$\gamma$ are very different. Therefore, the practical use of \gls{IS} on its
+own is limited, since it depends on finding an importance distribution which is
+similar to $\pi$, which we usually know very little about \textit{a priori}.
+
+However, an ideal context for the use of \gls{IS} is when we want to sample
+from a sequence of nested probability distributions $\pi_1, \ldots, \pi_n$.
+By \defn{nested}, we mean that $\pi_{i+1}$ is defined on a space of dimension
+$i+1$ and admits $\pi_i$ as a marginal. That is,
+\[
+  \pi_{i+1}(x_1, \ldots, x_{i+1}) = \pi_i(x_1, \ldots, x_i) f_{i+1}(x_1, \ldots, x_{i+1}),
+\]
+where $f_{i+1}$ is a function which yields a distribution when multiplied with
+$\pi_i$. This situation may seem somewhat contrived, but it arises naturally
+when trying to infer the hidden sequence of parameters of a stateful model. For
+example, \textcite{doucet2001introduction} discuss the case when $\pi_i$ is the
+posterior distribution over the first $i-1$ states of a \gls{HMM}, conditional
+on the observed data up to time $i-i$. We assume that either $\pi_1$ is known
+explicitly, or we have enough information about it to find an adequate
+importance distribution. In the \gls{HMM} example, $\pi_1$ was taken to be the
+prior distribution on the starting state.

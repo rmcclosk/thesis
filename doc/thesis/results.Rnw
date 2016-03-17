@@ -41,7 +41,7 @@ different \gls{alpha} values.
 \begin{figure}[ht]
   \centering
   \label{fig:patrees}
-  \includegraphics{kernel_pa_trees}
+  \includegraphics{kernel-alpha-tree.pdf}
   \caption[Visibly distinctive trees simulated under three values of \gls{alpha}]{
     Epidemics of 1000 infected were simulated on \gls{BA} networks of 5000
     nodes, with \gls{alpha} equal to 0.5, 1.0, or 1.5. Transmission trees were
@@ -54,7 +54,7 @@ different \gls{alpha} values.
 \begin{figure}[ht]
   \centering
   \label{fig:pacrossv}
-  \includegraphics{kernel_pa_crossv}
+  \includegraphics{kernel-alpha-crossv.pdf}
   \caption[Cross-validation performance of kernel support vector machine
   classifier for preferential attachment power]{
     Cross-validation performance of kernel support vector machine classifier
@@ -65,7 +65,7 @@ different \gls{alpha} values.
 \begin{figure}[ht]
   \centering
   \label{fig:pakpca}
-  \includegraphics{kernel_pa_kpca}
+  \includegraphics{kernel-kpca.pdf}
   \caption[Projection of kernel matrix for different attachment power values
   onto its first two principal components]{
     Projection of the kernel matrix for different preferential attachment power
@@ -101,34 +101,6 @@ scaled by their mean. Therefore, the high performance of the classifier is due
 to structural differences captured by the tree kernel, rather than the trees
 simply having different heights.
 
-\begin{figure}[ht]
-  \centering
-  \label{fig:prevtrees}
-  \includegraphics{kernel_nsimnode_trees}
-  \caption[Similarly shaped simulated under three values of \gls{I}]{
-    Epidemics were simulated on networks of size 5000 until \gls{I} = 500,
-    1000, or 2000 nodes were infected. When scaled to the same height, there is
-    no immediately visible distinction in shape between trees simulated under
-    different \gls{I} values.
-  }
-\end{figure}
-
-\begin{figure}[ht]
-  \centering
-  \label{fig:prevcrossv}
-  \includegraphics{kernel_nsimnode_crossv}
-  \caption[Cross-validation performance of kernel-\gls{SVM} classifier for
-           prevalence]{
-    For \gls{BA} networks of size \gls{N} = 5000, a kernel-\gls{SVM} classifier
-    is very accurate at predicting \gls{I}. Epidemics were simulated until
-    \gls{I} = 500, 1000, or 2000 nodes were infected, and either 100 or 500
-    nodes were sampled for inclusion in a transmission tree. The parameters of
-    the \gls{BA} network were \gls{alpha} = 1.0 and \gls{m} = 2. A Sackin's
-    index-based classifier performed very poorly on these data ($R^2 = $ TODO
-    for 100-tip trees and blah for 500-tip trees, not shown).
-  }
-\end{figure}
-
 \subsection{Accuracy of marginal estimates}
 
 We used grid search to obtain \defn{marginal} estimates for each network
@@ -144,7 +116,7 @@ values.
 
 \begin{figure}[ht]
   \centering
-  \includegraphics{gridsearch_pa_kernel}
+  \includegraphics{gridsearch-alpha-kernel.pdf}
   \caption[Grid search kernel scores]{
     Grid search kernel scores for testing trees simulated under various
     \gls{alpha} values. All epidemics had \gls{I} = 1000 infected nodes, on
@@ -156,7 +128,7 @@ values.
 
 \begin{figure}[ht]
   \centering
-  \includegraphics{gridsearch_pa_estimates}
+  \includegraphics{gridsearch-alpha-point-estimate.pdf}
   \caption[Marginal estimates of \gls{alpha} obtained with grid search]{
     Marginal estimates of \gls{alpha} obtained with grid search. Training trees
     were simulated on a narrowly spaced grid of \gls{alpha} values, and
@@ -200,7 +172,7 @@ values.
 We used kernel-\gls{ABC} to estimate the parameters of the \gls{BA} model 
 on simulated trees where the true parameter values were known. Point estimates
 for each parameter are shown in Figure~\ref{fig:abcpt}. Of the four parameters,
-$\alpha$ was the most accurately estimated, with a median [IQR] absolute error
+\gls{alpha} was the most accurately estimated, with a median [IQR] absolute error
 of 
     \Sexpr{d[,median(alpha_error)]} 
     [\Sexpr{d[,quantile(alpha_error, 0.25)]}-\Sexpr{d[,quantile(alpha_error, 0.75)]}].
@@ -209,7 +181,7 @@ $m$ or $I$ (both one-way ANOVA,
     $p$ = \Sexpr{alpha.av["factor(true_m)", "Pr(>F)"]}
 and 
     \Sexpr{alpha.av["factor(true_I)", "Pr(>F)"]}),
-although the errors when the true value of $\alpha$ was zero were
+although the errors when the true value of \gls{alpha} was zero were
 significantly greater than the other values 
     (Wilcoxon rank-sum test, $p$ = \Sexpr{zero.alpha.test$p.value}).
 The error in the estimated value of $I$ was
@@ -232,10 +204,10 @@ $m$ and $I$ did not significantly affect the error
     (one-way ANOVA, $p$ = \Sexpr{m.av["factor(true_m)", "Pr(>F)"]} and
                           \Sexpr{m.av["factor(true_I)", "Pr(>F)"]}),
 but the accuracy was significantly lower for integral than non-integral
-values of $\alpha$
+values of \gls{alpha}
     (Wilcoxon rank-sum test, $p$ = \Sexpr{alpha.m.test$p.value}).
-Finally, the total number of nodes $N$ was consistently over-estimated by about
-a factor of two
+Finally, the total number of nodes \gls{N} was consistently over-estimated by
+about a factor of two
     (error \Sexpr{d[,median(N_error)]} 
     [\Sexpr{d[,quantile(N_error, 0.25)]}-\Sexpr{d[,quantile(N_error, 0.75)]}]).
 No other parameters influenced the accuracy of the $N$ estimates 
@@ -244,7 +216,29 @@ No other parameters influenced the accuracy of the $N$ estimates
 Figure~\ref{fig:abcex} shows the \gls{ABC} approximation to the
 posterior distribution on the \gls{BA} parameters for one simulation
 (equivalent plots for all the simulations can be found in the supplemental
-materials). \gls{HPD} intervals around $\alpha$ and $I$ were narrow relative
-to the region of nonzero prior density, whereas the intervals for $m$ and $N$
-were widely dispersed. Table~\ref{tab:abchpd} shows point estimates and 95\%
-\gls{HPD} intervals averaged over all simulations.
+materials). \Gls{HPD} intervals around \gls{alpha} and \gls{I} were narrow
+relative to the region of nonzero prior density, whereas the intervals for $m$
+and \gls{N} were widely dispersed. Table~\ref{tab:abchpd} shows point estimates and
+95\% \gls{HPD} intervals averaged over all simulations.
+
+\begin{table}
+    \centering
+    \input{\tablepath/abc-hpd}
+    \caption{Average widths of 95\% confidence intervals for \gls{BA} model
+    parameters estimated with kernel-\gls{ABC}.}
+    \label{tab:glm}
+\end{table}
+
+\subsection{Characterization of power-law exponent in Barab\'asi-Albert networks}
+
+\Cref{tab:glm} shows the estimated parameters for a log-link \gls{GLM} fitted
+to the observed distribution of \gls{gamma} values. The coefficients are
+interpretable as multiplicative effects.
+
+\begin{table}
+    \centering
+    \input{\tablepath/pa-gamma-glm}
+    \caption{Estimated \gls{GLM} parameters for relationship between power-law
+    exponent \gls{gamma} and \gls{BA} model parameters.}
+    \label{tab:glm}
+\end{table}
