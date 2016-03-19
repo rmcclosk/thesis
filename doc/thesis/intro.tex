@@ -327,14 +327,20 @@ sharing). A \defn{contact network} is a graphical representation of a host
 population and the contacts among its members~\autocite{klovdahl1985social,
 morris1993epidemiology, keeling2005networks}. The \defn{nodes} in the network
 represent hosts, and \defn{edges} or \defn{links} represent contacts between
-them. A contact network is shown in \cref{fig:contactnet} (left).
+them. A contact network is shown in \cref{fig:contactnet} (left). Contact
+networks are a particular type of \defn{social
+network}~\autocite{moreno1953shall, barnes1954class}, which is a network in
+which edges may represent any kind of social or economic relationship. Social
+networks are frequently used in the social sciences to study phenomena where
+relationships between people or entities are important \autocite[for a review
+see][]{wasserman1994social}.
 
 Edges in a contact networks may be \defn{directed}, representing one-way
 transmission risk, or \defn{undirected}, representing symmetric transmission
 risk. For example, a network for an airborne epidemic would use undirected
 edges, because the same physical proximity is required for a host to infect or
 to become infected. However, an infection which may be spread through
-blood-to-blood contact through transfusions transfusions would use undirected
+blood-to-blood contact through transfusions transfusions would use directed
 edges, since the donor has no chance of transmitting to the recipient. Directed
 edges are also useful when the transmission risk is not equal between the
 hosts, such as with HIV transmission, where acting as the receptive partner
@@ -346,35 +352,42 @@ equivalent to a directed network where each contact is represented by two
 symmetric directed edges. The \defn{degree} of a node in the network is how
 many contacts it has. In directed networks, we may make the distinction between
 \defn{out-degree} and \defn{in-degree}, which count respectively the number
-incoming and outgoing edges. The set of edges attached to a node are referred
-to as its \defn{incident} edges.
+incoming and outgoing edges. The \defn{degree distribution} of a network
+denotes the probability that a node has any given number of links. The set of
+edges attached to a node are referred to as its \defn{incident} edges.
 
-The path an epidemic takes through a contact network defines the
-\defn{transmission network}, which is the subgraph of the contact network
-consisting of infected nodes and the edges which led to their
-infections~\autocite{welch2011statistical} (\cref{fig:contactnet}, left). The
-transmission network determines the topology of the transmission tree relating
-the infected hosts. The initially infected node who introduces the epidemic
-into the network, also known as the \defn{index case}, becomes the root of the
-tree. Each time a transmission occurs, the lineage corresponding to the donor
-host in the tree splits into two, representing the recipient lineage and the
-continuation of the donor lineage. \Cref{fig:contactnet} illustrates this
-correspondence. It's important to note that, although the order and timing of
-transmissions determines the tree topology uniquely, the converse does not
-hold. That is, for any given topology, there are in general many transmission
-networks which would lead to that topology. In other words, it impossible to
-distinguish who transmitted to whom from a transmission tree
-alone~\autocite{bernard2007hiv}.
+Epidemiological models most often assume some form of contact homogeneity. The
+simplest models, such as the \gls{SIR} model, assume a completely homogeneously
+mixed population, where every pair of contacts is equally likely. More
+sophisticated models partition the population into groups with different
+contact rates between and among each group. However, these models still assume
+that every possible contact between a member of group $i$ and a member of group
+$j$ is equally likely. This assumption is clearly unrealistic for the majority
+of human communities, and can lead to significant errors in predicted epidemic
+trajectories when there is substantial heterogeneity
+present~\autocite{bansal2007individual, volz2007susceptible}. Contact networks
+provide a way to relax this assumption by representing individuals and their
+contacts explicitly. It is important to note that, although panmixia is an
+unrealistic modelling assumption, it has not proven a substantial hurdle to
+epidemic modelling in practice~\autocite{anderson1992infectious}. Using this
+assumption, researchers have been able to derive estimates of the transmission
+rate and the basic reproductive number of various outbreaks, which have agreed
+with values obtained by on-the-ground data collection. Therefore, if one is
+interested only in these population-level variables, the additional complexity
+of contact network models may not be warranted. Rather, these models are most
+useful when we are interested in properties of the network itself, such as
+centrality, structural balance, and
+transitivity~\autocite{wasserman1994social}.
 
 From a public health perspective, knowledge of contact networks has the
 potential to be extremely useful. On a population level, network structure can
 dramatically affect the speed and pattern of epidemic
-spread~\autocite[\eg][]{barthelemy2005dynamical}. For example, epidemics are
-expected to spread more rapidly in networks having the ``small world''
-property, where the average path length between two nodes in the network is
-relatively low~\autocite{watts1998collective}. Some sexually transmitted
-infections would not be expected to survive in a homogeneously mixed
-population, but their long-term persistance can be explained by contact
+spread~\autocite[\eg][]{barthelemy2005dynamical, volz2008sir}. For example,
+epidemics are expected to spread more rapidly in networks having the ``small
+world'' property, where the average path length between two nodes in the
+network is relatively low~\autocite{watts1998collective}. Some sexually
+transmitted infections would not be expected to survive in a homogeneously
+mixed population, but their long-term persistance can be explained by contact
 heterogeneity~\autocite{anderson1992infectious, pastor2001epidemic}. Hence, the
 contact network can provide an idea of what to expect as an epidemic unfolds.
 In terms of actionable information, vaccination strategies which would
@@ -388,39 +401,59 @@ little2014using}.
 Contact networks are a challenging type of data to collect, requiring extensive
 epidemiological investigation in the form of contact
 tracing~\autocite{morris1993epidemiology, welch2011statistical,
-keeling2005networks}. Several less resource-intensive alternatives have been
-explored. Some work focuses on the phylogenetic network, detecting patterns
-such as clustering. However, the phylogenetic network may show little to no
-agreement with a contact data obtained through epidemiological
-methods~\autocite{yirrell1998molecular, resik2007limitations}. Some
-studies~\autocite{brown2011transmission} have focused on parameters of the
-transmission network, rather than the more complete contact network, because it
-is possible to derive an estimate of the transmission network phylogenetically. 
+keeling2005networks}. Therefore, it has been necessary to explore less
+resource-intensive alternatives which still contain information about
+population structure. For instance, it is possible to obtain limited
+information about the contact network by individual interviews without contact
+tracing. Variables which can be estimated in this fashion are referred to as
+\defn{node-level} measures~\autocite{wasserman1994social}. One of the most
+well-studied of these is the degree distribution, which can be estimated by
+simply asking each person how many contacts they had in some interval of
+time~\autocite{liljeros2001web, schneeberger2004scale, colgate1989risk}.
 
-Rather than considering entire social networks, some epidemiological research
-has focused on properties which can be investigated without extensive contact
-tracing. The most common of these properties is the \defn{degree distribution}
-of the network, which denotes the probability that a node has any given number
-of links. Degree distributions for sexual networks can be estimated by simply
-asking each person how many contacts they had in, say, the last
-year~\autocite{liljeros2001web, schneeberger2004scale, colgate1989risk}.
+An alternative approach has been the analysis of other networks, which can be
+estimated with phylogenetic methods from viral sequence data. Some work focuses
+on the \defn{phylogenetic network}, in which two nodes are connected if the
+genetic distance between their viral sequences is below some threshold.
+Primarily, this work has focused on the detection of \defn{phylogenetic
+clusters}, which are groups of individuals whose viral sequences are
+significantly more similar to each other's than to the general population's.
+The phylogenetic network is informative about ``hotspots'' of transmission and
+can be used to identify demographic groups to whom targeted intervetions are
+likely to have the greatest effect~\autocite{poon2014impact}.  However, this
+network may show little to no agreement with a contact data obtained through
+epidemiological methods~\autocite{yirrell1998molecular, resik2007limitations,
+robinson2013dynamics}, and therefore may be a poor proxy for the contact
+network. Other studies~\autocite{brown2011transmission} have investigated the
+\defn{transmission network}, which is the subgraph of the contact network
+consisting of infected nodes and the edges which led to their
+infections~\autocite{welch2011statistical} (\cref{fig:contactnet}, left). It is
+possible to estimate the transmission network phylogenetically, although the
+methods required for doing so are more sophisticated than for estimating the
+phylogenetic network~\autocite{brown2011transmission}. These studies again
+mostly focusing on clustering, and also on degree distributions.
 
-There have been a few statistical methods developed to infer contact network
-parameters without extensive contact tracing. The pioneering study in this
-group was by \textcite{britton2002bayesian}, who developed a Bayesian method to
-infer the $p$ parameter of an \gls{ER} network, along with the transmission and
-removal rate parameters of the \gls{SI} model. Their method is able to use
-either observed infection and removal times, or removal times only. However, it
-is designed for only a small number of observations (fifteen and 42 cases in
-their applications), and their estimates of $p$ for real outbreaks were mostly
-uninformative (95\% confidence intervals [0.11-0.96] and [0.055-0.96]; $p$ is
-bounded in [0, 1]). \textcite{groendyke2011bayesian} significantly updated and
-extended the methodology of \citeauthor{britton2002bayesian}, and applied it to
-a measles outbreak affecting 188 individuals. They were able to obtain a much
-more informative estimate of $p$, although this data set included both symptom
-onset and recovery times for all individuals. They also assumed that the entire
-network was infected, so that the network size was exactly 188. It is unclear
-how well their method would scale to networks with thousands of nodes.
+Other statistical methods have been developed to infer contact network
+parameters strictly from the timeline of an epidemic, using neither genetic
+data nor reported contacts. \textcite{britton2002bayesian} developed a Bayesian
+method to infer the $p$ parameter of an \gls{ER} network, along with the
+transmission and removal rate parameters of the \gls{SI} model, using observed
+infection and optionally removal times. However, it was designed for only a
+small number of observations, and was unable to estimate $p$ independently from
+the transmission rate.  \textcite{groendyke2011bayesian} significantly updated
+and extended the methodology of \citeauthor{britton2002bayesian}, and applied
+it to a measles outbreak affecting 188 individuals. They were able to obtain a
+much more informative estimate of $p$, although this data set included both
+symptom onset and recovery times for all individuals, and was unusual in that
+the entire contact network was presumed to be infected. \textcite{volz2008sir}
+developed differential equations describing the dynamics of the \gls{SIR} model
+on a wide variety of random networks defined by their degree distributions.
+Although the topic of estimation was not addressed in the original paper,
+\citeauthor{volz2008sir}'s method could in principle be used to fit such models
+to observed epidemic trajectories, similar to what is done with the ordinary
+\gls{SIR} model. \textcite{volz2007susceptible} later extended the method to
+dynamic contact networks and applied it to a sexual network relating 99
+individuals investigated during a syphilis outbreak.
 
 \subsection{Scale-free networks and preferential attachment}
 \label{subsec:pa}
@@ -430,12 +463,25 @@ law, meaning that the number of nodes in the network with degree $k$ is
 proportional to $k^{-\gamma}$ for some constant
 $\gamma$~\autocite{barabasi1999emergence}. Scale-free networks are
 characterized by a large number of nodes of low degree, with relatively few
-``hub'' nodes of very high degree.
+``hub'' nodes of very high degree. Epidemiological surveys have indicated that
+human sexual networks tend to be scale-free~\autocite{liljeros2001web,
+schneeberger2004scale, colgate1989risk}. Interestingly, many other types of
+network, including computer networks, biological neural networks, metabolic
+networks~\autocite{jeong2000large}, and academic co-author networks, also have
+the scale-free property.
 
-Epidemiological surveys have indicated that human sexual networks tend to be
-scale-free~\autocite{liljeros2001web, schneeberger2004scale, colgate1989risk}.
-In this context, the high-degree hub nodes are known as
-\defn{superspreaders}~\autocite{kemper1980identification}.
+Several properties of scale-free networks are relevant in epidemiology.  The
+high-degree hub nodes are known as
+\defn{superspreaders}~\autocite{kemper1980identification}, which have been
+postulated to contribute in varying degree to the spread of diseases such as
+\gls{HIV}~\autocite{stadler2013uncovering} and
+\gls{SARS}~\autocite{shen2004superspreading}. Scale-free networks have no
+epidemic threshold~\autocite{pastor2001epidemic}, meaning that diseases with
+arbitrarily low transmissibility can persist at low levels indefinitely. This
+is in contrast with homogeneously mixed populations, in which transmissibility
+below the epidemic threshold would result in exponential decay in the number of
+infected individuals and eventual extinction of the pathogen (Anderson \& May,
+I think). 
 
 One mechanism which has been shown to lead to scale-free networks is
 \defn{preferential attachment}~\autocite{simon1955class, barabasi1999emergence}.
@@ -449,23 +495,39 @@ chosen with probability linearly proportional to their degree. However,
 probability of choosing a partner of degree $d$ is proportional to $d^\alpha$
 for some constant $\alpha$, and we use this extension here.
 
-There has been some contention of the idea that sexual networks are scale-free.
-\textcite{handcock2004likelihood} fit several stochastic models of partner
-formation to empirical degree distributions derived from population surveys of
-sexual behaviour. They found that a negative binomial distribution, rather than
-a power law, was the best fit to five out of six datasets, although the
-difference in goodness of fit was extremely small in four out of these five.
+There has been some contention of the idea that contact networks are
+scale-free. \textcite{handcock2004likelihood} fit several stochastic models of
+partner formation to empirical degree distributions derived from population
+surveys of sexual behaviour. They found that a negative binomial distribution,
+rather than a power law, was the best fit to five out of six datasets, although
+the difference in goodness of fit was extremely small in four out of these
+five. \textcite{bansal2007individual} found that an exponential distribution,
+rather than a power law, was the best fit to degree distributions of six social
+or sexual networks. 
 
 \subsection{Relationship between network structure and transmission trees}
 
-Clearly, the shape of a transmission tree is shaped by the underlying contact
-network (\cref{fig:contactnet}). A number of studies have made progress in
-quantifying this relationship. \textcite{o2010contact} simulated epidemics over
-networks with four types of degree distribution. They then estimated the
-Bayesian skyride~\autocite{minin2008smooth} population size trajectory in two
-ways: from the phylogeny, using \gls{MCMC}; and from the incidence and
-prevalence trajectories, using the method developed by Volz
-\etal~\autocite{volz2009phylodynamics}. They found that the concordance between
+The contact network underlying an epidemic constrains the shape of the
+transmission network, which in turn determines the topology of the transmission
+tree relating the infected hosts (\cref{fig:contactnet}). The initially
+infected node who introduces the epidemic into the network, also known as the
+\defn{index case}, becomes the root of the tree. Each time a transmission
+occurs, the lineage corresponding to the donor host in the tree splits into
+two, representing the recipient lineage and the continuation of the donor
+lineage. \Cref{fig:contactnet} illustrates this correspondence. It's important
+to note that, although the order and timing of transmissions determines the
+tree topology uniquely, the converse does not hold. That is, for any given
+topology, there are in general many transmission networks which would lead to
+that topology. In other words, it impossible to distinguish who transmitted to
+whom from a transmission tree alone~\autocite{bernard2007hiv}.
+
+A number of studies have made progress in quantifying the relationship between
+contact networks and transmission trees. \textcite{o2010contact} simulated
+epidemics over networks with four types of degree distribution. They then
+estimated the Bayesian skyride~\autocite{minin2008smooth} population size
+trajectory in two ways: from the phylogeny, using \gls{MCMC}; and from the
+incidence and prevalence trajectories, using the method developed by 
+\textcite{volz2009phylodynamics}. They found that the concordance between
 the two skyrides, as well as the relationship between the skyride and
 prevalence curve, was qualitatively different for each degree distribution.
 \citeauthor{leventhal2012inferring} simulated transmission trees over \gls{ER},

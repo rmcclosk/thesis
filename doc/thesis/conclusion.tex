@@ -17,12 +17,25 @@ be computationally feasible in this context.
 
 % spatial networks, see section 5.4 in keeling2005networks
 
+The two-step process of simulating a contact network and subsequently allowing
+an epidemic to spread over that network carries with it the assumption that the
+contact network is static over the duration of the epidemic. Clearly this
+assumption is invalid, as people make and break partnerships on a regular
+basis. Our work has not addressed this assumption, primarily due to our desire
+to avoid the additional complexity required to address the dynamic nature of
+networks. This simplifying assumption is made by most studies using contact
+network models in an epidemiological context~\autocite{welch2011statistical,
+bansal2007individual}. However, in principle, kernel-\gls{ABC} could be
+adapted to dynamic contact networks by using a method such as that developed by
+\textcite{robinson2012dynamics} to simulate a dynamic contact network, while
+concurrently simulating the spread of an epidemic.
+
 % Caveats
 
 It is important to note that our kernel-ABC method takes a transmission tree as
 input, rather than a viral phylogeny. Thus, we have left the estimation of a
 transmission tree up to the user. There were two reasons for this choice. First
-and foremost, we wished to avoid the extra complexity and keep the number of
+and foremost, we wished again to avoid extra complexity and keep the number of
 estimated parameters small. In theory, it is possible to incorporate the
 process by which a viral phylogeny is generated along with a transmission tree
 into our method, for example by simulating within-host dynamics. Although this
