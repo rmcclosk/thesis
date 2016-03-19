@@ -370,7 +370,7 @@ distribution in the contact network.
 * Sackin's index is pretty bad at distinguishing network types, especially if
 the networks are dynamic (Figure 8).
 * It's still possible to distinguish trees from realistic vs. random networks
-if the incidence nand prevalence curves are very closely matched.
+if the incidence and prevalence curves are very closely matched.
 * Imbalance, or rather the relationship between epidemic dynamics and
 imbalance, is significantly affected by sampling schemes (Figure 11).
 
@@ -463,6 +463,32 @@ epidemic spread.
 I'm doing.
 * Use some odd summary statistics to show there isn't much difference between
 trees simulated with different levels of clustering.
+
+**[@bansal2007individual]**
+
+* Contrasts contact networks with homogeneous mixing models, explaining
+situations where each type is useful.
+* Exponential degree distribution, now power-law, was best fit to six published
+contact networks.
+* Should reread this one.
+
+**[@volz2008sir]**
+
+* Ah Erik. Of course you have done this already. Le sigh.
+* Uses probability generating functions to derive explicit formulae for SIR
+epidemic trajectories on random networks.
+* The word "random" here is like in random variable, it doesn't mean ER
+networks. They are defined in terms of their degree distributions.
+* He does this by considering what happens in the limit of effective population
+size.
+* Final DEs are written in terms of probability generating functions of the
+degree distribution. Ah it's pretty.
+
+**[@volz2007susceptible]**
+
+* Argh. Apparently there are tonnes of papers which fit contact network models
+to epi data. Check the references.
+* Extends the above to dynamic networks (but was published sooner? dunno).
 
 **[@klovdahl1985social]**
 
@@ -795,6 +821,31 @@ social networks."
 * Talks about the introduction of compartmental models and preferential mixing.
 * Basically this is extending the compartmental model idea all the way down to
 one differential equation per person.
+
+# Other Contact Networks
+
+**[@wasserman1994social]**
+
+* Book about social network analysis, primarily in the social science context.
+
+**[@barnes1954class]**
+
+* Apparently the first use of the term "social network", according to
+[@wasserman1994social].
+
+**[@moreno1953shall]**
+
+* Invention of the graphical form of social network (he called it a
+"sociogram").
+
+**[@jeong2000large]**
+
+* Metabolic networks are scale-free (didn't read).
+
+**[@shen2004superspreading]**
+
+* Contribution of super-spreaders to the 2003 SARS epidemic in Beijing (didn't
+read).
 
 # HIV Biology
 
