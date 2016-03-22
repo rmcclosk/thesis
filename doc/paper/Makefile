@@ -1,3 +1,5 @@
+.INTERMEDIATE: paper.tex
+
 all: paper.pdf
 
 paper.pdf: paper.tex papers.bib figures 

@@ -545,17 +545,17 @@ the nodes exhibited heterogeneous preferential attachment power (half 0.5, the
 other half 1.5), with $m$ = 2, $N$ = 5000, and $I$ = 1000. The \gls{MAP} [95\%
 HPD] estimates for each parameter were: 
 $\alpha$, 
-  1 [0.07-
-                           1.07];
+  1 [0.75-
+                           1.12];
 $I$,
-  5.37 [2.05-
-                       5.82];
+  5.24 [2.05-
+                       5.81];
 $m$,
-  \ensuremath{1.01\times 10^{4}} [\ensuremath{3.06\times 10^{3}}-
+  \ensuremath{1.04\times 10^{4}} [\ensuremath{2.27\times 10^{3}}-
                               \ensuremath{1.5\times 10^{4}}];
 $N$,
-  \ensuremath{1.18\times 10^{3}} [505.71-
-                       \ensuremath{1.62\times 10^{3}}].
+  \ensuremath{1.17\times 10^{3}} [502.34-
+                       \ensuremath{1.58\times 10^{3}}].
 
 
 
@@ -568,14 +568,14 @@ $\alpha$,
   0.46 [0.03-
                            0.83];
 $I$,
-  3.53 [2.18-
+  3.47 [2.18-
                        5.9];
 $m$,
-  \ensuremath{1.07\times 10^{4}} [\ensuremath{3.11\times 10^{3}}-
-                              \ensuremath{1.47\times 10^{4}}];
+  \ensuremath{1.08\times 10^{4}} [\ensuremath{3.11\times 10^{3}}-
+                              \ensuremath{1.48\times 10^{4}}];
 $N$,
-  \ensuremath{2.46\times 10^{3}} [\ensuremath{1.28\times 10^{3}}-
-                       \ensuremath{3.88\times 10^{3}}].
+  \ensuremath{2.94\times 10^{3}} [\ensuremath{1.28\times 10^{3}}-
+                       \ensuremath{3.94\times 10^{3}}].
 
 \subsection*{Real data}
 
@@ -618,7 +618,7 @@ estimated $I$, and \gls{HPD} interval spanning almost the entire prior region
   (\ensuremath{7.55\times 10^{3}} 
   [228.96-\ensuremath{8.92\times 10^{3}}]).
 Little information was gleaned about the $m$ parameter, with the \gls{HPD}
-interval occuping the entire prior region for all datasets. The estimates of
+interval occupying the entire prior region for all datasets. The estimates of
 $N$ were similarly uninformative, with the exception that the point estimate
 for the \textcite{wang2015targeting} data was smaller
   (\ensuremath{5.84\times 10^{3}})
@@ -631,37 +631,43 @@ than the estimates for other datasets.
     Point estimates and 95\% \gls{HPD} intervals for \gls{BA} network
     parameters of published HIV datasets, obtained with kernel-ABC.
   }
+  \label{fig:abchpd}
 \end{figure}
 
 \section*{Discussion}
 
 Contact networks can have a strong influence on epidemic progression, and are
-potentially useful as a public health tool. Despite this, few methods exist for
-investigating contact network parameters in a phylodynamic framework.
-Kernel-ABC is a model-agnostic method which can be used to investigate any
-quantity that affects tree shape. In this work, we developed a kernel-ABC-based
-method to infer the parameters of a contact network model. The method is
-general, and could be applied to any model from which contact networks can be
-simulated. We demonstrated the method on the \gls{BA} model, which is a simple 
-model incorprorating the preferential attachment feature commonly seen in
-real-world networks. 
+potentially useful as a public health tool~\autocite{wang2015targeting,
+little2014using}. Despite this, few methods exist for investigating contact
+network parameters in a phylodynamic framework~\autocite{groendyke2011bayesian,
+brown2011transmission}. Kernel-ABC is a model-agnostic method which can be used
+to investigate any quantity that affects tree shape. In this work, we developed
+a kernel-ABC-based method to infer the parameters of a contact network model.
+The method is general, and could be applied to any model from which contact
+networks can be simulated. We demonstrated the method on the \gls{BA} model,
+which is a simple model incorporating the preferential attachment feature
+commonly seen in real-world networks. 
 
 By training a kernel-SVM classifier, we found that the $\alpha$ and $I$
 parameters, representing preferential attachment power and number of infected
 nodes, had a strong influence on tree shape. This was reflected in the relative
-accuracy of the kernel-ABC estimates of these parameters. On the other hand,
-the $m$ and $N$ parameters did not produce much variation in tree shape,
-resulting in both poorly performing classifiers and uninformative kernel-ABC
-estimates. The total number of nodes $N$ was almost always significantly
-over-estimated. Since the prior on $N$ and $I$ is jointly uniform on a
-triangular region ($I \leq N$), there is more prior mass on high $N$ values. In
-retrospect, it is unreasonable to expect good estimation of $N$, because adding
-more nodes to a \gls{BA} network does not change the edge density or overall
-shape. This can be illustrated by imaging that we add a small number of nodes
-to a network after the epidemic simulation has already been completed. It is
-possible that none of these new nodes attains a connection to any infected
-node. Thus, running the simulation again on the new, larger network could
-produce the exact same transmission tree as before. 
+accuracy of the kernel-ABC estimates of these parameters. The total number of
+nodes $N$ had a weak influence on tree shape, which was most prominent when the
+epidemic size $I$ and number of sampled tips were both large. The $m$
+parameter, representing the number of edges created in the network per vertex,
+did not produce much variation in tree shape, resulting in in both poorly
+performing classifiers and uninformative kernel-ABC estimates.
+
+$N$ was almost always significantly over-estimated using kernel-ABC. Since the
+prior on $N$ and $I$ is jointly uniform on a triangular region ($I \leq N$),
+there is more prior mass on high $N$ values. In retrospect, it is unreasonable
+to expect good estimation of $N$, because adding more nodes to a \gls{BA}
+network does not change the edge density or overall shape. This can be
+illustrated by imagining that we add a small number of nodes to a network after
+the epidemic simulation has already been completed. It is possible that none of
+these new nodes attains a connection to any infected node. Thus, running the
+simulation again on the new, larger network could produce the exact same
+transmission tree as before. 
 
 As noted by \textcite{lintusaari2016identifiability}, uniform priors on model
 parameters may translate to highly informative priors on quantities of
@@ -680,76 +686,87 @@ one case as high as 17, for some datasets, indicating that a wider range of
 permitted $\gamma$ values may be warranted.
 
 Our investigation of published HIV datasets indicated heterogeneity in the
-contact network structures underlying several distinct local epidemics.
-\textcite{cuevas2009hiv} studied a group of newly diagnosed individuals in the
-Basque Country, Spain. Although the individuals were of mixed risk group, and
-therefore unlikely to comprise a single contact network, a high proportion of
-them (47\%) grouped into local transmission clusters, allowing for the
-possibility of weak preferential attachment dynamics. We estimated a relatively
-low attachment power for these data, which is consistent with the sampled
-sequences comprising many distinct sub-networks. \textcite{li2015hiv} sampled a
-large number of acutely infected \gls{MSM} in Shanghai, China. By using a
-patristic distance cutoff~\autocite{poon2014impact}, we identified and analysed
-a large cluster. Surprisingly, the estimated attachment power was fairly low
-with a large credible interval.
+contact network structures underlying several distinct local epidemics. The
+five datasets analysed fell into three categories (\cref{fig:abchpd}). First,
+we estimated a preferential attachment power between 0.5 and 1 for the
+epidemics studied by \textcite{cuevas2009hiv} and \textcite{li2015hiv}, with
+credible intervals occupying nearly the entire region from 0 to 1.
+\citeauthor{cuevas2009hiv} studied a group of newly diagnosed individuals in
+the Basque Country, Spain. Although the individuals were of mixed risk groups,
+and therefore unlikely to comprise a single contact network, a high proportion
+of them (47\%) grouped into local clusters based on genetic distance. The low
+estimated attachment power for these data is consistent with the sampled
+sequences comprising many distinct sub-networks rather than a single connected
+network. \citeauthor{li2015hiv} sampled a large number of acutely infected
+\gls{MSM} in Shanghai, China, in which we identified a large cluster from the
+phylogeny using a patristic distance cutoff~\autocite{poon2014impact}. The low
+attachment power estimated for this dataset was surprising given the high
+phylogenetic relatedness of the sequences. It is possible that the number and
+diversity of circulating recombinant forms introduced errors into the estimated
+viral phylogeny.
 
-\textcite{niculescu2015recent} studied a recent outbreak among Romainian
-\gls{IDU}. The estimated attachment power for this dataset was the highest
-among all we considered, at slightly above one. The dataset constituted a
-fairly high sampling prevalence of 33\% of newly diagnosed \gls{IDU} infections
-over the study period. \textcite{wang2015targeting} sampled acutely infected
-\gls{MSM} in Beijing, China, and discovered a high degree of clustering which
-indicated that the local \gls{MSM} subnetwork had been deeply sampled. In both
-these datasets, the estimated attachment power was close to one.
+For the outbreaks studied by \textcite{niculescu2015recent} and
+\textcite{wang2015targeting}, the estimated $\alpha$ was close to one, with a
+narrower credible interval than for the other studies.
+\citeauthor{niculescu2015recent} studied a recent outbreak among Romanian
+\gls{IDU}, while \citeauthor{wang2015targeting} sampled acutely infected
+\gls{MSM} in Beijing, China. Both studies discovered a high degree of
+phylogenetic relatedness owing to the recent infection times and homogeneous
+risk groups of the studied populations. The estimated number of infections for
+these datasets were also quite low, although the \gls{HPD} interval for
+\citeauthor{wang2015targeting} was much wider than that for
+\citeauthor{niculescu2015recent}.
 
+The final studied dataset was an outlier in terms of estimated parameters.
 \textcite{novitsky2013phylogenetic} sampled approximately 44\% of the
 HIV-infected individuals in the northern area of Mochudi, Botswana. Additional
 sampling in a later study~\autocite{novitsky2014impact} brought the genotyping
 coverage up to 70\%. Even with such a high sampling coverage, we did not detect
 any large clusters using patristic distance, and therefore chose to analyze a
-subtree instead. The estimated attachment power was extremely low, with a very
-wide credible interval. The estimated number of infected nodes was also
-extremely high, much higher than the HIV-infected population of the town, with
-a similarly wide credible interval. Several factors may have contributed to
-this result. First, the authors note that the their sample was 75\% female. In
-a primarily heterosexual risk environmet, removal of a disproportionate nmuber
-of males from the network could obfuscate the true network structure. Second,
-the town in question was in close proximity to the country's capital, and the
-authors indicated that a high amount of migration takes place between the two
-locations. This suggests a reason for the high estimate of $I$: the contact
-network includes a much larger group based in the capital city.
+subtree instead. Estimates of $\alpha$ and $N$ both had very wide \gls{HPD}
+intervals and were markedly different from the other datasets. The estimated
+number of infected nodes was also extremely high, much higher than the
+estimated HIV prevalence of the town. Several factors may have contributed to
+these results. First, the authors note that the their sample was 75\% female.
+In a primarily heterosexual risk environment, removal of a disproportionate
+number of males from the network could obfuscate the true network structure.
+Second, the town in question was in close proximity to the country's capital,
+and the authors indicated that a high amount of migration takes place between
+the two locations. This suggests that the contact network may include a much
+larger group based in the capital city, which would explain the high estimate
+of $I$.
 
 When interpreting these results, we caution that the \gls{BA} model is quite
 simple and most likely misspecified for these data. In particular, the average
 degree of a node in the network is equal to $2m$, and therefore is constrained
 to be a multiple of 2. Furthermore, we considered the case $m = 1$, where the
-network has no cycles, to be implausable and assigned it zero prior
+network has no cycles, to be implausible and assigned it zero prior
 probability. This forces the average degree to be at least four, which may be
-unrealistically high for sexual networks. Additional modelling assumptions,
-include the network being connected and static, the epidemic following simple
-\gls{SI} dynamics, and the underlying behaviour of all nodes is the same. This
+unrealistically high for sexual networks. Additional modelling assumptions
+include the network being connected and static, all transmission rates being
+equal, no removal after infection, and identical behaviour of all nodes. This
 last is particularly problematic, as we showed by simulating a network where
 some nodes exhibited a higher attachment power than others. The estimated
 attachment power was simply the average of the two values, indicating that,
 although we could characterize the network in aggregate, the estimated
-parameters could not be said to apply to any individual node. However, we note
-that, given the model-agnostic nature of our method, it is possible to fit a
-model with heterogeneous node behaviour, and indeed this may prove a fruitful
-avenue for future investigations.
+parameters could not be said to apply to any individual node. Despite these
+issues, we felt it was best to demonstrate the method first on a simple model.
+It is possible to fit more complex models which address some of these issues,
+such as one incorporating heterogeneous node behaviour. This may prove a
+fruitful avenue for future investigations.
 
-Our method itself has of caveats, perhaps the most significant being that it
+Our method has a number of caveats, perhaps the most significant being that it
 takes a transmission tree as input. In reality, true transmission trees are not
 available and must be approximated, often by way of a viral phylogeny. Although
 this has been demonstrated to be a fair
 approximation~\autocite[e.g.][]{leitner1996accurate}, and is frequently used in
 practice~\autocite[e.g.][]{stadler2013uncovering}, the topologies of a viral
 phylogeny and transmission tree can differ
-significantly~\autocite{ypma2013relating}. In addition, it is computationally
-intensive, taking about a day when run on 20 cores in parallel with the setings
-we described in the methods. However, there are no other methods available to
-perform the types of estimation we do here, and we therefore believe our method
-will be useful to epidemiological researchers interested in the network
-structure underlying disease outbreaks.
+significantly~\autocite{ypma2013relating}. In addition, the \gls{ABC}-\gls{SMC}
+algorithm is computationally intensive, taking about a day when run on 20 cores
+in parallel with the settings we described in the methods. Nevertheless, our
+method is potentially useful to epidemiological researchers interested in the
+general characteristics of the network structure underlying disease outbreaks.
 
 \setcounter{figure}{0}
 \renewcommand{\thefigure}{S\arabic{figure}}
@@ -768,7 +785,7 @@ structure underlying disease outbreaks.
 
 \begin{figure}[ht]
   \centering
-  %\includegraphics{smc_test}
+  \includegraphics{smc-test.pdf}
   \caption{Approximation of mixture of Gaussians used by
     \textcite{del2012adaptive} and \textcite{sisson2007sequential} to test
     \gls{SMC}. Solid black line indicates true distribution. Grey shaded area
