@@ -19,10 +19,14 @@ space +=
 join-with = $(subst $(space),$1,$(strip $2))
 
 all: contactnet.png \
+	epitrees.png \
 	speciestree.png \
+	objects.png \
 	nltt.png \
+	pa.png \
 	separable.png \
 	alpha-bounds.png \
+	smc-test.png \
 	acc-prec.png \
 	abc-idea.png \
 	abc-smc.png \
@@ -67,7 +71,7 @@ clean:
 
 %.png: %.pdf
 	R --silent --vanilla -e "library(extrafont); embed_fonts('$^')"
-	pdfcrop $^ $^
+	pdfcrop --bbox "`pdfcrop --verbose $^ /dev/null | grep HiResBoundingBox | cut -d ' ' -f 2-5 | sort -n | head -n 1`" $^ $^
 	convert -density 500 -transparent white $^ $@
 
 $(foreach f,$(LATEX_FILES),$(eval $(call MAKE_LATEX,$(f))))
