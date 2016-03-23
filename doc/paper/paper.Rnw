@@ -1,9 +1,7 @@
 \documentclass[12pt]{article}
 \usepackage[osf]{garamondx}
 \usepackage[garamondx,cmbraces]{newtxmath}
-\usepackage{marginnote}
-\usepackage[top=2cm, bottom=2cm, outer=3cm, inner=3cm, heightrounded, 
-            marginparwidth=2cm, marginparsep=0.5cm]{geometry}
+\usepackage{fullpage}
 \usepackage{setspace}
 \usepackage[backend=biber, style=authoryear, uniquelist=minyear, uniquename=false]{biblatex}
 \usepackage[acronym,nonumberlist]{glossaries}
@@ -739,10 +737,10 @@ did not produce much variation in tree shape, resulting in in both poorly
 performing classifiers and uninformative kernel-ABC estimates.
 
 $N$ was almost always significantly over-estimated using kernel-ABC. Since the
-prior on $N$ and $I$ is jointly uniform on a triangular region ($I \leq N$),
-there is more prior mass on high $N$ values. In retrospect, it is unreasonable
-to expect good estimation of $N$, because adding more nodes to a \gls{BA}
-network does not change the edge density or overall shape. This can be
+prior on $N$ and $I$ is jointly uniform on a non-rectangular region ($I \leq
+N$), there is more prior mass on high $N$ values. In retrospect, it is
+unreasonable to expect good estimation of $N$, because adding more nodes to a
+\gls{BA} network does not change the edge density or overall shape. This can be
 illustrated by imagining that we add a small number of nodes to a network after
 the epidemic simulation has already been completed. It is possible that none of
 these new nodes attains a connection to any infected node. Thus, running the
@@ -833,7 +831,7 @@ although we could characterize the network in aggregate, the estimated
 parameters could not be said to apply to any individual node. Despite these
 issues, we felt it was best to demonstrate the method first on a simple model.
 It is possible to fit more complex models which address some of these issues,
-such as one incorporating heterogeneous node behaviour. This may prove a
+such as one incorporating heterogeneous node behaviour, which may prove a
 fruitful avenue for future investigations.
 
 Our method has a number of caveats, perhaps the most significant being that it
