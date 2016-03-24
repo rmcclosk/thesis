@@ -25,7 +25,7 @@ the DNA sequences of an ancestor its descendant, or the difference in average
 body mass or height. A phylogeny with branch lengths in calendar time units is
 often referred to as \defn{time-scaled}. In a time-scaled phylogeny, the
 internal nodes can be mapped onto a timeline by using the tips of the tree,
-which usually map to the present day, as a reference
+which usually correspond to the present day, as a reference
 point~\autocite{nee1992tempo}. The corresponding points on the timeline are
 called \defn{branching times}, and the rate of their accumulation is referred
 to as the \defn{branching rate}. Rooted trees whose tips are all the same
@@ -55,24 +55,23 @@ evolutionary process (speciation), they record an epidemiological process
 (transmission). The tips of a transmission tree represent infected hosts, while
 internal nodes correspond to transmissions from one host to another.
 Transmission trees generally have branch lengths in units of calendar time,
-with a root corresponding to the index case, and branching times indicating
-times of transmission. The internal nodes may be labelled with
-the donor of the transmission pair, if this is known. The tips of the tree,
-rather than being fixed at the present day, are placed at the time at which the
-individual was removed from the epidemic, such as by death, recovery,
-isolation, behaviour change, or migration. Consequently, the transmission tree
-may not be ultrametric, but may have tips located at varying distances from the
-root. Such trees are said to have \defn{heterochronous}
-taxa~\autocite{drummond2003measurably}, in contrast to the
-\defn{isochronous} taxa found in the phylogenies of macro-organisms. A
+with branching times indicating times of transmission. The root of a
+transmission tree corresponds to the initially infected patient who introduced
+the epidemic into the network, also known as the \defn{index case}. The
+internal nodes may be labelled with the donor of the transmission pair, if this
+is known. The tips of the tree, rather than being fixed at the present day, are
+placed at the time at which the individual was removed from the epidemic, such
+as by death, recovery, isolation, behaviour change, or migration. Consequently,
+the transmission tree may not be ultrametric, but may have tips located at
+varying distances from the root. Such trees are said to have
+\defn{heterochronous} taxa~\autocite{drummond2003measurably}, in contrast to
+the \defn{isochronous} taxa found in most phylogenies of macro-organisms. A
 transmission tree is illustrated in \cref{fig:contactnet} (right). 
 
-In a transmission tree, each sampled individual appears as a tip when they are
-removed from the infected population. In addition, they appear as an internal
-node each time they transmit to an individual who is either eventually sampled,
-or who transmits directly or indirectly to a sampled individual. This is not
-the same as the transmission \emph{network}, in which each infected individual
-appears exactly once, and edges are in one-to-one correspondence with
+Due to the internal nodes, each infected individual in an epidemic may appear
+in the transmission tree more than once. This is different from the
+transmission \emph{network}, in which each infected individual appears exactly
+once, and edges are in one-to-one correspondence with
 transmissions~\autocite{welch2011statistical, keeling2005networks}.
 Transmission networks are discussed further in \cref{sec:contactnet}, and the
 distinction between the two objects is illustrated in \cref{fig:contactnet}.
@@ -126,35 +125,34 @@ trees and viral phylogenies~\autocite{volz2013viral}.
 In general, \defn{viral phylogenies} are simply phylogenetic trees relating
 virus strains. In phylodynamics, we often consider \defn{inter-host}
 phylogenies, which relate one viral genotype from each host in a population.
-The tips of the tree are labelled with both the virus and its host. The crux of
-\defn{phylodynamics}~\autocite{grenfell2004unifying} is the fact that the
-processes generating these two types of tree - epidemiological processes, for
-transmission trees, and evolutionary processes, for viral phylogenies - occur
-on similar time scales for RNA viruses~\autocite{drummond2003measurably}. As a
-result, there is a close relationship between the two trees. In particular, the
+The crux of \defn{phylodynamics}~\autocite{grenfell2004unifying} is the fact
+that the epidemiological processes recorded in transmission trees, and the
+evolutionary processes recorded in viral phylogenies, occur on similar time
+scales for RNA viruses~\autocite{drummond2003measurably}. As a result, there is
+a close relationship between the two types of tree. In particular, the
 transmission process is quite similar to \defn{allopatric
 speciation}~\autocite{coyne2004speciation}, where genetic divergence follows
 the geographic isolation of a sub-population of organisms. Thus, transmission,
 which is represented as branching in the transmission tree, causes branching in
-the viral phylogeny as well. Similarly, the removal of an individual causes the
-extinction of their viral lineage. Due to these relationships, the topology of
-the viral phylogeny is often used as a proxy for the topology of the
-transmission tree. However, there are several complications and caveats which
-must be kept in mind when estimating the transmission tree in this manner.
+the viral phylogeny as well. Similarly, the removal of an individual from the
+transmission tree causes the extinction of their viral lineage in the
+phylogeny. Due to these relationships, the topology of the viral phylogeny is
+often used as a proxy for the topology of the transmission tree. However, there
+are several complications and caveats which must be kept in mind when
+estimating the transmission tree in this manner.
 
 First are the issues of rooting and time-scaling. Modern likelihood-based
-methods of phylogenetic reconstruction produce unrooted trees whose branch
-lengths measure genetic distance in units of expected substitutions per site,
-whereas transmission trees are rooted with branches measuring calendar time. We
-generally assume that sampling a virus from the individual also corresponds to
-their removal from the transmission tree, so the positions of the tips in time
-are fixed. Therefore, to transform a viral phylogeny into an estimated
-transmission tree, we must find a root and an assignment of branch lengths such
-that the tips are placed at their proscribed times. Of course, there are an
-infinite number of possible combinations of root and branch lengths which
-result in the correct placement of the tips, so we would also like to find
-values which are the most ``reasonable'' given our data. By reasonable, we mean
-that the variation in \defn{evolutionary rate}, which is the ratio of a
+methods of phylogenetic reconstruction~\autocite[\eg][]{price2010fasttree,
+stamatakis2014raxml} produce unrooted trees whose branch lengths measure
+genetic distance in units of expected substitutions per site. On the other
+hand, transmission trees are rooted, and have branches measuring calendar
+time~\autocite{pybus2009evolutionary}. It is generally assumed that sampling a
+virus from the individual also corresponds to their removal from the
+transmission tree, so the positions of the tips in time are fixed. Therefore,
+to transform a viral phylogeny into an estimated transmission tree, we must
+find a root and an assignment of branch lengths such that the tips are placed
+at their proscribed times. In addition, the branch lengths should be chosen
+such that the variation in \defn{evolutionary rate}, which is the ratio of a
 branch's length in genetic distance to its length in calendar time, is low
 across the tree. While there is some variation among hosts, due to
 immunological and other factors, we generally expect to observe globally
@@ -165,7 +163,8 @@ dating~\autocite{to2015fast}. Both of these methods can be used to root the
 tree, by simply trying all possible root positions and choosing the one which
 minimizes a loss function ($1-R^2$, or root-mean-square error, for root-to-tip
 regression; sum of squared errors for least-square dating). Alternatively, the
-tree may be rooted with an outgroup~\autocite{li1988rates} before time-scaling.
+tree may be rooted separately with an outgroup~\autocite{li1988rates} before
+time-scaling.
 
 A second, perhaps more insidious problem is the fact that the correspondence
 between the topologies of the viral phylogeny and transmission tree is not
@@ -216,11 +215,10 @@ clock} model. A molecular clock is a hypothesis about the evolutionary rates
 along the branches of the tree, such as that they are all equal (a \defn{strict
 clock}) or that they are \gls{iid} from a common distribution (a \defn{relaxed
 clock}). This inference is usually done in a Bayesian framework using
-\gls{MCMC}, so that prior information (including the tip dates) 
-%\comment{are tip dates part of the prior?} 
-can be included in the analysis, and the so-called nuisance parameters of the
-molecular clock model can be marginalized out. Software packages for performing
-these analyses include BEAST~\autocite{bouckaert2014beast} and
+\gls{MCMC}, so that prior information (including the tip dates) can be included
+in the analysis, and the so-called nuisance parameters of the molecular clock
+model can be marginalized out. Software packages for performing these analyses
+include BEAST~\autocite{bouckaert2014beast} and
 MrBayes~\autocite{ronquist2012mrbayes}.
 
 Several other authors have developed methods tailor-made for inferring
@@ -509,17 +507,16 @@ or sexual networks.
 
 The contact network underlying an epidemic constrains the shape of the
 transmission network, which in turn determines the topology of the transmission
-tree relating the infected hosts (\cref{fig:contactnet}). The initially
-infected node who introduces the epidemic into the network, also known as the
-\defn{index case}, becomes the root of the tree. Each time a transmission
-occurs, the lineage corresponding to the donor host in the tree splits into
-two, representing the recipient lineage and the continuation of the donor
-lineage. \Cref{fig:contactnet} illustrates this correspondence. It's important
-to note that, although the order and timing of transmissions determines the
-tree topology uniquely, the converse does not hold. That is, for any given
-topology, there are in general many transmission networks which would lead to
-that topology. In other words, it impossible to distinguish who transmitted to
-whom from a transmission tree alone~\autocite{bernard2007hiv}.
+tree relating the infected hosts (\cref{fig:contactnet}). The index case who
+introduces the epidemic into the network becomes the root of the tree. Each
+time a transmission occurs, the lineage corresponding to the donor host in the
+tree splits into two, representing the recipient lineage and the continuation
+of the donor lineage. \Cref{fig:contactnet} illustrates this correspondence.
+It's important to note that, although the order and timing of transmissions
+determines the tree topology uniquely, the converse does not hold. That is, for
+any given topology, there are in general many transmission networks which would
+lead to that topology. In other words, it impossible to distinguish who
+transmitted to whom from a transmission tree alone~\autocite{bernard2007hiv}.
 
 A number of studies have made progress in quantifying the relationship between
 contact networks and transmission trees. \textcite{o2010contact} simulated
@@ -603,123 +600,200 @@ to quantitatively infer network parameters from observed trees.
 
 \section{Approximate Bayesian computation}
 \label{sec:abc}
+\glsreset{ABC}
 
-\subsection{Overview and motivation}
+\subsection{Model fitting}
 
-\Gls{ABC} is a statistical method designed to fit complex models, which cannot
-be fit using more conventional methods, to observed
-data~\autocite{marin2012approximate, sunnaker2013approximate,
-beaumont2010approximate} We shall make this precise below, but to fully
-describe and motivate \gls{ABC}, it is necessary to first explain exactly what
-we mean by ``fitting'' a model. We will illustrate this concept with one of the
-simplest and most ubiquitous models: linear regression.
+A \defn{mathematical model} is a formal description of a hypothesized
+relationship between some observed data, $\vec{x} = \set{x_1, \ldots, x_n}$,
+and outcomes, $\vec{y} = \set{y_1, \ldots, y_n}$. A \defn{parametric} model
+defines a family of possible relationships between data and outcomes, indexed
+by one or more numeric parameters $\theta$. A \defn{statistical} model
+describes the relationship between data and outcomes in terms of probabilities.
+Statistical models define, either explicitly or implicitly, the probability of
+observing $\vec{y}$ given $\vec{x}$ and, if the model is parameteric, $\theta$.
+In this context, the observed outcomes are taken to be realizations of random
+variables $\vec{Y} = \set{Y_1, \ldots, Y_n}$. Note that it is entirely possible
+to have no data $\vec{x}$, only observed outcomes $\vec{y}$. In this case, a
+model would describe the process by which $\vec{y}$ is generated.
 
-A linear regression is a model of the relationship between some data $\vec{x} =
-(x_1, \ldots, x_n)$ and outcomes $\vec{y} = (y_1, \ldots, y_n)$. This model
-assumes that the outcomes are linearly related to the data, modulo some noise
-introduced by, say, measurement errors and environmental fluctuations. It other
-words, there is a constant $\beta$ such that $y_i = \beta x_i + \varepsilon_i$,
-where $\varepsilon_i$ is the error associated with the outcome $y_i$. If we
-make the additional assumption that the errors are normally distributed, then
-the model takes the form
-\[
-  y_i = \beta x_i + \N(0, \sigma^2),
-\]
-where $\N(0, \sigma^2)$ indicates a normally distributed random variable with
-mean 0 and variance $\sigma$. We will denote the \gls{pdf} of this random
-variable by $f_\N(\cdot \mid \mu, \sigma)$. In this formulation, the
-coefficient $\beta$ and the error variance $\sigma$ are the two parameters of
-the model. If the $y_i$ are all independent, then for particular choice of
-$\beta$ and $\sigma$, we can write down the probability density of observing
-$\vec{y}$ given $\vec{x}$.
-\[
-  f(\vec{y} \mid \vec{x}, \beta, \sigma) = 
-  \prod_{i=1}^n f_\N(y_i - \beta x_i \mid 0, \sigma^2).
-\]
-The higher the value of this probability density, the more likely the
-observations $\vec{y}$ are given $\vec{x}$ under the model. This gives us a
-natural criterion for choosing the parameters: we want to pick $\beta$ and
-$\sigma$ which define a model where the probability of our observed data is as
-high as possible. When performing such an optimization for fixed data, the
-density function just written is also called the \defn{likelihood} of the
+To illustrate these concepts, consider the well-known linear model. For
+clarity, we will restrict our attention to the case of one-dimensional data and
+outcomes where each $x_i$ and $y_i$ is a real number. The linear model
+postulates that the outcomes are linearly related to the data, modulo some
+noise introduced by measurement error, environmental fluctuations, and other
+external factors. Formally, $y_i = \beta x_i + \varepsilon_i$, where $\beta$ is
+the slope of the linear relationship, and $\varepsilon_i$ is the error
+associated with measurement $i$. We can make this model a statistical one by
+hypothesizing a distribution for the error terms $\varepsilon_i$; most
+commonly, it is assumed that they are normally distributed with variance
+$\sigma$. In mathematical terms, $Y_i \sim \beta x_i + \N(0, \sigma^2)$, where
+``$\sim$'' means ``is distributed as''. We can see from this formulation that
+the model is parametric, with parameters $\beta$ and $\sigma$. Moreover, we can
+write down the probability density of observing outcome $y_i$ given the
 parameters,
 \[
-  \L(\beta, \sigma \mid \vec{x}, \vec{y}) = f(\vec{y} \mid \vec{x}, \beta, \sigma).
+  \Pr(Y_i = y_i \mid \beta, \sigma) = 
+  \Pr\left(\N(0, \sigma^2) = y_i - \beta x_i\right).
 \]
-The particular $\beta$ and $\sigma$ which optimize $\L(\beta, \sigma \mid
-\vec{x}, \vec{y})$ are called the \gls{ML} estimates. 
-
-\Gls{ML} inference makes use only of the data at hand, in this case
-$\vec{x}$ and $\vec{y}$, to estimate the parameters $\beta$ and $\sigma$.
-However, it is frequently the case that the investigator has some additional
-\defn{prior} information or belief about what $\beta$ and $\sigma$ are likely
-to be. For example, the instrument used to measure the $\vec{y}$ may have a
-known margin of error, or the sign of the slope may be obvious from previous
-experiments. A Bayesian approach to fitting this model would make use of this
-information by codifying the investigator's beliefs as a \defn{prior
-distribution}, denoted $f(\beta, \sigma)$. The optimal parameters are then
-those which maximize the product of the prior and the likelihood,
+Note that we have followed the standard statistical abuse of notation and used
+``$\Pr$'' to refer to a probability \emph{density}, rather than a probability.
+Assuming all the $y_i$ are independent, the probability density of the entire
+observed set of outcomes is the product of the probability density of each
+individual $y_i$,
 \[
-  f(\vec{y} \mid \vec{x}, \beta, \sigma) f(\beta, \sigma).
+  \Pr(\vec{Y} = \vec{y} \mid \beta, \sigma) = 
+  \prod_{i=1}^N \Pr(Y_i = y_i \mid \beta, \sigma).
 \]
-Bayes' theorem tells us that this product is proportional to the
-\defn{posterior distribution} $f(\beta, \sigma \mid \vec{y}, \vec{x})$. The
-parameters which optimize the posterior, and hence also optimize the above
-product, are called the \gls{MAP} estimates.
 
-Now that we have defined what it means to fit a linear regression, there
-remains the question of how to go about finding this optimal $\beta$ value.
-Na\"{i}vely, we could simply try many different $\beta$ and $\sigma$ values,
-calculate the likelihood of each, and choose those which yield the highest
-value. This approach, though basic, falls under the umbrella of \defn{numerical
-optimization} of the likelihood function. Of course, there is a whole field
-devoted to more sophisticated methods for exploring the parameter space, but
-they all boil down to the basic idea of trying out different values and
-choosing those which give the highest likelihood.
+For a general model, the probability density of $\vec{y}$ given the parameters
+$\theta$ is also known as the \defn{likelihood}, written $\L$, of $\theta$.
+That is, $\L(\theta \mid \vec{y}) = \Pr(\vec{y} \mid \theta)$. The higher the
+value of the likelihood, the more likely the observations $\vec{y}$ are under
+the model. Thus, the likelihood provides a natural criterion for fitting the
+model parameters: we want to pick $\theta$ such that the probability density of
+our observed outcomes $\vec{y}$ is as high as possible. The parameters which
+optimize the likelihood are known as the \textit{\gls{ML}} estimates, denoted
+$\hat{\theta}$. \Gls{ML} estimation is usually performed with numerical
+optimization. In the simplest terms, many possible values for $\theta$ are
+examined, $\L(\theta \mid \vec{y})$ is calculated for each, and the parameters
+which produce the highest value are accepted. Many sophisticated numerical
+optimization methods exist, although they may not be guaranteed to find the
+true \gls{ML} estimates if the likelihood function is complex. Occasionally, as
+in the case of least squares, the \gls{ML} estimates can be found explicitly by
+setting the likelihood function's derivatives to zero.
 
-In the case of linear regression, there is another method we could use. We know
-from calculus that the maximum of $\L$ occurs either on the boundary of its
-domain, or at a point where its partial derivatives with respect to $\beta$ and
-$\sigma$ are both zero. Though we will not show it here, it turns out to be
-straightforward to find the $\beta$ and $\sigma$ values where the partial
-derivatives are zero. In fact, these values co-incide with the least-squares
-estimates of $\beta$ and $\sigma$, which minimize the sum of the squared $x_i -
-\beta y_i$. However, the method of directly minimizing the loss function with
-calculus is only applicable to a narrow class of simple models. For the
-majority, the likelihood function is too complicated to set the partial
-derivatives with respect to the parameters to zero and solve.
-
-An approximate Bayesian computation approach to least-squares regression might
-be as follows. We will need to make an additional assumption: that the errors
-$\varepsilon_i$ are normally distributed. That is, our linear model is now of
-the form
+\Gls{ML} estimation makes use only of the data and outcomes to estimate the
+model parameters $\theta$. However, it is frequently the case that the
+investigator has some additional information or \defn{prior belief} about what
+$\theta$ are likely to be. For example, in the linear regression case, the
+intstrument used to measure the outcomes may have a well-known margin of error,
+or the sign of the slope may be obvious from previous experiments. The Bayesian
+approach to model fitting makes use of this information by codifying the
+investigator's beliefs as a \defn{prior distribution} on the parameters,
+denoted $\Pr(\theta)$. Instead of considering only the likeilhood, Bayesian
+inference focuses on the product of the likelihood and the prior, $\Pr(\vec{y}
+\mid \theta) \Pr(\theta)$. Bayes' theorem tells us that this product is related
+to the \textit{posterior distribution} on $\theta$,
 \[
-  y_i = bx_i + \N(0, \sigma),
+  \Pr(\theta \mid \vec{y}) = \frac{\Pr(\vec{y} \mid \theta) \Pr(\theta)}
+                                  {\Pr(\vec{y})}.
 \]
-where $\N(0, \sigma)$ indicates a normal distribution with mean zero and
-variance $\sigma$. We do not know $\sigma$ in advance, so this is another
-parameter we will need to estimate. There is nothing special about normal
-distributions - we could have chosen any other distribution we deemed
-appropriate. 
 
-The main idea of \gls{ABC} is to replace the traditional likelihood-based
-criteria for model ``goodness'' with one based on simulated data generated by
-the model. Good models should be able to simulate data which closely resemble
-reality. In \gls{ABC}, we are no longer interested in the posterior
-distribution, but rather in the distribution of model parameters which produce
-data sufficiently ``close'' to the real data. To formalize this, let $d(\cdot,
-\cdot)$ be a distance function on datasets, and $\varepsilon$ be a tolerance
-level. The objective of \gls{ABC} is to recover the distribution\ldots
+In principle, $\Pr(\vec{y} \mid \theta) \Pr(\theta)$ can be optimized
+numerically just like $\L(\theta \mid \vec{y})$, which would also optimize the
+posterior distribution. The resulting optimal parameters are called the
+\gls{MAP} estimates. However, from a Bayesian perspective, $\theta$ is not a
+fixed quantity to be estimated, but rather a random variable with an associated
+distribution (the posterior). Therefore, the \gls{MAP} estimate by itself is of
+limited value without associated statistics about the posterior distribution,
+such as the mean or credible intervals. Unfortunately, to calculate such
+statistics, it is necessary to evaluate the normalizing constant
+$\Pr(\vec{y})$, which is almost always an intractible integral.
+
+A popular method for circumventing the normalizing constant is the use of
+\gls{MCMC} to obtain a sample from the posterior distribution. \Gls{MCMC} works
+by defining a Markov chain whose states are indexed by possible model
+parameters. The transition probability from state $\theta_1$ to state
+$\theta_2$ is taken to be
+\[
+  \max\left(1, \frac{\Pr(\vec{y} \mid \theta_2) \Pr(\theta_2) q(\theta_2, \theta_1)}
+                    {\Pr(\vec{y} \mid \theta_1) \Pr(\theta_2) q(\theta_1, \theta_2)} \right),
+\]
+where $q(\theta, \theta')$ is a symmetric \defn{proposal distribution} used in
+the algorithm to generate the chain. The stationary distribution of this Markov
+chain is equal to the posterior distribution on $\theta$. Therefore, if a long
+enough random walk is performed on the chain, the distribution of states
+visited will be a Monte Carlo approximation of $\Pr(\theta \mid \vec{y})$, from
+which we can calculate statistics of interest. Actually performing this random
+walk is straightforward and is accomplished via the Metropolis-Hastings
+algorithm.
+
+\begin{algorithm}
+  \begin{algorithmic}
+    \State Draw $\theta$ according to $\Pr(\theta)$
+    \Loop
+      \State Propose $\theta'$ according to $q(\theta, \theta')$
+      \State Accept $\theta \gets \theta'$ with probability
+      $\max \left( 1, 
+       \dfrac{\Pr(\vec{y} \mid \theta') \Pr(\theta') q(\theta', \theta)}
+             {\Pr(\vec{y} \mid \theta\phantom{'}) \Pr(\theta\phantom{'}) q(\theta, \theta')}
+       \right)$
+    \EndLoop
+  \end{algorithmic}
+  \label{alg:mh}
+\end{algorithm}
+
+\subsection{Overview and motivation for ABC}
+
+Most mathematical models are amenable to fitting via one or both of the
+approaches, \gls{ML} or Bayesian inference, discussed above. However, there are
+some, particularly in the domain of population genetics, for which calculation
+of either the likelihood or the product of the likelihood and the prior may be
+infeasible. For example, one or both of these quantities may be expressible
+only as an intractible integral. \Gls{ABC} is designed for such cases, where
+standard likelihood-based techniques for model fitting cannot be applied.
+
+The first practical application of \gls{ABC} was by
+\textcite{tavare1997inferring}, who wanted to calculate the posterior
+distribution on the coalescence time $t$ of $n$ sequences with $k$ observed
+segregating sites under the coalescent model~\autocite{kingman1982coalescent}.
+That is,
+\[
+  \Pr(t \mid k) \propto \Pr(t) \Pr(k \mid t),
+\]
+where again we abuse $\Pr$ to refer to a probability density.
+\citeauthor{tavare1997inferring} observed that the expected number of
+segregating sites depends on the total branch length of the tree, rather than
+its height. This enabled them to write an alternative expression for the
+product of the likelihood and prior in terms of the total branch length $l$,
+\[
+  \int_0^\infty \Pr(t, l) \Pr(k \mid t, l) \d l.
+\]
+While it is unclear how to evaluate this integral, the power of this
+formulation is the fact that it is straightforward to \emph{simulate} points
+according to $\Pr(t, l)$, the joint probability of $t$ and $l$, by simply
+running the (stochastic) coalescent process and observing the values $\bar{t}$
+and $\bar{l}$ which result.
+
+%\Gls{ABC} is a statistical method designed to fit complex models, which cannot
+%be fit using more conventional methods, to observed
+%data~\autocite{marin2012approximate, sunnaker2013approximate,
+%beaumont2010approximate}. We shall make this precise below, but to fully
+%describe and motivate \gls{ABC}, it is necessary to first explain exactly what
+%we mean by ``fitting'' a model. We will illustrate this concept with one of the
+%simplest and most ubiquitous models: linear regression.
+%
+%An approximate Bayesian computation approach to least-squares regression might
+%be as follows. We will need to make an additional assumption: that the errors
+%$\varepsilon_i$ are normally distributed. That is, our linear model is now of
+%the form
+%\[
+%  y_i = bx_i + \N(0, \sigma),
+%\]
+%where $\N(0, \sigma)$ indicates a normal distribution with mean zero and
+%variance $\sigma$. We do not know $\sigma$ in advance, so this is another
+%parameter we will need to estimate. There is nothing special about normal
+%distributions - we could have chosen any other distribution we deemed
+%appropriate. 
+%
+%The main idea of \gls{ABC} is to replace the traditional likelihood-based
+%criteria for model ``goodness'' with one based on simulated data generated by
+%the model. Good models should be able to simulate data which closely resemble
+%reality. In \gls{ABC}, we are no longer interested in the posterior
+%distribution, but rather in the distribution of model parameters which produce
+%data sufficiently ``close'' to the real data. To formalize this, let $d(\cdot,
+%\cdot)$ be a distance function on datasets, and $\varepsilon$ be a tolerance
+%level. The objective of \gls{ABC} is to recover the distribution\ldots
 
 \subsection{Algorithms for ABC}
 \label{subsubsec:abcalg}
 
-Approximate Bayesian computation does not refer to a particular procedure for
-model fitting. Rather, ABC refers to the general strategy of choosing model
-parameters based on the resulting model's propensity to generate data
-resembling the real data. There are three main classes of ABC algorithm which
-have been developed so far: rejection, \gls{MCMC}, and sequential Monte Carlo
-(SMC). 
+\Gls{ABC} does not refer to a particular procedure for model fitting. Rather,
+\gls{ABC} refers to the general strategy of choosing model parameters based on
+the resulting model's propensity to generate data resembling the real data.
+There are three main classes of \gls{ABC} algorithm which have been developed
+so far: rejection, \gls{MCMC}, and \gls{SMC}.
 
 All of these approaches require some common elements. First, as with all
 Bayesian methods, we are required to specify a \defn{prior distribution},
