@@ -1,50 +1,83 @@
 \subsection{Computer program}
 
-I implemented the adaptive \gls{SMC} algorithm for \gls{ABC} developed by
-\textcite{del2012adaptive}. The program was written in the
-\software{C} programming language. The \software{igraph}
-library~\autocite{csardi2006igraph} was used to generate and store contact
-networks and phylogenies. Judy arrays~\autocite{baskins2004judy} were used for
-hash tables and dynamic programming arrays. The
-\gls{GSL}~\autocite{gough2009gnu} was used to generate random draws from
-probability distributions, and to perform the bisection step in the
-\gls{ABC}-\gls{SMC} algorithm.
+\software{Netabc} is a computer program designed to perform statistical
+inference of contact network parameters from an estimated transmission tree
+using kernel-\gls{ABC}. The program combines three major components: Gillespie
+simulation, to simulate transmission trees on contact networks; the
+phylogenetic kernel, to compare simulated to observed transmission trees; and
+adaptive \gls{ABC}-\gls{SMC}, to maintain a population of particles and
+advance it toward the \gls{ABC} target distribution. We give a high-level
+overview of the program here, before describing these three components in
+detail.
 
-For ease of exposition, we simplifiy the notation of \textcite{del2012adaptive}
-by dropping the subscripts on the variables which indicate the current
-iteration number. Instead, we will add a prime $'$ to indicate a value which
-will be used in the next iteration (this should become clear later on). 
+As described in \cref{sec:smc}, \software{netabc} keeps track of a population
+of particles, each of which contains particular parameter values for the model
+we are trying to fit. A small number of contact networks are generated for each
+particle, in accordance with that particle's parameters. An epidemic is
+simulated over each of these networks using Gillespie simulation, and by
+keeping track of its progress, a transmission tree is obtained. Thus, each
+particle becomes associated with several simulated transmission trees.  These
+trees are compared to the observed tree using the phyolgenetic kernel.
+Particles are weighted according to the similarity of their associated
+simulated trees with the true tree, with more similar trees recieving higher
+weights. The particles are iteratively perturbed to explore the parameter
+space, and particles with simulated trees too distant from the true tree are
+periodically dropped and resampled. Once a convergence criterion is attained,
+the final set of particles is used as a Monte Carlo approximation to the target
+distribution of \gls{ABC}, which is assumed to resemble the posterior
+distribution on model parameters (see \cref{sec:abc}). A graphical schematic of
+this algorithm is given in \cref{fig:abcsmc}.
 
-In the algorithm, we keep track of a population of $n$ sets of model
-parameters, called \defn{particles}, denoted $\set{X_i}_{i=1}^{n}$. For the
-\gls{BA} model, the particles would be 4-tuples (\gls{N}, \gls{I}, \gls{m},
-\gls{alpha}). Each particle $X_i$ is associated with a set of \gls{M} simulated
-datasets, denoted $\set{X_{i,j}}_{j=1}^M$, and a weight $W_i$. 
+The generation of contact networks from the model of interest, though critical
+to the program's function, is not included here as a component of
+\software{netabc}.  Generation of networks is a model-specific task, whereas
+\software{netabc} is intended to be generic and work with any network model.
+For ease of use, generators for three basic network models, namely the
+\gls{BA}, \gls{ER}, and \gls{WS} models, are included in the program through
+the \software{igraph} library~\autocite{csardi2006igraph}. To investigate other
+models, additional graph generators will need to be added into the program.
 
-The particles are initially drawn from the prior distribution.
+\begin{figure}
+    \includegraphics{abc-smc.pdf}
+    \caption[Graphical schematic of \gls{ABC}-\gls{SMC} algorithm.]{
+      Graphical schematic of the \gls{ABC}-\gls{SMC} algorithm implemented in
+      \software{netabc}. Particles are initially drawn from their prior
+      distributions, making the initial population a Monte Carlo approximation
+      to the prior. At each iteration, particles are perturbed, and a distance
+      threshold around the true tree contracts. Particles are rejected, and
+      eventually resampled, when all their associated simulated trees lie
+      outside the threshold. As the algorithm progresses, the population
+      smoothly approaches a Monte Carlo approximation of the \gls{ABC} target
+      distribution, which is assumed to resemble the posterior.
+    }
+    \label{fig:abcsmc}
+\end{figure}
 
-Let $d$ be a
-distance measure on data sets, so that $d(x, y)$ is smaller the more similar
-$x$ and $y$ are to each other. Let $\varepsilon$ be the tolerance level which
-indicates whether a data set is ``close'' to the observed data. That is, if
-$d(x, y) < \varepsilon$, we will say that $x$ and $y$ are close, otherwise they
-are distant.
+\software{Netabc} is written in the \software{C} programming language. The
+\software{igraph} library~\autocite{csardi2006igraph} is used to generate and
+store contact networks and phylogenies. Judy arrays~\autocite{baskins2004judy}
+are used for hash tables and dynamic programming matrices. The
+\gls{GSL}~\autocite{gough2009gnu} is used to generate random draws from
+probability distributions, and to perform the bisection step in the adaptive
+\gls{ABC}-\gls{SMC} algorithm. The program is freely available at
+\url{github.com/rmcclosk/netabc}.
 
 \subsubsection*{Epidemic simulation}
 \label{subsubsec:nettree}
 
-I implemented a Gillespie simulation algorithm~\autocite{gillespie1976general}
-for simulating epidemics, and the corresponding transmission trees, over static
-contact networks. This method has been independently implemented and applied by
-several authors~\autocite[\textit{e.g.}][]{o2010contact, robinson2013dynamics,
+The simulation of epidemics, and the corresponding transmission, trees over
+contact networks is performed in \software{netabc} using the Gillespie
+simulation algorithm~\autocite{gillespie1976general}. This method has been
+independently implemented and applied by several
+authors~\autocite[\textit{e.g.}][]{o2010contact, robinson2013dynamics,
 leventhal2012inferring, groendyke2011bayesian}.
 \textcite{groendyke2011bayesian} published their implementation as an
 \software{R} package, but since the \gls{SMC} algorithm is quite
 computationally intensive, we chose to implement our own version in
 \software{C}.
 
-Let $G = (V, E)$ be a directed contact network. The individual nodes and edges
-of $G$ follow the dynamics of the \gls{SIR}
+Let $G = (V, E)$ be a directed contact network. We assume the individual nodes
+and edges of $G$ follow the dynamics of the \gls{SIR}
 model~\autocite{kermack1927contribution}. Each directed edge $e = (u, v)$ in
 the network is associated with a transmission rate $\beta_e$, which indicates
 that, once $u$ becomes infected, the waiting time until $u$ infects $v$ is
@@ -54,8 +87,8 @@ removal rate $\gamma_v$, so that the waiting time until removal of $v$ from the
 population is $\Exponential(\gamma_v)$. Removal may correspond to death or
 recovery with immunity, or a combination of both, but in our implementation
 recovered nodes never re-enter the susceptible population. We define a
-\defn{discordant edge} as an edge $(u, v)$ where $u$ is infected and $v$
-has never been infected.
+\defn{discordant edge} as an edge $(u, v)$ where $u$ is infected and $v$ has
+never been infected.
 
 To describe the algorithm, we introduce some notation and variables. Let
 $\inc(v)$ be the set of incoming edges to $v$, and $\out(v)$ be the set of
@@ -70,14 +103,15 @@ rate of all infected nodes,
 \]
 The variables $S$, $I$, $R$, $D$, $\beta$, and $\gamma$ are all updated as the
 simulation progresses. When a node $v$ becomes infected, it is deleted from $S$
-and added to $I$, any formerly discordant edges in $\in(v)$ are deleted from
+and added to $I$. Any formerly discordant edges in $\in(v)$ are deleted from
 $D$, and edges in $\out(v)$ to nodes in $S$ are added to $D$. If $v$ is later
 removed, it is deleted from $I$ and added to $R$, and any discordant edges in
-$\out(v)$ are deleted from $D$. In both cases, the variables $\beta$ and
-$\gamma$ are updated to reflect the changes. Since these updates are
-straightforward, we do not write them explicitly in the algorithm.
+$\out(v)$ are deleted from $D$. At the time of either infection or removal, the
+variables $\beta$ and $\gamma$ are updated to reflect the changes in the
+network. Since these updates are straightforward, we do not write them
+explicitly in the algorithm.
 
-\newcommand{\tip}{\mathrm{tip}}
+\newcommand{\tip}{\mathit{tip}}
 
 The Gillespie simulation algorithm is given as Algorithm~\ref{alg:nettree}. The
 transmission tree $T$ is simulated along with the epidemic. We keep a map
@@ -108,7 +142,6 @@ is denoted $|T|$.
           \State choose an edge $e = (u, v)$ from $D$ with probability $\beta_e / \beta$
                  and infect $v$
           \State add tips with labels $(|T|+1)$ and $(|T|+2)$ to $T$
-          \Comment $|T|$ increased by 2
           \State connect the new nodes to $\tip[v]$ in $T$, with branch lengths $0$
           \State $\tip[v] \gets |T|-1$
           \State $\tip[u] \gets |T|$
@@ -123,38 +156,48 @@ is denoted $|T|$.
   \end{algorithmic}
 \end{algorithm}
 
-\subsubsection{Phylogenetic kernel and normalized lineages-through-time}
+\subsubsection{Phylogenetic kernel}
 
-The tree kernel developed in~\autocite{poon2013mapping} provides a
+The tree kernel developed by \textcite{poon2013mapping} provides a
 comprehensive similarity score between two phylogenetic trees. The kernel
 computes the dot-product of two feature vectors, corresponding to the two
 trees, in the infinite-dimensional feature space of all possible subset trees
-with branch lengths. I implemented the fast algorithm developed
-in~\autocite{moschitti2006making}, which first enumerates all pairs of subtrees
-with the same number of leaf children, and then computes the kernel by dynamic
-programming.
+with branch lengths (see \cref{subsec:treeshape}). The kernel was implemented
+using the fast algorithm developed by \textcite{moschitti2006making}. First,
+the number of leaf children of each node, also known as its \defn{production
+rule}, is recorded. The nodes of both trees are ordered by production rule, and
+a list of pairs of nodes sharing the same production rule is created. These are
+the nodes for which the value of the tree kernel must be computed - all other
+pairs have a value of zero. The pairs to be compared are then re-ordered so
+that the child nodes are always evaluated before their parents. Due to its
+recursive definition, ordering the pairs in this way allows the tree kernel to
+be computed by dynamic programming. The complexity of this implementation is
+$O(|T_1||T_2|)$, where $|T|$ counts the number of nodes in the tree $T$.
 
-In addition, we implemented a modified version of the normalized
-lineages-through-time statistic developed in~\autocite{janzen2015approximate},
-which uses piecewise linear functions instead of step functions for the
-lineages-through-time plots. This modification is to address a potential
-inconsistency for trees of different sizes, illustrated in
-Figure~\ref{fig:nltt}.
+\subsubsection*{Adaptive sequential Monte Carlo for Approximate Bayesian computation}
 
-\begin{figure}[ht]
-  \centering
-  \caption[Comparison of original and modified normalised lineages-through-time]
-    {Comparison of original formulation of normalized lineages-through-time,
-     developed in~\autocite{janzen2015approximate}, with our modified version
-     using linear interpolation. Here, the red and blue trees both have
-     uniformly spaced branching times. Using step functions (left), the nLTT
-     of the two trees is non-zero due to the differing numbers of internal
-     branches. Using linear interpolation, the nLTT is zero (right). The lines
-     on the right graph have been offset for visibility.}
-  \includegraphics{nltt.pdf}
-  \label{fig:nltt}
-\end{figure}
+I implemented the adaptive \gls{SMC} algorithm for \gls{ABC} developed by
+\textcite{del2012adaptive}. 
 
+For ease of exposition, we simplifiy the notation of \textcite{del2012adaptive}
+by dropping the subscripts on the variables which indicate the current
+iteration number. Instead, we will add a prime $'$ to indicate a value which
+will be used in the next iteration (this should become clear later on). 
+
+In the algorithm, we keep track of a population of $n$ sets of model
+parameters, called \defn{particles}, denoted $\set{X_i}_{i=1}^{n}$. For the
+\gls{BA} model, the particles would be 4-tuples (\gls{N}, \gls{I}, \gls{m},
+\gls{alpha}). Each particle $X_i$ is associated with a set of \gls{M} simulated
+datasets, denoted $\set{X_{i,j}}_{j=1}^M$, and a weight $W_i$. 
+
+The particles are initially drawn from the prior distribution.
+
+Let $d$ be a
+distance measure on data sets, so that $d(x, y)$ is smaller the more similar
+$x$ and $y$ are to each other. Let $\varepsilon$ be the tolerance level which
+indicates whether a data set is ``close'' to the observed data. That is, if
+$d(x, y) < \varepsilon$, we will say that $x$ and $y$ are close, otherwise they
+are distant.
 
 % begin by sampling from the prior and setting all weights to equal
 
@@ -400,7 +443,7 @@ predictors.
 
 \subsection{Real data experiments}
 
-We applied kernel-ABC to six published HIV datasets, summarized in
+We applied kernel-\gls{ABC} to six \gls{HIV} datasets, summarized in
 \cref{tab:realdata}.
 
 \begin{table}
