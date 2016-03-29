@@ -17,9 +17,9 @@ particle, in accordance with that particle's parameters. An epidemic is
 simulated over each of these networks using Gillespie simulation, and by
 keeping track of its progress, a transmission tree is obtained. Thus, each
 particle becomes associated with several simulated transmission trees.  These
-trees are compared to the observed tree using the phyolgenetic kernel.
+trees are compared to the observed tree using the phylogenetic kernel.
 Particles are weighted according to the similarity of their associated
-simulated trees with the true tree, with more similar trees recieving higher
+simulated trees with the true tree, with more similar trees receiving higher
 weights. The particles are iteratively perturbed to explore the parameter
 space, and particles with simulated trees too distant from the true tree are
 periodically dropped and resampled. Once a convergence criterion is attained,
@@ -59,8 +59,13 @@ store contact networks and phylogenies. Judy arrays~\autocite{baskins2004judy}
 are used for hash tables and dynamic programming matrices. The
 \gls{GSL}~\autocite{gough2009gnu} is used to generate random draws from
 probability distributions, and to perform the bisection step in the adaptive
-\gls{ABC}-\gls{SMC} algorithm. The program is freely available at
-\url{github.com/rmcclosk/netabc}.
+\gls{ABC}-\gls{SMC} algorithm. Parallelization is implemented with POSIX
+threads~\autocite{barney2009posix}. In addition to the \software{netabc} binary
+to perform kernel-\gls{ABC}, we provide three additional stand-alone utilities:
+\software{treekernel}, to calculate the phylogenetic kernel;
+\software{nettree}, to simulate a transmission tree over a contact network; and
+\software{treestat}, to compute various summary statistics of phylogenies. The
+programs are freely available at \url{github.com/rmcclosk/netabc}.
 
 \subsubsection*{Epidemic simulation}
 \label{subsubsec:nettree}
@@ -70,7 +75,7 @@ contact networks is performed in \software{netabc} using the Gillespie
 simulation algorithm~\autocite{gillespie1976general}. This method has been
 independently implemented and applied by several
 authors~\autocite[\textit{e.g.}][]{o2010contact, robinson2013dynamics,
-leventhal2012inferring, groendyke2011bayesian}.
+leventhal2012inferring, groendyke2011bayesian, villandre2016assessment}.
 \textcite{groendyke2011bayesian} published their implementation as an
 \software{R} package, but since the \gls{SMC} algorithm is quite
 computationally intensive, we chose to implement our own version in
@@ -179,7 +184,7 @@ $O(|T_1||T_2|)$, where $|T|$ counts the number of nodes in the tree $T$.
 I implemented the adaptive \gls{SMC} algorithm for \gls{ABC} developed by
 \textcite{del2012adaptive}. 
 
-For ease of exposition, we simplifiy the notation of \textcite{del2012adaptive}
+For ease of exposition, we simplify the notation of \textcite{del2012adaptive}
 by dropping the subscripts on the variables which indicate the current
 iteration number. Instead, we will add a prime $'$ to indicate a value which
 will be used in the next iteration (this should become clear later on). 
@@ -223,33 +228,31 @@ heuristic applied by the authors~\autocite{del2012adaptive}, we used the latter
 stopping criterion, accepting the SMC approximation to the posterior when the
 \gls{MCMC} acceptance rate dropped below 1.5\%.
 
-\subsection{Simulation experiments}
 
-\subsubsection{Identification of separable parameters in kernel space}
-\label{subsubsec:kernel}
+\subsection{Kernel classifiers}
+\label{subsec:kernel}
 
-Recall that our approximate Bayesian computation approach to fitting contact
-network models involves simulating transmission trees under a wide variety of
-parameter values, and then comparing these simulated trees to the true
-transmission tree. Values which produce trees similar to the observed
-transmission tree are distinguished as more likely than values which produce
-trees very different from the truth. In order for this type of analysis to
-succeed, it is critical that different parameter values produce different
-looking trees. Otherwise, if many different values produce trees which are too
-similar to each other, it will be impossible to distinguish which value is most
-consistent with the real tree. Just as importantly, trees simulated with
-similar parameter values must be similar to each other. In mathematical terms,
-we require the trees simulated from distinct parameter values to be
-\defn{separable} in tree space. The concept of separability is illustrated in
-Figure~\ref{fig:separable}.
+Recall that our \gls{ABC} approach to fitting contact network models involves
+simulating transmission trees under a wide variety of parameter values, and
+then comparing these simulated trees to the true transmission tree. Values
+which produce trees similar to the observed transmission tree are distinguished
+as more likely than values which produce trees very different from the truth.
+In order for this type of analysis to succeed, it is critical that different
+parameter values produce different looking trees. Otherwise, if many different
+values produce trees which are too similar to each other, it will be impossible
+to distinguish which value is most consistent with the real tree. Just as
+importantly, trees simulated with similar parameter values must be similar to
+each other. In mathematical terms, we require the trees simulated from distinct
+parameter values to be \defn{separable} in tree space. The concept of
+separability is illustrated in Figure~\ref{fig:separable}.
 
 \begin{figure}[ht]
   \centering
   \includegraphics{separable.pdf}
-  \caption[Separable versus non-separable pararameters in kernel space]{
+  \caption[Separable versus non-separable parameters in kernel space]{
     Separable versus non-separable parameters in kernel space. Trees have been
     simulated under three sets of parameters, represented as blue, red, and
-    green. An observed tree is shown in black. Trees are layed out such that
+    green. An observed tree is shown in black. Trees are laid out such that
     the distance between two trees corresponds to their similarity. In panel A,
     trees from the same parameter set are similar to each other, but different
     from other trees. The true tree is most consistent with the red parameters.
@@ -261,7 +264,7 @@ Figure~\ref{fig:separable}.
   \label{fig:separable}
 \end{figure}
 
-Before undertaking a complete ABC analysis, I analysed the parameters of the
+Before undertaking a complete ABC analysis, I analyzed the parameters of the
 \gls{BA} network model to to determine whether they could be separated in tree
 kernel space. A graphical schematic of the analysis undertaken here is given in
 Figure~\ref{fig:kernelexpt}.
@@ -282,7 +285,7 @@ attachment power parameter \gls{alpha}. This parameter describes the strength
 of attraction to highly connected nodes and is bounded below by zero indicating
 no extra attraction. By qualitative observation, I determined that a power of
 2.0, which produced networks with very few ``hub'' nodes with extremely high
-degree, was a suitable upper bound (see Figure~\ref{fig:alphabds}). Therefore,
+degree, was a suitable upper bound (\cref{fig:alphabds}). Therefore,
 I chose to test the values 0.5, 1.0, and 1.5 for separability. The other
 parameters were fixed: the number of nodes in the network was 5000, and the
 mean degree of each node in the network was four. As discussed in
@@ -292,7 +295,6 @@ than trees.
 
 \begin{figure}[ht]
   \centering
-  \label{fig:alphabds}
   \includegraphics{alpha-bounds.pdf}
   \caption[Upper and lower bounds on preferential attachment power]{
     Qualitative justification for choice of zero and two as lower and upper
@@ -305,6 +307,7 @@ than trees.
     Density plot of node degrees in a 5000-node network with $\alpha = 2$. The
     maximum degree of a node in this network was 4942. 
   }
+  \label{fig:alphabds}
 \end{figure}
 
 For each of the values of $\alpha$, I generated 100 networks, each with 5000
@@ -367,7 +370,7 @@ similarity measure to use for ABC, we also computed the $R^2$ of $\alpha$
 against Sackin's index, a widely used tree balance statistic (see
 subsection~\ref{subsubsec:treeshape}), by the same cross-validation procedure.
 
-\subsubsection{Grid search}
+\subsection{Grid search}
 
 The previous set of simulations were intended to investigate which contact
 network parameters could and could not be inferred by examining transmission
@@ -410,7 +413,7 @@ the parameter.
   \label{fig:gridsearch}
 \end{figure}
 
-\subsubsection{Approximate Bayesian computation}
+\subsection{Approximate Bayesian computation}
 
 Our final set of simulation experiments was to test the ABC-SMC algorithm on
 simulated data. For each replicate, we generated a network on 5000 nodes,
@@ -423,7 +426,7 @@ degree of nodes in the network was fixed at either 4, 10, or 16. The
 algorithm was run with 1000 particles, and was stopped when the \gls{MCMC}
 acceptance probability dropped below 1.5\%.
 
-\subsubsection{Characterization of power-law exponent in Barab\'asi-Albert networks}
+\subsection{Characterization of power-law exponent in Barab\'asi-Albert networks}
 
 Most studies of social network or transmission network
 parameters~\autocite[e.g.][]{liljeros2001web, jones2003assessment,
@@ -449,6 +452,6 @@ We applied kernel-\gls{ABC} to six \gls{HIV} datasets, summarized in
 \begin{table}
   \centering
   \input{\tablepath/realdata-bc}
-  \caption{Characteristics of published HIV datasets analysed with kernel-ABC.}
+  \caption{Characteristics of published HIV datasets analyzed with kernel-ABC.}
   \label{tab:realdata}
 \end{table}

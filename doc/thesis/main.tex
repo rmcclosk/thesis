@@ -1,147 +1,80 @@
-\documentclass[12pt]{report}
-\usepackage[osf]{garamondx}
-\usepackage[garamondx,cmbraces]{newtxmath}
-\usepackage{marginnote}
-\usepackage{fullpage}
-\usepackage{setspace}
-\usepackage[backend=biber, style=numeric-comp, sorting=none]{biblatex}
-\usepackage{nicefrac}
-\usepackage{amsmath}
-\usepackage{algorithm}
-\usepackage{algorithmicx}
-\usepackage{algpseudocode}
-\usepackage{multicol}
-\usepackage{multirow}
-\usepackage[hidelinks]{hyperref}
-\usepackage[acronym,nonumberlist]{glossaries}
-\usepackage{glossary-mcols}
-\usepackage{cleveref}
-\usepackage{array}
-
-\newcommand{\comment}[1]{(\textbf{#1})}
-
-\newcommand{\defn}[1]{\textit{#1}}
-\newcommand{\software}[1]{\textit{#1}}
-\newcommand{\etal}{\textit{et al.}}
-\newcommand{\eg}{\textit{e.g.}}
-
-\newcommand{\set}[1]{\left\lbrace#1\right\rbrace}
-\newcommand{\sett}[1]{\{#1\}}
-\renewcommand{\emptyset}{\varnothing}
-\renewcommand{\vec}[1]{\mathbf{#1}}
-\renewcommand{\star}[1]{#1^*}
-\renewcommand{\d}{\mathrm{d}\,}
-
-\DeclareMathOperator*{\argmin}{arg\,min}
-\DeclareMathOperator*{\argmax}{arg\,max}
-
-\DeclareMathOperator{\Exponential}{Exponential}
-\DeclareMathOperator{\Uniform}{Uniform}
-\DeclareMathOperator{\E}{E}
-\DeclareMathOperator{\Var}{Var}
-
-\DeclareMathOperator{\inc}{in}
-\DeclareMathOperator{\out}{out}
-
-\newcommand{\N}{\mathcal{N}}
-\renewcommand{\L}{\mathcal{L}}
-
-\newacronym{MCMC}{MCMC}{Markov chain Monte Carlo}
-\newacronym{ER}{ER}{Erd\H{o}s-R\'enyi}
-\newacronym{BA}{BA}{Barab\'asi-Albert}
-\newacronym{WS}{WS}{Watts-Strogatz}
-\newacronym{SI}{SI}{susceptible-infected}
-\newacronym{SVM}{SVM}{support vector machine}
-\newacronym{PCA}{PCA}{principal components analysis}
-\newacronym{SMC}{SMC}{sequential Monte Carlo}
-\newacronym{ABC}{ABC}{approximate Bayesian computation}
-\newacronym{nltt}{nLTT}{normalized lineages-through-time}
-\newacronym{ltt}{LTT}{lineages-through-time}
-\newacronym{pdf}{pdf}{probability density function}
-\newacronym{rv}{rv}{random variable}
-\newacronym{ML}{ML}{maximum likelihood}
-\newacronym{MAP}{MAP}{maximum \textit{a posteriori}}
-\newacronym{GSL}{GSL}{GNU scientific library}
-\newacronym{SIR}{SIR}{susceptible-infected-recovered}
-\newacronym{IS}{IS}{importance sampling}
-\newacronym{SIS}{SIS}{sequential importance sampling}
-\newacronym{HMM}{HMM}{hidden Markov model}
-\newacronym{iid}{i.i.d.}{independent and identically distributed}
-\newacronym{HPD}{HPD}{highest posterior density}
-\newacronym{HIV}{HIV}{human immunodeficiency virus}
-\newacronym{SARS}{SARS}{severe acute respiratory syndrome}
-\newacronym{ODE}{ODE}{ordinary differential equation}
-\newacronym{GLM}{GLM}{generalized linear model}
-
-\newglossaryentry{alpha}{
-  name=$\alpha$,
-  description=preferential attachment power parameter in Barab\'asi-Albert networks
-}
-\newglossaryentry{m}{
-  name=$m$,
-  description=number of edges added per vertex when constructing a Barab\'asi-Albert network
-}
-\newglossaryentry{N}{
-  name=$N$,
-  description=number of nodes in the network
-}
-\newglossaryentry{I}{
-  name=$I$,
-  description=number of nodes which are eventually infected
-}
-\newglossaryentry{gamma}{
-  name=$\gamma$,
-  description=exponent of power-law degree distribution in scale-free networks
-}
-\newglossaryentry{p}{
-  name=$p$,
-  description=edge density parameter in Erd\H{o}s-R\'enyi networks
-}
-\newglossaryentry{lambda}{
-  name=$\lambda$,
-  description=decay factor meta-parameter for tree kernel
-}
-\newglossaryentry{sigma}{
-  name=$\sigma$,
-  description=radial basis function variance meta-parameter for tree kernel
-}
-\newglossaryentry{n}{
-  name=$n$,
-  description=number of particles used for ABC-SMC
-}
-\newglossaryentry{M}{
-  name=$M$,
-  description=number of simulated datasets per particle in ABC-SMC
-}
-
-\graphicspath{{../figures/}}
-\newcommand{\tablepath}{../tables}
-\frenchspacing
-\onehalfspacing
-
-\title{Phylodynamic inference of contact network parameters through approximate
-Bayesian computation}
-\author{Rosemary M. McCloskey and Art F.Y. Poon}
-
-\addbibresource{papers.bib}
-\makeglossaries
+\input{preamble}
 
 \begin{document}
 
-\maketitle
+\newcommand{\titlesize}{\Large}
+\newcommand{\subtitlesize}{\large}
+\newcommand{\titlebigsep}{1.25cm}
+\newcommand{\titlesmallsep}{0.75cm}
+\begin{titlepage}
+  \centering
+  {\scshape\titlesize\bfseries Phylogenetic estimation of contact network parameters
+  with kernel approximate Bayesian computation \par}
+  \vspace{\titlesmallsep}
+  {\subtitlesize by\par}
+  \vspace{\titlesmallsep}
+  {\subtitlesize Rosemary Martha McCloskey \par}
+  \vspace{\titlesmallsep}
+  {\subtitlesize B.Sc., Simon Fraser University, 2014 \par}
+  \vspace{\titlebigsep}
+  {\scshape\subtitlesize A thesis submitted in partial fulfillment of the requirements
+  for the degree of \par}
+  \vspace{\titlesmallsep}
+  {\scshape\subtitlesize Master of Science \par}
+  \vspace{\titlesmallsep}
+  {\subtitlesize in \par}
+  \vspace{\titlesmallsep}
+  {\subtitlesize The Faculty of Graduate and Postdoctoral Studies \par}
+  \vspace{\titlesmallsep}
+  {\subtitlesize Bioinformatics \par}
+  \vspace{\titlebigsep}
+  {\scshape \subtitlesize The University of British Columbia \par}
+  {\subtitlesize (Vancouver) \par}
+  \vspace{\titlesmallsep}
+  {\subtitlesize August 2016 \par}
+  \vfill
+  % Bottom of the page
+  {\subtitlesize\copyright Rosemary Martha McCloskey, 2016\par}
+\end{titlepage}
+
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+\newpage
+
+\chapter*{Preface}
+\addcontentsline{toc}{chapter}{Preface}
+\input{preface}
+\newpage
+
 \tableofcontents
+\addcontentsline{toc}{chapter}{Table of Contents}
+
+\listoftables
+\addcontentsline{toc}{chapter}{List of Tables}
+
 \listoffigures
+\addcontentsline{toc}{chapter}{List of Figures}
+
 \printglossary[title=List of Symbols]
+\addcontentsline{toc}{chapter}{List of Symbols}
+
 \setglossarystyle{mcolindex}
 \printglossary[title=List of Abbreviations,type=\acronymtype]
+\addcontentsline{toc}{chapter}{List of Abbreviations}
+
+\chapter*{Acknowledgements}
+\addcontentsline{toc}{chapter}{Acknowledgements}
+\newpage
+
 
 \chapter{Introduction}
 \input{intro}
 
-\chapter{Body of Thesis}
-
-\section{Objective}
+\chapter{Objective}
 \input{objective}
+
+
+\chapter{Research}
 
 \section{Methods}
 \input{methods}
@@ -153,13 +86,16 @@ Bayesian computation}
 \input{conclusion}
 
 \printbibliography
+\addcontentsline{toc}{chapter}{Bibliography}
 
-%\chapter{Supplemental Materials}
-%
-%\setcounter{table}{0}
-%\renewcommand{\thetable}{S\arabic{table}}
-%\setcounter{figure}{0}
-%\renewcommand{\thefigure}{S\arabic{figure}}
-%\input{supplements}
+\chapter*{Appendix: Supplemental Figures}
+\addcontentsline{toc}{chapter}{Appendix: Supplemental Figures}
+\setcounter{table}{0}
+\renewcommand{\thetable}{S\arabic{table}}
+\setcounter{figure}{0}
+\renewcommand{\thefigure}{S\arabic{figure}}
+\setcounter{data}{0}
+\renewcommand{\thedata}{S\arabic{data}}
+\input{appendix}
 
 \end{document}

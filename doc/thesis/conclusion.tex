@@ -1,4 +1,19 @@
-\section{Extensions}
+Contact network structure has a substantial impact on epidemic trajectory
+\autocite{barthelemy2005dynamical, volz2007susceptible, volz2008sir}, and a few
+methods have been developed to estimate network parameters from epidemiological
+data \autocite{volz2007susceptible, britton2002bayesian,
+groendyke2011bayesian}. It is known that contact network structure can have a
+substantial impact on transmission tree shape \autocite{o2010contact,
+robinson2013dynamics, leventhal2012inferring, colijn2014phylogenetic,
+villandre2016assessment}.
+
+Our work had three main aims. First, we developed a method to estimate contact
+network model parameters from phylogenetic data. This method widens the field
+of models which may be investigated in a phylodynamic context. Second, we
+investigated the parameters of the \gls{BA} model. We determined through
+simulation studies that the preferential attachment power $\alpha$ and number
+of infected nodes $I$ had a substantial impact on transmission tree shape, and
+could be estimated using our method. 
 
 % ergm
 
@@ -42,8 +57,8 @@ into our method, for example by simulating within-host dynamics. Although this
 may be an avenue for future extension, we felt that it would obscure the
 primary purpose of this work, which is to study contact network parameters.
 Second, there are a number of different methods available for inferring
-transmission trees~\autocite{didelot2014bayesian, yima2012unravelling,
+transmission trees~\autocite{didelot2014bayesian, ypma2012unravelling,
 jombart2011reconstructing, cottam2008integrating, poon2015phylodynamic}, some
-of which incorporate geographic and/or epidemiological data not accomodated by
+of which incorporate geographic and/or epidemiological data not accommodated by
 our method. We therefore felt it would be best to allow researchers to use
 their own preferred tree building method.

@@ -82,7 +82,7 @@ trees~\autocite[\eg][]{kenah2015algorithms}. In this work, we reserve the term
 ``transmission tree'' for the objects depicted on the right side of
 \cref{fig:contactnet}, following~\autocite[\eg][]{stadler2013uncovering}. The
 term ``transmission network'' is taken to mean the subgraph of the contact
-network along which transmissions occured,
+network along which transmissions occurred,
 following~\autocite{welch2011statistical, keeling2005networks}.
 
 \begin{figure}
@@ -310,6 +310,34 @@ in \gls{ABC} (see \cref{sec:abc}), to fit epidemiological models to observed
 trees. This is an example of kernel-ABC~\autocite{nakagome2013kernel}, which
 will be discussed further in \cref{sec:abc}.
 
+\subsection{Applications of phylodynamics}
+\label{subsec:phyloapp}
+
+Phylodynamic methods have been used to investigate epidemiological parameters
+such as transmission rate, recovery rate, and basic reproductive
+number~\autocite{pybus2009evolutionary, volz2013viral}. These studies make
+inferences about epidemiological processes from the genetic diversity of virus
+populations, which is usually represented in the form of a phylogeny. The
+majority of these employ a Bayesian \gls{MCMC} approach to infer parameters of
+an epidemiological model whose likelihood can be calculated, most often some
+variation of the birth-death~\autocite{kendall1948generalized} or
+coalescent~\autocite{kingman1982coalescent} models.
+\textcite{stadler2011estimating} develop a formula for the likelihood of a
+phylogeny with heterochronous tips under the birth-death model, which has been
+used to estimate the basic reproductive number of several viral
+epidemics~\autocite{stadler2011estimating}. However, the birth-death model is
+cannot tell us anything about population structure, as it assumes that every
+individual becomes infected at the same rate. \textcite{volz2012complex} writes
+down the likelihood of a heterochronous phylogeny under a coalescent model with
+arbitrarily complex population dynamics. This opens the door to more complex
+inferences about population structure, as the population can be partitioned
+into compartments with different transmission and recovery rates, but still
+assumes that each compartment is homogeneously mixed. In other words, the
+coalescent model can tell us about the \emph{global} structure of a population,
+such as whether there exists a high-risk subgroup, but not about the
+\emph{local} structure, such as the average number of contacts each individual
+has. 
+
 \section{Contact networks}
 \label{sec:contactnet}
 
@@ -385,11 +413,11 @@ epidemics are expected to spread more rapidly in networks having the ``small
 world'' property, where the average path length between two nodes in the
 network is relatively low~\autocite{watts1998collective}. Some sexually
 transmitted infections would not be expected to survive in a homogeneously
-mixed population, but their long-term persistance can be explained by contact
+mixed population, but their long-term persistence can be explained by contact
 heterogeneity~\autocite{anderson1992infectious, pastor2001epidemic}. Hence, the
 contact network can provide an idea of what to expect as an epidemic unfolds.
 In terms of actionable information, vaccination strategies which would
-irradicate an epidemic in a random network might not work if the network is
+eradicate an epidemic in a random network might not work if the network is
 scale-free~\autocite[][see \cref{subsec:pa}]{keeling2005networks}. On a local
 level, contact networks can be informative about the groups or individuals who
 are at highest risk of acquiring or transmitting infection, and would therefore
@@ -417,7 +445,7 @@ Primarily, this work has focused on the detection of \defn{phylogenetic
 clusters}, which are groups of individuals whose viral sequences are
 significantly more similar to each other's than to the general population's.
 The phylogenetic network is informative about ``hotspots'' of transmission and
-can be used to identify demographic groups to whom targeted intervetions are
+can be used to identify demographic groups to whom targeted interventions are
 likely to have the greatest effect~\autocite{poon2014impact}.  However, this
 network may show little to no agreement with a contact data obtained through
 epidemiological methods~\autocite{yirrell1998molecular, resik2007limitations,
@@ -527,14 +555,22 @@ incidence and prevalence trajectories, using the method developed by
 \textcite{volz2009phylodynamics}. They found that the concordance between
 the two skyrides, as well as the relationship between the skyride and
 prevalence curve, was qualitatively different for each degree distribution.
-\citeauthor{leventhal2012inferring} simulated transmission trees over \gls{ER},
-\gls{WS}, \gls{BA}, and full networks with fixed number of nodes and mean
-degree. They calculated Sackin's index of the simulated trees while varying the
-epidemic, network, and sampling parameters, and found that the relationship
-between these parameters and Sackin's index varies considerably among the
-different network models. In summary, studies in this group have demonstrated
-that network structure profoundly influences tree shape, but have not attempted
-to quantitatively infer network parameters from observed trees.
+\textcite{leventhal2012inferring} investigated the relationship between
+transmission tree imbalance and several epidemic parameters under four contact
+network models, and found that these relationships varied considerably
+depending on which model was being considered. \textcite{welch2011network}
+simulated transmission trees over networks with varying degrees of community
+structure. They found that transmission trees simulated under networks with low
+clustering could not generally be distinguished from those simulated under
+highly clustered networks, and concluded that contact network clusters do not
+affect transmission tree shape. However, more recently,
+\textcite{villandre2016assessment} investigated the correspondence between
+contact network clusters and transmission tree clusters, and found a moderate
+correspondence between the two.
+
+In summary, studies in this group have demonstrated that network structure
+profoundly influences tree shape, but have not attempted to quantitatively
+infer network parameters from observed trees.
 
 %\section{Approximate Bayesian computation}
 
@@ -603,6 +639,7 @@ to quantitatively infer network parameters from observed trees.
 \glsreset{ABC}
 
 \subsection{Model fitting}
+\label{subsec:mfit}
 
 A \defn{mathematical model} is a formal description of a hypothesized
 relationship between some observed data, $\vec{x} = \set{x_1, \ldots, x_n}$,
@@ -611,7 +648,7 @@ defines a family of possible relationships between data and outcomes, indexed
 by one or more numeric parameters $\theta$. A \defn{statistical} model
 describes the relationship between data and outcomes in terms of probabilities.
 Statistical models define, either explicitly or implicitly, the probability of
-observing $\vec{y}$ given $\vec{x}$ and, if the model is parameteric, $\theta$.
+observing $\vec{y}$ given $\vec{x}$ and, if the model is parametric, $\theta$.
 In this context, the observed outcomes are taken to be realizations of random
 variables $\vec{Y} = \set{Y_1, \ldots, Y_n}$. Note that it is entirely possible
 to have no data $\vec{x}$, only observed outcomes $\vec{y}$. In this case, a
@@ -667,11 +704,11 @@ setting the likelihood function's derivatives to zero.
 model parameters $\theta$. However, it is frequently the case that the
 investigator has some additional information or \defn{prior belief} about what
 $\theta$ are likely to be. For example, in the linear regression case, the
-intstrument used to measure the outcomes may have a well-known margin of error,
+instrument used to measure the outcomes may have a well-known margin of error,
 or the sign of the slope may be obvious from previous experiments. The Bayesian
 approach to model fitting makes use of this information by codifying the
 investigator's beliefs as a \defn{prior distribution} on the parameters,
-denoted $\Pr(\theta)$. Instead of considering only the likeilhood, Bayesian
+denoted $\Pr(\theta)$. Instead of considering only the likelihood, Bayesian
 inference focuses on the product of the likelihood and the prior, $\Pr(\vec{y}
 \mid \theta) \Pr(\theta)$. Bayes' theorem tells us that this product is related
 to the \textit{posterior distribution} on $\theta$,
@@ -689,7 +726,7 @@ distribution (the posterior). Therefore, the \gls{MAP} estimate by itself is of
 limited value without associated statistics about the posterior distribution,
 such as the mean or credible intervals. Unfortunately, to calculate such
 statistics, it is necessary to evaluate the normalizing constant
-$\Pr(\vec{y})$, which is almost always an intractible integral.
+$\Pr(\vec{y})$, which is almost always an intractable integral.
 
 A popular method for circumventing the normalizing constant is the use of
 \gls{MCMC} to obtain a sample from the posterior distribution. \Gls{MCMC} works
@@ -707,9 +744,11 @@ enough random walk is performed on the chain, the distribution of states
 visited will be a Monte Carlo approximation of $\Pr(\theta \mid \vec{y})$, from
 which we can calculate statistics of interest. Actually performing this random
 walk is straightforward and is accomplished via the Metropolis-Hastings
-algorithm.
+algorithm (\cref{alg:mh}).
 
 \begin{algorithm}
+  \label{alg:mh}
+  \caption{Metropolis-Hastings algorithm for Markov chain Monte Carlo.}
   \begin{algorithmic}
     \State Draw $\theta$ according to $\Pr(\theta)$
     \Loop
@@ -725,36 +764,72 @@ algorithm.
 \end{algorithm}
 
 \subsection{Overview and motivation for ABC}
+\label{subsec:abcoverview}
 
 Most mathematical models are amenable to fitting via one or both of the
 approaches, \gls{ML} or Bayesian inference, discussed above. However, there are
 some, particularly in the domain of population genetics, for which calculation
 of either the likelihood or the product of the likelihood and the prior may be
 infeasible. For example, one or both of these quantities may be expressible
-only as an intractible integral. \Gls{ABC} is designed for such cases, where
-standard likelihood-based techniques for model fitting cannot be applied.
+only as an intractable integral. \Gls{ABC} is designed for such cases, where
+standard likelihood-based techniques for model fitting cannot be applied. Such
+models are particularly prevalent in population
+genetics~\autocite{beaumont2002approximate, beaumont2010approximate}. We will
+begin this subsection by describing \gls{ABC} in general terms. Then, we will
+use linear regression as a toy problem to demonstrate how \gls{ABC} could be
+applied. Finally, we will give an example of a model which is impractical to
+fit using likelihood-based methods, and show how its parameters were estimated
+using \gls{ABC}.
 
-The first practical application of \gls{ABC} was by
-\textcite{tavare1997inferring}, who wanted to calculate the posterior
-distribution on the coalescence time $t$ of $n$ sequences with $k$ observed
-segregating sites under the coalescent model~\autocite{kingman1982coalescent}.
-That is,
+Ordinarily, Bayesian inference targets the posterior distribution.
+
+%traditional likelihood criterion
+%for model ``goodness'' with one based on simulated data generated by the model.
+%Good models should be able to simulate data which closely resemble reality. In
+%\gls{ABC}, we are no longer interested in the posterior distribution, but
+%rather in the distribution of model parameters which produce data sufficiently
+%``close'' to the real data. To formalize this, let $d(\cdot, \cdot)$ be a
+%distance function on datasets, and $\varepsilon$ be a tolerance level. 
+
+Of course, linear models can be fit more easily using likelihood-based methods, 
+since the likelihood $\L(\theta \mid \vec{y})$ can be easily calculated (see
+\cref{subsec:fit}). One model where this is not the case is Kingman's
+coalescent~\autocite{kingman1982coalescent}. 
+
+As an example of such a model, we will review the first practical application
+of \gls{ABC} by \textcite{tavare1997inferring}. The aim of the investigation
+was to calculate the posterior distribution on the coalescence time $t$ of some
+observed sequences $D$ under the coalescent model
+\autocite{kingman1982coalescent} with the infinite-sites assumption
+\autocite{watterson1975number}. Their estimation method relied on two key
+observations. First, the number $k$ of \defn{segregating sites} in the data is
+informative about the coalescence time while being much easier to work with
+than the data itself. A segregating site is a position which is polymorphic in
+the observed sequences. Using this observation, the authors replaced their
+posterior distribution of interest, $\Pr(t \mid D)$, by
 \[
   \Pr(t \mid k) \propto \Pr(t) \Pr(k \mid t),
 \]
-where again we abuse $\Pr$ to refer to a probability density.
-\citeauthor{tavare1997inferring} observed that the expected number of
-segregating sites depends on the total branch length of the tree, rather than
-its height. This enabled them to write an alternative expression for the
-product of the likelihood and prior in terms of the total branch length $l$,
+where again we abuse $\Pr$ to refer to a probability density. Second,
+the authors observed that the expected number of segregating sites depends on
+the total branch length $l$ of the tree, rather than its height. This enabled
+them to write an alternative expression for the product of the likelihood and
+prior in terms of $l$,
 \[
-  \int_0^\infty \Pr(t, l) \Pr(k \mid t, l) \d l.
+  \Pr(t) \Pr(k \mid t) = \int_0^\infty \Pr(t, l) \Pr(k \mid l) \d l.
 \]
-While it is unclear how to evaluate this integral, the power of this
-formulation is the fact that it is straightforward to \emph{simulate} points
-according to $\Pr(t, l)$, the joint probability of $t$ and $l$, by simply
-running the (stochastic) coalescent process and observing the values $\bar{t}$
-and $\bar{l}$ which result.
+While this integral may be difficult to evaluate analytically, the power of
+this formulation is the fact that it is straightforward to \emph{simulate}
+values of $t$ and $l$ according to $\Pr(t, l)$, their joint probability under
+the coalescent model. One simply runs the (stochastic) coalescent process and
+observing the values $\hat{t}$ and $\hat{l}$ which result. It is
+straightforward to calculate $\Pr(k \mid \hat{l})$, the probability
+that $k$ segregating sites were observed in a tree with total branch length
+$\hat{l}$, using the Poisson distribution. Hence if $\hat{l}$ and $\hat{t}$,
+having been generated according to $\Pr(t, l)$, are sampled with probability
+proportional to $\Pr(k \mid \hat{l})$, they represent an unbiased sample from
+the above integral. Taking a large number of such samples allowed the authors
+to obtain a Monte Carlo estimate of $\Pr(t \mid k)$.
 
 %\Gls{ABC} is a statistical method designed to fit complex models, which cannot
 %be fit using more conventional methods, to observed
@@ -777,14 +852,6 @@ and $\bar{l}$ which result.
 %distributions - we could have chosen any other distribution we deemed
 %appropriate. 
 %
-%The main idea of \gls{ABC} is to replace the traditional likelihood-based
-%criteria for model ``goodness'' with one based on simulated data generated by
-%the model. Good models should be able to simulate data which closely resemble
-%reality. In \gls{ABC}, we are no longer interested in the posterior
-%distribution, but rather in the distribution of model parameters which produce
-%data sufficiently ``close'' to the real data. To formalize this, let $d(\cdot,
-%\cdot)$ be a distance function on datasets, and $\varepsilon$ be a tolerance
-%level. The objective of \gls{ABC} is to recover the distribution\ldots
 
 \subsection{Algorithms for ABC}
 \label{subsubsec:abcalg}
@@ -825,7 +892,7 @@ simulated data,
 \[
   \eta(\vec{y}) = \left<\E[\vec{y}], \Var[\vec{y}]\right>.
 \]
-Finally, for the distance function $\rho$ we take the standard Euclidian
+Finally, for the distance function $\rho$ we take the standard Euclidean
 distance.
 
 Rejection ABC is the simplest method, and also the one which was first
@@ -924,7 +991,7 @@ is proportional to the variance of the importance
 weights~\autocite{liu2008monte}, which may be quite large if $\eta$ and
 $\gamma$ are very different. Therefore, the practical use of \gls{IS} on its
 own is limited, since it depends on finding an importance distribution which is
-similar to $\pi$, which we usually know very little about \textit{a priori}.
+similar to $\pi$, which we usually know very little about \textit{a priory}.
 
 However, an ideal context for the use of \gls{IS} is when we want to sample
 from a sequence of nested probability distributions $\pi_1, \ldots, \pi_n$.
