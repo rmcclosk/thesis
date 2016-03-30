@@ -13,14 +13,14 @@ values of that parameter while holding the others fixed, then cross-validated a
 kernel-\gls{SVM} classifier for that parameter.
 
 <<treestats, include=FALSE>>=
-    params <- c("alpha", "I", "m", "N")
-    ptn <- paste0("../../simulations/kernel-", params, "/statistics/*")
-    files <- lapply(ptn, Sys.glob)
-    d <- lapply(files, collect.data)
-    d <- mapply(cbind, d, parameter=as.list(params), SIMPLIFY=FALSE)
-    lapply(d, setDT)
-    d[[1]] <- subset(d[[1]], m == 2)
-    setnames(d[[1]], "nsimnode", "I")
+    #params <- c("alpha", "I", "m", "N")
+    #ptn <- paste0("../../simulations/kernel-", params, "/statistics/*")
+    #files <- lapply(ptn, Sys.glob)
+    #d <- lapply(files, collect.data)
+    #d <- mapply(cbind, d, parameter=as.list(params), SIMPLIFY=FALSE)
+    #lapply(d, setDT)
+    #d[[1]] <- subset(d[[1]], m == 2)
+    #setnames(d[[1]], "nsimnode", "I")
 @
 
 % trees look different
