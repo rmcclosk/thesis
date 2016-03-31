@@ -4,35 +4,54 @@
 
 \subsection{Kernel classifiers}
 
-% overview of experiment
-Our first simulation-based experiment was designed to determine which network
-model parameters were potentially estimable by kernel-ABC, and to find the best
-set of kernel meta-parameters to carry through to future experiments. For each
-of the four \gls{BA} model parameters, we simulated trees under three distinct
-values of that parameter while holding the others fixed, then cross-validated a
-kernel-\gls{SVM} classifier for that parameter.
-
 <<treestats, include=FALSE>>=
-    #params <- c("alpha", "I", "m", "N")
-    #ptn <- paste0("../../simulations/kernel-", params, "/statistics/*")
-    #files <- lapply(ptn, Sys.glob)
-    #d <- lapply(files, collect.data)
-    #d <- mapply(cbind, d, parameter=as.list(params), SIMPLIFY=FALSE)
-    #lapply(d, setDT)
-    #d[[1]] <- subset(d[[1]], m == 2)
-    #setnames(d[[1]], "nsimnode", "I")
+    params <- c("alpha", "I", "m", "N")
+    
+    get.treestats <- function (param) {
+        stats <- paste0("../../simulations/kernel-", param, "/statistics/*")
+        d <- collect.data(stats)
+        trees <- paste0("../../simulations/kernel-", param, "/tree/*")
+        m <- collect.metadata(trees)
+        rownames(m) <- sub("../../simulations/", "", rownames(m))
+        d <- merge(d, m, by=0, suffixes=c("", ".1"))
+        if (param == "alpha") {
+            d <- subset(d, m == 2)
+            colnames(d)[colnames(d) == "nsimnode"] <- "I"
+        }
+        setDT(d)
+    }
+    
+    alpha.stats <- get.treestats("alpha")
+    I.stats <- get.treestats("I")
+    m.stats <- get.treestats("m")
+    N.stats <- get.treestats("N")
+
+    alpha.sackin.cor <- alpha.stats[,cor.test(alpha, sackin, method="spearman")]
+    stopifnot(alpha.sackin.cor$p.value < 1e-5)
+
+    N.ratio.cor <- N.stats[,cor.test(int.tip.ratio, N)]
+    I.ratio.cor <- I.stats[,cor.test(int.tip.ratio, I)]
+    stopifnot(N.ratio.cor$p.value < 1e-5)
+    stopifnot(I.ratio.cor$p.value < 1e-5)
 @
 
-% trees look different
 Trees simulated under different values of \gls{alpha} are visibly quite
-distinctive (\cref{fig:patrees}). In particular, higher values of \gls{alpha}
+distinct (\cref{fig:alphatrees}). In particular, higher values of \gls{alpha}
 produce networks with a small number of highly connected nodes which, once
 infected, are likely to transmit to many other nodes (\cref{fig:alphabds}).
 This results in a more unbalanced, ladder-like structure in the phylogeny,
-compared to networks with lower \gls{alpha} values. None of the other three
-parameters produced trees which were as easily distinguished from each other
-(\cref{fig:Itrees,fig:mtrees,fig:Ntrees,fig:Itrees}). However, higher $I$
-values produce trees which appear to have longer terminal branches, 
+compared to networks with lower \gls{alpha} values. Sackin's index was
+significantly correlated with \gls{alpha} 
+    (Spearman's rho \Sexpr{round(alpha.sackin.cor$estimate, 2)},
+     $p < 10^{-5}$).
+None of the other three parameters produced trees which were as easily
+distinguished from each other
+(\cref{fig:Itrees,fig:mtrees,fig:Ntrees,fig:Itrees}). However, the ratio of
+internal to terminal branch lengths was positively correlated with $N$ and
+negatively correlated with $I$ (Spearman's rho
+    \Sexpr{round(N.ratio.cor$estimate, 2)} and
+    \Sexpr{round(I.ratio.cor$estimate, 2)},
+    both $p < 1e-5$).
 
 Kernel-\gls{PCA} projections show that all three \gls{alpha} values are well
 separated from each other in feature space under several different sampling
@@ -51,11 +70,6 @@ accuracy of a Sackin's index-based classifier was also quite high, at about
 statistic~\autocite{janzen2015approximate} was slightly worse than Sackin's
 index, with an $R^2$ of X.
 
-The fact that Sackin's index is informative of \gls{alpha} was
-unsurprising, given the clear differences in tree balance observed under
-different \gls{alpha} values. 
-
-
 \begin{figure}[ht]
   \centering
   \includegraphics{kernel-alpha-tree.pdf}
@@ -66,7 +80,7 @@ different \gls{alpha} values.
     \gls{alpha} values produced networks with a small number of
     highly-connected nodes, resulting in highly unbalanced, ladder-like trees.
   }
-  \label{fig:patrees}
+  \label{fig:alphatrees}
 \end{figure}
 
 \begin{figure}[ht]

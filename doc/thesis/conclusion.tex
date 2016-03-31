@@ -62,3 +62,18 @@ jombart2011reconstructing, cottam2008integrating, poon2015phylodynamic}, some
 of which incorporate geographic and/or epidemiological data not accommodated by
 our method. We therefore felt it would be best to allow researchers to use
 their own preferred tree building method.
+
+Our use of the \gls{BA} model makes several simplifying assumptions. First, we
+assume homogeneity across the network with respect to node behaviour and
+transmission risk. In reality, the attraction to high-degree nodes seems likely
+to vary among individuals, as does their risk of transmitting or contracting
+the virus. We have also assumed that all transmission risks are symmetric,
+which is clearly false for all known modes of \gls{HIV} transmission, and that
+infected individuals never recover but remain infectious indefinitely. These
+assumptions were made for the purpose of keeping the model as simple as
+possible, since this is the very first attempt to fit a contact network model
+in a phylodynamic context. However, the Gillespie simulation algorithm built
+into \software{netabc} can handle arbitrary transmission and removal rates
+which need not be homogeneous across the network. Moreover, it is possible to
+use kernel-\gls{ABC} to fit a model which relaxes some or all of these
+assumptions, which may be a fruitful avenue for future investigation.
