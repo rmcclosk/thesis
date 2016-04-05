@@ -11,7 +11,6 @@
 \mstype{Article}
 \artid{???}
 \access{???}
-
 \begin{document}
 
 \title[Contact networks and ABC]{Phylodynamic inference of contact network
@@ -27,10 +26,7 @@ $^2$Department of Medicine, University of British Columbia, Vancouver, Canada}
 \keyword{Phylogenetics, phylodynamics, approximate Bayesian computation,
 contact network, transmission tree, human immunodeficiency virus.}
 
-<<setup, include=FALSE>>=
-    library(netabc)
-    library(Hmisc)
-@
+
 
 \maketitle
 
@@ -184,39 +180,7 @@ A computer program implementing our method is freely available at
 
 \subsection{Kernel classifiers}
 
-<<classifiers, include=FALSE>>=
-    get.kernel.data <- function (param, step) {
-        md <- collect.metadata(paste0('../../simulations/kernel-', param, '/', step, '/*'))
-        if ('rbf_variance' %in% colnames(md)) {
-          md <- subset(md, rbf_variance == 4 & decay_factor == 0.3)
-        }
-        if (param == 'alpha') {
-            md <- subset(md, m == 2)
-        }
-        d <- setDT(collect.data(rownames(md)))
-        if (param %in% c('alpha', 'm')) {
-            d[,list(rsquared=mean(rsquared)), by=c('nsimnode', 'ntip')]
-        } else if (param == 'I') {
-            d[,list(rsquared=mean(rsquared)), by=ntip]
-        } else {
-            d[,list(rsquared=mean(rsquared)), by=c('I', 'ntip')]
-        }
-    }
-    kernel.alpha <- get.kernel.data('alpha' ,'classifier')
-    kernel.m <- get.kernel.data('m', 'classifier')
-    kernel.I <- get.kernel.data('I', 'classifier')
-    kernel.N <- get.kernel.data('N', 'classifier')
 
-    sackin.alpha <- get.kernel.data('alpha', 'stats-classifier')
-    sackin.m <- get.kernel.data('m', 'stats-classifier')
-    sackin.I <- get.kernel.data('I', 'stats-classifier')
-    sackin.N <- get.kernel.data('N', 'stats-classifier')
-
-    nltt.alpha <- get.kernel.data('alpha', 'nltt-classifier')
-    nltt.m <- get.kernel.data('m', 'nltt-classifier')
-    nltt.I <- get.kernel.data('I', 'nltt-classifier')
-    nltt.N <- get.kernel.data('N', 'nltt-classifier')
-@
 
 We investigated the parameters of the BA network
 model~\citep{barabasi1999emergence}. In addition to $m$ and $\alpha$ (see
@@ -237,44 +201,44 @@ The results were largely robust to variations in the tree kernel
 meta-parameters $\lambda$ and $\sigma$ (Figures~S3-S6).
 
 When classifying $\alpha$, the kernel-SVM classifier had an average $R^2$ of 
-    \Sexpr{kernel.alpha[,round(mean(rsquared), 2)]},
+    0.92,
 compared to 
-    \Sexpr{nltt.alpha[,round(mean(rsquared), 2)]}
+    0.56
 for the nLTT-based SVM, and
-    \Sexpr{sackin.alpha[,round(mean(rsquared), 2)]}
+    0.75
 for the linear regression against Sackin's index. There was little variation
 about the mean for different tree and epidemic sizes. No classifier could
 accurately identify the $m$ parameter in any epidemic scenario, with average
 $R^2$ values of 
-  \Sexpr{kernel.m[,round(mean(rsquared), 2)]} for kSVM,
-  \Sexpr{nltt.m[,round(mean(rsquared), 2)]} for the nLTT, and
-  \Sexpr{sackin.m[,round(mean(rsquared), 2)]}
+  0.12 for kSVM,
+  0.01 for the nLTT, and
+  0.06
 for Sackin's index. Again, there was little variation in accuracy between
 epidemic scenarios, although the accuracy of the kSVM was slightly higher
 on 1000-tip trees.
 
 The accuracy of classifiers for $I$ varied significantly with the number of
 tips in the tree. For 100-tip trees, the average $R^2$ values were
-  \Sexpr{kernel.I[ntip == 100, round(mean(rsquared), 2)]},
-  \Sexpr{nltt.I[ntip == 100, round(mean(rsquared), 2)]}, and
-  \Sexpr{sackin.I[ntip == 100, round(mean(rsquared), 2)]}
+  0.7,
+  0.55, and
+  0.02
 for the tree kernel, nLTT, and Sackin's index respectively. For 500-tip
 trees, the values increased to
-  \Sexpr{kernel.I[ntip == 500, round(mean(rsquared), 2)]},
-  \Sexpr{nltt.I[ntip == 500, round(mean(rsquared), 2)]}, and
-  \Sexpr{sackin.I[ntip == 500, round(mean(rsquared), 2)]}.
+  0.93,
+  0.83, and
+  0.07.
 Finally, the performance of classifiers for $N$ depended heavily on the
 epidemic scenario. The $R^2$ of the kSVM classifier ranged from
-  \Sexpr{kernel.N[,round(min(rsquared), 2)]}
+  0.08
 for the smallest epidemic and smallest sample size, to
-  \Sexpr{kernel.N[,round(max(rsquared), 2)]}
+  0.82
 for the largest. Likewise, $R^2$ for the nLTT-based SVM ranged from 
-  \Sexpr{nltt.N[,round(min(rsquared), 2)]}
+  0.01
 to
-  \Sexpr{nltt.N[,round(max(rsquared), 2)]}.
+  0.54.
 Sackin's index did not accurately classify $N$ in any scenario, with an average
 $R^2$ of
-  \Sexpr{sackin.N[,round(mean(rsquared), 2)]}
+  0.03
 and little variation between scenarios.
 
 \begin{figure*}[ht]
@@ -295,37 +259,7 @@ and little variation between scenarios.
 
 \subsection{ABC simulations}
 
-<<point_est, include=FALSE>>=
-    f <- Sys.glob("../../simulations/abc-pa-free-m/point-estimate/*")
-    d <- fread(f)
-    d[,m := floor(m)]
-    d[,alpha_error := abs(true_alpha - alpha)]
-    d[,N_error := abs(true_N - N)]
-    d[,I_error := abs(true_I - I)]
-    d[,m_error := abs(true_m - m)]
 
-    alpha.av <- anova(lm(alpha_error ~ factor(true_alpha) + factor(true_m) + factor(true_I), d))
-    m.av <- anova(lm(m_error ~ factor(true_alpha) + factor(true_m) + factor(true_I), d))
-    N.av <- anova(lm(N_error ~ factor(true_alpha) + factor(true_m) + factor(true_I), d))
-    I.av <- anova(lm(I_error ~ factor(true_alpha) + factor(true_m) + factor(true_I), d))
-
-    m.tbl <- d[,prop.table(table(m_error))]
-    zero.alpha.test <- wilcox.test(d[true_alpha == 0, alpha_error], 
-                                   d[true_alpha != 0, alpha_error])
-    alpha.I.test <- wilcox.test(d[true_alpha < 1, I_error],
-                                d[true_alpha >= 1, I_error])
-    I.I.test <- wilcox.test(d[true_I == 1000, I_error],
-                            d[true_I == 2000, I_error])
-    alpha.m.test <- wilcox.test(d[true_alpha == 0 | true_alpha == 1, m_error],
-                                d[true_alpha == 0.5 | true_alpha == 1.5, m_error])
-    stopifnot(alpha.av["factor(true_m)", "Pr(>F)"] > 0.05)
-    stopifnot(alpha.av["factor(true_I)", "Pr(>F)"] > 0.05)
-    stopifnot(I.I.test$p.value < 1e-5)
-    stopifnot(I.av["factor(true_m)", "Pr(>F)"] > 0.05)
-    stopifnot(m.av["factor(true_m)", "Pr(>F)"] > 0.05)
-    stopifnot(m.av["factor(true_I)", "Pr(>F)"] > 0.05)
-    stopifnot(min(N.av[1:3,"Pr(>F)"]) > 0.05)
-@
 
 Figure~\ref{fig:abcpt} shows maximum \textit{a posteriori} (MAP) point
 estimates of the BA model parameters obtained with kernel-ABC on simulated
@@ -338,35 +272,35 @@ The accuracy of the parameter estimates obtained with kernel-ABC
 paralleled the results from the kSVM classifier. Of the four parameters,
 $\alpha$ was the most accurately estimated, with point estimates having a
 median [IQR] absolute error of 
-    \Sexpr{d[,round(median(alpha_error), 2)]} 
-    [\Sexpr{d[,round(quantile(alpha_error, 0.25), 2)]} - 
-    \Sexpr{d[,round(quantile(alpha_error, 0.75), 2)]}].
+    0.11 
+    [0.05 - 
+    0.18].
 The errors when the true value of $\alpha$ was zero were significantly greater
 than those for the other values 
-    (Wilcoxon rank-sum test, $p$ = $\Sexpr{latexSN(round(zero.alpha.test$p.value, 4))}$),
+    (Wilcoxon rank-sum test, $p$ = $6\!\times\!10^{-4}$),
 but did not vary across the true values of the other parameters (one-way
 ANOVA). Estimates for $I$ were also relatively accurate, with point estimate
 errors of
-    \Sexpr{d[,round(median(I_error))]} 
-    [\Sexpr{d[,round(quantile(I_error, 0.25))]} - 
-    \Sexpr{d[,round(quantile(I_error, 0.75))]}].
+    306 
+    [108 - 
+    607].
 These errors were significantly higher when the true value of $\alpha$ was
 at least 1
-    (Wilcoxon rank-sum test, $p$ = $\Sexpr{latexSN(round(alpha.I.test$p.value, 4))}$)
+    (Wilcoxon rank-sum test, $p$ = $6\!\times\!10^{-4}$)
 and when the true value of $I$ was 2000 ($p < 10^{-5}$). The true value of $m$
 did not affect the estimates of $I$ (one-way ANOVA).
 
 The $m$ parameter was estimated correctly in only
-    \Sexpr{as.integer(m.tbl[1] * 100)} \%
+    37 \%
 of simulations. Oddly, the error in the estimated $m$ was higher for integer
 values of $\alpha$ (\text{i.e.}~0 and 1) than non-integer values 
-    (Wilcoxon rank-sum test, $p$ = \Sexpr{round(alpha.m.test$p.value, 3)}).
+    (Wilcoxon rank-sum test, $p$ = 0.007).
 The true values of the other parameters did not significantly affect the
 estimates of $m$ (both one-way ANOVA). Finally, the total number of nodes $N$
 was consistently over-estimated by about a factor of two
-    (error \Sexpr{d[,round(median(N_error))]} 
-    [\Sexpr{d[,round(quantile(N_error, 0.25))]} - 
-     \Sexpr{d[,round(quantile(N_error, 0.75))]}]).
+    (error 6588 
+    [4214 - 
+     8284]).
 No parameters influenced the accuracy of the $N$ estimates (all one-way ANOVA).
 
 \begin{figure*}[ht]
@@ -432,151 +366,110 @@ the intervals for $m$ and $N$ were more widely dispersed.
   \label{fig:abcex}
 \end{figure*}
 
-<<mixed_peerdriven, include=FALSE>>=
-  library(coda)
-  d <- fread("bzcat ../../simulations/abc-pa-mixed-alpha/abc/*")
-  d <- d[iter == max(iter)]
-  d <- d[sample(1:nrow(d), prob=weight, replace=TRUE)]
-  params <- c("alpha", "m", "N", "I")
-  setnames(d, c("attach_power", "edges_per_vertex", "nodes", "sim_nodes"),
-           params)
-  d <- melt(d, measure.vars=params, variable.name="parameter")
-  f <- function (x) {
-    dens <- density(x)
-    hpd <- HPDinterval(mcmc(x))
-    list(map=dens$x[which.max(dens$y)], hpd.min=hpd[,"lower"], 
-         hpd.max=hpd[,"upper"])
-  }
-  d <- d[,f(value), by=parameter]
-  setkey(d, parameter)
 
-  p <- fread("bzcat ../../simulations/abc-pa-peerdriven/abc/*")
-  p <- p[iter == max(iter)]
-  p <- p[sample(1:nrow(p), prob=weight, replace=TRUE)]
-  params <- c("alpha", "m", "N", "I")
-  setnames(p, c("attach_power", "edges_per_vertex", "nodes", "sim_nodes"),
-           params)
-  p <- melt(p, measure.vars=params, variable.name="parameter")
-  f <- function (x) {
-    dens <- density(x)
-    hpd <- HPDinterval(mcmc(x))
-    list(map=dens$x[which.max(dens$y)], hpd.min=hpd[,"lower"], 
-         hpd.max=hpd[,"upper"])
-  }
-  p <- p[,f(value), by=parameter]
-  setkey(p, parameter)
-@
 
 To test the effect of model misspecification, we simulated one network where
 the nodes exhibited heterogeneous preferential attachment power (half 0.5, the
 other half 1.5), with $m$ = 2, $N$ = 5000, and $I$ = 1000. The MAP [95\%
 HPD] estimates for each parameter were: 
 $\alpha$, 
-  \Sexpr{round(d["alpha", map], 2)} 
-  [\Sexpr{round(d["alpha", hpd.min], 2)}-
-   \Sexpr{round(d["alpha", hpd.max], 2)}];
+  1 
+  [0.07-
+   1.07];
 $I$,
-  \Sexpr{d["I", round(map)]} 
-  [\Sexpr{d["I", round(hpd.min)]} -
-   \Sexpr{d["I", round(hpd.max)]}];
+  1170 
+  [506 -
+   1616];
 $m$,
-  \Sexpr{d["m", floor(map)]} 
-  [\Sexpr{d["m", floor(hpd.min)]} -
-   \Sexpr{d["m", floor(hpd.max)]}];
+  5 
+  [2 -
+   5];
 $N$,
-  \Sexpr{d["N", round(map)]} 
-  [\Sexpr{d["N", round(hpd.min)]}-
-   \Sexpr{d["N", round(hpd.max)]}].
+  \ensuremath{1.033\times 10^{4}} 
+  [2408-
+   \ensuremath{1.4974\times 10^{4}}].
 To test the effect of sampling bias, we sampled one transmission tree in a
 peer-driven fashion, where the probability to sample a node was twice as high
 if one of its peers had already been sampled. The parameters for this
 experiment were $N$ = 5000, $m$ = 2, $\alpha$ = 0.5, and $I$ = 2000. The
 estimated values were
 $\alpha$, 
-  \Sexpr{p["alpha", round(map, 2)]} 
-  [\Sexpr{p["alpha", round(hpd.min, 2)]} -
-   \Sexpr{p["alpha", round(hpd.max, 2)]}];
+  0.48 
+  [0.03 -
+   0.82];
 $I$,
-  \Sexpr{p["I", floor(map)]} 
-  [\Sexpr{p["I", floor(hpd.min)]} -
-   \Sexpr{p["I", floor(hpd.max)]}];
+  2468 
+  [1281 -
+   3938];
 $m$,
-  \Sexpr{p["m", floor(map)]} 
-  [\Sexpr{p["m", floor(hpd.min)]} -
-   \Sexpr{p["m", floor(hpd.max)]}];
+  3 
+  [2 -
+   5];
 $N$,
-  \Sexpr{p["N", floor(map)]} 
-  [\Sexpr{p["N", floor(hpd.min)]} -
-   \Sexpr{p["N", floor(hpd.max)]}].
+  \ensuremath{1.0738\times 10^{4}} 
+  [3106 -
+   \ensuremath{1.4783\times 10^{4}}].
 Both of these results were in line with estimates obtained on other simulated
 datasets (Table~\ref{tab:abchpd}).
 
 \subsection{Real data}
 
-<<realdata, include=FALSE>>=
-  d <- fread(Sys.glob("../../simulations/aggregates/hpd/*"))
-  map <- dcast.data.table(d, dataset~parameter, value.var="map")
-  up <- dcast.data.table(d, dataset~parameter, value.var="hpd.max")
-  low <- dcast.data.table(d, dataset~parameter, value.var="hpd.min")
-  setkey(map, dataset)
-  setkey(up, dataset)
-  setkey(low, dataset)
-@
+
 
 We applied kernel-ABC to five published HIV datasets (Table~\ref{tab:data}),
 and found substantial heterogeneity among the parameter estimates
 (Figure~\ref{fig:abchpd}). Two of the datasets~\citep{niculescu2015recent,
 wang2015targeting} had estimated $\alpha$ values near unity (MAP estimates
 [95\% HPD] 
-  \Sexpr{map["niculescu2015", round(alpha, 2)]} 
-  [\Sexpr{low["niculescu2015", round(alpha, 2)]} - 
-   \Sexpr{up["niculescu2015", round(alpha, 2)]}]
+  1.06 
+  [0.63 - 
+   1.27]
 and
-  \Sexpr{map["wang2015", round(alpha, 2)]} 
-  [\Sexpr{low["wang2015", round(alpha, 2)]} -
-   \Sexpr{up["wang2015", round(alpha, 2)]}] respectively). 
+  1 
+  [0.41 -
+   1.16] respectively). 
 Another two datasets~\citep{li2015hiv, cuevas2009hiv} had lower estimated
 values and wider HPD intervals
-  (\Sexpr{map["li2015", round(alpha, 2)]} 
-  [\Sexpr{low["li2015", round(alpha, 2)]} - 
-  \Sexpr{up["li2015", round(alpha, 2)]}]
+  (0.77 
+  [0.01 - 
+  1.03]
 and
-  \Sexpr{map["cuevas2009", round(alpha, 2)]} 
-  [\Sexpr{low["cuevas2009", round(alpha, 2)]} -
-   \Sexpr{up["cuevas2009", round(alpha, 2)]}]). 
+  0.66 
+  [0.03 -
+   0.84]). 
 The \citet{novitsky2014impact} data had an extremely low estimated $\alpha$
 and a very wide HPD interval
-  (\Sexpr{map["novitsky2014", round(alpha, 2)]} 
-  [\Sexpr{low["novitsky2014", round(alpha, 2)]} -
-   \Sexpr{up["novitsky2014", round(alpha, 2)]}]). 
+  (0.17 
+  [0.04 -
+   1.39]). 
 For all the datasets except \citeauthor{novitsky2014impact}, estimated values of
 $I$ were below 2000, with narrow HPD intervals around two of the
 datasets
-  (\citeauthor{cuevas2009hiv}, \Sexpr{map["cuevas2009", floor(I)]} 
-  [\Sexpr{low["cuevas2009", floor(I)]} -
-   \Sexpr{up["cuevas2009", floor(I)]}];
-   \citeauthor{niculescu2015recent}, \Sexpr{map["niculescu2015", floor(I)]}
-  [\Sexpr{low["niculescu2015", floor(I)]} - 
-   \Sexpr{up["niculescu2015", floor(I)]}])
+  (\citeauthor{cuevas2009hiv}, 880 
+  [290 -
+   1511];
+   \citeauthor{niculescu2015recent}, 175
+  [138 - 
+   454])
 and wider intervals around the other two
-  (\citeauthor{li2015hiv}, \Sexpr{map["li2015", floor(I)]} 
-  [\Sexpr{low["li2015", floor(I)]} -
-   \Sexpr{up["li2015", floor(I)]}];
-   \citeauthor{wang2015targeting}, \Sexpr{map["wang2015", floor(I)]}
-  [\Sexpr{low["wang2015", floor(I)]} - 
-   \Sexpr{up["wang2015", floor(I)]}]).
+  (\citeauthor{li2015hiv}, 1590 
+  [284 -
+   3807];
+   \citeauthor{wang2015targeting}, 651
+  [268 - 
+   4235]).
 The \citeauthor{novitsky2014impact} data was again the outlier, with a very high
 estimated $I$, and HPD interval spanning almost the entire prior region
-  (\Sexpr{map["novitsky2014", floor(I)]} 
-  [\Sexpr{low["novitsky2014", floor(I)]} -
-   \Sexpr{up["novitsky2014", floor(I)]}]).
+  (7547 
+  [228 -
+   8921]).
 No information was gleaned about the $m$ parameter, with the HPD interval
 occupying the entire prior region for all datasets. The estimates of $N$ were
 similarly uninformative, with the exception that the point estimate for the
 \citeauthor{wang2015targeting} data was smaller
-  (\Sexpr{map["wang2015", floor(N)]})
+  (5839)
 than the estimates for other datasets
- (average \Sexpr{map[dataset != "wang2015", floor(mean(N))]}).
+ (average 8927).
 
 \begin{figure*}[ht]
   \centering
