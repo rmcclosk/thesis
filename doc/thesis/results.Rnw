@@ -38,10 +38,10 @@
 Trees simulated under different values of \gls{alpha} are visibly quite
 distinct (\cref{fig:alphatrees}). In particular, higher values of \gls{alpha}
 produce networks with a small number of highly connected nodes which, once
-infected, are likely to transmit to many other nodes (\cref{fig:alphabds}).
-This results in a more unbalanced, ladder-like structure in the phylogeny,
-compared to networks with lower \gls{alpha} values. Sackin's index was
-significantly correlated with \gls{alpha} 
+infected, are likely to transmit to many other nodes. This results in a more
+unbalanced, ladder-like structure in the phylogeny, compared to networks with
+lower \gls{alpha} values. Sackin's index was significantly correlated with
+\gls{alpha} 
     (Spearman's rho \Sexpr{round(alpha.sackin.cor$estimate, 2)},
      $p < 10^{-5}$).
 None of the other three parameters produced trees which were as easily
@@ -51,24 +51,7 @@ internal to terminal branch lengths was positively correlated with $N$ and
 negatively correlated with $I$ (Spearman's rho
     \Sexpr{round(N.ratio.cor$estimate, 2)} and
     \Sexpr{round(I.ratio.cor$estimate, 2)},
-    both $p < 1e-5$).
-
-Kernel-\gls{PCA} projections show that all three \gls{alpha} values are well
-separated from each other in feature space under several different sampling
-scenarios (Figure~\ref{fig:pakpca}). With smaller trees, it becomes harder to
-visually distinguish \gls{alpha} = 0.5 from \gls{alpha} = 1.0 using the first
-two principal components.
-
-With suitably chosen meta-parameters, the accuracy of the kernel-\gls{SVM}
-classifier for \gls{alpha} was very high under a variety of prevalence and
-sampling scenarios. Accuracy was highest, with
-$R^2$ values above 0.95, for the largest trees and complete sampling (bottom
-center panel). However, even for trees of size 100 sampled from an epidemic on
-2000 nodes, the $R^2$ was above 0.8 (top right panel). In all cases, the
-accuracy of a Sackin's index-based classifier was also quite high, at about
-0.75. An \gls{SVM} classifier using only the \gls{nltt}
-statistic~\autocite{janzen2015approximate} was slightly worse than Sackin's
-index, with an $R^2$ of X.
+    both $p < 10^{-5}$).
 
 \begin{figure}[ht]
   \centering
@@ -83,46 +66,136 @@ index, with an $R^2$ of X.
   \label{fig:alphatrees}
 \end{figure}
 
+\Cref{fig:kpca} shows \gls{kPCA} projections of the simulated trees onto the
+first two principal components of the kernel matrix. The figure shows only the
+simulations with 500-tip trees and, for all parameters except $I$, 1000
+infected nodes. The three \gls{alpha} and \gls{I} values considered are well
+separated from each other in feature space (\cref{fig:pakpca}). On the other
+hand, the three \gls{N} values overlap significantly, and the three \gls{m}
+values are virtually indistinguishable. Similar observations can be made for
+other values of \gls{I} and the number of tips 
+(\cref{fig:alphakpca,fig:Nkpca,fig:Ikpca,fig:mkpca}). The values of \gls{I} and
+\gls{N} separate more clearly with larger numbers of tips, and in the case of
+\gls{N} larger epidemic sizes.
+
 \begin{figure}[ht]
   \centering
   \includegraphics{kernel-kpca.pdf}
-  \caption[Projection of kernel matrix for different attachment power values
-  onto its first two principal components]{
-    Projection of the kernel matrix for different preferential attachment power
-    values onto its first two principal components, for eight simulation
-    scenarios. Each point corresponds to a simulated transmission tree, and is
-    coloured by preferential attachment power. Facets are number of infected
-    nodes (horizontal), and number of sampled tips (vertical). The parameters
-    to the tree kernel were $\lambda = 0.3$ and $\sigma = 4$, and the nLTT was
-    not used. Qualitatively, trees with a larger number of tips are easier to
-    separate in kernel space, regardless of what sampling proportion they
-    represent. In all cases, the highest attachment power can be separated from
-    the other two, but the two lowest values become hand to distinguish with in
-    the 100-tip trees.
+  \caption[\gls{kPCA} projections of simulated trees under varying \gls{BA}
+           parameter values]{
+    Each parameter of the \gls{BA} model was individually varied to produce 300
+    simulated trees. Kernel matrices were formed from all pairwise kernel
+    scores among each set of 300 trees. The trees were projected onto the first
+    two principal components of the kernel matrix calculated using \gls{kPCA}.
+    All trees had 500 tips. The parameters not being varied were set to
+    \gls{alpha} = 1, \gls{I} = 1000, \gls{m} = 2, and \gls{N} = 5000. The tree
+    kernel meta-parameters were $\lambda = 0.3$ and $\sigma = 4$.
   }
   \label{fig:pakpca}
 \end{figure}
 
-We also considered the possibility of inferring the number of infected nodes,
-or \defn{prevalence}, under this model. All parameters except \gls{I} were
-fixed at the following values: \gls{N} = 5000, \gls{alpha} = 1.0, and \gls{m} =
-2. As shown in Figure~\ref{fig:prevtrees}, the prevalence had no obvious effect
-on the tree shape. However, a kernel-\gls{SVM} classifier was able to
-distinguish the number of infected nodes with high accuracy ($R^2 > 0.9$;
-Figure~\ref{fig:prevcrossv}). Moreover, the use of the \gls{nltt} statistic
-improved classification accuracy by a small amount, in contrast to the results
-for \gls{alpha}. In contrast, a Sackin's index-based classifier displayed
-extremely poor performance ($R^2$ < 0.1, not shown). 
+<<classifiers, include=FALSE>>=
+    get.kernel.data <- function (param, step) {
+        md <- collect.metadata(paste0('../../simulations/kernel-', param, '/', step, '/*'))
+        if ('rbf_variance' %in% colnames(md)) {
+          md <- subset(md, rbf_variance == 4 & decay_factor == 0.3)
+        }
+        if (param == 'alpha') {
+            md <- subset(md, m == 2)
+        }
+        d <- setDT(collect.data(rownames(md)))
+        if (param %in% c('alpha', 'm')) {
+            d[,list(rsquared=mean(rsquared)), by=c('nsimnode', 'ntip')]
+        } else if (param == 'I') {
+            d[,list(rsquared=mean(rsquared)), by=ntip]
+        } else {
+            d[,list(rsquared=mean(rsquared)), by=c('I', 'ntip')]
+        }
+    }
+    kernel.alpha <- get.kernel.data('alpha' ,'classifier')
+    kernel.m <- get.kernel.data('m', 'classifier')
+    kernel.I <- get.kernel.data('I', 'classifier')
+    kernel.N <- get.kernel.data('N', 'classifier')
 
-It is important to note that, if we cut off the epidemic simulation when 500
-nodes are infected, the resulting tree will be shorter (in calendar time) than
-if we continue until 2000 nodes are infected. However, this information is not
-used when building the classifier, since the branch lengths in each tree are
-scaled by their mean. Therefore, the high performance of the classifier is due
-to structural differences captured by the tree kernel, rather than the trees
-simply having different heights.
+    sackin.alpha <- get.kernel.data('alpha', 'stats-classifier')
+    sackin.m <- get.kernel.data('m', 'stats-classifier')
+    sackin.I <- get.kernel.data('I', 'stats-classifier')
+    sackin.N <- get.kernel.data('N', 'stats-classifier')
 
-\subsection{Accuracy of marginal estimates}
+    nltt.alpha <- get.kernel.data('alpha', 'nltt-classifier')
+    nltt.m <- get.kernel.data('m', 'nltt-classifier')
+    nltt.I <- get.kernel.data('I', 'nltt-classifier')
+    nltt.N <- get.kernel.data('N', 'nltt-classifier')
+@
+
+Accuracy of the \gls{kSVM} classifiers varied based on the parameter being
+tested (\cref{fig:rsquared}, left). Classifiers based on two other tree
+statistics, the \gls{nltt} and Sackin's index, generally exhibited worse
+performance than the tree kernel, although the magnitude of the disparity
+varied between the parameters (\cref{fig:rsquared}, centre and right).
+\Cref{fig:rsquared} shows the cross-validation accuracy of each of the tree
+classifiers. The results were largely robust to variations in the tree kernel
+meta-parameters $\lambda$ and $\sigma$, although accuracy varied between
+different epidemic and sampling scenarios
+(\cref{fig:alphacrossv,fig:mcrossv,fig:Icrossv,fig:Ncrossv}).
+
+When classifying $\alpha$, the kernel-SVM classifier had an average $R^2$ of 
+    \Sexpr{kernel.alpha[,round(mean(rsquared), 2)]},
+compared to 
+    \Sexpr{nltt.alpha[,round(mean(rsquared), 2)]}
+for the \gls{nltt}-based SVM, and
+    \Sexpr{sackin.alpha[,round(mean(rsquared), 2)]}
+for the linear regression against Sackin's index. There was little variation
+about the mean for different tree and epidemic sizes. No classifier could
+accurately identify the $m$ parameter in any epidemic scenario, with average
+$R^2$ values of 
+  \Sexpr{kernel.m[,round(mean(rsquared), 2)]} for \gls{kSVM},
+  \Sexpr{nltt.m[,round(mean(rsquared), 2)]} for the \gls{nltt}, and
+  \Sexpr{sackin.m[,round(mean(rsquared), 2)]}
+for Sackin's index. Again, there was little variation in accuracy between
+epidemic scenarios, although the accuracy of the \gls{kSVM} was slightly higher
+on 1000-tip trees.
+
+The accuracy of classifiers $I$ varied significantly with the number of tips in
+the tree. For 100-tip trees, the average $R^2$ values were
+  \Sexpr{kernel.I[ntip == 100, round(mean(rsquared), 2)]},
+  \Sexpr{nltt.I[ntip == 100, round(mean(rsquared), 2)]}, and
+  \Sexpr{sackin.I[ntip == 100, round(mean(rsquared), 2)]}
+for the tree kernel, \gls{nltt}, and Sackin's index respectively. For 500-tip
+trees, the values increased to
+  \Sexpr{kernel.I[ntip == 500, round(mean(rsquared), 2)]},
+  \Sexpr{nltt.I[ntip == 500, round(mean(rsquared), 2)]}, and
+  \Sexpr{sackin.I[ntip == 500, round(mean(rsquared), 2)]}.
+Finally, the performance of classifiers for $N$ depended heavily on the
+epidemic scenario. The $R^2$ of the \gls{kSVM} classifier ranged from
+  \Sexpr{kernel.N[,round(min(rsquared), 2)]}
+for the smallest epidemic and smallest sample size, to
+  \Sexpr{kernel.N[,round(max(rsquared), 2)]}
+for the largest. Likewise, $R^2$ for the \gls{nltt}-based SVM ranged from 
+  \Sexpr{nltt.N[,round(min(rsquared), 2)]}
+to
+  \Sexpr{nltt.N[,round(max(rsquared), 2)]}.
+Sackin's index did not accurately classify $N$ in any scenario, with an average
+$R^2$ of
+  \Sexpr{sackin.N[,round(mean(rsquared), 2)]}
+and little variation between scenarios.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\textwidth]{kernel-rsquared.pdf}
+  \caption{
+      Cross-validation accuracy of kernel-SVM classifier (left), SVM classifier
+      using \gls{nltt} (centre), and linear regression using Sackin's index
+      (right) for \gls{BA} model parameters. Kernel meta-parameters were set to
+      $\lambda = 0.3$ and $\sigma = 4$. Each point was calculated based on 300
+      simulated transmission trees over networks with three different values of
+      the parameter being tested. Vertical lines are empirical 95\% confidence
+      intervals based on 1000 two-fold cross-validations.
+  }
+  \label{fig:rsquared}
+\end{figure}
+
+\subsection{Grid search}
 
 We used grid search to obtain \defn{marginal} estimates for each network
 parameter while holding all other parameters fixed. We observed that kernel
@@ -206,8 +279,8 @@ although the errors when the true value of \gls{alpha} was zero were
 significantly greater than the other values 
     (Wilcoxon rank-sum test, $p$ = \Sexpr{zero.alpha.test$p.value}).
 The error in the estimated value of $I$ was
-    \Sexpr{d[,median(I_error)]} 
-    [\Sexpr{d[,quantile(I_error, 0.25)]}-\Sexpr{d[,quantile(I_error, 0.75)]}].
+    \Sexpr{d[,round(median(I_error))]} 
+    [\Sexpr{d[,round(quantile(I_error, 0.25))]}-\Sexpr{d[,round(quantile(I_error, 0.75))]}].
 Errors were significantly higher for $\alpha \geq 1$
     (Wilcoxon rank-sum test, $p$ = \Sexpr{alpha.I.test$p.value})
 and for $I$ = 2000
@@ -234,13 +307,13 @@ about a factor of two
 No other parameters influenced the accuracy of the $N$ estimates 
     (one-way ANOVA, $p \geq$ \Sexpr{min(N.av[,"Pr(>F)"])}).
 
-Figure~\ref{fig:abcex} shows the \gls{ABC} approximation to the
-posterior distribution on the \gls{BA} parameters for one simulation
-(equivalent plots for all the simulations can be found in the supplemental
-materials). \Gls{HPD} intervals around \gls{alpha} and \gls{I} were narrow
-relative to the region of nonzero prior density, whereas the intervals for $m$
-and \gls{N} were widely dispersed. Table~\ref{tab:abchpd} shows point estimates and
-95\% \gls{HPD} intervals averaged over all simulations.
+\Cref{fig:abcex} shows the \gls{ABC} approximation to the posterior
+distribution on the \gls{BA} parameters for one simulation (equivalent plots
+for all the simulations can be found in the supplemental materials). \Gls{HPD}
+intervals around \gls{alpha} and \gls{I} were narrow relative to the region of
+nonzero prior density, whereas the intervals for $m$ and \gls{N} were widely
+dispersed. Table~\ref{tab:abchpd} shows point estimates and 95\% \gls{HPD}
+intervals averaged over all simulations.
 
 \begin{table}
     \centering

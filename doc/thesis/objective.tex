@@ -1,22 +1,23 @@
 \section{Objective}
 
 The spread of a disease is most often modelled by assuming either a
-homogeneously mixed population, or a population divided into a small number of
-homogeneously mixed compartments. This assumption, also called the ``law of
-mass action'', implies that any two individuals in the same compartment are
-equally likely to come into contact causing transmission. Although this
-provides a reasonable approximation in many cases, the error introduced by
-assuming a panmictic population can be substantial when significant contact
-heterogeneity exists in the underlying population. Contact network models
-provide an alternative to compartmental models which do not require the
-assumption of panmixia. In addition to more accurate predictions, the
-parameters of the networks themselves may be of interest from a public health
-perspective. For example, certain vaccination strategies may be more or less
-effective in curtailing an epidemic depending on the underlying network's
-degree distribution. Phylodynamic methods have been used to fit many different
-types of model to phylogenetic data, but as far as we know, no methods have yet
-been developed to fit contact network models. The primary objective of this
-work is to develop such a method.
+homogeneously mixed population~\autocite{hamer1906milroy,
+kermack1927contribution}, or a population divided into a small number of
+homogeneously mixed groups~\autocite{rushton1955deterministic}. This
+assumption, also called the ``law of mass action'', implies that any two
+individuals in the same compartment are equally likely to come into contact
+causing transmission. Although this provides a reasonable approximation in many
+cases, the error introduced by assuming a panmictic population can be
+substantial when significant contact heterogeneity exists in the underlying
+population. Contact network models provide an alternative to compartmental
+models which do not require the assumption of panmixia. In addition to more
+accurate predictions, the parameters of the networks themselves may be of
+interest from a public health perspective. For example, certain vaccination
+strategies may be more or less effective in curtailing an epidemic depending on
+the underlying network's degree distribution. Phylodynamic methods have been
+used to fit many different types of model to phylogenetic data, but as far as
+we know, no methods have yet been developed to fit contact network models. The
+primary objective of this work is to develop such a method.
 
 \newcommand{\G}{\mathcal{G}}
 \newcommand{\Nu}{\mathcal{N}}
@@ -46,13 +47,12 @@ $G$, not on $\theta$. Although $\Pr(T, \nu \mid G)$ and $\Pr(G \mid \theta)$
 may individually be straightforward to calculate, the number of possible
 directed graphs on $N$ nodes is $2^{N(N-1)}$, larger if the nodes and edges in
 the graph may have different labels or attributes. Hence, the number of terms
-in the sum is at least exponential in $n$, more if we do not know \textit{a
-priori} how many nodes are in the network (as is likely). In addition,
-\cref{eq:netlik} assumes that $T$ is complete, meaning that all infected
-individuals were sampled. This is rarely the case in practice - most often, the
-observed tree is a subsampled version of the true tree. In this case, the
-likelihood calculation becomes even more complex, because we must also sum over
-all possible complete trees.
+in the sum is at least exponential in $n$, as there must be at least $n$ nodes
+in the network. In addition, \cref{eq:netlik} assumes that $T$ is complete,
+meaning that all infected individuals were sampled. This is rarely the case in
+practice - most often, the observed tree is a subsampled version of the true
+tree. In this case, the likelihood calculation becomes even more complex,
+because we must also sum over all possible complete trees.
 
 Depending on the network model studied, it is possible that \cref{eq:netlik}
 could be simplified into a tractable expression. However, a simpler alternative
