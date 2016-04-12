@@ -244,7 +244,7 @@ attractive for slow-evolving pathogens, but less practical for viral outbreaks
 where samples from common ancestors are unlikely to be available.
 
 \subsection{Tree shapes}
-\label{subsubsec:treeshape}
+\label{subsec:treeshape}
 
 The aim of viral phylodynamics is to glean some kind of knowledge, about the
 epidemic, the virus, or its hosts and their behaviour, by studying a phylogeny,
@@ -322,10 +322,10 @@ majority of these employ a Bayesian \gls{MCMC} approach to infer parameters of
 an epidemiological model whose likelihood can be calculated, most often some
 variation of the birth-death~\autocite{kendall1948generalized} or
 coalescent~\autocite{kingman1982coalescent} models.
-\textcite{stadler2011estimating} develop a formula for the likelihood of a
+\textcite{stadler2012estimating} develop a formula for the likelihood of a
 phylogeny with heterochronous tips under the birth-death model, which has been
 used to estimate the basic reproductive number of several viral
-epidemics~\autocite{stadler2011estimating}. However, the birth-death model is
+epidemics~\autocite{stadler2012estimating}. However, the birth-death model is
 cannot tell us anything about population structure, as it assumes that every
 individual becomes infected at the same rate. \textcite{volz2012complex} writes
 down the likelihood of a heterochronous phylogeny under a coalescent model with
@@ -634,8 +634,185 @@ infer network parameters from observed trees.
 
 
 
+
+\section{Sequential Monte Carlo}
+\label{sec:smc}
+
+\Gls{SMC} is a statistical inference method which samples from a sequence of
+probability distributions in a fixed order~\autocite{del2006sequential}, based
+on a technique called \gls{SIS}.
+
+\subsection{Sequential importance sampling}
+\label{subsec:sis}
+
+The basis of \gls{SIS} is \gls{IS}, which is a method of estimating summary
+statistics of distributions which are known only up to a normalizing constant,
+and therefore cannot be sampled from directly. That is, if $\pi$ is such a
+distribution and $f$ is any real-valued function, \gls{IS} is concerned with
+estimating
+\[
+  \pi(f) = \int f(x)\pi(x)\d x = \int f(x) \frac{\gamma(x)}{Z} \d x,
+\]
+where the integral is over the space on which $\pi$ is defined, $\gamma(x)$ is
+known pointwise, and $Z = \int \gamma(x) \d x$ is the unknown normalizing
+constant. Suppose we have at hand another distribution $\eta$, called the
+\defn{importance distribution}, from which we are able to sample. Define the
+\defn{importance weight} as the ratio ratio $w(x) = \gamma(x)/\eta(x)$. We can
+express the normalizing constant $Z$ in terms of the importance weight and
+distribution, $Z = \int w(x) \eta(x) \d x$, and in turn write the expectation
+of interest as
+\[
+  \int f(x) \pi(x) \d x = \frac{\int f(x) \gamma(x) \d x}
+                               {\int w(x) \eta(x) \d x}.
+\]
+If we sample a large number of points from $\eta$, then $\eta(x)$ can be
+approximated by a Monte Carlo estimate. Since the remaining quantities $f$,
+$\gamma$, and $w$ can all be evaluated pointwise, these are all the ingredients
+we need to obtain an estimate of $\pi(f)$. Although this is a simple and
+elegant approach, the drawback is that the variance of the estimate is
+proportional to the variance of the importance weights~\autocite{liu2008monte},
+which may be quite large if $\eta$ and $\gamma$ are very different. Therefore,
+the practical use of \gls{IS} on its own is limited, since it depends on
+finding an importance distribution similar to $\pi$, which we usually know very
+little about \textit{a priori}.
+
+\gls{SIS} applies \gls{IS} to the problem of sampling from a distribution $\pi$ 
+on an high-dimensional space, say $\pi(\vec{x}) = \pi(x_1, \ldots, x_d)$. The
+objective is to build up an importance distribution $\eta$ for $\pi$
+sequentially. Let $\vec{x_i} = (x_1, \ldots, x_i)$, for $1 \leq i \leq d$. By
+the general product rule,
+\[
+  \pi(\vec{x}) 
+  = \pi(x_1) \pi(x_2 \mid x_1) \cdots
+    \pi(x_{d-1} \mid \vec{x_{d-2}}) \pi(x_d \mid \vec{x_{d-1}}).
+\]
+This decomposition is natural in many contexts, particularly for on-line
+estimation. For example, in a stateful model like an \gls{HMM}, $x_i$ may
+represent the state at time $i$, with $\pi(\vec{x})$ being the posterior
+distribution over possible paths. The importance distribution $\eta$ for $\pi$
+will be constructed using a similar decomposition,
+\[
+  \eta(\vec{x}) 
+  = \eta(x_1) \eta(x_2 \mid x_1) \cdots
+    \eta(x_{d-1} \mid \vec{x_{d-2}}) \eta(x_d \mid \vec{x_{d-1}}).
+\]
+The importance weights for $\eta$ with respect to $\pi$ are then defined
+recursively as
+\begin{align}
+  \label{eq:sisw}
+  w(\vec{x_i}) = \frac{\pi(\vec{x_i})}{\eta(\vec{x_i})}
+  = \frac{\pi(x_i \mid \vec{x_{i-1}})\pi(\vec{x_{i-1}})}
+         {\eta(x_i \mid \vec{x_{i-1}})\eta(\vec{x_{i-1}})}
+  = \frac{\pi(x_i \mid \vec{x_{i-1}})}
+         {\eta(x_i \mid \vec{x_{i-1}})}\cdot w(\vec{x_{i-1}}).
+\end{align}
+Thus, we can choose $\eta(x_i \mid \vec{x_{i-1}})$ such that the variance of
+the importance weights is as small as possible at every step, eventually
+arriving at a full importance distribution. The process for choosing $\eta$
+will differ according to the problem at hand. One potential choice for
+$\eta(x_i \mid \vec{x_{i-1}})$ is simply $\pi(x_i \mid \vec{x_{i-1}})$, if it
+is possible to compute. For example, in the case of an \gls{HMM}, $\pi(x_i \mid
+\vec{x_{i-1}})$ is simply the transition probability from $x_{i-1}$ to $x_i$.
+In a Bayesian setting, $\eta$ may be taken to be the prior distribution. In
+some applications, it is possible to compute or approximate the form of $\eta$
+which minimizes the variance of the weights. The resulting importance
+distribution is known as the \defn{optimal
+kernel}~\autocite{cappe2007overview}. Choosing each element of the
+decomposition of $\eta$ is a problem-specific task (see \textit{e.g.}
+\autocite{smith2013sequential,liu2008monte} for many examples).
+
+The recursive definition \cref{eq:sisw} suggests an algorithm for obtaining a
+sample from $\pi$. We begin with a sample of $n$ ``particles'' which have been
+sampled from the importance distribution $\eta(x_0)$ for $\pi(x_0)$. The
+particles are updated and reweighted $d$ times, corresponding to the $d$
+elements of the decomposition of $\pi$. At the $i$th step, each particle is
+extended to include $x_i$ drawn from the chosen $\eta(x_i \mid \vec{x_{i-1}})$,
+and the importance weights are recalculated and normalized. 
+
+Of course, $\eta$ is merely an approximation to $\pi$, and may be a fairly poor
+one depending on the application. Try as we might to keep the variances of the
+weights low, the cumulative errors at each sequential step tend to push many of
+the weights to very low values. This results in a poor approximation to $\pi$,
+since only a few particles retain high importance weights after all $d$
+sequential steps. To mitigate this problem, we periodically apply a resampling
+step when the variance in the importance weights becomes too high. Several
+different criteria have been proposed for when to resample, but we focus here
+on the one described by \textcite{liu2008monte}, namely the decay of the
+\gls{ESS} below a prescribed threshold. The \gls{ESS} of the population of
+particles is defined as
+\[
+  \ESS(w) = \frac{n}{1 + \Var(w)},
+\]
+where $n$ is the number of particles~\autocite{liu2008monte}. When the
+\gls{ESS} drops below the threshold, we resample the particles according to
+their weights. This results in the removal of low-weight particles from the
+population, and also equalizes all the weights. Various resampling strategies
+beyond the basic sampling with replacement have been proposed, but we will not
+discuss those here. The full \gls{SIS} algorithm with resampling is given as
+\cref{alg:sis}. We use a superscript $^{(k)}$ to refer to the $k$th particle,
+and for brevity write $w$ for $w(\vec{x_i})$. The variable $T$ is the threshold
+for the \gls{ESS}, below which the population is resampled. It is conventional
+to take $T = n/2$.
+
+\begin{algorithm}
+  \caption{Sequential importance sampling.}
+  \begin{algorithmic}
+    \For {$k = 1$ to $n$}
+      \State Sample $x_0^{(k)}$ from $\eta(x_0)$
+      \Comment{Initialize the $k$th particle}
+      \State $w^{(k)} \gets \dfrac{\pi\left(x_0^{(k)}\right)}{\eta\left(x_0^{(k)}\right)}$
+    \EndFor
+    \For {$i = 1$ to $d$}
+      \For {$k = 1$ to $n$}
+        \State Sample $x_i^{(k)}$ from $\eta\left(x_i \mid \vec{x_{i-1}^{(k)}}\right)$
+        \Comment Extend the $k$th particle
+        \State $w^{(k)} \gets \dfrac{\pi\left(x_i^{(k)} \mid \vec{x_{i-1}^{(k)}}\right)}{\eta\left(x_i^{(k)} \mid \vec{x_{i-1}^{(k)}}\right)} \cdot w^{(k)}$
+      \EndFor
+      \State Normalize the weights so that $\sum w = 1$
+      \If {$\ESS(w) < T$}
+        \State Resample the particles according to $w$
+        \For {$k = 1$ to $n$}
+          \State $w^{(k)} \gets 1/n$
+        \EndFor
+      \EndIf
+    \EndFor
+    \State Sample $n$ particles with probabilities $w$
+  \end{algorithmic}
+  \label{alg:sis}
+\end{algorithm}
+
+\subsection{Sequential Monte Carlo samplers}
+
+The \gls{SIS} algorithm described above aims to sample from a high-dimensional
+distribution $\pi(x)$, by sequentially sampling from $d$ distributions of lower
+but increasing dimension. \textcite{del2006sequential} developed an
+\defn{\gls{SMC} sampler} with an alternative objective: to sample sequentially
+from $d$ distributions $\pi_1, \ldots, \pi_d$, all of the same dimension and
+defined on the same space. The $\pi_i$ are assumed to form a related sequence,
+such as posterior distributions attained by sequentially considering new
+evidence. As with \gls{SIS}, we assume that $\pi_i = \gamma_i / Z_i$, where
+$\gamma_i$ is known pointwise and the normalizing constant $Z_i$ is unknown.
+
+Both algorithms follow the same general pattern: the target distribution is
+attained by progressing through a sequence of intermediate distributions. For
+\gls{SIS}, the intermediate distributions are lower-dimensional marginals of
+the target, while for the \gls{SMC} sampler, they are of the same dimension and
+constitute a smooth progression from an initial distribution to the target. In
+both cases, the neighbouring distributions in the sequence are related to each
+other in some way, and we can take advantage of that relationship to create a
+sequence of importance distributions alongside the sequence of targets. In
+\gls{SIS}, the neighbouring marginals $\pi(\vec{x_i})$ and
+$\pi(\vec{x_{i+1}})$ were related by the conditional density $\pi(x_i \mid
+\vec{x_{i-1}})$, which we used to inform the importance distribution. 
+
+The sequence of targets considered by the \gls{SMC} sampler are assumed to be
+closely enough related, that we can shift an importance distribution for
+$\pi_i$ into one for $\pi_{i+1}$ by perturbing the particles in a systematic
+way.
+
 \section{Approximate Bayesian computation}
 \label{sec:abc}
+
 \glsreset{ABC}
 
 \subsection{Model fitting}
@@ -656,7 +833,7 @@ model would describe the process by which $\vec{y}$ is generated.
 
 To illustrate these concepts, consider the well-known linear model. For
 clarity, we will restrict our attention to the case of one-dimensional data and
-outcomes where each $x_i$ and $y_i$ is a real number. The linear model
+outcomes where each $x_i$ and $y_i$ is a single real number. The linear model
 postulates that the outcomes are linearly related to the data, modulo some
 noise introduced by measurement error, environmental fluctuations, and other
 external factors. Formally, $y_i = \beta x_i + \varepsilon_i$, where $\beta$ is
@@ -666,18 +843,19 @@ hypothesizing a distribution for the error terms $\varepsilon_i$; most
 commonly, it is assumed that they are normally distributed with variance
 $\sigma$. In mathematical terms, $Y_i \sim \beta x_i + \N(0, \sigma^2)$, where
 ``$\sim$'' means ``is distributed as''. We can see from this formulation that
-the model is parametric, with parameters $\beta$ and $\sigma$. Moreover, we can
-write down the probability density of observing outcome $y_i$ given the
-parameters,
+the model is parametric, with parameters $\theta$ = ($\beta$, $\sigma$).
+Moreover, we can write down the probability density of observing outcome $y_i$
+given the parameters,
 \[
   \Pr(Y_i = y_i \mid \beta, \sigma) = 
   \Pr\left(\N(0, \sigma^2) = y_i - \beta x_i\right).
 \]
 Note that we have followed the standard statistical abuse of notation and used
 ``$\Pr$'' to refer to a probability \emph{density}, rather than a probability.
-Assuming all the $y_i$ are independent, the probability density of the entire
-observed set of outcomes is the product of the probability density of each
-individual $y_i$,
+Also, we are treating the $x_i$ as fixed quantities, and therefore have not
+conditioned the probability density on $\vec{x}$. Assuming all the $y_i$ are
+independent, the probability density of the entire observed set of outcomes is
+the product of the probability density of each individual $y_i$,
 \[
   \Pr(\vec{Y} = \vec{y} \mid \beta, \sigma) = 
   \prod_{i=1}^N \Pr(Y_i = y_i \mid \beta, \sigma).
@@ -691,27 +869,31 @@ the model. Thus, the likelihood provides a natural criterion for fitting the
 model parameters: we want to pick $\theta$ such that the probability density of
 our observed outcomes $\vec{y}$ is as high as possible. The parameters which
 optimize the likelihood are known as the \textit{\gls{ML}} estimates, denoted
-$\hat{\theta}$. \Gls{ML} estimation is usually performed with numerical
-optimization. In the simplest terms, many possible values for $\theta$ are
-examined, $\L(\theta \mid \vec{y})$ is calculated for each, and the parameters
-which produce the highest value are accepted. Many sophisticated numerical
-optimization methods exist, although they may not be guaranteed to find the
-true \gls{ML} estimates if the likelihood function is complex. Occasionally, as
-in the case of least squares, the \gls{ML} estimates can be found explicitly by
-setting the likelihood function's derivatives to zero.
+$\hat{\theta}$. That is,
+\[
+  \hat{\theta} = \argmax_\theta\; \Pr(\vec{y} \mid \theta).
+\]
+\Gls{ML} estimation is usually performed with numerical optimization. In the
+simplest terms, many possible values for $\theta$ are examined, $\L(\theta \mid
+\vec{y})$ is calculated for each, and the parameters which produce the highest
+value are accepted. Many sophisticated numerical optimization methods exist,
+although they may not be guaranteed to find the true \gls{ML} estimates if the
+likelihood function is complex. Occasionally, as is the case with linear
+regression, the \gls{ML} estimates can be found explicitly by setting the
+likelihood function's derivatives to zero.
 
 \Gls{ML} estimation makes use only of the data and outcomes to estimate the
 model parameters $\theta$. However, it is frequently the case that the
-investigator has some additional information or \defn{prior belief} about what
-$\theta$ are likely to be. For example, in the linear regression case, the
-instrument used to measure the outcomes may have a well-known margin of error,
-or the sign of the slope may be obvious from previous experiments. The Bayesian
-approach to model fitting makes use of this information by codifying the
-investigator's beliefs as a \defn{prior distribution} on the parameters,
-denoted $\Pr(\theta)$. Instead of considering only the likelihood, Bayesian
-inference focuses on the product of the likelihood and the prior, $\Pr(\vec{y}
-\mid \theta) \Pr(\theta)$. Bayes' theorem tells us that this product is related
-to the \textit{posterior distribution} on $\theta$,
+investigator has some additional information or belief about what $\theta$ are
+likely to be. For example, in the linear regression case, the instrument used
+to measure the outcomes may have a well-known margin of error, or the sign of
+the slope may be obvious from previous experiments. The Bayesian approach to
+model fitting makes use of this information by codifying the investigator's
+beliefs as a \defn{prior distribution} on the parameters, denoted
+$\Pr(\theta)$. Instead of considering only the likelihood, Bayesian inference
+focuses on the product of the likelihood and the prior, $\Pr(\vec{y} \mid
+\theta) \Pr(\theta)$. Bayes' theorem tells us that this product is related to
+the \textit{posterior distribution} on $\theta$,
 \[
   \Pr(\theta \mid \vec{y}) = \frac{\Pr(\vec{y} \mid \theta) \Pr(\theta)}
                                   {\Pr(\vec{y})}.
@@ -743,11 +925,10 @@ chain is equal to the posterior distribution on $\theta$. Therefore, if a long
 enough random walk is performed on the chain, the distribution of states
 visited will be a Monte Carlo approximation of $\Pr(\theta \mid \vec{y})$, from
 which we can calculate statistics of interest. Actually performing this random
-walk is straightforward and is accomplished via the Metropolis-Hastings
+walk is straightforward and can be accomplished via the Metropolis-Hastings
 algorithm (\cref{alg:mh}).
 
 \begin{algorithm}
-  \label{alg:mh}
   \caption{Metropolis-Hastings algorithm for Markov chain Monte Carlo.}
   \begin{algorithmic}
     \State Draw $\theta$ according to $\Pr(\theta)$
@@ -763,7 +944,7 @@ algorithm (\cref{alg:mh}).
   \label{alg:mh}
 \end{algorithm}
 
-\subsection{Overview and motivation for ABC}
+\subsection{Overview of ABC}
 \label{subsec:abcoverview}
 
 Most mathematical models are amenable to fitting via one or both of the
@@ -774,238 +955,165 @@ infeasible. For example, one or both of these quantities may be expressible
 only as an intractable integral. \Gls{ABC} is designed for such cases, where
 standard likelihood-based techniques for model fitting cannot be applied. Such
 models are particularly prevalent in population
-genetics~\autocite{beaumont2002approximate, beaumont2010approximate}. We will
-begin this subsection by describing \gls{ABC} in general terms. Then, we will
-use linear regression as a toy problem to demonstrate how \gls{ABC} could be
-applied. Finally, we will give an example of a model which is impractical to
-fit using likelihood-based methods, and show how its parameters were estimated
-using \gls{ABC}.
+genetics~\autocite{beaumont2002approximate, beaumont2010approximate}. 
 
-Ordinarily, Bayesian inference targets the posterior distribution.
-
-%traditional likelihood criterion
-%for model ``goodness'' with one based on simulated data generated by the model.
-%Good models should be able to simulate data which closely resemble reality. In
-%\gls{ABC}, we are no longer interested in the posterior distribution, but
-%rather in the distribution of model parameters which produce data sufficiently
-%``close'' to the real data. To formalize this, let $d(\cdot, \cdot)$ be a
-%distance function on datasets, and $\varepsilon$ be a tolerance level. 
-
-Of course, linear models can be fit more easily using likelihood-based methods, 
-since the likelihood $\L(\theta \mid \vec{y})$ can be easily calculated (see
-\cref{subsec:fit}). One model where this is not the case is Kingman's
-coalescent~\autocite{kingman1982coalescent}. 
-
-As an example of such a model, we will review the first practical application
-of \gls{ABC} by \textcite{tavare1997inferring}. The aim of the investigation
-was to calculate the posterior distribution on the coalescence time $t$ of some
-observed sequences $D$ under the coalescent model
-\autocite{kingman1982coalescent} with the infinite-sites assumption
-\autocite{watterson1975number}. Their estimation method relied on two key
-observations. First, the number $k$ of \defn{segregating sites} in the data is
-informative about the coalescence time while being much easier to work with
-than the data itself. A segregating site is a position which is polymorphic in
-the observed sequences. Using this observation, the authors replaced their
-posterior distribution of interest, $\Pr(t \mid D)$, by
+Ordinarily, Bayesian inference targets the posterior distribution $\Pr(\theta
+\mid \vec{y})$. That is, in the Bayesian framework, model parameters with
+higher posterior density are ``better'' in the sense that they offer a more
+credible explanation for the observed data. Approximate Bayesian computation
+offers an alternative metric for parameter credibility, namely the similarity
+simulated datasets to the observed data. If datasets simulated under the model
+closely resemble the real data, it follows that the model is a reasonable
+approximation to the real-world process generating the observed data. More
+formally, suppose we have a distance measure $\rho$ defined on the space of all
+possible data our model could generate. \gls{ABC} aims to sample from the joint
+posterior distribution of model parameters and simulated datasets $\vec{z}$
+which are within some small distance $\varepsilon$ of the observed data
+$\vec{y}$,
 \[
-  \Pr(t \mid k) \propto \Pr(t) \Pr(k \mid t),
+  \Pr(\theta, \vec{z} \mid \vec{y}, \varepsilon) =
+  \frac{\Pr(\theta) \Pr(\vec{z} \mid \theta) \I_{A_{\varepsilon, \vec{y}}} (\vec{z})}
+  {\int_{A_{\varepsilon, \vec{y}} \times \Theta} \Pr(\theta) \Pr(\vec{z} \mid \theta) \d \theta}.
 \]
-where again we abuse $\Pr$ to refer to a probability density. Second,
-the authors observed that the expected number of segregating sites depends on
-the total branch length $l$ of the tree, rather than its height. This enabled
-them to write an alternative expression for the product of the likelihood and
-prior in terms of $l$,
+Here, $A_{\varepsilon, \vec{y}}$ is an $\varepsilon$-ball around $\vec{y}$ with
+respect to $\rho$, $\Theta$ is the space of all possible model parameters, and
+$\I$ is the indicator function~\autocite{marin2012approximate}. As we shall
+see in the next section, this distribution can be sampled from exactly. The
+word ``approximate'' derives from the assumption that, for a suitably chosen
+distance $\rho$ and a small enough $\varepsilon$, the marginal in $\vec{z}$ of
+this distribution approximates the posterior of
+interest~\autocite{marin2012approximate}. That is,
 \[
-  \Pr(t) \Pr(k \mid t) = \int_0^\infty \Pr(t, l) \Pr(k \mid l) \d l.
+  \int \Pr(\theta, \vec{z} \mid \vec{y}, \varepsilon) \d\vec{z}
+  \approx \Pr(\theta \mid \vec{y}).
 \]
-While this integral may be difficult to evaluate analytically, the power of
-this formulation is the fact that it is straightforward to \emph{simulate}
-values of $t$ and $l$ according to $\Pr(t, l)$, their joint probability under
-the coalescent model. One simply runs the (stochastic) coalescent process and
-observing the values $\hat{t}$ and $\hat{l}$ which result. It is
-straightforward to calculate $\Pr(k \mid \hat{l})$, the probability
-that $k$ segregating sites were observed in a tree with total branch length
-$\hat{l}$, using the Poisson distribution. Hence if $\hat{l}$ and $\hat{t}$,
-having been generated according to $\Pr(t, l)$, are sampled with probability
-proportional to $\Pr(k \mid \hat{l})$, they represent an unbiased sample from
-the above integral. Taking a large number of such samples allowed the authors
-to obtain a Monte Carlo estimate of $\Pr(t \mid k)$.
-
-%\Gls{ABC} is a statistical method designed to fit complex models, which cannot
-%be fit using more conventional methods, to observed
-%data~\autocite{marin2012approximate, sunnaker2013approximate,
-%beaumont2010approximate}. We shall make this precise below, but to fully
-%describe and motivate \gls{ABC}, it is necessary to first explain exactly what
-%we mean by ``fitting'' a model. We will illustrate this concept with one of the
-%simplest and most ubiquitous models: linear regression.
-%
-%An approximate Bayesian computation approach to least-squares regression might
-%be as follows. We will need to make an additional assumption: that the errors
-%$\varepsilon_i$ are normally distributed. That is, our linear model is now of
-%the form
-%\[
-%  y_i = bx_i + \N(0, \sigma),
-%\]
-%where $\N(0, \sigma)$ indicates a normal distribution with mean zero and
-%variance $\sigma$. We do not know $\sigma$ in advance, so this is another
-%parameter we will need to estimate. There is nothing special about normal
-%distributions - we could have chosen any other distribution we deemed
-%appropriate. 
-%
+To emphasize that the distribution on the left only approximates the posterior,
+we will refer to it as the \textit{\gls{ABC} target distribution}. Note that in
+many formulations, the distance function $\rho$ is defined as $\rho(S(\cdot),
+S(\cdot))$ where $S$ is a function which maps data points into a vector of
+summary statistics. This can be useful if the data are high-dimensional or of a
+complex type, but it is not strictly necessary. For instance, if the data are
+numeric and of low dimension, the distance function may simply be the Euclidian
+distance~\autocite{sisson2007sequential}. For more complex data,
+\textcite{nakagome2013kernel} proposed the use of a kernel function (defined in
+\cref{subsec:treeshape}), an approach they dubbed \defn{kernel-\gls{ABC}}.
 
 \subsection{Algorithms for ABC}
-\label{subsubsec:abcalg}
+\label{subsec:abcalg}
 
-\Gls{ABC} does not refer to a particular procedure for model fitting. Rather,
-\gls{ABC} refers to the general strategy of choosing model parameters based on
-the resulting model's propensity to generate data resembling the real data.
-There are three main classes of \gls{ABC} algorithm which have been developed
-so far: rejection, \gls{MCMC}, and \gls{SMC}.
-
-All of these approaches require some common elements. First, as with all
-Bayesian methods, we are required to specify a \defn{prior distribution},
-denoted $\pi$, on the parameter space. The prior specifies what we already know
-or believe about the model parameters. Second, in order to compare simulated to
-observed data, we need to be able to summarize a data set in a numerical
-format. This is accomplished by a function, denoted $\eta$, which computes a
-vector of hopefully informative summary statistics on a data set. Third, we
-need a distance function $\rho$ which tells us how similar two data sets are to
-each other, based on their summary statistics.
-
-Continuing with the linear model example, we need to specify a prior $\pi(a, b,
-\sigma)$ on the three parameters. We do not have much certain information about
-these parameters except that $\sigma$ has to be at least zero, but it seems
-reasonable to assume that extreme relationships are fairly rare, and that
-positive and negative correlations are equiprobable. Therefore, we will let
-$a$, $b$, and $\sigma$ be independent, $a$ and $b$ be normally distributed,
-and $\sigma$ be log-normally distributed. That is,
+Algorithms for performing \gls{ABC} fall into one of three categories:
+rejection, \gls{MCMC}, and \gls{SMC}. Rejection ABC is the simplest method, and
+also the one which was first proposed~\autocite{rubin1984bayesianly,
+tavare1997inferring}. The algorithm, outlined in \cref{alg:abcrej}, repeats the
+following steps until a desired number of samples from the target distribution
+are obtained. Parameter values $\theta$ are sampled according to the prior
+distribution $\Pr(\theta)$. Then, a simulated dataset $\vec{z}$ is generated
+from the model with the sampled parameter values. By definition, the
+probability density of obtaining the particular dataset $\vec{z}$ is
+$\Pr(\vec{z} \mid \theta)$. Finally, the parameters are sampled if the distance
+of $\vec{z}$ from the observed data $\vec{y}$ is less than $\varepsilon$ - that
+is, with probability $\I_{A_{\varepsilon, \vec{y}}}(\vec{z})$. Putting this all
+together, the parameters $\theta$ are sampled with probability proportional to
 \[
-  \pi(a, b, \sigma) = 
-  \begin{cases}
-    \Pr[\N(0, 1) = a] \cdot \Pr[\N(0, 1) = b] \cdot \Pr[\N(0, 1) = \log\sigma]
-     & \sigma > 0 \\
-    0 & \sigma \le 0.
-  \end{cases}
+  \Pr(\theta) \Pr(\vec{z} \mid \theta) \I_{A_{\varepsilon, \vec{y}}}(\vec{z}),
 \]
-For the vector of summary statistics, we will use the mean and variance of the
-simulated data,
+which is exactly the numerator of the \gls{ABC} target distribution. Thus,
+$\theta$ represents an unbiased sample from the approximate posterior.
+
+\begin{algorithm}
+  \caption{Rejection \gls{ABC}.}
+  \begin{algorithmic}
+    \Loop
+      \State Draw $\theta$ according to $\Pr(\theta)$
+      \State Simulate a dataset $\vec{z}$ from the model with parameters $\theta$
+      \If{$\rho(\vec{y}, \vec{z}) < \varepsilon$}
+        \State Sample $\theta$
+      \EndIf
+    \EndLoop
+  \end{algorithmic}
+  \label{alg:abcrej}
+\end{algorithm}
+
+Rejection \gls{ABC} is easy to understand and implement, but it is not
+generally computationally feasible. If the posterior is very different from the
+prior, a very large number of samples may need to be taken in order to find a
+simulated dataset which is close to $\vec{z}$. The inefficiency is compounded
+by the curse of dimensionality - the measure of the $\varepsilon$-ball around
+$\vec{y}$ decreases exponentially with the number of dimensions.
+\gls{ABC}-\gls{MCMC} (\cref{alg:abcmcmc}) was designed to overcome these
+hurdles~\autocite{marjoram2003markov}. The approach is similar to ordinary
+Bayesian \gls{MCMC} (\cref{subsec:mfit}), except that a distance cutoff
+replaces the likelihood ratio. That is, the transition probability between
+states $\theta_1$ and $\theta_2$, with simulated datasets $\vec{z_1}$ and
+$\vec{z_2}$, is defined as
 \[
-  \eta(\vec{y}) = \left<\E[\vec{y}], \Var[\vec{y}]\right>.
+  \max\left(1, \frac{\Pr(\vec{z_2} \mid \theta_2) q(\theta_2, \theta_1)}
+                    {\Pr(\vec{z_1} \mid \theta_1) q(\theta_1, \theta_2)} 
+    \cdot \I_{A_{\varepsilon, \vec{y}}}(\vec{z_2}) \right).
 \]
-Finally, for the distance function $\rho$ we take the standard Euclidean
-distance.
 
-Rejection ABC is the simplest method, and also the one which was first
-proposed~\autocite{rubin1984bayesianly}. Effectively, it comes down to the
-approach described in the previous subsection of guessing parameter values
-until one is close enough to the truth. More specifically, a possible set of
-parameters $\theta$ is drawn from the prior distribution, and a simulated data
-set $z$ is generated from the model with those parameters. If the distance
-between the simulated data set and the real data, $\rho(\eta(y), \eta(z))$, is
-small enough, then we accept $\theta$ as a sample from the posterior. This can
-be repeated until as many samples as desired are obtained.
+\begin{algorithm}
+  \caption{ABC-MCMC.}
+  \begin{algorithmic}
+    \State Draw $\theta$ according to $\Pr(\theta)$
+    \Loop
+      \State Propose $\theta'$ according to $q(\theta, \theta')$
+      \State Simulate a dataset $\vec{z'}$ according to the model with
+             parameters $\theta$
+      \State Accept $\theta \gets \theta'$ with probability
+      $\max \left( 1, 
+       \dfrac{\Pr(\theta') q(\theta', \theta)}
+             {\Pr(\theta\phantom{'}) q(\theta, \theta')} 
+       \cdot \I_{A_{\varepsilon, \vec{y}}}(\vec{z'}) \right)$
+    \EndLoop
+  \end{algorithmic}
+  \label{alg:abcmcmc}
+\end{algorithm}
 
-% MCMC
-The second method is \gls{ABC}-\gls{MCMC}. This is similar to ordinary Bayesian
-\gls{MCMC}, except that a ratio of distances to the observed data replaces the
-likelihood ratio. The algorithm begins by sampling a single vector of parameter
-values $\theta$ from the prior distribution $\pi(\theta)$. It then proceeds
-iteratively: a new parameter vector $\theta^*$ is chosen according to a
-proposal distribution $q(\theta^* \mid \theta)$. The proposal distribution $q$
-is often taken to be a Gaussian centred at $\theta$. Then $\theta^*$ is
-accepted as the new $\theta$ with probability
-\[
-  \max\left(1, \text{TODO} \right),
-\]
-or discarded otherwise. This process is iterated until some stopping criterion
-is reached, typically a simple limit on the number of steps. After some initial
-number of iterations, known as \defn{burn-in}, parameters $\theta$ are
-routinely sampled. Since points in parameter space are visited in proportion to
-their posterior probability, these samples can be taken to approximate the
-posterior distribution on $\theta$, and can be used to calculate point
-estimates and confidence intervals.
+Some of the same computational inefficiencies arise with \gls{ABC}-\gls{MCMC}
+as with rejection. For example, in regions of low posterior density, the
+probability to simulate a dataset proximal to the observed data is low. Various
+strategies have been developed to mitigate this, including reducing the
+tolerance level $\varepsilon$ as the chain
+progresses~\autocite{ratmann2007using}.
 
-The most recently developed class of algorithms for ABC is sequential
-Monte-Carlo (SMC)~\autocite{sisson2007sequential}. As with the other two
-classes, we want to eventually obtain a sample from the posterior distribution
-$f(\theta \mid D)$. The idea of SMC is to begin with a sample from a
-distribution we know, most often the prior, and approach the posterior smoothly
-by progressing through a series of intermediate distributions.
+The most recently developed class of algorithm for \gls{ABC} is
+\gls{ABC}-\gls{SMC}~\autocite{sisson2007sequential, 2009adaptive}. As with
+\gls{ABC}-\gls{MCMC}, the algorithm is a straightforward modification of an
+existing Bayesian inference method, in this case \gls{SMC} (\cref{sec:smc}).
 
-\section{Sequential Monte Carlo}
 
-\Gls{SMC} is a statistical inference method which samples from a sequence of
-probability distributions in a fixed order~\autocite{del2006sequential}. This
-idea of \defn{sequential sampling} is useful several contexts, but we consider
-here its application to model fitting in a Bayesian setting. 
-
-\texttt{TODO: move the basics of model fitting (likelihoods and priors) to here}
-
-Our objective is to obtain samples from, and summary statistics of, the
-posterior distribution on the model of interest's parameters. \gls{SMC} can be
-applied in this context by defining a sequence of distributions, starting from
-the posterior and ending at the prior, which constitute a ``smooth''
-trajectory. The main \gls{SMC} algorithm for this problem was developed by
-\textcite{del2006sequential}, based on an existing methodology called
-\gls{SIS}. \gls{SIS} is also designed to sample from a sequence of
-distributions, but rather than all being defined on the same space (such as
-model parameters), they are defined on nested spaces of increasing dimension.
-Following \textcite{del2006sequential} and other reviews of
-\gls{SMC}~\autocite{doucet2001introduction}, we will begin this section by
-describing \gls{SIS}, and then turn to the adaptation of the method to the case
-when the sequence of distributions are all defined on the same space. Note that
-\textcite{del2006sequential} use the variable $\pi$ for the target
-distributions, but \textcite{doucet2001introduction} use $\pi$ to indicate the
-importance distributions. We follow the former and denote target distributions
-by $\pi$ and importance distributions by $\eta$.
-
-\subsection{Sequential importance sampling}
-
-The basis of \gls{SIS} is \gls{IS}, which is a method of estimating summary
-statistics of distributions which are known only up to a normalizing constant,
-and therefore cannot be sampled from directly. That is, if $\pi$ is such a
-distribution and $f$ is any real-valued function, \gls{IS} is concerned with
-estimating
-\[
-  \pi(f) = \int f(x)\pi(x)\d x = \int f(x) \frac{\gamma(x)}{Z} \d x,
-\]
-where the integral is over the space on which $\pi$ is defined, $\gamma(x)$ is
-known, and $Z$ is the unknown normalizing constant, $Z = \int \gamma(x) \d x$.
-The posterior distributions of all but the simplest models' parameters fall
-into this category. Suppose we have at hand another distribution $\eta$, called
-the \defn{importance distribution}, from which we are able to sample. Define
-the \defn{importance weight} as the ratio ratio $w(x) = \gamma(x)/\eta(x)$. We
-can express the normalizing constant $Z$ in terms of the importance weight and
-distribution, $Z = \int w(x) \eta(x) \d x$, and in turn write the original
-integral of interest as
-\[
-  \int f(x) \pi(x) \d x = \frac{\int f(x) \gamma(x) \d x}
-                               {\int w(x) \eta(x) \d x}.
-\]
-If we sample a large number of points from $\eta$, then $\eta(x)$ can be
-approximated at each of them by an empirical distribution. Since the remaining
-quantities $f$, $\gamma$, and $w$ can all be evaluated pointwise, these are all
-the ingredients we need to obtain an estimate of $\pi(f)$. Although this is a
-simple and elegant approach, the drawback is that the variance of the estimate
-is proportional to the variance of the importance
-weights~\autocite{liu2008monte}, which may be quite large if $\eta$ and
-$\gamma$ are very different. Therefore, the practical use of \gls{IS} on its
-own is limited, since it depends on finding an importance distribution which is
-similar to $\pi$, which we usually know very little about \textit{a priory}.
-
-However, an ideal context for the use of \gls{IS} is when we want to sample
-from a sequence of nested probability distributions $\pi_1, \ldots, \pi_n$.
-By \defn{nested}, we mean that $\pi_{i+1}$ is defined on a space of dimension
-$i+1$ and admits $\pi_i$ as a marginal. That is,
-\[
-  \pi_{i+1}(x_1, \ldots, x_{i+1}) = \pi_i(x_1, \ldots, x_i) f_{i+1}(x_1, \ldots, x_{i+1}),
-\]
-where $f_{i+1}$ is a function which yields a distribution when multiplied with
-$\pi_i$. This situation may seem somewhat contrived, but it arises naturally
-when trying to infer the hidden sequence of parameters of a stateful model. For
-example, \textcite{doucet2001introduction} discuss the case when $\pi_i$ is the
-posterior distribution over the first $i-1$ states of a \gls{HMM}, conditional
-on the observed data up to time $i-i$. We assume that either $\pi_1$ is known
-explicitly, or we have enough information about it to find an adequate
-importance distribution. In the \gls{HMM} example, $\pi_1$ was taken to be the
-prior distribution on the starting state.
+%As an example of such a model, we will review the first practical application
+%of \gls{ABC} by \textcite{tavare1997inferring}. The aim of the investigation
+%was to calculate the posterior distribution on the coalescence time $t$ of some
+%observed sequences $D$ under the coalescent model
+%\autocite{kingman1982coalescent} with the infinite-sites assumption
+%\autocite{watterson1975number}. Their estimation method relied on two key
+%observations. First, the number $k$ of \defn{segregating sites} in the data is
+%informative about the coalescence time while being much easier to work with
+%than the data itself. A segregating site is a position which is polymorphic in
+%the observed sequences. Using this observation, the authors replaced their
+%posterior distribution of interest, $\Pr(t \mid D)$, by
+%\[
+%  \Pr(t \mid k) \propto \Pr(t) \Pr(k \mid t),
+%\]
+%where again we abuse $\Pr$ to refer to a probability density. Second,
+%the authors observed that the expected number of segregating sites depends on
+%the total branch length $l$ of the tree, rather than its height. This enabled
+%them to write an alternative expression for the product of the likelihood and
+%prior in terms of $l$,
+%\[
+%  \Pr(t) \Pr(k \mid t) = \int_0^\infty \Pr(t, l) \Pr(k \mid l) \d l.
+%\]
+%While this integral may be difficult to evaluate analytically, the power of
+%this formulation is the fact that it is straightforward to \emph{simulate}
+%values of $t$ and $l$ according to $\Pr(t, l)$, their joint probability under
+%the coalescent model. One simply runs the (stochastic) coalescent process and
+%observing the values $\hat{t}$ and $\hat{l}$ which result. It is
+%straightforward to calculate $\Pr(k \mid \hat{l})$, the probability
+%that $k$ segregating sites were observed in a tree with total branch length
+%$\hat{l}$, using the Poisson distribution. Hence if $\hat{l}$ and $\hat{t}$,
+%having been generated according to $\Pr(t, l)$, are sampled with probability
+%proportional to $\Pr(k \mid \hat{l})$, they represent an unbiased sample from
+%the above integral. Taking a large number of such samples allowed the authors
+%to obtain a Monte Carlo estimate of $\Pr(t \mid k)$.

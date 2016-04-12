@@ -1,8 +1,8 @@
 \subsection{Kernel-ABC method}
 
-I wrote a computer program called \software{netabc} to perform statistical
-inference of contact network parameters from an estimated transmission tree
-using kernel-\gls{ABC}. The program combines three major components: Gillespie
+\software{Netabc} is a computer program to perform statistical inference of
+contact network parameters from an estimated transmission tree using
+kernel-\gls{ABC}. The program combines three major components: Gillespie
 simulation, to simulate transmission trees on contact networks; the
 phylogenetic kernel, to compare simulated to observed transmission trees; and
 adaptive \gls{ABC}-\gls{SMC}, to maintain a population of particles and advance
@@ -26,15 +26,6 @@ the final set of particles is used as a Monte Carlo approximation to the target
 distribution of \gls{ABC}, which is assumed to resemble the posterior
 distribution on model parameters (see \cref{sec:abc}). A graphical schematic of
 this algorithm is given in \cref{fig:abcsmc}.
-
-The generation of contact networks from the model of interest, though critical
-to the program's function, is not included here as a component of
-\software{netabc}.  Generation of networks is a model-specific task, whereas
-\software{netabc} is intended to be generic and work with any network model.
-For ease of use, generators for three basic network models, namely the
-\gls{BA}, \gls{ER}, and \gls{WS} models, are included in the program through
-the \software{igraph} library~\autocite{csardi2006igraph}. To investigate other
-models, additional graph generators will need to be added into the program.
 
 \begin{figure}
     \includegraphics{abc-smc.pdf}
@@ -73,7 +64,7 @@ The simulation of epidemics, and the corresponding transmission, trees over
 contact networks is performed in \software{netabc} using the Gillespie
 simulation algorithm~\autocite{gillespie1976general}. This method has been
 independently implemented and applied by several
-authors~\autocite[\textit{e.g.}][]{o2010contact, robinson2013dynamics,
+authors~\autocite[\textit{e.g.}][]{o2011contact, robinson2013dynamics,
 leventhal2012inferring, groendyke2011bayesian, villandre2016assessment}.
 \textcite{groendyke2011bayesian} published their implementation as an
 \software{R} package, but since the \gls{SMC} algorithm is quite
@@ -163,66 +154,54 @@ is denoted $|T|$.
 \subsubsection{Phylogenetic kernel}
 
 The tree kernel developed by \textcite{poon2013mapping} provides a
-comprehensive similarity score between two phylogenetic trees. The kernel
-computes the dot-product of two feature vectors, corresponding to the two
-trees, in the infinite-dimensional feature space of all possible subset trees
-with branch lengths (see \cref{subsec:treeshape}). The kernel was implemented
-using the fast algorithm developed by \textcite{moschitti2006making}. First,
-the number of leaf children of each node, also known as its \defn{production
-rule}, is recorded. The nodes of both trees are ordered by production rule, and
-a list of pairs of nodes sharing the same production rule is created. These are
-the nodes for which the value of the tree kernel must be computed - all other
-pairs have a value of zero. The pairs to be compared are then re-ordered so
-that the child nodes are always evaluated before their parents. Due to its
-recursive definition, ordering the pairs in this way allows the tree kernel to
-be computed by dynamic programming. The complexity of this implementation is
-$O(|T_1||T_2|)$, where $|T|$ counts the number of nodes in the tree $T$.
+comprehensive similarity score between two phylogenetic trees, via the
+dot-product of the two trees' feature vectors in the infinite-dimensional space
+of all possible subset trees with branch lengths (see \cref{subsec:treeshape}).
+The kernel was implemented using the fast algorithm developed by
+\textcite{moschitti2006making}. First, the number of leaf children of each
+node, also known as its \defn{production rule}, is recorded. The nodes of both
+trees are ordered by production rule, and a list of pairs of nodes sharing the
+same production rule is created. These are the nodes for which the value of the
+tree kernel must be computed - all other pairs have a value of zero. The pairs
+to be compared are then re-ordered so that the child nodes are always evaluated
+before their parents. Due to its recursive definition, ordering the pairs in
+this way allows the tree kernel to be computed by dynamic programming. The
+complexity of this implementation is $O(|T_1||T_2|)$, where $|T|$ counts the
+number of nodes in the tree $T$.
 
 \subsubsection*{Adaptive sequential Monte Carlo for Approximate Bayesian computation}
+\label{subsubsec:adaptsmc}
 
 I implemented the adaptive \gls{SMC} algorithm for \gls{ABC} developed by
-\textcite{del2012adaptive}. 
+\textcite{del2012adaptive}. This algorithm is similar to the reference
+\gls{ABC}-\gls{SMC} algorithm described in \cref{subsec:abcalg}, except that
+the sequence of tolerances $\varepsilon_i$ is automatically determined rather
+than specified by the user. The tolerances are chosen such that the \gls{ESS}
+of the particle population, which indicates the quality of the Monte Carlo
+approximation (see \cref{subsec:sis}), decays at a controlled rate. This
+prevents the Monte Carlo approxmiation from collapsing by the variance in
+weights growing too large. A single parameter $\alpha$ (not to be confused with
+the \gls{BA} model parameter) controls the decay rate, with $\varepsilon_i$
+being chosen to satisfy
+\[
+  \ESS(w_i) = \alpha \ESS(w_{i-1}).
+\]
+Here, $w_i$ is the vector of weights at the $i$th step. Note that, since $w_i$
+depends on $\varepsilon_i$, this equation solves for the updated weights and
+the updated tolerance simultaneously. As pointed out by
+\textcite{del2012adaptive}, the equation has no analytic solution, but can be
+solved by bisection. As in the reference version, the particles are perturbed
+by applying an \gls{MCMC} kernel, and resampling occurs when the \gls{ESS}
+drops below a prescribed threshold. In my implementation, following all
+proposals of the \gls{MCMC} kernel are Gaussian with variance equal to twice
+the empirical variance of the
+particles~\autocite{beaumont2009adaptive,del2012adaptive}.
 
-For ease of exposition, we simplify the notation of \textcite{del2012adaptive}
-by dropping the subscripts on the variables which indicate the current
-iteration number. Instead, we will add a prime $'$ to indicate a value which
-will be used in the next iteration (this should become clear later on). 
-
-In the algorithm, we keep track of a population of $n$ sets of model
-parameters, called \defn{particles}, denoted $\set{X_i}_{i=1}^{n}$. For the
-\gls{BA} model, the particles would be 4-tuples (\gls{N}, \gls{I}, \gls{m},
-\gls{alpha}). Each particle $X_i$ is associated with a set of \gls{M} simulated
-datasets, denoted $\set{X_{i,j}}_{j=1}^M$, and a weight $W_i$. 
-
-The particles are initially drawn from the prior distribution.
-
-Let $d$ be a
-distance measure on data sets, so that $d(x, y)$ is smaller the more similar
-$x$ and $y$ are to each other. Let $\varepsilon$ be the tolerance level which
-indicates whether a data set is ``close'' to the observed data. That is, if
-$d(x, y) < \varepsilon$, we will say that $x$ and $y$ are close, otherwise they
-are distant.
-
-% begin by sampling from the prior and setting all weights to equal
-
-Next, we calculate the next tolerance $\varepsilon^*$. Before we explain how
-this is done, we first need to define how we adjust the weights on the
-particles. As explained above (see subsection~\ref{subsubsec:abcalg}), the idea
-of sequential Monte-Carlo is to begin with the prior distribution $\pi$,
-progress smoothly through a series of intermediate distributions $\pi_1,
-\ldots, \pi_{n-1}$, and eventually arrive at the target posterior distribution
-$\pi_n$. In the $k$th iteration, the distribution $\pi_k$ is approximated by
-the particles and their weights. 
-
-In contrast to most existing sequential Monte-Carlo methods, this
-algorithm does not require the user to specify a sequence of decreasing
-tolerances to approach the target posterior distribution. Rather, the
-tolerances are computed adaptively at each step, starting from infinity at the
-first iteration. 
-
-The algorithm may be stopped when the tolerance reaches a user-defined final
-value, or when the rate of acceptance of the \gls{MH} kernel reaches a
-user-defined threshold. 
+The algorithm may be stopped when one of two termination conditions is reached.
+The user may specify a final tolerance $\varepsilon$, or a final acceptance
+rate of the \gls{MCMC} kernel. The latter stops the algorithm when the
+particles are not moving around very much, implying little change in the
+estimated target. 
 
 \subsection{Analysis of \acrlong{BA} model}
 
@@ -255,9 +234,9 @@ The experiments presented here involved a large number of variables which were
 varied combinatorially. For ease of exposition, we will describe a single
 experiment first, then enumerate the values of all variables for which the
 experiment was repeated. The parameters of the tree kernel, $\lambda$ and
-$\sigma$ (\cref{subsubsec:treeshape}) will be referred to as
+$\sigma$ (\cref{subsec:treeshape}) will be referred to as
 \defn{meta-parameters} to distinguish them from the parameters of the \gls{BA}
-model. With the exception of our own binaries, all analyses were done in
+model. With the exception of our own programs, all analyses were done in
 \software{R}, and all packages listed below are \software{R} packages.
 
 The attachment power parameter \gls{alpha} was varied among three values: 0.5,
@@ -273,25 +252,26 @@ descending from the left child of each node was not smaller than that
 descending from the right child. Summary statistics, such as Sackin's index and
 the ratio of internal to terminal branch lengths, were computed for each
 simulated tree using our \software{treestat} binary. The trees were visualized
-using the \software{ape} package. Our \software{treekernel} binary was used to
-calculate the value of the kernel for each pair of trees, with the
-meta-parameters set to $\lambda = 0.3$ and $\sigma = 4$. These values were
-stored in a symmetric 300 $\times$ 300 kernel matrix. Similarly, we computed
-the \gls{nltt} statistic between each pair of trees using our
-\software{treestat} binary, and stored them in a second $300 \times 300$
-matrix.
+using the \software{ape} package~\autocite{paradis2004ape}. Our
+\software{treekernel} binary was used to calculate the value of the kernel for
+each pair of trees, with the meta-parameters set to $\lambda = 0.3$ and $\sigma
+= 4$. These values were stored in a symmetric 300 $\times$ 300 kernel matrix.
+Similarly, we computed the \gls{nltt} statistic between each pair of trees
+using our \software{treestat} binary, and stored them in a second $300 \times
+300$ matrix.
 
 To investigate the effect of \gls{alpha} on tree shape, we constructed
 classifiers for \gls{alpha} based on three statistics. First, we used the
-\software{kernlab} package~\autocite{karatzoglou2004kernlab} to create a
-\gls{kSVM} classifier using the computed kernel matrix. Second, we used the
-\software{e1071} package to create an ordinary \gls{SVM} classifier using the
-pairwise \gls{nltt} matrix. Finally, we performed an ordinary linear regression
-of \gls{alpha} against Sackin's index. Each of these classifiers was evaluated
-with 1000 two-fold cross-validations. We also performed a \gls{kPCA} projection
-of the kernel matrix, and used it to visualize the separation of the different
-\gls{alpha} values in the tree kernel's feature space. A schematic of this
-experiment is presented in \cref{fig:kernelexpt}.
+\software{kernlab} package~\autocite{zeileis2004kernlab} to create a \gls{kSVM}
+classifier using the computed kernel matrix. Second, we used the
+\software{e1071} package~\autocite{meyer2015e1071} to create an ordinary
+\gls{SVM} classifier using the pairwise \gls{nltt} matrix. Finally, we
+performed an ordinary linear regression of \gls{alpha} against Sackin's index.
+Each of these classifiers was evaluated with 1000 two-fold cross-validations.
+We also performed a \gls{kPCA} projection of the kernel matrix, and used it to
+visualize the separation of the different \gls{alpha} values in the tree
+kernel's feature space. A schematic of this experiment is presented in
+\cref{fig:kernelexpt}.
 
 Similar experiments were performed with the values shown in
 \cref{tab:kernelexpt}. The other three \gls{BA} parameters, namely \gls{N},
@@ -364,7 +344,16 @@ values, and a 95\% credible interval was obtained using the
 Each experiment of the type just described was repeated ten times with the same
 test value. Similar experiments were performed for each of the four \gls{BA}
 parameters, with several test values and trees of varying sizes. The variables
-are listed in \cref{tab:gridexpt}.
+are listed in \cref{tab:gridexpt}. A graphical schematic of the grid search
+experiments is shown in \cref{fig:gridexpt}.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\textwidth]{gridsearch-expt}
+  \caption{Graphical schematic of grid search experiments used to investigate 
+    \gls{BA} model parameters.}
+  \label{fig:gridexpt}
+\end{figure}
 
 \subsubsection*{Approximate Bayesian computation}
 
@@ -373,15 +362,16 @@ a variety of parameter values, and ran the \software{netabc} program to
 estimate posterior distributions for the parameters. The parameter values and
 priors used are listed in \ref{tab:abcexpt}. The tree kernel meta-parameters
 were set to $\lambda = 0.3$ and $\sigma = 4$. The \gls{SMC} algorithm was run
-with 1000 particles, five sampled datasets per particle, and the parameter
-controlling the tradeoff between speed and approximation quality
-\textcite[called ``$\alpha$'' in][]{del2012adaptive} set to 0.95. The algorithm
-was stopped when the acceptance rate of the \gls{MH} kernel dropped below
-1.5\%, the same criterion used by \citeauthor{del2012adaptive}. Approximate
-marginal posterior densities for each parameter were calculated using the
+with 1000 particles, five sampled datasets per particle, and the $\alpha$
+parameter (not to be confused with the \gls{BA} preferential attachment
+parameter, see \cref{subsubsec:adaptsmc}) set to 0.95. The algorithm was
+stopped when the acceptance rate of the \gls{MH} kernel dropped below 1.5\%,
+the same criterion used by \citeauthor{del2012adaptive}. Approximate marginal
+posterior densities for each parameter were calculated using the
 \software{density} function in \software{R} applied to the final weighted
 population of particles. Credible intervals were obtained for each parameter
-using the \software{HPDinterval} function in the \software{coda} package.
+using the \software{HPDinterval} function in the \software{coda}
+package~\autocite{plummer2006coda}.
 
 \begin{table}[ht]
   \centering
@@ -437,17 +427,17 @@ defined. In addition, we analysed an in-house dataset sampled from
 The datasets are summarized in \cref{tab:realdata}.
 
 We downloaded all sequences associated with each published study from GenBank.
-For the \textcite{novitsky2014impact} data, each sequence was aligned pairwise
-to the HXB2 reference sequence (GenBank accession number HIVHXB2CG) and the
-hypervariable regions were clipped out with \software{BioPython} version
-1.66+~\autocite{cock2009biopython}. Sequences were multiply aligned using
-\software{MUSCLE} version 3.8.31 \autocite{edgar2004muscle}, and alignments
-were manually inspected with \software{Seaview} version 4.4.2
-\autocite{gouy2010seaview}. Phylogenies were constructed from the nucleotide
-alignments by approximate maximum likelihood using \software{FastTree2} version
-2.1.7 with the \gls{GTR} model. Transmission trees were estimated by rooting
-and time-scaling the phylogenies by root-to-tip regression, using a modified
-version of Path-O-Gen (distributed as part of
+For the \textcite{novitsky2014impact} data, each \textit{env} sequence was
+aligned pairwise to the HXB2 reference sequence (GenBank accession number
+HIVHXB2CG) and the hypervariable regions were clipped out with
+\software{BioPython} version 1.66+~\autocite{cock2009biopython}. Sequences were
+multiply aligned using \software{MUSCLE} version 3.8.31
+\autocite{edgar2004muscle}, and alignments were manually inspected with
+\software{Seaview} version 4.4.2 \autocite{gouy2010seaview}. Phylogenies were
+constructed from the nucleotide alignments by approximate maximum likelihood
+using \software{FastTree2} version 2.1.7 with the \gls{GTR} model. Transmission
+trees were estimated by rooting and time-scaling the phylogenies by root-to-tip
+regression, using a modified version of Path-O-Gen (distributed as part of
 BEAST~\autocite{drummond2007beast}) as described
 previously~\autocite{poon2015phylodynamic}. 
 
@@ -457,7 +447,7 @@ sequences respectively. To ensure that the analyses were comparable, we reduced
 these to a number of sequences similar to the smaller datasets. For the
 \citeauthor{li2015hiv} and BC datasets, we detected clusters of size 280 and
 399 respectively using a patristic distance cutoff of 0.02 as described
-previously~\autocite{poon2014impact}. Only sequences within these clusters were
+previously~\autocite{poon2015impact}. Only sequences within these clusters were
 carried forward. For the \textcite{novitsky2014impact} data, no large clusters
 were detected using the same cutoff, so we analysed a subtree of size 180
 chosen arbitrarily.
