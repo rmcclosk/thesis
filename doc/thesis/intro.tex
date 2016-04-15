@@ -446,7 +446,7 @@ clusters}, which are groups of individuals whose viral sequences are
 significantly more similar to each other's than to the general population's.
 The phylogenetic network is informative about ``hotspots'' of transmission and
 can be used to identify demographic groups to whom targeted interventions are
-likely to have the greatest effect~\autocite{poon2014impact}.  However, this
+likely to have the greatest effect~\autocite{poon2015impact}.  However, this
 network may show little to no agreement with a contact data obtained through
 epidemiological methods~\autocite{yirrell1998molecular, resik2007limitations,
 robinson2013dynamics}, and therefore may be a poor proxy for the contact
@@ -790,25 +790,56 @@ but increasing dimension. \textcite{del2006sequential} developed an
 from $d$ distributions $\pi_1, \ldots, \pi_d$, all of the same dimension and
 defined on the same space. The $\pi_i$ are assumed to form a related sequence,
 such as posterior distributions attained by sequentially considering new
-evidence. As with \gls{SIS}, we assume that $\pi_i = \gamma_i / Z_i$, where
-$\gamma_i$ is known pointwise and the normalizing constant $Z_i$ is unknown.
+evidence. As with \gls{SIS}, we assume that $\pi_i(x) = \gamma_i(x) / Z_i$,
+where $\gamma_i$ is known pointwise and the normalizing constant $Z_i$ is
+unknown.
 
-Both algorithms follow the same general pattern: the target distribution is
-attained by progressing through a sequence of intermediate distributions. For
-\gls{SIS}, the intermediate distributions are lower-dimensional marginals of
-the target, while for the \gls{SMC} sampler, they are of the same dimension and
-constitute a smooth progression from an initial distribution to the target. In
-both cases, the neighbouring distributions in the sequence are related to each
-other in some way, and we can take advantage of that relationship to create a
-sequence of importance distributions alongside the sequence of targets. In
-\gls{SIS}, the neighbouring marginals $\pi(\vec{x_i})$ and
-$\pi(\vec{x_{i+1}})$ were related by the conditional density $\pi(x_i \mid
-\vec{x_{i-1}})$, which we used to inform the importance distribution. 
+Both algorithms involve progression through a sequence of related
+distributions. For \gls{SIS}, these distributions are lower-dimensional
+marginals of the target distribution, while for the \gls{SMC} sampler, they are
+of the same dimension and constitute a smooth progression from an initial to a
+final distribution. In both cases, the neighbouring distributions in the
+sequence are related to each other in some way, and we can take advantage of
+that relationship to create a sequence of importance distributions alongside
+the sequence of targets. In \gls{SIS}, the neighbouring marginals
+$\pi(\vec{x_i})$ and $\pi(\vec{x_{i+1}})$ were related by the conditional
+density $\pi(x_i \mid \vec{x_{i-1}})$, which we used to inform the importance
+distribution. In \gls{SMC}, the relationship between subsequent distributions
+is less explicit, but it is assumed that they are related closely enough that
+an importance distribution for $\pi_i$ can be easily transformed into one for
+$\pi_{i+1}$. In particular, the sequence of importance distributions $\eta_i$
+is constructed as
+\begin{align}
+  \label{eq:impint}
+  \eta_i(x) = \int \eta_{i-1}(\xi) K_i(\xi, x) \d\xi,
+\end{align}
+where $K_i$ is any Markov kernel and the integral is over the space on which the
+$\pi_i$ are defined. The choice of $K_i$ should be based on the percieved
+relationship between $\pi_{i-1}$ and $\pi_i$. \textcite{del2006sequential}
+propose the use of a \gls{MCMC} kernel with equilibrium distribution $\pi_i$.
+That is,
+\[
+  K_i(\xi, x) = \max\left(1, \frac{q(x, \xi)\pi_i(\xi)}{q(\xi, x)\pi_i(x)}\right),
+\]
+where $q(\xi, x)$ is a proposal function such as a Gaussian distribution
+centered at $\xi$ (see \cref{subsec:mfit}). 
 
-The sequence of targets considered by the \gls{SMC} sampler are assumed to be
-closely enough related, that we can shift an importance distribution for
-$\pi_i$ into one for $\pi_{i+1}$ by perturbing the particles in a systematic
-way.
+Although this method of building up $\eta$ appears straightforward, the
+drawback is that the importance distribution itself becomes intractible. In
+particular, evaluating $\eta_d(x)$ involves a $d$-dimensional integral of the
+type \cref{eq:impint}. As it is necessary to evaluate $\eta(x)$ pointwise to
+perform \gls{IS}, this construction appears to have defeated the purpose of
+providing an importance distribution for each $\pi_i$.
+\textcite{del2006sequential} overcome this problem with two ``artificial''
+objects. First, they propose the existence of \textit{backward} kernels
+$L_{i-1}(x_i, x_{i-1})$ which perform the inverse operation as $K_i$, namely
+transforming $\eta_i$ back into $\eta_{i-1}$. As we shall see, these backward
+kernels do not need to be calculated analytically in terms of $K_i$. Second,
+they define a sequence of $i$-dimensional target distributions
+\[
+  \tilde{\pi}_i(\vec{x_i}) = \frac{\gamma_i(x_i)}{Z_i} \prod_{k=1}^{i-1} L_k(x_{k+1}, x_k)
+\]
+which admit $\pi_i(\vec{x_i})$ as marginals.
 
 \section{Approximate Bayesian computation}
 \label{sec:abc}

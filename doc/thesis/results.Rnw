@@ -70,10 +70,10 @@ negatively correlated with $I$ (Spearman's rho
 first two principal components of the kernel matrix. The figure shows only the
 simulations with 500-tip trees and, for all parameters except $I$, 1000
 infected nodes. The three \gls{alpha} and \gls{I} values considered are well
-separated from each other in feature space (\cref{fig:pakpca}). On the other
-hand, the three \gls{N} values overlap significantly, and the three \gls{m}
-values are virtually indistinguishable. Similar observations can be made for
-other values of \gls{I} and the number of tips 
+separated from each other in feature space. On the other hand, the three
+\gls{N} values overlap significantly, and the three \gls{m} values are
+virtually indistinguishable. Similar observations can be made for other values
+of \gls{I} and the number of tips
 (\cref{fig:alphakpca,fig:Nkpca,fig:Ikpca,fig:mkpca}). The values of \gls{I} and
 \gls{N} separate more clearly with larger numbers of tips, and in the case of
 \gls{N} larger epidemic sizes.
@@ -91,7 +91,7 @@ other values of \gls{I} and the number of tips
     \gls{alpha} = 1, \gls{I} = 1000, \gls{m} = 2, and \gls{N} = 5000. The tree
     kernel meta-parameters were $\lambda = 0.3$ and $\sigma = 4$.
   }
-  \label{fig:pakpca}
+  \label{fig:kpca}
 \end{figure}
 
 <<classifiers, include=FALSE>>=
@@ -132,11 +132,10 @@ Accuracy of the \gls{kSVM} classifiers varied based on the parameter being
 tested (\cref{fig:rsquared}, left). Classifiers based on two other tree
 statistics, the \gls{nltt} and Sackin's index, generally exhibited worse
 performance than the tree kernel, although the magnitude of the disparity
-varied between the parameters (\cref{fig:rsquared}, centre and right).
-\Cref{fig:rsquared} shows the cross-validation accuracy of each of the tree
-classifiers. The results were largely robust to variations in the tree kernel
-meta-parameters $\lambda$ and $\sigma$, although accuracy varied between
-different epidemic and sampling scenarios
+varied between the parameters (\cref{fig:rsquared}, centre and right). The
+results were largely robust to variations in the tree kernel meta-parameters
+$\lambda$ and $\sigma$, although accuracy varied between different epidemic and
+sampling scenarios
 (\cref{fig:alphacrossv,fig:mcrossv,fig:Icrossv,fig:Ncrossv}).
 
 When classifying $\alpha$, the kernel-SVM classifier had an average $R^2$ of 
@@ -197,16 +196,18 @@ and little variation between scenarios.
 
 \subsection{Grid search}
 
-We used grid search to obtain \defn{marginal} estimates for each network
-parameter while holding all other parameters fixed. We observed that kernel
-scores were highest at the values of \gls{alpha} on the grid closest to the
-true values, as shown in Figure~\ref{fig:gridkernel}. However, there was a much
-stronger spike in kernel scores near the true value for \gls{alpha} = 1.0 and
-1.25. This is recapitulated when we look at the accuracy of point estimates
-obtained by taking the grid value with the highest median kernel score. As
-shown in Figure~\ref{fig:gridest}, while the estimates are generally close to
-the true value, they are much closer for \gls{alpha} = 1.25 than for the other
-values.
+The accuracy of grid search estimates largely paralleled that of the \gls{kSVM}
+classifiers.
+
+We used grid search to obtain marginal estimates for each network parameter
+while holding all other parameters fixed. We observed that kernel scores were
+highest at the values of \gls{alpha} on the grid closest to the true values, as
+shown in Figure~\ref{fig:gridkernel}. However, there was a much stronger spike
+in kernel scores near the true value for \gls{alpha} = 1.0 and 1.25. This is
+recapitulated when we look at the accuracy of point estimates obtained by
+taking the grid value with the highest median kernel score. As shown in
+Figure~\ref{fig:gridest}, while the estimates are generally close to the true
+value, they are much closer for \gls{alpha} = 1.25 than for the other values.
 
 \begin{figure}[ht]
   \centering
