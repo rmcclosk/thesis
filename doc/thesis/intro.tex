@@ -510,16 +510,20 @@ infected individuals and eventual extinction of the pathogen (Anderson \& May,
 I think). 
 
 One mechanism which has been shown to lead to scale-free networks is
-\defn{preferential attachment}~\autocite{simon1955class, barabasi1999emergence}.
-Under this process, networks are formed by starting with a small number $m_0$
-of nodes. New nodes are added one at a time until there are a total of $N$ in
-the network. Each time a new node is added, $m \geq 1$ edges are added from it
-to other nodes in the graph. In the original
-formulation~\autocite{barabasi1999emergence}, the partners of the new node are
-chosen with probability linearly proportional to their degree. However,
+\defn{preferential attachment}~\autocite{simon1955class,
+barabasi1999emergence}. The simplest preferential attachment model is known as
+the \acrlong{BA} (BA) model after its
+inventors~\autocite{barabasi1999emergence}. Under this model, networks are
+formed by starting with a small number $m_0$ of nodes. New nodes are added one
+at a time until there are a total of $N$ in the network. Each time a new node
+is added, $m \geq 1$ edges are added from it to other nodes in the graph. In
+the original formulation, the partners of the new node are chosen with
+probability linearly proportional to their degree. However,
 \citeauthor{barabasi1999emergence} suggest extending the model such that the
 probability of choosing a partner of degree $d$ is proportional to $d^\alpha$
-for some constant $\alpha$, and we use this extension here.
+for some constant $\alpha$, and we use this extension here. When $m = 1$, the
+network takes on the distinctive shape of a tree, that is, it does not contain
+any cycles. Cycles are present in the network for all all other $m$ values.
 
 There has been some contention of the idea that contact networks are
 scale-free. \textcite{handcock2004likelihood} fit several stochastic models of

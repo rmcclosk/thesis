@@ -1,4 +1,4 @@
-.INTERMEDIATE: results.tex
+#.INTERMEDIATE: results.tex
 
 all: main.pdf
 

@@ -335,11 +335,11 @@ simulated with the other \gls{BA} parameters set to $N$ = 5000, $m$ = 2, and
 $I$ = 1000. The test tree was compared to each of the grid trees using the tree
 kernel, with the meta-parameters set to $\lambda = 0.3$ and $\sigma = 4$, using
 the \software{treekernel} binary. The median kernel score was calculated for
-each grid value. Grid values were resampled with probability proportional to
-their median kernel scores. A point estimate for the test value was obtained by
-taking the highest point of an estimated kernel density of the resampled grid
-values, and a 95\% credible interval was obtained using the
-\software{HPDinterval} function in the \software{coda} package.
+each grid value, and the scores were normalized such that the area under the
+curve was equal to 1. The grid value with the highest median kernel score was
+taken as the point estimate for the test value, and a 95\% credible interval
+was obtained using the \software{hpd} function in the \software{TeachingDemos}
+package.
 
 Each experiment of the type just described was repeated ten times with the same
 test value. Similar experiments were performed for each of the four \gls{BA}
