@@ -1,9 +1,11 @@
+\subsection{Analysis of \acrlong{BA} model}
+
 <<setup, include=FALSE>>=
     library(netabc)
     library(Hmisc)
 @
 
-\subsection{Kernel classifiers}
+\subsubsection*{Classifiers for parameters based on tree shape}
 
 <<treestats, include=FALSE>>=
     params <- c("alpha", "I", "m", "N")
@@ -225,8 +227,7 @@ and little variation between scenarios.
   \label{fig:rsquared}
 \end{figure}
 
-\subsection{Grid search}
-
+\subsubsection*{Marginal parameter estimates with grid search}
 
 <<gridsearch, include=FALSE>>=
     d <- setDT(collect.data("../../simulations/aggregates/gridsearch/*"))
@@ -323,7 +324,7 @@ of \gls{N}
   \label{fig:gridest}
 \end{figure}
 
-\subsection{Accuracy of estimates with full ABC}
+\subsubsection*{Joint parameter estimates with kernel-ABC}
 
 <<point_est, include=FALSE>>=
     f <- Sys.glob("../../simulations/abc-pa-free-m/point-estimate/*")
@@ -412,7 +413,7 @@ intervals averaged over all simulations.
     \label{tab:glm}
 \end{table}
 
-\subsection{Characterization of power-law exponent in Barab\'asi-Albert networks}
+\subsubsection*{Effect of parameters on power-law exponent}
 
 \Cref{tab:glm} shows the estimated parameters for a log-link \gls{GLM} fitted
 to the observed distribution of \gls{gamma} values. The coefficients are
@@ -426,7 +427,7 @@ interpretable as multiplicative effects.
     \label{tab:glm}
 \end{table}
 
-\subsection{Real data}
+\subsection{Application to HIV data}
 
 <<realdata, include=FALSE>>=
   d <- fread(Sys.glob("../../simulations/aggregates/hpd/*"))

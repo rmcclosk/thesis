@@ -1,3 +1,20 @@
+Due to the rapid advancement of nucleotide sequencing technology, viral
+sequence data data have become increasingly feasible to collect on a population
+level. Through phylodynamic methods, these data offer a window into
+epidemiological processes which would otherwise be virtually impossible to
+study on a realistic scale. Although phylodynamic methods have been developed
+to fit a wide variety of epidemiological models to phylogenetic
+data~\autocite{volz2012complex, rasmussen2014phylodynamic}, our method is the
+first (to our knowledge) which can fit models that do not assume panmixia. We
+believe this capability will be of broad interest to the molecular evolution
+and epidemiology community, as it widens the field of epidemiological
+parameters which may be investigated through viral sequence data. In addition,
+the characterization of local contact networks could be valuable from a public
+health perspective, such as for investigating optimal vaccination strategies.
+This information could assist in curtailing current epimemics, as well as
+preventing future epidemics of different diseases over the same contact
+network.
+
 Contact network structure has a substantial impact on epidemic trajectory
 \autocite{barthelemy2005dynamical, volz2007susceptible, volz2008sir}, and a few
 methods have been developed to estimate network parameters from epidemiological
@@ -7,10 +24,9 @@ substantial impact on transmission tree shape \autocite{o2010contact,
 robinson2013dynamics, leventhal2012inferring, colijn2014phylogenetic,
 villandre2016assessment}.
 
-Our work had three main aims. First, we developed a method to estimate contact
-network model parameters from phylogenetic data, based on kernel approximate
-Bayesian computation. This method widens the field of models which may be
-investigated in a phylodynamic context.
+Our work had three main aims. First, we developed phylodynamic a method to
+estimate contact network model parameters. 
+
 
 Our second aim was to investigate the parameters of the \gls{BA} model, in
 terms of their impact on tree shape and our ability to reconstruct them with
@@ -19,118 +35,9 @@ preferential attachment power $\alpha$ and number of infected nodes $I$ had a
 substantial impact on transmission tree shape, and could be estimated using our
 method.
 
-The final aim of our work was to apply our method to real world \gls{HIV}
-datasets. This analysis indicated heterogeneity in the contact network
-structures underlying several distinct local epidemics. The five datasets
-analysed fell into three categories (Figure~\ref{fig:abchpd}). First, we
-estimated a preferential attachment power between 0.5 and 1 for the epidemics
-studied by \textcite{cuevas2009hiv} and \textcite{li2015hiv}, with credible
-intervals occupying nearly the entire region from 0 to 1.
-\citeauthor{cuevas2009hiv} studied a group of newly diagnosed individuals in
-the Basque Country, Spain. Although the individuals were of mixed risk groups,
-and therefore unlikely to comprise a single contact network, a high proportion
-of them (47\%) grouped into local clusters based on genetic distance. The low
-estimated attachment power for these data is consistent with the sampled
-sequences comprising many distinct sub-networks rather than a single connected
-network. \citeauthor{li2015hiv} sampled a large number of acutely infected MSM
-in Shanghai, China, in which we identified a large cluster from the phylogeny
-using a patristic distance cutoff~\autocite{poon2015impact}. The low attachment
-power estimated for this dataset was surprising given the high phylogenetic
-relatedness of the sequences. It is possible that the number and diversity of
-circulating recombinant forms in the data introduced errors into our estimated
-viral phylogeny.
 
-For the outbreaks studied by \textcite{niculescu2015recent} and
-\textcite{wang2015targeting}, the estimated $\alpha$ was close to one, with a
-narrower credible interval than for the other studies.
-\citeauthor{niculescu2015recent} studied a recent outbreak among Romanian
-injection drug users (IDU), while \citeauthor{wang2015targeting} sampled
-acutely infected MSM in Beijing, China. Both studies discovered a high degree
-of phylogenetic relatedness owing to the recent infection times and homogeneous
-risk groups of the studied populations. The estimated number of infections for
-these datasets were also quite low, although the HPD interval for
-\citeauthor{wang2015targeting} was much wider than that for
-\citeauthor{niculescu2015recent}.
-
-The final studied dataset was an outlier in terms of estimated parameters.
-\textcite{novitsky2013phylogenetic} sampled approximately 44\% of the
-HIV-infected individuals in the northern area of Mochudi, Botswana. Additional
-sampling in a later study~\autocite{novitsky2014impact} brought the genotyping
-coverage up to 70\%. Even with such a high sampling coverage, we did not detect
-any large clusters using patristic distance, and therefore chose to analyze a
-subtree instead. Estimates of $\alpha$ and $N$ both had very wide HPD
-intervals and were markedly different from the other datasets. The estimated
-number of infected nodes was also extremely high, much higher than the
-estimated HIV prevalence of the town. Several factors may have contributed to
-these results. First, the authors note that the their sample was 75\% female.
-In a primarily heterosexual risk environment, removal of a disproportionate
-number of males from the network could obfuscate the true network structure,
-for example if the majority of highly connected nodes were of one gender.
-Second, the town in question was in close proximity to the country's capital,
-and the authors indicated that a high amount of migration takes place between
-the two locations. This suggests that the contact network may include a much
-larger group based in the capital city, which would explain the high estimate
-of $I$.
+The final aim of our work was to apply our method to real world
+\gls{HIV} datasets. 
 
 % ergm
 
-An alternative approach is the deterministic framework outlined by
-\textcite{morris1993epidemiology}, who proposes to apply the standard
-compartmental modelling framework to contact networks by assigning each
-individual their own compartment. Thus, each individual is associated with a
-single \gls{ODE}, with the entire \gls{ODE} system parameterized by the
-adjacency matrix of the contact network. \citeauthor{morris1993epidemiology}
-proposes to use log-linear models to parameterize the matrix. This framework is
-highly expressive, and allows straightforward incorporation of time-dependent
-dynamics. However, simulating a transmission tree would require the numerical
-solution of a very large system of \glspl{ODE}. Given the large number of
-simulations required for kernel-\gls{ABC}, it is not clear if this method would
-be computationally feasible in this context.
-
-% spatial networks, see section 5.4 in keeling2005networks
-
-The two-step process of simulating a contact network and subsequently allowing
-an epidemic to spread over that network carries with it the assumption that the
-contact network is static over the duration of the epidemic. Clearly this
-assumption is invalid, as people make and break partnerships on a regular
-basis. Our work has not addressed this assumption, primarily due to our desire
-to avoid the additional complexity required to address the dynamic nature of
-networks. This simplifying assumption is made by most studies using contact
-network models in an epidemiological context~\autocite{welch2011statistical,
-bansal2007individual}. However, in principle, kernel-\gls{ABC} could be
-adapted to dynamic contact networks by using a method such as that developed by
-\textcite{robinson2012dynamics} to simulate a dynamic contact network, while
-concurrently simulating the spread of an epidemic.
-
-% Caveats
-
-It is important to note that our kernel-ABC method takes a transmission tree as
-input, rather than a viral phylogeny. Thus, we have left the estimation of a
-transmission tree up to the user. There were two reasons for this choice. First
-and foremost, we wished again to avoid extra complexity and keep the number of
-estimated parameters small. In theory, it is possible to incorporate the
-process by which a viral phylogeny is generated along with a transmission tree
-into our method, for example by simulating within-host dynamics. Although this
-may be an avenue for future extension, we felt that it would obscure the
-primary purpose of this work, which is to study contact network parameters.
-Second, there are a number of different methods available for inferring
-transmission trees~\autocite{didelot2014bayesian, ypma2012unravelling,
-jombart2011reconstructing, cottam2008integrating, poon2015phylodynamic}, some
-of which incorporate geographic and/or epidemiological data not accommodated by
-our method. We therefore felt it would be best to allow researchers to use
-their own preferred tree building method.
-
-Our use of the \gls{BA} model makes several simplifying assumptions. First, we
-assume homogeneity across the network with respect to node behaviour and
-transmission risk. In reality, the attraction to high-degree nodes seems likely
-to vary among individuals, as does their risk of transmitting or contracting
-the virus. We have also assumed that all transmission risks are symmetric,
-which is clearly false for all known modes of \gls{HIV} transmission, and that
-infected individuals never recover but remain infectious indefinitely. These
-assumptions were made for the purpose of keeping the model as simple as
-possible, since this is the very first attempt to fit a contact network model
-in a phylodynamic context. However, the Gillespie simulation algorithm built
-into \software{netabc} can handle arbitrary transmission and removal rates
-which need not be homogeneous across the network. Moreover, it is possible to
-use kernel-\gls{ABC} to fit a model which relaxes some or all of these
-assumptions, which may be a fruitful avenue for future investigation.
