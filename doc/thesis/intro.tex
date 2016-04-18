@@ -7,11 +7,11 @@ In evolutionary biology, a \defn{phylogeny}, or \defn{phylogenetic tree}, is a
 graphical representation of the the evolutionary relationships among a group of
 organisms or species (generally, \defn{taxa})~\autocite{haeckel1866generelle}.
 The \defn{tips} of a phylogeny, that is, the nodes without any descendants,
-correspond to \defn{extant}, or observed, taxa, while the \defn{internal nodes}
-correspond to their common ancestors. The edges or \defn{branches} of the
-phylogeny connect ancestors to their descendants. Phylogenies may have a
-\defn{root}, which is a node with no descendants distinguished as the most
-recent common ancestor of all the extant
+correspond to \defn{extant}, or observed, taxa. The \defn{internal nodes}
+correspond to their (usually extinct) common ancestors. The edges or
+\defn{branches} of the phylogeny connect ancestors to their descendants.
+Phylogenies may have a \defn{root}, which is a node with no descendants
+distinguished as the most recent common ancestor of all the extant
 taxa~\autocite{harding1971probabilities}. When such a root exists, the tree is
 referred to as being \defn{rooted}; otherwise, it is \defn{unrooted}. The
 structural arrangement of nodes and edges in the tree is referred to as its
@@ -52,38 +52,37 @@ In epidemiology, a \defn{transmission tree} is a graphical representation of an
 epidemic's progress through a population. Like phylogenies, transmission trees
 have tips, nodes, edges, and branch lengths. However, rather than recording an
 evolutionary process (speciation), they record an epidemiological process
-(transmission). The tips of a transmission tree represent infected hosts, while
-internal nodes correspond to transmissions from one host to another.
-Transmission trees generally have branch lengths in units of calendar time,
-with branching times indicating times of transmission. The root of a
-transmission tree corresponds to the initially infected patient who introduced
-the epidemic into the network, also known as the \defn{index case}. The
-internal nodes may be labelled with the donor of the transmission pair, if this
-is known. The tips of the tree, rather than being fixed at the present day, are
-placed at the time at which the individual was removed from the epidemic, such
-as by death, recovery, isolation, behaviour change, or migration. Consequently,
-the transmission tree may not be ultrametric, but may have tips located at
-varying distances from the root. Such trees are said to have
-\defn{heterochronous} taxa~\autocite{drummond2003measurably}, in contrast to
-the \defn{isochronous} taxa found in most phylogenies of macro-organisms. A
+(transmission). The tips of a transmission tree represent the removal of
+infected hosts, while internal nodes correspond to transmissions from one host
+to another.Transmission trees generally have branch lengths in units of
+calendar time, with branching times indicating times of transmission. The root
+of a transmission tree corresponds to the initially infected patient who
+introduced the epidemic into the network, also known as the \defn{index case}.
+The internal nodes may be labelled with the donor of the transmission pair, if
+this is known. The tips of the tree, rather than being fixed at the present
+day, are placed at the time at which the individual was removed from the
+epidemic, such as by death, recovery, isolation, behaviour change, or
+migration. Consequently, the transmission tree may not be ultrametric, but may
+have tips located at varying distances from the root. Such trees are said to
+have \defn{heterochronous} taxa~\autocite{drummond2003measurably}, in contrast
+to the \defn{isochronous} taxa found in most phylogenies of macro-organisms. A
 transmission tree is illustrated in \cref{fig:contactnet} (right). 
 
-Due to the internal nodes, each infected individual in an epidemic may appear
-in the transmission tree more than once. This is different from the
-transmission \emph{network}, in which each infected individual appears exactly
-once, and edges are in one-to-one correspondence with
-transmissions~\autocite{welch2011statistical, keeling2005networks}.
-Transmission networks are discussed further in \cref{sec:contactnet}, and the
-distinction between the two objects is illustrated in \cref{fig:contactnet}.
-However, since transmission networks generally have no cycles (unless
-re-infection occurs), they are trees in the graph theoretical sense, and hence
-are sometimes also referred to as transmission
-trees~\autocite[\eg][]{kenah2015algorithms}. In this work, we reserve the term
-``transmission tree'' for the objects depicted on the right side of
-\cref{fig:contactnet}, following~\autocite[\eg][]{stadler2013uncovering}. The
-term ``transmission network'' is taken to mean the subgraph of the contact
-network along which transmissions occurred,
-following~\autocite{welch2011statistical, keeling2005networks}.
+Each infected individual in an epidemic may appear in the transmission tree
+more than once. This is different from the transmission \emph{network}, in
+which each infected individual appears exactly once, and edges are in
+one-to-one correspondence with transmissions~\autocite{welch2011statistical,
+keeling2005networks}. Transmission networks are discussed further in
+\cref{sec:contactnet}, and the distinction between the two objects is
+illustrated in \cref{fig:contactnet}. However, since transmission networks
+generally have no cycles (unless re-infection occurs), they are trees in the
+graph theoretical sense, and hence are sometimes also referred to as
+transmission trees~\autocite[\eg][]{kenah2015algorithms}. In this work, we
+reserve the term ``transmission tree'' for the objects depicted on the right
+side of \cref{fig:contactnet}, following \eg~\autocite{stadler2013uncovering}.
+The term ``transmission network'' is taken to mean the subgraph of the contact
+network along which transmissions occurred, following
+\eg~\autocite{welch2011statistical, keeling2005networks}.
 
 \begin{figure}
     \centering
@@ -106,31 +105,55 @@ progress, they contain substantial epidemiological information. As a basic
 example, the \gls{ltt} plot~\autocite{nee1992tempo}, which plots the number of
 lineages in a phylogeny against time, can be used to quantify the incidence of
 new infections over the course of an epidemic~\autocite{holmes1995revealing}.
-Many more diverse epidemiological parameters have been investigated using
-transmission trees, such as the degree of
-clustering~\autocite{hughes2009molecular} and the effect of elevated
-transmission risk in acute infection~\autocite{volz2012simple}. However, in all
-but the most well-studied of epidemics, this is not possible to obtain through
-traditional epidemiological methods~\autocite{welch2011statistical}. The time
-and effort to conduct detailed interviews and contact tracing of a sufficient
-number of infected individuals is usually prohibitive. Even when the resources
-for such methods are available, patients may not always recall whom they
-contacted and when, especially in the case of airborne transmission.
-Consequently, the transmission tree must be estimated using other methods. Most
-commonly, this is done by exploiting the relationship between transmission
-trees and viral phylogenies~\autocite{volz2013viral}.
+However, in all but the most well-studied of epidemics, transmission trees are
+not possible to assemble through traditional epidemiological
+methods~\autocite{welch2011statistical}. The time and effort to conduct
+detailed interviews and contact tracing of a sufficient number of infected
+individuals is usually prohibitive, and may be additionally be confounded by
+misreporting~\autocite{eames2015six}. However, it turns out that for viral
+epidemics, some of the epidemiological information contained in the
+transmission tree leaves a mark on the viral genetic material circulating in
+the population. A family of methods called
+\defn{phylodynamics}~\autocite{grenfell2004unifying} addresses the challenge of
+estimating epidemiological parameters from viral sequence
+data~\autocite{volz2013viral}.
 
-\subsection{Relationship between transmission trees and viral phylogenies}
+\subsection{Phylodynamics: linking evolution and epidemiology}
+
+%Most modern analyses use model-based methods, which simultaneously
+%estimate the phylogeny with branch lengths and the parameters of a model of
+%evolution. Although they usually work well in practice, the estimated topology
+%can vary based on the model used and, in the case of Bayesian analysis, the
+%priors. In addition, intra-host viral populations are genetically
+%heterogeneous, so choosing a single representative genotype per host is
+%necessarily imprecise. One can use either the genotype of a specific virion
+%sampled from the host, or a synthetic genotype, such as a consensus or
+%reconstructed ancestral sequence.
 
 In general, \defn{viral phylogenies} are simply phylogenetic trees relating
-virus strains. In phylodynamics, we often consider \defn{inter-host}
-phylogenies, which relate one viral genotype from each host in a population.
-The crux of \defn{phylodynamics}~\autocite{grenfell2004unifying} is the fact
-that the epidemiological processes recorded in transmission trees, and the
-evolutionary processes recorded in viral phylogenies, occur on similar time
-scales for RNA viruses~\autocite{drummond2003measurably}. As a result, there is
-a close relationship between the two types of tree. In particular, the
-transmission process is quite similar to \defn{allopatric
+virus strains. \defn{Inter-host} phylogenies relate one representative viral
+genotype from each host in a population. In this work, when we use the phrase
+``viral phylogeny'', we are referring to an inter-host phylogeny unless
+otherwise stated. Phylogenetic inference is a complex topic which we will not
+discuss here (see \eg \autocite{nei2000molecular} for a full review). We assume
+here that the viral phylogeny is known, a common assumption in the development
+and application of phylodynamic methods.
+
+The crux of phylodynamics is the fact that the epidemiological processes
+recorded in transmission trees, and the evolutionary processes recorded in
+viral phylogenies, occur on similar time scales for RNA
+viruses~\autocite{drummond2003measurably}. Phylodynamic methods have been used
+to investigate epidemiological parameters such as transmission rate, recovery
+rate, and basic reproductive number~\autocite{pybus2009evolutionary,
+volz2013viral}. The majority of phylodynamic studies attempt to infer the
+parameters of an epidemiological model for which the likelihood of an observed
+phylogeny can be calculated. Most often, this is some variation of the
+birth-death~\autocite{kendall1948generalized, stadler2012estimating} or
+coalescent~\autocite{kingman1982coalescent, volz2012complex} models.
+
+Due to the relationship between the aforementioned processes, there is a close
+relationship between viral phylogenies and transmission trees. In particular,
+the transmission process is quite similar to \defn{allopatric
 speciation}~\autocite{coyne2004speciation}, where genetic divergence follows
 the geographic isolation of a sub-population of organisms. Thus, transmission,
 which is represented as branching in the transmission tree, causes branching in
@@ -188,19 +211,6 @@ the similar to that between gene and species trees, which is called
 \defn{incomplete lineage sorting}. In practice, this discordance has not proven
 an insurmountable problem: for example, \textcite{leitner1996accurate} were
 able to accurately recover a known transmission tree using a viral phylogeny.
-
-A final caveat is that the viral phylogeny itself is not known with certainty,
-so it must also be estimated from genetic data. Phylogenetic inference is a
-complex topic which we will not discuss in detail here (see e.g.
-\autocite{nei2000molecular} for a full review). Most modern analyses use
-model-based methods, which simultaneously estimate the phylogeny with branch
-lengths and the parameters of a model of evolution. Although they usually work
-well in practice, the estimated topology can vary based on the model used and,
-in the case of Bayesian analysis, the priors.  In addition, intra-host viral
-populations are genetically heterogeneous, so choosing a single representative
-genotype per host is necessarily imprecise. One can use either the genotype of
-a specific virion sampled from the host, or a synthetic genotype, such as a
-consensus or reconstructed ancestral sequence.
 
 What we have just discussed is a two-step procedure for estimating the
 transmission tree. First, a viral phylogeny is constructed from genetic
@@ -284,6 +294,12 @@ prevalence~\autocite{holmes1995revealing}, so large values may indicate that
 the trees being compared are the products of different epidemic
 trajectories~\autocite{janzen2015approximate}.
 
+\textcite{poon2013mapping} developed an alternative pairwise measure which
+applies the concept of a \defn{kernel function} to phylogenies. Kernel
+functions, originally developed for \glspl{SVM}~\autocite{burges1998tutorial}, 
+compare objects by mapping them into a feature space of very high, possibly
+even infinite, dimension.
+
 Another tree distance measure is the \defn{phylogenetic kernel}, or ``tree
 kernel'' developed by \textcite{poon2013mapping}. As opposed to the \gls{nltt},
 the tree kernel is maximized when the two trees being compared are the same.
@@ -309,34 +325,6 @@ rates~\autocite{poon2015phylodynamic}. In that paper,
 in \gls{ABC} (see \cref{sec:abc}), to fit epidemiological models to observed
 trees. This is an example of kernel-ABC~\autocite{nakagome2013kernel}, which
 will be discussed further in \cref{sec:abc}.
-
-\subsection{Applications of phylodynamics}
-\label{subsec:phyloapp}
-
-Phylodynamic methods have been used to investigate epidemiological parameters
-such as transmission rate, recovery rate, and basic reproductive
-number~\autocite{pybus2009evolutionary, volz2013viral}. These studies make
-inferences about epidemiological processes from the genetic diversity of virus
-populations, which is usually represented in the form of a phylogeny. The
-majority of these employ a Bayesian \gls{MCMC} approach to infer parameters of
-an epidemiological model whose likelihood can be calculated, most often some
-variation of the birth-death~\autocite{kendall1948generalized} or
-coalescent~\autocite{kingman1982coalescent} models.
-\textcite{stadler2012estimating} develop a formula for the likelihood of a
-phylogeny with heterochronous tips under the birth-death model, which has been
-used to estimate the basic reproductive number of several viral
-epidemics~\autocite{stadler2012estimating}. However, the birth-death model is
-cannot tell us anything about population structure, as it assumes that every
-individual becomes infected at the same rate. \textcite{volz2012complex} writes
-down the likelihood of a heterochronous phylogeny under a coalescent model with
-arbitrarily complex population dynamics. This opens the door to more complex
-inferences about population structure, as the population can be partitioned
-into compartments with different transmission and recovery rates, but still
-assumes that each compartment is homogeneously mixed. In other words, the
-coalescent model can tell us about the \emph{global} structure of a population,
-such as whether there exists a high-risk subgroup, but not about the
-\emph{local} structure, such as the average number of contacts each individual
-has. 
 
 \section{Contact networks}
 \label{sec:contactnet}
@@ -646,6 +634,24 @@ infer network parameters from observed trees.
 probability distributions in a fixed order~\autocite{del2006sequential}, based
 on a technique called \gls{SIS}.
 
+To fully describe \gls{SMC}, we will introduce some notation and terminology.
+For a sequence $x_1, \ldots, x_d$, we will write $\vec{x_i}$ to mean the
+partial sequence $x_1, \ldots, x_i$.
+
+A \defn{Markov kernel} is the continuous analogue of the transition matrix in a
+finite-state Markov model. For some spaces $X$ and $Y$, $K \maps X \times Y \to
+[0, 1]$ such that
+\begin{align}
+    \label{eq:mk}
+    \int_Y K(x, y) \d y = 1
+\end{align}
+for all $x \in X$. This is an ``operational'' definition of Markov kernel which
+will be suitable for our purposes. A more precise definition can be found in
+\textbf{TODO}. Note that a Markov kernels have nothing to do with the kernel
+functions defined in \cref{subsec:treeshape}, other than sharing a name.
+Unfortunately, the word ``kernel'' is ubiquitous in mathematics and refers to
+many unrelated concepts.
+
 \subsection{Sequential importance sampling}
 \label{subsec:sis}
 
@@ -786,6 +792,7 @@ to take $T = n/2$.
 \end{algorithm}
 
 \subsection{Sequential Monte Carlo samplers}
+\label{subsec:smcsamp}
 
 The \gls{SIS} algorithm described above aims to sample from a high-dimensional
 distribution $\pi(x)$, by sequentially sampling from $d$ distributions of lower
@@ -817,7 +824,7 @@ is constructed as
   \label{eq:impint}
   \eta_i(x) = \int \eta_{i-1}(\xi) K_i(\xi, x) \d\xi,
 \end{align}
-where $K_i$ is any Markov kernel and the integral is over the space on which the
+where $K_i$ is a Markov kernel and the integral is over the space on which the
 $\pi_i$ are defined. The choice of $K_i$ should be based on the percieved
 relationship between $\pi_{i-1}$ and $\pi_i$. \textcite{del2006sequential}
 propose the use of a \gls{MCMC} kernel with equilibrium distribution $\pi_i$.
@@ -830,20 +837,84 @@ centered at $\xi$ (see \cref{subsec:mfit}).
 
 Although this method of building up $\eta$ appears straightforward, the
 drawback is that the importance distribution itself becomes intractible. In
-particular, evaluating $\eta_d(x)$ involves a $d$-dimensional integral of the
-type \cref{eq:impint}. As it is necessary to evaluate $\eta(x)$ pointwise to
+particular, evaluating $\eta_i(x)$ involves a $i$-dimensional integral of the
+type in \cref{eq:impint}. As it is necessary to evaluate $\eta(x)$ pointwise to
 perform \gls{IS}, this construction appears to have defeated the purpose of
 providing an importance distribution for each $\pi_i$.
 \textcite{del2006sequential} overcome this problem with two ``artificial''
-objects. First, they propose the existence of \textit{backward} kernels
-$L_{i-1}(x_i, x_{i-1})$ which perform the inverse operation as $K_i$, namely
-transforming $\eta_i$ back into $\eta_{i-1}$. As we shall see, these backward
-kernels do not need to be calculated analytically in terms of $K_i$. Second,
-they define a sequence of $i$-dimensional target distributions
+objects. First, they propose the existence of \textit{backward} Markov kernels
+$L_{i-1}(x_i, x_{i-1})$. For now, these kernels are arbitrary, and will be
+precisely defined on a problem-specific basis. Second, they define an
+alternative sequence of target distributions
 \[
-  \tilde{\pi}_i(\vec{x_i}) = \frac{\gamma_i(x_i)}{Z_i} \prod_{k=1}^{i-1} L_k(x_{k+1}, x_k)
+  \tilde{\pi}_i(\vec{x_i}) = \pi_i(x_i) \prod_{k=1}^{i-1} L_k(x_{k+1}, x_k)
 \]
-which admit $\pi_i(\vec{x_i})$ as marginals.
+of increasing dimension. This brings us back to the setting described above in
+\cref{subsec:sis}, namely of building up an importance distribution of
+dimension $d$ sequentially through lower-dimensional distributions. We can
+write $\tilde{\pi}_i$ in terms of $\tilde{\pi}_{i-1}$ by noticing that
+\begin{align*}
+  \frac{\tilde{\pi}_i(\vec{x_i})}{\tilde{\pi}_{i-1}(\vec{x_{i-1}})} 
+  = \frac{\pi_i(x_i) \prod_{k=1}^{i-1} L(x_{k+1}, x_k)}
+  {\pi_{i-1}(x_{i-1}) \prod_{k=1}^{i-2} L(x_{k+1}, x_k)}
+  = \frac{\pi_i(x_i) L(x_i, x_{i-1})}{\pi_{i-1}(x_{i-1})},
+\end{align*}
+and hence
+\[
+  \tilde{\pi}_i = \frac{\pi_i(x_i) L(x_i, x_{i-1})}{\pi_{i-1}(x_{i-1})} \cdot \tilde{\pi}_{i-1}.
+\]
+Therefore, the importance weights for these new targets are defined recursively as
+\begin{align}
+  w(\vec{x_i}) 
+    &= \frac{\tilde{\pi}_i(\vec{x_i})}{\eta_i(\vec{x_i})} \\
+    &= \frac{\tilde{\pi}_{i-1}(\vec{x_{i-1}}) \pi_i(x_i) L(x_i, x_{i-1})}
+           {\eta_{i-1}(\vec{x_{i-1}}) \pi_{i-1}(x_{i-1}) K_i(x_{i-1}, x_i)} \\
+    &= w(\vec{x_{i-1}}) \cdot
+      \frac{\pi_i(x_i) L_{i-1}(x_i, x_{i-1})}
+           {\pi_{i-1}(x_{i-1}) K_i(x_{i-1}, x_i)} \\
+    &\propto w(\vec{x_{i-1}}) \cdot
+      \frac{\gamma_i(x_i) L_{i-1}(x_i, x_{i-1})}
+           {\gamma_{i-1}(x_{i-1}) K_i(x_{i-1}, x_i)}.
+    \label{eq:smcwt}
+\end{align}
+The final key piece of information is to notice that, because the $L_i$ are
+Markov kernels, $\pi_i$ is simply the marginal in $\vec{x_{i-1}}$ of
+$\tilde{\pi}$. Therefore, a sample from $\tilde{\pi}_i$ automatically gets us a
+sample from $\pi_i$, by considering only the $i$th component of $\vec{x_i}$.
+These are all the ingredients we need to apply \gls{SMC}. The sequences of
+kernels $L$ and $K$ should be chosen based on the problem at hand to inimize
+the variance in the importance weights as well as possible. For a fixed choice
+of $K_i$, the backward kernels $L_i$ which minimize this variance are called
+the \defn{optimal} backward kernels. The full \gls{SMC} sampler algorithm is
+presented as \cref{alg:smcsamp}.
+
+\begin{algorithm}
+  \caption{Sequential Monte Carlo sampler of \textcite{del2006sequential}.}
+  \begin{algorithmic}
+    \For {$k = 1$ to $n$}
+      \State Sample $x_1^{(k)}$ from $\eta_1(x_1)$
+      \Comment{Initialize the $k$th particle}
+      \State $w^{(k)} \gets \dfrac{\gamma_1\left(x_1^{(k)}\right)}{\eta_1\left(x_1^{(k)}\right)}$
+      \State Normalize the weights so that $\sum w = 1$
+    \EndFor
+    \For {$i = 2$ to $d$}
+      \For {$k = 1$ to $n$}
+        \State Sample $x_i^{(k)}$ from $K(x_{i-1}^{(k)}, x_i)$
+        \Comment Extend the $k$th particle
+        \State $w^{(k)} \gets w^{(k)} \cdot \dfrac{\gamma_i(x_i) L_{i-1}(x_i, x_{i-1})}{\gamma_{i-1}(x_{i-1}) K_i(x_{i-1}, x_i)}$
+      \EndFor
+      \State Normalize the weights so that $\sum w = 1$
+      \If {$\ESS(w) < T$}
+        \State Resample the particles according to $w$
+        \For {$k = 1$ to $n$}
+          \State $w^{(k)} \gets 1/n$
+        \EndFor
+      \EndIf
+      \State Sample the $i$th component of $n$ particles with probabilities $w$
+    \EndFor
+  \end{algorithmic}
+  \label{alg:smcsamp}
+\end{algorithm}
 
 \section{Approximate Bayesian computation}
 \label{sec:abc}
@@ -997,8 +1068,8 @@ Ordinarily, Bayesian inference targets the posterior distribution $\Pr(\theta
 higher posterior density are ``better'' in the sense that they offer a more
 credible explanation for the observed data. Approximate Bayesian computation
 offers an alternative metric for parameter credibility, namely the similarity
-simulated datasets to the observed data. If datasets simulated under the model
-closely resemble the real data, it follows that the model is a reasonable
+of simulated datasets to the observed data. If datasets simulated under the
+model closely resemble the real data, it follows that the model is a reasonable
 approximation to the real-world process generating the observed data. More
 formally, suppose we have a distance measure $\rho$ defined on the space of all
 possible data our model could generate. \gls{ABC} aims to sample from the joint
@@ -1037,18 +1108,23 @@ distance~\autocite{sisson2007sequential}. For more complex data,
 \label{subsec:abcalg}
 
 Algorithms for performing \gls{ABC} fall into one of three categories:
-rejection, \gls{MCMC}, and \gls{SMC}. Rejection ABC is the simplest method, and
-also the one which was first proposed~\autocite{rubin1984bayesianly,
-tavare1997inferring}. The algorithm, outlined in \cref{alg:abcrej}, repeats the
-following steps until a desired number of samples from the target distribution
-are obtained. Parameter values $\theta$ are sampled according to the prior
-distribution $\Pr(\theta)$. Then, a simulated dataset $\vec{z}$ is generated
-from the model with the sampled parameter values. By definition, the
-probability density of obtaining the particular dataset $\vec{z}$ is
-$\Pr(\vec{z} \mid \theta)$. Finally, the parameters are sampled if the distance
-of $\vec{z}$ from the observed data $\vec{y}$ is less than $\varepsilon$ - that
-is, with probability $\I_{A_{\varepsilon, \vec{y}}}(\vec{z})$. Putting this all
-together, the parameters $\theta$ are sampled with probability proportional to
+rejection, \gls{MCMC}, and \gls{SMC}. To simplify the math, we shall restrict
+the descriptions of these algorithms to the case of one simulated dataset per
+parameter particle (the meaning of this will become clear shortly). The
+extension to multiple datasets per particle will be given at the end.
+
+Rejection ABC is the simplest method, and also the one which was first
+proposed~\autocite{rubin1984bayesianly, tavare1997inferring}. The algorithm,
+outlined in \cref{alg:abcrej}, repeats the following steps until a desired
+number of samples from the target distribution are obtained. Parameter values
+$\theta$ are sampled according to the prior distribution $\Pr(\theta)$. Then, a
+simulated dataset $\vec{z}$ is generated from the model with the sampled
+parameter values. By definition, the probability density of obtaining the
+particular dataset $\vec{z}$ is $\Pr(\vec{z} \mid \theta)$. Finally, the
+parameters are sampled if the distance of $\vec{z}$ from the observed data
+$\vec{y}$ is less than $\varepsilon$ - that is, with probability
+$\I_{A_{\varepsilon, \vec{y}}}(\vec{z})$. Putting this all together, the
+parameters $\theta$ are sampled with probability proportional to
 \[
   \Pr(\theta) \Pr(\vec{z} \mid \theta) \I_{A_{\varepsilon, \vec{y}}}(\vec{z}),
 \]
@@ -1113,42 +1189,33 @@ tolerance level $\varepsilon$ as the chain
 progresses~\autocite{ratmann2007using}.
 
 The most recently developed class of algorithm for \gls{ABC} is
-\gls{ABC}-\gls{SMC}~\autocite{sisson2007sequential, 2009adaptive}. As with
-\gls{ABC}-\gls{MCMC}, the algorithm is a straightforward modification of an
-existing Bayesian inference method, in this case \gls{SMC} (\cref{sec:smc}).
+\gls{ABC}-\gls{SMC}~\autocite{sisson2007sequential, beaumont2009adaptive}. As
+with \gls{ABC}-\gls{MCMC}, the algorithm is a straightforward modification of
+an existing Bayesian inference method, in this case the \gls{SMC} sampler
+(\cref{subsec:smcsamp}). The sequence of target distributions is defined as
+$\pi_i = \Pr(\theta, \vec{z} \mid \vec{y}, \varepsilon_i)$ for a decreasing
+sequence of tolerances $\varepsilon_i$. The intention is for the algorithm to
+progress smoothly through a sequence of target distributions which ends at the
+\gls{ABC} approximation to the posterior. As discussed in
+\cref{subsec:smcsamp}, the choices of the kernels $K$ and $L$ is
+problem-specific, and so appropriate kernels must be chosen for \gls{ABC}.
+Several options have been proposed~\autocite{beaumont2009adaptive,
+sisson2007sequential, del2012adaptive}.
 
-
-%As an example of such a model, we will review the first practical application
-%of \gls{ABC} by \textcite{tavare1997inferring}. The aim of the investigation
-%was to calculate the posterior distribution on the coalescence time $t$ of some
-%observed sequences $D$ under the coalescent model
-%\autocite{kingman1982coalescent} with the infinite-sites assumption
-%\autocite{watterson1975number}. Their estimation method relied on two key
-%observations. First, the number $k$ of \defn{segregating sites} in the data is
-%informative about the coalescence time while being much easier to work with
-%than the data itself. A segregating site is a position which is polymorphic in
-%the observed sequences. Using this observation, the authors replaced their
-%posterior distribution of interest, $\Pr(t \mid D)$, by
-%\[
-%  \Pr(t \mid k) \propto \Pr(t) \Pr(k \mid t),
-%\]
-%where again we abuse $\Pr$ to refer to a probability density. Second,
-%the authors observed that the expected number of segregating sites depends on
-%the total branch length $l$ of the tree, rather than its height. This enabled
-%them to write an alternative expression for the product of the likelihood and
-%prior in terms of $l$,
-%\[
-%  \Pr(t) \Pr(k \mid t) = \int_0^\infty \Pr(t, l) \Pr(k \mid l) \d l.
-%\]
-%While this integral may be difficult to evaluate analytically, the power of
-%this formulation is the fact that it is straightforward to \emph{simulate}
-%values of $t$ and $l$ according to $\Pr(t, l)$, their joint probability under
-%the coalescent model. One simply runs the (stochastic) coalescent process and
-%observing the values $\hat{t}$ and $\hat{l}$ which result. It is
-%straightforward to calculate $\Pr(k \mid \hat{l})$, the probability
-%that $k$ segregating sites were observed in a tree with total branch length
-%$\hat{l}$, using the Poisson distribution. Hence if $\hat{l}$ and $\hat{t}$,
-%having been generated according to $\Pr(t, l)$, are sampled with probability
-%proportional to $\Pr(k \mid \hat{l})$, they represent an unbiased sample from
-%the above integral. Taking a large number of such samples allowed the authors
-%to obtain a Monte Carlo estimate of $\Pr(t \mid k)$.
+All the algorithms discussed in this section can be straightforwardly extended
+to sample from the joint distribution
+\[
+  \pi_\varepsilon(\theta, z_1, \ldots, z_M \mid y),
+\]
+which is equivalent to associating $M$ simulated datasets to each parameter
+particle instead of just one. The simulated dataset $z$ is replaced by
+$\vec{z} = z_1, \ldots, z_M$, and the indicator function for the
+$\varepsilon$-ball around $y$ is replaced by
+\[
+  \sum_{k=1}^M \I_{A_{\varepsilon, y}} (z_i).
+\]
+For \gls{ABC}-\gls{MCMC} and \gls{ABC}-\gls{SMC}, the proposal distribution
+$q(\theta, \theta') \Pr(z \mid \theta')$ is replaced by
+\[
+  q_i(\theta, \theta') \prod_{k=1}^M \Pr(z_i \mid \theta').
+\]

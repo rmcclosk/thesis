@@ -176,8 +176,8 @@ I implemented the adaptive \gls{SMC} algorithm for \gls{ABC} developed by
 \textcite{del2012adaptive}. This algorithm is similar to the reference
 \gls{ABC}-\gls{SMC} algorithm described in \cref{subsec:abcalg}, except that
 the sequence of tolerances $\varepsilon_i$ is automatically determined rather
-than specified by the user. The tolerances are chosen such that the \gls{ESS}
-of the particle population, which indicates the quality of the Monte Carlo
+than specified in advance. The tolerances are chosen such that the \gls{ESS} of
+the particle population, which indicates the quality of the Monte Carlo
 approximation (see \cref{subsec:sis}), decays at a controlled rate. This
 prevents the Monte Carlo approxmiation from collapsing by the variance in
 weights growing too large. A single parameter $\alpha$ (not to be confused with
@@ -190,18 +190,34 @@ Here, $w_i$ is the vector of weights at the $i$th step. Note that, since $w_i$
 depends on $\varepsilon_i$, this equation solves for the updated weights and
 the updated tolerance simultaneously. As pointed out by
 \textcite{del2012adaptive}, the equation has no analytic solution, but can be
-solved by bisection. As in the reference version, the particles are perturbed
-by applying an \gls{MCMC} kernel, and resampling occurs when the \gls{ESS}
-drops below a prescribed threshold. In my implementation, following all
-proposals of the \gls{MCMC} kernel are Gaussian with variance equal to twice
-the empirical variance of the
-particles~\autocite{beaumont2009adaptive,del2012adaptive}.
-
+solved numerically by bisection. The forward kernels $K_i$ are taken to be
+\gls{MCMC} kernels with stationary distributions $\pi_{\varepsilon_i}$ and
+proposal distributions
+\[
+  q_i(\theta, \theta') \prod_{k=1}^M \Pr(X_i^{(k)}' \mid \theta'),
+\]
+where $\theta$ is the vector of model parameters and $X_k$ are $M$ datasets
+simulated according to $\theta$. In our implementation, $q$ is a Gaussian
+proposal with variance equal to twice the empirical variance of the particles,
+following~\autocite{beaumont2009adaptive, del2012adaptive}. The backwards
+kernels are
+\[
+  L_{i-1}(z', z) = \frac{\pi_n(z)K(z, z')}{\pi_n(z')}.
+\]
+When substituted into \cref{eq:smcwt}, the forward kernels $K(z, z')$ and
+densities $\pi_n(z')$ cancel out, and we are left with the weight update
+\begin{align*}
+  w(z') 
+    &\propto w(z) \frac{\pi_n(z \mid y)}{\pi_{n-1}(z \mid y)} \\
+    &= w(z) \frac{\pi(z) \pi_n(y \mid z)}{\pi(z) \pi_{n-1}(y \mid z)} \\
+    &= w(z) \frac{\sum_{k=i}^M \I_{A_{\varepsilon_n, y}}(x_k)}
+            {\sum_{k=i}^M \I_{A_{\varepsilon_{n-1}, y}}(x_k)}.
+\end{align*}
 The algorithm may be stopped when one of two termination conditions is reached.
 The user may specify a final tolerance $\varepsilon$, or a final acceptance
 rate of the \gls{MCMC} kernel. The latter stops the algorithm when the
 particles are not moving around very much, implying little change in the
-estimated target. 
+estimated target.
 
 \subsection{Analysis of \acrlong{BA} model}
 
