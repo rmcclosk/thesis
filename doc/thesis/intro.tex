@@ -297,34 +297,34 @@ trajectories~\autocite{janzen2015approximate}.
 \textcite{poon2013mapping} developed an alternative pairwise measure which
 applies the concept of a \defn{kernel function} to phylogenies. Kernel
 functions, originally developed for \glspl{SVM}~\autocite{burges1998tutorial}, 
-compare objects by mapping them into a feature space of very high, possibly
-even infinite, dimension.
-
-Another tree distance measure is the \defn{phylogenetic kernel}, or ``tree
-kernel'' developed by \textcite{poon2013mapping}. As opposed to the \gls{nltt},
-the tree kernel is maximized when the two trees being compared are the same.
-The basis of the tree kernel is the kernel trick originally developed for
-\glspl{SVM}~\autocite{burges1998tutorial}. The idea of the kernel trick is to
-compare objects by mapping them into a feature space of very high, possibly
-even infinite, dimension. The similarity between objects is taken to be their
-dot product in the feature space. It is called a ``trick'' because this dot
-product is computed using a \defn{kernel function} without explicitly mapping
-the objects to the feature space, which would be computationally prohibitive.
-In the case of the tree kernel, the feature space is the space of all possible
-\defn{subset trees}, which are subtrees that do not necessarily extend all the
-way to the tips. The subset-tree kernel was originally developed for comparing
-parse trees in natural language processing~\autocite{collins2002new} and did
-not incorporate branch length information. The version developed by
+compare objects in a space $\X$ by mapping them into a feature space $\F$ of
+high or infinite dimension via a function $\varphi$. The similarity between the
+objects is defined as
+\[  
+  K(x, x') = <\varphi(x), \varphi(x')>,
+\]
+that is, the inner product of the objects' representations in the feature
+space. Computing $\varphi(x)$ may be computationally prohibitive due to the
+dimension of $\F$. The utility of a kernel function $K$ is that it is
+constructed in such a way that it can compute the inner product without
+explicitly computing $\varphi(x)$. The kernel function developed in
+\autocite{poon2013mapping} will henceforth be referred to as the \defn{tree
+kernel}. The feature space into which trees are mapped is the space of all
+possible \defn{subset trees}, which are subtrees that do not necessarily extend
+all the way to the tips. The subset-tree kernel was originally developed for
+comparing parse trees in natural language processing~\autocite{collins2002new}
+and did not incorporate branch length information. The version developed by
 \textcite{poon2013mapping} includes a radial basis function to compare the
 differences in branch lengths, thus incorporating both the trees' topologies
-and their branch lengths in a single similarity score. The tree kernel was
-later shown to be highly effective in differentiating trees simulated under a
-compartmental model with two risk groups of varying contact
-rates~\autocite{poon2015phylodynamic}. In that paper,
-\citeauthor{poon2015phylodynamic} used the tree kernel as the distance function
-in \gls{ABC} (see \cref{sec:abc}), to fit epidemiological models to observed
-trees. This is an example of kernel-ABC~\autocite{nakagome2013kernel}, which
-will be discussed further in \cref{sec:abc}.
+and their branch lengths in a single similarity score. 
+
+%The tree kernel was later shown to be highly effective in differentiating trees
+%simulated under a compartmental model with two risk groups of varying contact
+%rates~\autocite{poon2015phylodynamic}. In that paper,
+%\citeauthor{poon2015phylodynamic} used the tree kernel as the distance function
+%in \gls{ABC} (see \cref{sec:abc}), to fit epidemiological models to observed
+%trees. This is an example of kernel-ABC~\autocite{nakagome2013kernel}, which
+%will be discussed further in \cref{sec:abc}.
 
 \section{Contact networks}
 \label{sec:contactnet}
@@ -415,8 +415,8 @@ little2014using}.
 Contact networks are a challenging type of data to collect, requiring extensive
 epidemiological investigation in the form of contact
 tracing~\autocite{morris1993epidemiology, welch2011statistical,
-keeling2005networks}. Therefore, it has been necessary to explore less
-resource-intensive alternatives which still contain information about
+keeling2005networks, eames2015six}. Therefore, it has been necessary to explore
+less resource-intensive alternatives which still contain information about
 population structure. For instance, it is possible to obtain limited
 information about the contact network by individual interviews without contact
 tracing. Variables which can be estimated in this fashion are referred to as
@@ -521,7 +521,7 @@ rather than a power law, was the best fit to five out of six datasets, although
 the difference in goodness of fit was extremely small in four out of these
 five. \textcite{bansal2007individual} found that an exponential distribution,
 rather than a power law, was the best fit to degree distributions of six social
-or sexual networks. 
+and sexual networks. 
 
 \subsection{Relationship between network structure and transmission trees}
 
@@ -532,7 +532,7 @@ introduces the epidemic into the network becomes the root of the tree. Each
 time a transmission occurs, the lineage corresponding to the donor host in the
 tree splits into two, representing the recipient lineage and the continuation
 of the donor lineage. \Cref{fig:contactnet} illustrates this correspondence.
-It's important to note that, although the order and timing of transmissions
+It must be emphasized that, although the order and timing of transmissions
 determines the tree topology uniquely, the converse does not hold. That is, for
 any given topology, there are in general many transmission networks which would
 lead to that topology. In other words, it impossible to distinguish who
@@ -543,10 +543,10 @@ contact networks and transmission trees. \textcite{o2010contact} simulated
 epidemics over networks with four types of degree distribution. They then
 estimated the Bayesian skyride~\autocite{minin2008smooth} population size
 trajectory in two ways: from the phylogeny, using \gls{MCMC}; and from the
-incidence and prevalence trajectories, using the method developed by 
-\textcite{volz2009phylodynamics}. They found that the concordance between
-the two skyrides, as well as the relationship between the skyride and
-prevalence curve, was qualitatively different for each degree distribution.
+incidence and prevalence trajectories, using the method developed by
+\textcite{volz2009phylodynamics}. The concordance between the two skyrides, as
+well as the relationship between the skyride and prevalence curve, was
+qualitatively different for each degree distribution.
 \textcite{leventhal2012inferring} investigated the relationship between
 transmission tree imbalance and several epidemic parameters under four contact
 network models, and found that these relationships varied considerably
@@ -560,73 +560,6 @@ affect transmission tree shape. However, more recently,
 contact network clusters and transmission tree clusters, and found a moderate
 correspondence between the two.
 
-In summary, studies in this group have demonstrated that network structure
-profoundly influences tree shape, but have not attempted to quantitatively
-infer network parameters from observed trees.
-
-%\section{Approximate Bayesian computation}
-
-%Consider a model $M$, with parameters $\theta$, which we wish to fit to some
-%observed data $D$. By ``fit'', we often mean that we want to find particular
-%values $\hat{\theta}$ for the parameters which optimize the likelihood of our
-%data given those parameters and the model,
-%\[
-%  \hat{\theta} = \argmax_\theta \Pr(D | M, \theta).
-%\]
-%This $\hat{\theta}$ is the \defn{maximum likelihood} parameter estimate. Note
-%that we are employing a common abuse of notation here, where $\Pr(\cdots)$ is
-%being unsed to refer to a probabilty \emph{density} rather than a true
-%probability. Alternative to maximum likelihood, we may be interested less in a
-%point estimate and more in the posterior distribution of possible values of
-%$\theta$ given our data, $\Pr(\theta \mid M, D)$. This will be expanded upon
-%below, but for the moment, for illustrative purposes, we restrict our attention
-%to the maximum likelihood problem.
-%
-%If the model we are fitting is sufficiently simple, it may be possible to
-%calculate $\hat{\theta}$ directly, using calculus. Most models do not admit
-%analytic maximum likeilhood solutions, but if the likelihood any set of
-%parameters can be calculated up to a normalizing constant, then
-%${\Pr(D \mid M,\theta)}$ can be optimized numerically. A wide range of
-%optimization strategies exist, the choice of which to use depending on the
-%complexity of the model and whether or not we have access to the gradients of
-%the likelihood function with respect to each of the parameters. The majority of
-%modelling problems fit into this category, and numerical optimization is
-%well-developed and extremely widely used.
-%
-%However, there are some cases, often when the observed data is of a complex
-%type, that explicitly calculating the likelihood of some observed data is
-%impossible, even up to a normalizing constant. For example, suppose that we
-%want to model a chess player's behaviour. We will set up a simple one-parameter
-%model which describes the chess playing process.  The parameter, $a \in [0, 1]$
-%indicates the player's eagerness to remove his opponent's pieces from the
-%board. We can write down an algorithm for the player's behaviour under such a
-%model.
-%
-%% TODO: don't break this over the page
-%
-%\begin{algorithmic}
-%  \While{the game is not over}
-%    \If{I can capture an opponent's piece and $\Uniform(0, 1) < a$}
-%      \State{capture the piece}
-%    \Else
-%      \State{make any other move at random}
-%    \EndIf
-%  \EndWhile
-%\end{algorithmic}
-%
-%Suppose the observed data are the ending configurations of the board, after the
-%player has concluded a game against an opponent with a known value of $a$. The
-%model we have designed is very simple, but it is not obvious how to calculate
-%the likelihood of a particular ending configuration. Indeed, it seems that the
-%only way is to enumerate every possible path the game could have taken, and
-%tabulate the ending configurations of each. Clearly, this is infeasible.
-%Approximate Bayesian computation was designed for situations like these, where
-%exact likelihoods are not available, perhaps due to the model involving an
-%algorithm or generative process.
-
-
-
-
 \section{Sequential Monte Carlo}
 \label{sec:smc}
 
@@ -635,12 +568,15 @@ probability distributions in a fixed order~\autocite{del2006sequential}, based
 on a technique called \gls{SIS}.
 
 To fully describe \gls{SMC}, we will introduce some notation and terminology.
-For a sequence $x_1, \ldots, x_d$, we will write $\vec{x_i}$ to mean the
-partial sequence $x_1, \ldots, x_i$.
+The definitions of these terms will become clearer as they are used. For a
+sequence $x_1, \ldots, x_d$, we will write $\vec{x_i}$ to mean the partial
+sequence $x_1, \ldots, x_i$. The subscript $^{(k)}$ will be used to indicate
+the $k$th particle in a population. To ease the notational burden we will omit
+the superscripts and subscripts on the weight functions $w$.
 
-A \defn{Markov kernel} is the continuous analogue of the transition matrix in a
-finite-state Markov model. For some spaces $X$ and $Y$, $K \maps X \times Y \to
-[0, 1]$ such that
+We define a \defn{Markov kernel} as the continuous analogue of the transition
+matrix in a finite-state Markov model.  For some spaces $X$ and $Y$, $K \maps X
+\times Y \to [0, 1]$ such that
 \begin{align}
     \label{eq:mk}
     \int_Y K(x, y) \d y = 1
@@ -648,9 +584,8 @@ finite-state Markov model. For some spaces $X$ and $Y$, $K \maps X \times Y \to
 for all $x \in X$. This is an ``operational'' definition of Markov kernel which
 will be suitable for our purposes. A more precise definition can be found in
 \textbf{TODO}. Note that a Markov kernels have nothing to do with the kernel
-functions defined in \cref{subsec:treeshape}, other than sharing a name.
-Unfortunately, the word ``kernel'' is ubiquitous in mathematics and refers to
-many unrelated concepts.
+functions defined in \cref{subsec:treeshape}, other than sharing a name (the
+word ``kernel'' is ubiquitous in mathematics).
 
 \subsection{Sequential importance sampling}
 \label{subsec:sis}
@@ -689,8 +624,7 @@ little about \textit{a priori}.
 \gls{SIS} applies \gls{IS} to the problem of sampling from a distribution $\pi$ 
 on an high-dimensional space, say $\pi(\vec{x}) = \pi(x_1, \ldots, x_d)$. The
 objective is to build up an importance distribution $\eta$ for $\pi$
-sequentially. Let $\vec{x_i} = (x_1, \ldots, x_i)$, for $1 \leq i \leq d$. By
-the general product rule,
+sequentially. By the general product rule, $\pi(\vec{x})$ can be decomposed as
 \[
   \pi(\vec{x}) 
   = \pi(x_1) \pi(x_2 \mid x_1) \cdots
@@ -706,8 +640,7 @@ will be constructed using a similar decomposition,
   = \eta(x_1) \eta(x_2 \mid x_1) \cdots
     \eta(x_{d-1} \mid \vec{x_{d-2}}) \eta(x_d \mid \vec{x_{d-1}}).
 \]
-The importance weights for $\eta$ with respect to $\pi$ are then defined
-recursively as
+The importance weights for $\eta$ can be written recursively as
 \begin{align}
   \label{eq:sisw}
   w(\vec{x_i}) = \frac{\pi(\vec{x_i})}{\eta(\vec{x_i})}
@@ -718,26 +651,47 @@ recursively as
 \end{align}
 Thus, we can choose $\eta(x_i \mid \vec{x_{i-1}})$ such that the variance of
 the importance weights is as small as possible at every step, eventually
-arriving at a full importance distribution. The process for choosing $\eta$
-will differ according to the problem at hand. One potential choice for
-$\eta(x_i \mid \vec{x_{i-1}})$ is simply $\pi(x_i \mid \vec{x_{i-1}})$, if it
-is possible to compute. For example, in the case of an \gls{HMM}, $\pi(x_i \mid
-\vec{x_{i-1}})$ is simply the transition probability from $x_{i-1}$ to $x_i$.
-In a Bayesian setting, $\eta$ may be taken to be the prior distribution. In
-some applications, it is possible to compute or approximate the form of $\eta$
-which minimizes the variance of the weights. The resulting importance
-distribution is known as the \defn{optimal
-kernel}~\autocite{cappe2007overview}. Choosing each element of the
-decomposition of $\eta$ is a problem-specific task (see \textit{e.g.}
-\autocite{smith2013sequential,liu2008monte} for many examples).
+arriving at a full importance distribution. This choice is made on a
+problem-specific basis, taking any available information about $\pi(x_i \mid
+\vec{x_{i-1}})$ into account (see \textit{e.g.}
+\autocite{smith2013sequential,liu2008monte} for many examples).  One potential
+choice for $\eta(x_i \mid \vec{x_{i-1}})$ is simply $\pi(x_i \mid
+\vec{x_{i-1}})$, if it is possible to compute. In a Bayesian setting, the
+prior distribution may be used. The exact form of $\eta(x_i, \vec{x_{i-1}})$
+which minimizes the variance of the weights is called the \defn{optimal
+kernel}~\autocite{cappe2007overview}, the name deriving from the fact that
+$k(x_i, \vec{x_{i-1}}) = \eta(x_i, \vec{x_{i-1}})$ is a Markov kernel. In some
+applications, it is possible to approximate the optimal kernel or even compute
+it explicitly.
 
 The recursive definition \cref{eq:sisw} suggests an algorithm for obtaining a
-sample from $\pi$. We begin with a sample of $n$ ``particles'' which have been
-sampled from the importance distribution $\eta(x_0)$ for $\pi(x_0)$. The
+sample from $\pi$ (\cref{alg:sis}).  We begin with $n$ ``particles'' which have
+been sampled from the importance distribution $\eta(x_0)$ for $\pi(x_0)$. The
 particles are updated and reweighted $d$ times, corresponding to the $d$
 elements of the decomposition of $\pi$. At the $i$th step, each particle is
-extended to include $x_i$ drawn from the chosen $\eta(x_i \mid \vec{x_{i-1}})$,
-and the importance weights are recalculated and normalized. 
+extended to include $x_i$ drawn according to the chosen $\eta(x_i \mid
+\vec{x_{i-1}})$, and the importance weights are recalculated and normalized. 
+
+\begin{algorithm}
+  \caption{Sequential importance sampling.}
+  \begin{algorithmic}
+    \For {$k = 1$ to $n$}
+      \State Sample $x_1^{(k)}$ from $\eta(x_1)$
+      \Comment{Initialize the $k$th particle}
+      \State $w^{(k)} \gets \dfrac{\pi\left(x_1^{(k)}\right)}{\eta\left(x_1^{(k)}\right)}$
+    \EndFor
+    \For {$i = 2$ to $d$}
+      \For {$k = 1$ to $n$}
+        \State Sample $x_i^{(k)}$ from $\eta\left(x_i \mid \vec{x_{i-1}^{(k)}}\right)$
+        \Comment Extend the $k$th particle
+        \State $w(\vec{x_i}^{(k)}) \gets \dfrac{\pi\left(x_i^{(k)} \mid \vec{x_{i-1}^{(k)}}\right)}{\eta\left(x_i^{(k)} \mid \vec{x_{i-1}^{(k)}}\right)} \cdot w(\vec{x_{i-1}}^{(k)})$
+      \EndFor
+      \State Normalize the weights so that $\sum w = 1$
+    \EndFor
+    \State Sample $n$ particles with probabilities $w$
+  \end{algorithmic}
+  \label{alg:sis}
+\end{algorithm}
 
 Of course, $\eta$ is merely an approximation to $\pi$, and may be a fairly poor
 one depending on the application. Try as we might to keep the variances of the
@@ -748,8 +702,8 @@ sequential steps. To mitigate this problem, we periodically apply a resampling
 step when the variance in the importance weights becomes too high. Several
 different criteria have been proposed for when to resample, but we focus here
 on the one described by \textcite{liu2008monte}, namely the decay of the
-\gls{ESS} below a prescribed threshold. The \gls{ESS} of the population of
-particles is defined as
+\gls{ESS} below a prescribed threshold, conventionally $n/2$. The \gls{ESS} of
+the population of particles is defined as
 \[
   \ESS(w) = \frac{n}{1 + \Var(w)},
 \]
@@ -758,38 +712,7 @@ where $n$ is the number of particles~\autocite{liu2008monte}. When the
 their weights. This results in the removal of low-weight particles from the
 population, and also equalizes all the weights. Various resampling strategies
 beyond the basic sampling with replacement have been proposed, but we will not
-discuss those here. The full \gls{SIS} algorithm with resampling is given as
-\cref{alg:sis}. We use a superscript $^{(k)}$ to refer to the $k$th particle,
-and for brevity write $w$ for $w(\vec{x_i})$. The variable $T$ is the threshold
-for the \gls{ESS}, below which the population is resampled. It is conventional
-to take $T = n/2$.
-
-\begin{algorithm}
-  \caption{Sequential importance sampling.}
-  \begin{algorithmic}
-    \For {$k = 1$ to $n$}
-      \State Sample $x_0^{(k)}$ from $\eta(x_0)$
-      \Comment{Initialize the $k$th particle}
-      \State $w^{(k)} \gets \dfrac{\pi\left(x_0^{(k)}\right)}{\eta\left(x_0^{(k)}\right)}$
-    \EndFor
-    \For {$i = 1$ to $d$}
-      \For {$k = 1$ to $n$}
-        \State Sample $x_i^{(k)}$ from $\eta\left(x_i \mid \vec{x_{i-1}^{(k)}}\right)$
-        \Comment Extend the $k$th particle
-        \State $w^{(k)} \gets \dfrac{\pi\left(x_i^{(k)} \mid \vec{x_{i-1}^{(k)}}\right)}{\eta\left(x_i^{(k)} \mid \vec{x_{i-1}^{(k)}}\right)} \cdot w^{(k)}$
-      \EndFor
-      \State Normalize the weights so that $\sum w = 1$
-      \If {$\ESS(w) < T$}
-        \State Resample the particles according to $w$
-        \For {$k = 1$ to $n$}
-          \State $w^{(k)} \gets 1/n$
-        \EndFor
-      \EndIf
-    \EndFor
-    \State Sample $n$ particles with probabilities $w$
-  \end{algorithmic}
-  \label{alg:sis}
-\end{algorithm}
+discuss those here. 
 
 \subsection{Sequential Monte Carlo samplers}
 \label{subsec:smcsamp}
