@@ -7,15 +7,15 @@ Steps:
         Extension: gml
         Walltime: 00:00:30
         Parameters:
-            nnode: 5000
-            m: [2, 3, 4]
-            power: [0.0, 0.5, 1, 1.5, 2.0]
+            true_N: 5000
+            true_m: [2, 3, 4]
+            true_alpha: [0.0, 0.5, 1.0, 1.5]
             replicate: "range(3)"
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: | 
             set.seed({seed})
-            g <- sample_pa({nnode}, m={m}, power={power}, directed=FALSE)
+            g <- sample_pa({true_N}, m={true_m}, power={true_alpha}, directed=FALSE)
             graph_attr(g, "comment") <- "{yaml}"
             write.graph(SIR.net(g), "{network}", format="gml")
 
@@ -23,60 +23,60 @@ Steps:
         Extension: nwk
         Walltime: 00:00:30
         Parameters:
-            m: [2, 3, 4]
-            power: [0.0, 0.5, 1, 1.5, 2.0]
+            true_m: [2, 3, 4]
+            true_alpha: [0.0, 0.5, 1.0, 1.5]
             replicate: "range(3)"
-            nsimnode: [1000, 2000]
+            true_I: [1000, 2000]
             ntip: 500
         Depends: network
         Interpreter: bash
         Rule: |
             echo "#{yaml}" > {tree}
-            nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} {network} >> {tree}
+            nettree --sim-nodes {true_I} --tree-tips {ntip} --seed {seed} {network} >> {tree}
 
     abc-config:
         Extension: yaml
         Walltime: 00:00:30
         Parameters:
-            nnode_min: 500
-            nnode_max: 15000
-            nsimnode_min: 500
-            nsimnode_max: 5000
+            N_min: 500
+            N_max: 15000
+            I_min: 500
+            I_max: 5000
             m_min: 1
-            m_max: 6
-            power_min: 0
-            power_max: 2
+            m_max: 5
+            alpha_min: 0
+            alpha_max: 2
         Interpreter: bash
         Rule: |
-            echo "nodes: [\"uniform\", {nnode_min}, {nnode_max}]" > {abc-config}
-            echo "sim_nodes: [\"uniform\", {nsimnode_min}, {nsimnode_max}]" >> {abc-config}
-            echo "sim_time: 0" >> {abc-config}
-            echo "transmit: 1" >> {abc-config}
-            echo "remove: 0" >> {abc-config}
-            echo "edges_per_vertex: [\"uniform\", {m_min}, {m_max}]" >> {abc-config}
-            echo "attach_power: [\"uniform\", {power_min}, {power_max}]" >> {abc-config}
+            echo "N: [\"uniform\", {N_min}, {N_max}]" > {abc-config}
+            echo "I: [\"uniform\", {I_min}, {I_max}]" >> {abc-config}
+            echo "time: 0" >> {abc-config}
+            echo "transmit_rate: 1" >> {abc-config}
+            echo "remove_rate: 0" >> {abc-config}
+            echo "m: [\"discrete_uniform\", {m_min}, {m_max}]" >> {abc-config}
+            echo "alpha: [\"uniform\", {alpha_min}, {alpha_max}]" >> {abc-config}
 
     abc:
         Extension: tsv.bz2
-        Processes: 15
-        Threads: 16
+        Processes: 1
+        Threads: 20
         Walltime: 012:00:00
         Sleep: 600
         Parameters:
-            nnode: 5000
-            m: [2, 3, 4]
-            power: [0.0, 0.5, 1, 1.5, 2.0]
+            true_N: 5000
+            true_m: [2, 3, 4]
+            true_alpha: [0.0, 0.5, 1.0, 1.5]
             replicate: "range(3)"
-            nsimnode: [1000, 2000]
+            true_I: [1000, 2000]
             ntip: 500
-            nnode_min: 500
-            nnode_max: 15000
-            nsimnode_min: 500
-            nsimnode_max: 5000
+            N_min: 500
+            N_max: 15000
+            I_min: 500
+            I_max: 5000
             m_min: 1
-            m_max: 6
-            power_min: 0
-            power_max: 2
+            m_max: 5
+            alpha_min: 0
+            alpha_max: 2
             decay_factor: 0.3
             rbf_variance: 4
             nltt: 0
@@ -95,7 +95,7 @@ Steps:
             else
                 NLTT=""
             fi
-            netabc --num-threads 16 --decay-factor {decay_factor} \
+            netabc --num-threads 20 --decay-factor {decay_factor} \
                    --rbf-variance {rbf_variance} --num-particles {nparticle} \
                    --num-samples {nsample} --quality {quality} --seed {seed} \
                    --final-epsilon {final_epsilon} --final-accept {final_accept} \
@@ -113,10 +113,11 @@ Steps:
             rbf_variance: 4
             nltt: 0
             nparticle: 1000
-            m_min: 1
         Depends: abc
         Interpreter: R --vanilla --silent
-        Startup: suppressPackageStartupMessages(library(netabc))
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(coda))
         Rule: |
             trace.files <- strsplit("{abc}", " ")[[1]]
             lines <- sapply(paste("bzcat", trace.files, "| wc -l"), system, intern=TRUE)
@@ -126,15 +127,200 @@ Steps:
             d <- lapply(cmd, fread)
             md <- collect.metadata(trace.files)
             d <- rbindlist(mapply(cbind, by(md, 1:nrow(md), as.data.table), d, SIMPLIFY=FALSE))
+            params <- c("N", "I", "alpha", "m")
 
-            by.cols <- c("ntip", "nnode", "nsimnode", "m", "power", "replicate")
+            by.cols <- c("ntip", paste0("true_", params), "replicate")
             d <- d[,.SD[iter == max(iter),], by=by.cols]
             d <- d[,.SD[sample(1:nrow(.SD), prob=weight, replace=TRUE),], by=by.cols]
-            d <- d[,nodes := density(nodes)$x[which.max(density(nodes)$y)], by=by.cols]
-            d <- d[,sim_nodes := density(sim_nodes)$x[which.max(density(sim_nodes)$y)], by=by.cols]
-            d <- d[,attach_power := density(attach_power)$x[which.max(density(attach_power)$y)], by=by.cols]
-            d <- d[,edges_per_vertex := density(edges_per_vertex)$x[which.max(density(edges_per_vertex)$y)], by=by.cols]
+
+            for (p in params) {{
+                d[,paste0(p, c(".lower", ".upper")) := as.list(HPDinterval(mcmc(.SD[[p]]), 0.95)), by=by.cols]
+            }}
+
+            d <- d[,N := density(N)$x[which.max(density(N)$y)], by=by.cols]
+            d <- d[,I := density(I)$x[which.max(density(I)$y)], by=by.cols]
+            d <- d[,alpha := density(alpha)$x[which.max(density(alpha)$y)], by=by.cols]
+            d <- d[,m := density(m)$x[which.max(density(m)$y)], by=by.cols]
+
             d <- setkeyv(d, by.cols)
             d <- unique(d)
             cat("#{yaml}\n", file="{point-estimate}")
             write.tsv(d, "{point-estimate}", append=TRUE)
+
+    point-estimate-plot:
+        Extension: pdf
+        Walltime: 00:30:00
+        Parameters:
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+            nparticle: 1000
+            true_m: [2, 3, 4]
+        Depends: point-estimate
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(grid))
+        Rule: |
+            d <- fread("{point-estimate}")[true_m == {true_m},]
+            font.size <- 14
+            point.size <- 3
+            palpha <- ggplot(d, aes(x=true_alpha, y=alpha, color=factor(true_I), 
+                                    shape=factor(true_I), group=true_I)) + 
+                        geom_point(position=position_dodge(width=0.3), size=point.size) + 
+                        theme_bw() + labs(x=expression(paste( "true ", alpha)),
+                                          y=expression(paste( "estimated ", alpha))) +
+                        scale_color_discrete(name= "true I") +
+                        scale_shape_discrete(name= "true I") +
+                        coord_fixed(ratio=1.8/2) + ylim(0, 2) +
+                        geom_abline(intercept=0, slope=1, linetype=2) +
+                        theme(text=element_text(size=font.size),
+                              plot.margin=unit(c(2, 0, 0, 0), "lines"))
+            d[,grp := paste0(true_I, true_alpha)]
+            d[,grp.2 := paste0(replicate, true_I, true_alpha)]
+            pI <- ggplot(d, aes(x=factor(true_I), y=I, color=factor(true_alpha), 
+                                shape=factor(true_alpha))) +
+                    geom_point(position=position_dodge(width=0.5), size=point.size) + 
+                    theme_bw() + labs(x= "true I", y= "estimated I") + 
+                    scale_color_discrete(name=expression(paste( "true ", alpha))) +
+                    scale_shape_discrete(name=expression(paste( "true ", alpha))) +
+                    ylim(500, 5000) + coord_fixed(ratio=2/4500) +
+                    geom_abline(intercept=0, slope=1000, linetype=2) +
+                    theme(text=element_text(size=font.size),
+                          plot.margin=unit(c(2, 0, 0, 0), "lines"))
+            pm <- ggplot(d, aes(x=factor(true_alpha), y=m,
+                                color=factor(true_I), shape=factor(true_I), 
+                                group=grp)) + 
+                    geom_point(position=position_dodge(width=0.6), size=point.size) + 
+                    theme_bw() + coord_fixed(ratio=4/5) +
+                    scale_y_continuous(limits=c(1, 6), breaks=1:5+0.5, labels=1:5) +
+                    labs(x=expression(paste( "true ", alpha)), y= "estimated m") +
+                    scale_shape_discrete(name= "true I") +
+                    scale_color_discrete(name= "true I") +
+                    geom_hline(yintercept={true_m}+0.5, linetype=2) +
+                    theme(text=element_text(size=font.size),
+                          plot.margin=unit(c(2, 0, 0, 0), "lines"))
+            pN <- ggplot(d, aes(x=factor(true_alpha), y=N, 
+                                shape=factor(true_I), color=factor(true_I))) + 
+                    geom_point(position=position_dodge(width=0.6), size=point.size) + 
+                    theme_bw() + ylim(500, 15000) + 
+                    coord_fixed(ratio=4/14500) +
+                    geom_hline(yintercept=5000, linetype=2) +
+                    labs(x=expression(paste( "true ", alpha)), y= "estimated N") +
+                    scale_shape_discrete(name= "true I") +
+                    scale_color_discrete(name= "true I") +
+                    theme(text=element_text(size=font.size),
+                          legend.margin=unit(0, "cm"),
+                          plot.margin=unit(c(2, 0, 0, 0), "lines"))
+            palpha <- ggplotGrob(palpha)
+            pI <- ggplotGrob(pI)
+            pm <- ggplotGrob(pm)
+            pN <- ggplotGrob(pN)
+            palpha$widths <- pN$widths
+            pI$widths <- pN$widths
+            pm$widths <- pN$widths
+            pdf("{point-estimate-plot}", height=5)
+            grid.arrange(palpha, pm, pI, pN, ncol=2, padding=unit(0, "line"))
+            grid.text("A", x=unit(0.05, "npc"), y=unit(0.95, "npc"), draw=TRUE, gp=gpar(fontsize=18))
+            grid.text("B", x=unit(0.55, "npc"), y=unit(0.95, "npc"), draw=TRUE, gp=gpar(fontsize=18))
+            grid.lines(x=unit(c(0.5, 0.5), "npc"), gp=gpar(lty=3))
+            dev.off()
+
+    posterior-plot:
+        Extension: pdf
+        Walltime: 00:30:00
+        Parameters:
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+            nparticle: 1000
+            true_N: 5000
+            true_m: [2, 3, 4]
+            true_alpha: [0.0, 0.5, 1.0, 1.5]
+            true_I: [1000, 2000]
+            replicate: "range(3)"
+        Depends: abc
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(grid))
+        Rule: |
+            d <- fread("bzcat {abc} | head -n -1")[iter == max(iter)]
+            d <- d[sample(1:nrow(d), prob=weight, replace=TRUE)]
+            font.size <- 14
+            options(scipen=-1)
+            palpha <- ggplot(d, aes(x=alpha)) + geom_density() + theme_bw() +
+                    labs(x=expression(alpha), y="density") + xlim(0, 2) +
+                    geom_vline(xintercept={true_alpha}, linetype=2) +
+                    theme(text=element_text(size=font.size))
+            pI <- ggplot(d, aes(x=I)) + geom_density() + theme_bw() +
+                    labs(x="I", y="density") + xlim(500, 5000) +
+                    geom_vline(xintercept={true_I}, linetype=2) +
+                    theme(text=element_text(size=font.size),
+                          plot.margin=unit(c(0.5, 1, 0.5, 0.5), "line"))
+
+            xmin <- {true_m}-0.5
+            xmax <- {true_m}+0.5
+            ymin <- 0
+            ymax <- d[,max(prop.table(table(floor(m))))]
+            poly <- data.frame(x=c(xmin, xmin, xmax, xmax), y=c(ymin, ymax, ymax, ymin))
+            pm <- ggplot(d, aes(x=floor(m))) + 
+                    geom_polygon(data=poly, aes(x, y), alpha=0.3) +
+                    stat_bin(aes(y=..count../sum(..count..))) +
+                    theme_bw() + labs(x="m", y="frequency") +
+                    theme(text=element_text(size=font.size))
+            pN <- ggplot(d, aes(x=N)) + geom_density() +
+                    theme_bw() + labs(x="N", y="density") +
+                    geom_vline(xintercept={true_N}, linetype=2) +
+                    xlim(500, 15000) +
+                    theme(text=element_text(size=font.size),
+                          plot.margin=unit(c(0.5, 1, 0.5, 0.5), "line"))
+            g <- arrangeGrob(palpha, pI, pm, pN, ncol=2, widths=c(0.46, 0.54))
+            ggsave(g, file="{posterior-plot}", height=5)
+
+    hpd-table:
+        Extension: txt
+        Parameters:
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+            nparticle: 1000
+        Depends: point-estimate
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(xtable))
+        Rule: |
+            d <- fread("{point-estimate}")
+            params <- c("alpha", "I", "m", "N")
+            measure.vars <- c(params, paste0(params, ".lower"),
+                              paste0(params, ".upper"))
+            d <- melt(d, measure.vars=measure.vars, variable.factor=FALSE,
+                      variable.name="parameter")
+            d[,bound := sapply(strsplit(parameter, ".", fixed=TRUE), "[", 2)]
+            d[,parameter := sub("[.].*", "", parameter)]
+            d[parameter == "m", value := floor(value)]
+            setkeyv(d, setdiff(colnames(d), c("value", "bound")))
+            l <- setnames(d[bound == "lower"], "value", "lower")[,bound := NULL]
+            u <- setnames(d[bound == "upper"], "value", "upper")[,bound := NULL]
+            e <- setnames(d[is.na(bound)], "value", "estimate")[,bound := NULL]
+            d <- Reduce(merge, list(l, u, e))
+            d[,width := upper - lower]
+            d <- melt(d, measure.vars=paste0("true_", params), 
+                      value.name="true.value", variable.factor=FALSE)
+            d[,variable := sapply(strsplit(variable, "_"), "[[", 2)]
+            d <- d[variable == parameter,]
+            tbl <- d[,list(mean.est=mean(estimate), mean.lower=mean(lower),
+                           mean.upper=mean(upper)), 
+                      by=list(parameter, true.value)]
+            tbl[,true.value := ifelse(parameter == "alpha", 
+                                      sprintf("%.1f", true.value), 
+                                      sprintf("%d", true.value))]
+            tbl[parameter == "alpha", parameter := "\\alpha"]
+            tbl[,parameter := paste0("$", parameter, "$")]
+            tbl[duplicated(parameter), parameter := ""]
+            setnames(tbl, c("Parameter", "True value", "Mean point estimate", "Mean HPD lower bound", "Mean HPD upper bound"))
+            options(scipen=3, digits=2)
+            xtab <- xtable(tbl, align=c("l", "l", "r", rep(">{{\\raggedleft\\arraybackslash}}p{{2.5cm}}", 3)))
+            print(xtab, floating=FALSE, file="{hpd-table}",
+                  sanitize.text.function=identity, include.rownames=FALSE)

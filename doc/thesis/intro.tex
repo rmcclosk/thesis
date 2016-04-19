@@ -130,166 +130,149 @@ data~\autocite{volz2013viral}.
 %sampled from the host, or a synthetic genotype, such as a consensus or
 %reconstructed ancestral sequence.
 
-In general, \defn{viral phylogenies} are simply phylogenetic trees relating
-virus strains. \defn{Inter-host} phylogenies relate one representative viral
-genotype from each host in a population. In this work, when we use the phrase
-``viral phylogeny'', we are referring to an inter-host phylogeny unless
-otherwise stated. Phylogenetic inference is a complex topic which we will not
-discuss here (see \eg \autocite{nei2000molecular} for a full review). We assume
-here that the viral phylogeny is known, a common assumption in the development
-and application of phylodynamic methods.
-
-The crux of phylodynamics is the fact that the epidemiological processes
-recorded in transmission trees, and the evolutionary processes recorded in
-viral phylogenies, occur on similar time scales for RNA
-viruses~\autocite{drummond2003measurably}. Phylodynamic methods have been used
-to investigate epidemiological parameters such as transmission rate, recovery
-rate, and basic reproductive number~\autocite{pybus2009evolutionary,
+The basis of phylodynamics is the fact that, for RNA viruses, epidemiological
+and evolutionary processes occur on similar time
+scales~\autocite{drummond2003measurably}. In fact, these two processes
+interact, such that it is possible to detect the influence of host epidemiology
+on the evolutionary history of the virus as recorded in an \defn{inter-host
+viral phylogeny}. Phylodynamic methods aim to detect and quantify the
+signatures of epidemiological processes in these
+phylogenies~\autocite{pybus2009evolutionary, volz2013viral}, which relate one
+representative viral genotype from each host in an infected population. These
+methods have been used to investigate parameters such as transmission rate,
+recovery rate, and basic reproductive number~\autocite{pybus2009evolutionary,
 volz2013viral}. The majority of phylodynamic studies attempt to infer the
 parameters of an epidemiological model for which the likelihood of an observed
 phylogeny can be calculated. Most often, this is some variation of the
 birth-death~\autocite{kendall1948generalized, stadler2012estimating} or
-coalescent~\autocite{kingman1982coalescent, volz2012complex} models.
+coalescent~\autocite{kingman1982coalescent, volz2012complex} models. These
+methods generally assume the viral phylogeny is known, and we assume the same
+in this work (see \eg \autocite{nei2000molecular} for a review of phylogenetic
+inference). 
 
-Due to the relationship between the aforementioned processes, there is a close
-relationship between viral phylogenies and transmission trees. In particular,
-the transmission process is quite similar to \defn{allopatric
+Due to the relationship between the aforementioned processes, there is a degree
+of correspondence between viral phylogenies and transmission
+trees~\autocite{ypma2013relating, kenah2015algorithms, kenah2016molecular}. In
+particular, the transmission process is quite similar to \defn{allopatric
 speciation}~\autocite{coyne2004speciation}, where genetic divergence follows
 the geographic isolation of a sub-population of organisms. Thus, transmission,
 which is represented as branching in the transmission tree, causes branching in
 the viral phylogeny as well. Similarly, the removal of an individual from the
 transmission tree causes the extinction of their viral lineage in the
-phylogeny. Due to these relationships, the topology of the viral phylogeny is
-often used as a proxy for the topology of the transmission tree. However, there
-are several complications and caveats which must be kept in mind when
-estimating the transmission tree in this manner.
-
-First are the issues of rooting and time-scaling. Modern likelihood-based
+phylogeny. Consequently, the topology of the viral phylogeny is sometimes used
+as a proxy for the topology of the transmission tree. Modern likelihood-based
 methods of phylogenetic reconstruction~\autocite[\eg][]{price2010fasttree,
 stamatakis2014raxml} produce unrooted trees whose branch lengths measure
 genetic distance in units of expected substitutions per site. On the other
 hand, transmission trees are rooted, and have branches measuring calendar
-time~\autocite{pybus2009evolutionary}. It is generally assumed that sampling a
-virus from the individual also corresponds to their removal from the
-transmission tree, so the positions of the tips in time are fixed. Therefore,
-to transform a viral phylogeny into an estimated transmission tree, we must
-find a root and an assignment of branch lengths such that the tips are placed
-at their proscribed times. In addition, the branch lengths should be chosen
-such that the variation in \defn{evolutionary rate}, which is the ratio of a
-branch's length in genetic distance to its length in calendar time, is low
-across the tree. While there is some variation among hosts, due to
-immunological and other factors, we generally expect to observe globally
-similar evolutionary rates. Methods for time-scaling a phylogeny include
-root-to-tip regression~\autocite{shankarappa1999consistent, korber2000timing,
+time~\autocite{pybus2009evolutionary}. Therefore, estimating a transmission
+tree from a viral phylogeny requires the phylogeny to be rooted and
+time-scaled. Methods for performing this process include root-to-tip
+regression~\autocite{shankarappa1999consistent, korber2000timing,
 drummond2003inference}, which we apply in this work, and least-square
-dating~\autocite{to2015fast}. Both of these methods can be used to root the
-tree, by simply trying all possible root positions and choosing the one which
-minimizes a loss function ($1-R^2$, or root-mean-square error, for root-to-tip
-regression; sum of squared errors for least-square dating). Alternatively, the
-tree may be rooted separately with an outgroup~\autocite{li1988rates} before
-time-scaling.
+dating~\autocite{to2015fast}. Alternatively, the tree may be rooted separately
+with an outgroup~\autocite{li1988rates} before time-scaling.
 
-A second, perhaps more insidious problem is the fact that the correspondence
-between the topologies of the viral phylogeny and transmission tree is not
-necessarily exact. Due to intra-host diversity, the viral strain which is
-transmitted may have split from another lineage within the donor long before
-the transmission event occurred. Hence, the branching point in the viral
-phylogeny may be much earlier than that in the transmission tree. Another
-possibility is that one host transmitted to two or more recipients, but the
-lineages they each received originated within the donor host in a different
-order than that in which the transmissions occurred. In this case, the topology
-of the transmission tree and the viral phylogeny will be mismatched. Although
-phylodynamics is quite new, these phenomena have been studied in evolutionary
-biology for some time. Viral phylogenies are a specific version of a more
-general class of trees called \defn{gene trees}, which represent the
-evolutionary history of a section of genetic material. Transmission trees, on
-the other hand, are highly analogous to \defn{species trees}, whose tips are
-species and internal nodes are common ancestors. This analogy derives from the
-functional similarity between transmission and allopatric speciation. Hence,
-the potential discordance between transmission trees and viral phylogenies is
-the similar to that between gene and species trees, which is called
-\defn{incomplete lineage sorting}. In practice, this discordance has not proven
-an insurmountable problem: for example, \textcite{leitner1996accurate} were
-able to accurately recover a known transmission tree using a viral phylogeny.
+A caveat of estimating transmission trees in this manner is that the
+correspondence between the topologies of the viral phylogeny and transmission
+tree is not necessarily exact~\autocite{ypma2013relating}. Due to intra-host
+diversity, the viral strain which is transmitted may have split from another
+lineage within the donor long before the transmission event occurred. Hence,
+the branching point in the viral phylogeny may be much earlier than that in the
+transmission tree. Another possibility is that one host transmitted to two or
+more recipients, but the lineages they each received originated within the
+donor host in a different order than that in which the transmissions occurred.
+In this case, the topology of the transmission tree and the viral phylogeny
+will be mismatched. In practice, this discordance has not proven an
+insurmountable problem: for example, \textcite{leitner1996accurate} were able
+to accurately recover a known transmission tree using a viral phylogeny. The
+problem of accurately estimating transmission trees is an ongoing area of
+research~\autocite{cottam2008integrating, jombart2011reconstructing,
+ypma2012unravelling, didelot2014bayesian}.
 
-What we have just discussed is a two-step procedure for estimating the
-transmission tree. First, a viral phylogeny is constructed from genetic
-sequence data, and then it is rooted and time-scaled into a transmission tree.
-This approach is straightforward, frequently used, and has the advantage of
-leveraging tried-and-true tools for phylogenetic inference. However, it also
-has drawbacks, perhaps the most obvious being the multiplication of errors
-produced by the separate steps. One commonly used alternative method is to
-directly estimate a time-scaled phylogeny by simultaneously inferring the tree
-topology, its root and branch lengths, and the parameters of a \defn{molecular
-clock} model. A molecular clock is a hypothesis about the evolutionary rates
-along the branches of the tree, such as that they are all equal (a \defn{strict
-clock}) or that they are \gls{iid} from a common distribution (a \defn{relaxed
-clock}). This inference is usually done in a Bayesian framework using
-\gls{MCMC}, so that prior information (including the tip dates) can be included
-in the analysis, and the so-called nuisance parameters of the molecular clock
-model can be marginalized out. Software packages for performing these analyses
-include BEAST~\autocite{bouckaert2014beast} and
-MrBayes~\autocite{ronquist2012mrbayes}.
+%Although phylodynamics is quite new, these phenomena have been studied in
+%evolutionary biology for some time. Viral phylogenies are a specific version of
+%a more general class of trees called \defn{gene trees}, which represent the
+%evolutionary history of a section of genetic material. Transmission trees, on
+%the other hand, are highly analogous to \defn{species trees}, whose tips are
+%species and internal nodes are common ancestors. This analogy derives from the
+%functional similarity between transmission and allopatric speciation. Hence,
+%the potential discordance between transmission trees and viral phylogenies is
+%the similar to that between gene and species trees, which is called
+%\defn{incomplete lineage sorting}. 
 
-Several other authors have developed methods tailor-made for inferring
-transmission trees. \textcite{didelot2014bayesian} develop a Bayesian version
-of the two-step approach which allows transmissions to occur anywhere along the
-branches of a transmission tree, rather than being constrained to the branching
-points in the viral phylogeny. The method requires sampling of every infected
-individual, although the authors indicate that it could be extended to relax
-this assumption. \textcite{cottam2008integrating} describe a likelihood-based
-method which enumerates all transmission trees consistent with an established
-phylogeny, assigning each a likelihood based on other epidemiological data. 
-This approach is novel in its integration of data from multiple sources,
-however because it enumerates a large portion of the tree space, it is unlikely
-to scale to larger epidemics. \textcite{ypma2012unravelling} develop a joint 
-likelihood function integrating temporal, geographic, and genetic observations, 
-and use Bayesian \gls{MCMC} to estimate both the tree and the parameters of the
-likelihood function. Their approach can handle missing data and produces high
-resolution transmission trees when multiple types of data are available. A
-different approach is undertaken by \textcite{jombart2011reconstructing}, who
-describe a method to build transmission trees directly from sequence data,
-contingent on the common ancestors also being sampled. This makes the method
-attractive for slow-evolving pathogens, but less practical for viral outbreaks
-where samples from common ancestors are unlikely to be available.
+%What we have just discussed is a two-step procedure for estimating the
+%transmission tree. First, a viral phylogeny is constructed from genetic
+%sequence data, and then it is rooted and time-scaled into a transmission tree.
+%This approach is straightforward, frequently used, and has the advantage of
+%leveraging tried-and-true tools for phylogenetic inference. However, it also
+%has drawbacks, perhaps the most obvious being the multiplication of errors
+%produced by the separate steps. One commonly used alternative method is to
+%directly estimate a time-scaled phylogeny by simultaneously inferring the tree
+%topology, its root and branch lengths, and the parameters of a \defn{molecular
+%clock} model. A molecular clock is a hypothesis about the evolutionary rates
+%along the branches of the tree, such as that they are all equal (a \defn{strict
+%clock}) or that they are \gls{iid} from a common distribution (a \defn{relaxed
+%clock}). This inference is usually done in a Bayesian framework using
+%\gls{MCMC}, so that prior information (including the tip dates) can be included
+%in the analysis, and the so-called nuisance parameters of the molecular clock
+%model can be marginalized out. Software packages for performing these analyses
+%include BEAST~\autocite{bouckaert2014beast} and
+%MrBayes~\autocite{ronquist2012mrbayes}.
+
+%Other methods are tailor-made for inferring transmission trees.
+%\textcite{didelot2014bayesian} develop a Bayesian approach which allows
+%transmissions to occur anywhere along the
+%branches of a transmission tree, rather than being constrained to the branching
+%points in the viral phylogeny. The method requires sampling of every infected
+%individual, although the authors indicate that it could be extended to relax
+%this assumption. \textcite{cottam2008integrating} describe a likelihood-based
+%method which enumerates all transmission trees consistent with an established
+%phylogeny, assigning each a likelihood based on other epidemiological data.
+%This approach is novel in its integration of data from multiple sources,
+%however because it enumerates a large portion of the tree space, it is unlikely
+%to scale to larger epidemics. \textcite{ypma2012unravelling} develop a joint
+%likelihood function integrating temporal, geographic, and genetic observations,
+%and use Bayesian \gls{MCMC} to estimate both the tree and the parameters of the
+%likelihood function. Their approach can handle missing data and produces high
+%resolution transmission trees when multiple types of data are available. A
+%different approach is undertaken by \textcite{jombart2011reconstructing}, who
+%describe a method to build transmission trees directly from sequence data,
+%contingent on the common ancestors also being sampled. This makes the method
+%attractive for slow-evolving pathogens, but less practical for viral outbreaks
+%where samples from common ancestors are unlikely to be available.
 
 \subsection{Tree shapes}
 \label{subsec:treeshape}
 
-The aim of viral phylodynamics is to glean some kind of knowledge, about the
-epidemic, the virus, or its hosts and their behaviour, by studying a phylogeny,
-most often an estimated transmission tree~\autocite{pybus2009evolutionary,
-volz2013viral}. What is informative about a phylogeny, beyond the demographic
-characteristics of the individuals it relates, is its \defn{shape}. The shape
-of a phylogeny has two components: the topology, and the distribution of branch
-lengths~\autocite{mooers1997inferring}. Methods of quantifying tree shape fall
-into two categories: summary statistics, and pairwise measures.
+To perform phylodynamic inference, we must be able to extract quantitative
+information from viral phylogenies. What is informative about a phylogeny,
+beyond the demographic characteristics of the individuals it relates, is its
+\defn{shape}. The shape of a phylogeny has two components: the topology, and
+the distribution of branch lengths~\autocite{mooers1997inferring}. Methods of
+quantifying tree shape fall into two categories: summary statistics, and
+pairwise measures. Summary statistics assign a numeric value to each individual
+tree, while pairwise measures quantify the similarity between pairs of trees. 
 
-Summary statistics assign a numeric value to each individual tree. One of the
-most widely used is Sackin's index~\autocite{shao1990tree}, which measures the
-imbalance or asymmetry in a rooted tree. For the $i$th tip of the tree, we
-define $N_i$ to be the number of branches between that tip and the root. The
-unnormalized Sackin's index is defined as the sum of all $N_i$. It is called
-unnormalized because it does not account for the number of tips in the tree.
-Among two trees having the same number of tips, the least-balanced tree will
-have the highest Sackin's index. However, among two equally balanced trees, the
-larger tree will have a higher Sackin's index. This makes it challenging to
-compare balances among trees of different sizes. To correct this,
-\textcite{kirkpatrick1993searching} derive the expected value of Sackin' index
-under the Yule model~\autocite{yule1925mathematical}. Dividing by this expected
-value normalizes Sackin's index, so that it can be used to compare trees of
-different sizes.
-
-Rather than assigning numbers to individual trees, pairwise measures associate
-a numeric value to each \textit{pair} of trees, indicating how different the
-trees are from each other. Distance measures allow us to identify groups of
-related phylogenies, for example, local epidemics which are undergoing a
-similar pattern of expansion. One such distance measure is the
+One of the most widely used tree summary statistics is Sackin's
+index~\autocite{shao1990tree}, which measures the imbalance or asymmetry in a
+rooted tree. For the $i$th tip of the tree, we define $N_i$ to be the number of
+branches between that tip and the root. The unnormalized Sackin's index is
+defined as the sum of all $N_i$. It is called unnormalized because it does not
+account for the number of tips in the tree. Among two trees having the same
+number of tips, the least-balanced tree will have the highest Sackin's index.
+However, among two equally balanced trees, the larger tree will have a higher
+Sackin's index. This makes it challenging to compare balances among trees of
+different sizes. To correct this, \textcite{kirkpatrick1993searching} derive
+the expected value of Sackin' index under the Yule
+model~\autocite{yule1925mathematical}. Dividing by this expected value
+normalizes Sackin's index, so that it can be used to compare trees of different
+sizes. An example of a pairwise measure is the
 \gls{nltt}~\autocite{janzen2015approximate}, which compares the
 \gls{ltt}~\autocite{nee1992tempo} plots of two trees. Specifically, the two
 \gls{ltt} plots are normalized so that they begin at $(0, 0)$ and end at $(1,
-1)$, and the difference between the two plots is integrated between 0 and 1. In
-the context of infectious diseases, the \gls{ltt} is related to the
+1)$, and the absolute difference between the two plots is integrated between 0
+and 1. In the context of infectious diseases, the \gls{ltt} is related to the
 prevalence~\autocite{holmes1995revealing}, so large values may indicate that
 the trees being compared are the products of different epidemic
 trajectories~\autocite{janzen2015approximate}.
@@ -301,7 +284,7 @@ compare objects in a space $\X$ by mapping them into a feature space $\F$ of
 high or infinite dimension via a function $\varphi$. The similarity between the
 objects is defined as
 \[  
-  K(x, x') = <\varphi(x), \varphi(x')>,
+  K(x, x') = \langle \varphi(x), \varphi(x')\rangle,
 \]
 that is, the inner product of the objects' representations in the feature
 space. Computing $\varphi(x)$ may be computationally prohibitive due to the
@@ -494,8 +477,8 @@ epidemic threshold~\autocite{pastor2001epidemic}, meaning that diseases with
 arbitrarily low transmissibility can persist at low levels indefinitely. This
 is in contrast with homogeneously mixed populations, in which transmissibility
 below the epidemic threshold would result in exponential decay in the number of
-infected individuals and eventual extinction of the pathogen (Anderson \& May,
-I think). 
+infected individuals and eventual extinction of the
+pathogen~\autocite{anderson1992infectious}.
 
 One mechanism which has been shown to lead to scale-free networks is
 \defn{preferential attachment}~\autocite{simon1955class,
@@ -539,7 +522,7 @@ lead to that topology. In other words, it impossible to distinguish who
 transmitted to whom from a transmission tree alone~\autocite{bernard2007hiv}.
 
 A number of studies have made progress in quantifying the relationship between
-contact networks and transmission trees. \textcite{o2010contact} simulated
+contact networks and transmission trees. \textcite{o2011contact} simulated
 epidemics over networks with four types of degree distribution. They then
 estimated the Bayesian skyride~\autocite{minin2008smooth} population size
 trajectory in two ways: from the phylogeny, using \gls{MCMC}; and from the
@@ -557,15 +540,26 @@ clustering could not generally be distinguished from those simulated under
 highly clustered networks, and concluded that contact network clusters do not
 affect transmission tree shape. However, more recently,
 \textcite{villandre2016assessment} investigated the correspondence between
-contact network clusters and transmission tree clusters, and found a moderate
-correspondence between the two.
+contact network clusters and transmission tree clusters, and did find a
+moderate correspondence between the two in some cases.
 
 \section{Sequential Monte Carlo}
 \label{sec:smc}
 
-\Gls{SMC} is a statistical inference method which samples from a sequence of
-probability distributions in a fixed order~\autocite{del2006sequential}, based
-on a technique called \gls{SIS}.
+\glsreset{SMC}
+
+\subsection{Overview and notation}
+
+\Gls{SMC} is the name for a family of statistical inference methods which rely
+on approximating probability distributions of interest with large collections
+of \defn{particles}, here denoted
+$\set{x^{(k)}}$~\autocite{doucet2001introduction, liu2008monte}. These
+collections or \defn{populations} are constructed to form a \defn{Monte Carlo
+approximation} to some distribution of interest $\pi$, meaning that the
+empirical distribution of the particles converges in distribution to $\pi$ as
+the population size gets large~\autocite{liu2001theoretical}. The word
+\defn{sequential} is used because the particle populations are modified in an
+iterative fashion over time, for example, to incorporate new evidence. 
 
 To fully describe \gls{SMC}, we will introduce some notation and terminology.
 The definitions of these terms will become clearer as they are used. For a
@@ -582,19 +576,20 @@ matrix in a finite-state Markov model.  For some spaces $X$ and $Y$, $K \maps X
     \int_Y K(x, y) \d y = 1
 \end{align}
 for all $x \in X$. This is an ``operational'' definition of Markov kernel which
-will be suitable for our purposes. A more precise definition can be found in
-\textbf{TODO}. Note that a Markov kernels have nothing to do with the kernel
-functions defined in \cref{subsec:treeshape}, other than sharing a name (the
-word ``kernel'' is ubiquitous in mathematics).
+will be suitable for our purposes. Note that a Markov kernels have nothing to
+do with the kernel functions defined in \cref{subsec:treeshape}, other than
+sharing a name (the word ``kernel'' is ubiquitous in mathematics).
 
-\subsection{Sequential importance sampling}
+\subsection{Sequential importance sampling for sequential Monte Carlo}
 \label{subsec:sis}
 
-The basis of \gls{SIS} is \gls{IS}, which is a method of estimating summary
-statistics of distributions which are known only up to a normalizing constant,
-and therefore cannot be sampled from directly. That is, if $\pi$ is such a
-distribution and $f$ is any real-valued function, \gls{IS} is concerned with
-estimating
+\Gls{SIS} is one type of \gls{SMC} method, whose aim is to sample from a
+distribution $\pi$ on an high-dimensional space, say $\pi(\vec{x}) = \pi(x_1,
+\ldots, x_d)$. The basis of \gls{SIS} is \gls{IS}, which is a method of
+estimating summary statistics of distributions which are known only up to a
+normalizing constant, and therefore cannot be sampled from directly. That is,
+if $\pi$ is such a distribution and $f$ is any real-valued function, \gls{IS}
+is concerned with estimating
 \[
   \pi(f) = \int f(x)\pi(x)\d x = \int f(x) \frac{\gamma(x)}{Z} \d x,
 \]
@@ -621,10 +616,9 @@ the practical use of \gls{IS} on its own is limited, since it depends on
 finding an importance distribution similar to $\pi$, which we usually know very
 little about \textit{a priori}.
 
-\gls{SIS} applies \gls{IS} to the problem of sampling from a distribution $\pi$ 
-on an high-dimensional space, say $\pi(\vec{x}) = \pi(x_1, \ldots, x_d)$. The
-objective is to build up an importance distribution $\eta$ for $\pi$
-sequentially. By the general product rule, $\pi(\vec{x})$ can be decomposed as
+The objective of \gls{SIS} is to build up an importance distribution $\eta$ for
+$\pi$ sequentially. By the general product rule, $\pi(\vec{x})$ can be
+decomposed as
 \[
   \pi(\vec{x}) 
   = \pi(x_1) \pi(x_2 \mid x_1) \cdots
@@ -714,7 +708,7 @@ population, and also equalizes all the weights. Various resampling strategies
 beyond the basic sampling with replacement have been proposed, but we will not
 discuss those here. 
 
-\subsection{Sequential Monte Carlo samplers}
+\subsection{The sequential Monte Carlo sampler}
 \label{subsec:smcsamp}
 
 The \gls{SIS} algorithm described above aims to sample from a high-dimensional
@@ -745,7 +739,7 @@ $\pi_{i+1}$. In particular, the sequence of importance distributions $\eta_i$
 is constructed as
 \begin{align}
   \label{eq:impint}
-  \eta_i(x) = \int \eta_{i-1}(\xi) K_i(\xi, x) \d\xi,
+  \eta_i(x') = \int \eta_{i-1}(x) K_i(x, x') \d x,
 \end{align}
 where $K_i$ is a Markov kernel and the integral is over the space on which the
 $\pi_i$ are defined. The choice of $K_i$ should be based on the percieved
@@ -753,7 +747,7 @@ relationship between $\pi_{i-1}$ and $\pi_i$. \textcite{del2006sequential}
 propose the use of a \gls{MCMC} kernel with equilibrium distribution $\pi_i$.
 That is,
 \[
-  K_i(\xi, x) = \max\left(1, \frac{q(x, \xi)\pi_i(\xi)}{q(\xi, x)\pi_i(x)}\right),
+  K_i(x, x') = \max\left(1, \frac{q(x', x)\pi_i(x)}{q(x, x')\pi_i(x')}\right),
 \]
 where $q(\xi, x)$ is a proposal function such as a Gaussian distribution
 centered at $\xi$ (see \cref{subsec:mfit}). 
@@ -804,12 +798,14 @@ The final key piece of information is to notice that, because the $L_i$ are
 Markov kernels, $\pi_i$ is simply the marginal in $\vec{x_{i-1}}$ of
 $\tilde{\pi}$. Therefore, a sample from $\tilde{\pi}_i$ automatically gets us a
 sample from $\pi_i$, by considering only the $i$th component of $\vec{x_i}$.
-These are all the ingredients we need to apply \gls{SMC}. The sequences of
+These are all the ingredients we need to apply \gls{SIS}. The sequences of
 kernels $L$ and $K$ should be chosen based on the problem at hand to inimize
 the variance in the importance weights as well as possible. For a fixed choice
 of $K_i$, the backward kernels $L_i$ which minimize this variance are called
 the \defn{optimal} backward kernels. The full \gls{SMC} sampler algorithm is
-presented as \cref{alg:smcsamp}.
+presented as \cref{alg:smcsamp}. A resampling step is applied whenever the
+\gls{ESS} of the population drops too low, as discussed in the previous
+section.
 
 \begin{algorithm}
   \caption{Sequential Monte Carlo sampler of \textcite{del2006sequential}.}
@@ -848,68 +844,61 @@ presented as \cref{alg:smcsamp}.
 \label{subsec:mfit}
 
 A \defn{mathematical model} is a formal description of a hypothesized
-relationship between some observed data, $\vec{x} = \set{x_1, \ldots, x_n}$,
-and outcomes, $\vec{y} = \set{y_1, \ldots, y_n}$. A \defn{parametric} model
-defines a family of possible relationships between data and outcomes, indexed
-by one or more numeric parameters $\theta$. A \defn{statistical} model
-describes the relationship between data and outcomes in terms of probabilities.
-Statistical models define, either explicitly or implicitly, the probability of
-observing $\vec{y}$ given $\vec{x}$ and, if the model is parametric, $\theta$.
-In this context, the observed outcomes are taken to be realizations of random
-variables $\vec{Y} = \set{Y_1, \ldots, Y_n}$. Note that it is entirely possible
-to have no data $\vec{x}$, only observed outcomes $\vec{y}$. In this case, a
-model would describe the process by which $\vec{y}$ is generated.
+relationship between some observed data, $x$ and outcomes $y$. A
+\defn{parametric} model defines a family of possible relationships between data
+and outcomes, indexed by one or more numeric parameters $\theta$. A
+\defn{statistical} model describes the relationship between data and outcomes
+in terms of probabilities. Statistical models define, either explicitly or
+implicitly, the probability of observing $y$ given $\vec{x}$ and, if the
+model is parametric, $\theta$. Note that it is entirely possible to have no
+data $\vec{x}$, only observed outcomes $y$. In this case, a model would
+describe the process by which $y$ is generated.
 
 To illustrate these concepts, consider the well-known linear model. For
 clarity, we will restrict our attention to the case of one-dimensional data and
-outcomes where each $x_i$ and $y_i$ is a single real number. The linear model
-postulates that the outcomes are linearly related to the data, modulo some
-noise introduced by measurement error, environmental fluctuations, and other
-external factors. Formally, $y_i = \beta x_i + \varepsilon_i$, where $\beta$ is
-the slope of the linear relationship, and $\varepsilon_i$ is the error
-associated with measurement $i$. We can make this model a statistical one by
-hypothesizing a distribution for the error terms $\varepsilon_i$; most
-commonly, it is assumed that they are normally distributed with variance
-$\sigma$. In mathematical terms, $Y_i \sim \beta x_i + \N(0, \sigma^2)$, where
-``$\sim$'' means ``is distributed as''. We can see from this formulation that
-the model is parametric, with parameters $\theta$ = ($\beta$, $\sigma$).
-Moreover, we can write down the probability density of observing outcome $y_i$
-given the parameters,
+outcomes where $x = \set{x_1, \ldots, x_n}$ and $y = \set{y_1, \ldots, y_n}$
+are vectors of real numbers. The linear model postulates that the outcomes are
+linearly related to the data, modulo some noise introduced by measurement
+error, environmental fluctuations, and other external factors. Formally, $y_i =
+\beta x_i + \varepsilon_i$, where $\beta$ is the slope of the linear
+relationship, and $\varepsilon_i$ is the error associated with measurement $i$.
+We can make this model a statistical one by hypothesizing a distribution for
+the error terms $\varepsilon_i$; most commonly, it is assumed that they are
+normally distributed with variance $\sigma$. In mathematical terms, $Y_i \sim
+\beta x_i + \N(0, \sigma^2)$, where ``$\sim$'' means ``is distributed as''. We
+can see from this formulation that the model is parametric, with parameters
+$\theta$ = ($\beta$, $\sigma$). Moreover, we can write down the probability
+density $\pi$ of observing outcome $y_i$ given the parameters,
 \[
-  \Pr(Y_i = y_i \mid \beta, \sigma) = 
-  \Pr\left(\N(0, \sigma^2) = y_i - \beta x_i\right).
+  \pi(y \mid \beta, \sigma) = 
+  \prod_{i=1}^n f_{\N(0, \sigma^2)} (y_i - \beta x_i),
 \]
-Note that we have followed the standard statistical abuse of notation and used
-``$\Pr$'' to refer to a probability \emph{density}, rather than a probability.
-Also, we are treating the $x_i$ as fixed quantities, and therefore have not
-conditioned the probability density on $\vec{x}$. Assuming all the $y_i$ are
-independent, the probability density of the entire observed set of outcomes is
-the product of the probability density of each individual $y_i$,
-\[
-  \Pr(\vec{Y} = \vec{y} \mid \beta, \sigma) = 
-  \prod_{i=1}^N \Pr(Y_i = y_i \mid \beta, \sigma).
-\]
+where $f_{\N(0, \sigma^2)}$ is the probability density of the normal
+distribution with mean zero and variance $\sigma^2$. Note that we are treating
+the $x_i$ as fixed quantities, and therefore have not conditioned the
+probability density on $\vec{x}$. Also, we have assumed that all the $y_i$ are
+independent.
 
-For a general model, the probability density of $\vec{y}$ given the parameters
+TODO
+
+For a general model, the probability density of $y$ given the parameters
 $\theta$ is also known as the \defn{likelihood}, written $\L$, of $\theta$.
-That is, $\L(\theta \mid \vec{y}) = \Pr(\vec{y} \mid \theta)$. The higher the
-value of the likelihood, the more likely the observations $\vec{y}$ are under
-the model. Thus, the likelihood provides a natural criterion for fitting the
-model parameters: we want to pick $\theta$ such that the probability density of
-our observed outcomes $\vec{y}$ is as high as possible. The parameters which
-optimize the likelihood are known as the \textit{\gls{ML}} estimates, denoted
-$\hat{\theta}$. That is,
+That is, $\L(\theta \mid y) = f(y \mid \theta)$ for the model's \gls{pdf} $f$.
+The higher the value of the likelihood, the more likely the observations $y$
+are under the model. Thus, the likelihood provides a natural criterion for
+fitting the model parameters: we want to pick $\theta$ such that the
+probability density of our observed outcomes $y$ is as high as possible. The
+parameters which optimize the likelihood are known as the \textit{\gls{ML}}
+estimates, denoted $\hat{\theta}$. That is,
 \[
-  \hat{\theta} = \argmax_\theta\; \Pr(\vec{y} \mid \theta).
+  \hat{\theta} = \argmax_\theta\; \L(\theta \mid y).
 \]
 \Gls{ML} estimation is usually performed with numerical optimization. In the
 simplest terms, many possible values for $\theta$ are examined, $\L(\theta \mid
-\vec{y})$ is calculated for each, and the parameters which produce the highest
-value are accepted. Many sophisticated numerical optimization methods exist,
-although they may not be guaranteed to find the true \gls{ML} estimates if the
-likelihood function is complex. Occasionally, as is the case with linear
-regression, the \gls{ML} estimates can be found explicitly by setting the
-likelihood function's derivatives to zero.
+y)$ is calculated for each, and the parameters which produce the highest value
+are accepted. Many sophisticated numerical optimization methods exist, although
+they may not be guaranteed to find the true \gls{ML} estimates if the
+likelihood function is complex. 
 
 \Gls{ML} estimation makes use only of the data and outcomes to estimate the
 model parameters $\theta$. However, it is frequently the case that the
@@ -919,25 +908,26 @@ to measure the outcomes may have a well-known margin of error, or the sign of
 the slope may be obvious from previous experiments. The Bayesian approach to
 model fitting makes use of this information by codifying the investigator's
 beliefs as a \defn{prior distribution} on the parameters, denoted
-$\Pr(\theta)$. Instead of considering only the likelihood, Bayesian inference
-focuses on the product of the likelihood and the prior, $\Pr(\vec{y} \mid
-\theta) \Pr(\theta)$. Bayes' theorem tells us that this product is related to
-the \textit{posterior distribution} on $\theta$,
-\[
-  \Pr(\theta \mid \vec{y}) = \frac{\Pr(\vec{y} \mid \theta) \Pr(\theta)}
-                                  {\Pr(\vec{y})}.
-\]
-
-In principle, $\Pr(\vec{y} \mid \theta) \Pr(\theta)$ can be optimized
-numerically just like $\L(\theta \mid \vec{y})$, which would also optimize the
-posterior distribution. The resulting optimal parameters are called the
-\gls{MAP} estimates. However, from a Bayesian perspective, $\theta$ is not a
-fixed quantity to be estimated, but rather a random variable with an associated
-distribution (the posterior). Therefore, the \gls{MAP} estimate by itself is of
-limited value without associated statistics about the posterior distribution,
-such as the mean or credible intervals. Unfortunately, to calculate such
-statistics, it is necessary to evaluate the normalizing constant
-$\Pr(\vec{y})$, which is almost always an intractable integral.
+$\pi(\theta)$. Instead of considering only the likelihood, Bayesian inference
+focuses on the product of the likelihood and the prior, $f(y \mid \theta)
+\pi(\theta)$. Bayes' theorem tells us that this product is related to the
+\textit{posterior distribution} on $\theta$,
+\begin{align}
+  f(\theta \mid y) 
+    = \frac{f(y \mid \theta) \pi(\theta)}
+           {\int f(y \mid \theta) \pi(\theta) \d \theta}.
+  \label{eq:bayes}
+\end{align}
+In principle, $f(y \mid \theta) \pi(\theta)$ can be optimized numerically just
+like $\L(\theta \mid y)$, which would also optimize the posterior distribution.
+The resulting optimal parameters are called the \gls{MAP} estimates. However,
+from a Bayesian perspective, $\theta$ is not a fixed quantity to be estimated,
+but rather a random variable with an associated distribution (the posterior).
+Therefore, the \gls{MAP} estimate by itself is of limited value without
+associated statistics about the posterior distribution, such as the mean or
+credible intervals. Unfortunately, to calculate such statistics, it is
+necessary to evaluate the normalizing constant in the denominator of
+\cref{eq:bayes}, which is almost always an intractable integral.
 
 A popular method for circumventing the normalizing constant is the use of
 \gls{MCMC} to obtain a sample from the posterior distribution. \Gls{MCMC} works
@@ -945,14 +935,14 @@ by defining a Markov chain whose states are indexed by possible model
 parameters. The transition probability from state $\theta_1$ to state
 $\theta_2$ is taken to be
 \[
-  \max\left(1, \frac{\Pr(\vec{y} \mid \theta_2) \Pr(\theta_2) q(\theta_2, \theta_1)}
-                    {\Pr(\vec{y} \mid \theta_1) \Pr(\theta_2) q(\theta_1, \theta_2)} \right),
+  \max\left(1, \frac{f(y \mid \theta_2) \pi(\theta_2) q(\theta_2, \theta_1)}
+                    {f(y \mid \theta_1) \pi(\theta_2) q(\theta_1, \theta_2)} \right),
 \]
 where $q(\theta, \theta')$ is a symmetric \defn{proposal distribution} used in
 the algorithm to generate the chain. The stationary distribution of this Markov
 chain is equal to the posterior distribution on $\theta$. Therefore, if a long
 enough random walk is performed on the chain, the distribution of states
-visited will be a Monte Carlo approximation of $\Pr(\theta \mid \vec{y})$, from
+visited will be a Monte Carlo approximation of $\Pr(\theta \mid y)$, from
 which we can calculate statistics of interest. Actually performing this random
 walk is straightforward and can be accomplished via the Metropolis-Hastings
 algorithm (\cref{alg:mh}).
@@ -960,13 +950,13 @@ algorithm (\cref{alg:mh}).
 \begin{algorithm}
   \caption{Metropolis-Hastings algorithm for Markov chain Monte Carlo.}
   \begin{algorithmic}
-    \State Draw $\theta$ according to $\Pr(\theta)$
+    \State Draw $\theta$ according to the prior $\pi(\theta)$
     \Loop
       \State Propose $\theta'$ according to $q(\theta, \theta')$
       \State Accept $\theta \gets \theta'$ with probability
       $\max \left( 1, 
-       \dfrac{\Pr(\vec{y} \mid \theta') \Pr(\theta') q(\theta', \theta)}
-             {\Pr(\vec{y} \mid \theta\phantom{'}) \Pr(\theta\phantom{'}) q(\theta, \theta')}
+       \dfrac{f(y \mid \theta') \pi(\theta') q(\theta', \theta)}
+             {f(y \mid \theta\phantom{'}) \pi(\theta\phantom{'}) q(\theta, \theta')}
        \right)$
     \EndLoop
   \end{algorithmic}
@@ -978,46 +968,44 @@ algorithm (\cref{alg:mh}).
 
 Most mathematical models are amenable to fitting via one or both of the
 approaches, \gls{ML} or Bayesian inference, discussed above. However, there are
-some, particularly in the domain of population genetics, for which calculation
-of either the likelihood or the product of the likelihood and the prior may be
-infeasible. For example, one or both of these quantities may be expressible
-only as an intractable integral. \Gls{ABC} is designed for such cases, where
-standard likelihood-based techniques for model fitting cannot be applied. Such
-models are particularly prevalent in population
-genetics~\autocite{beaumont2002approximate, beaumont2010approximate}. 
+some, particularly in the domain of population
+genetics~\autocite{beaumont2002approximate, beaumont2010approximate}, for which
+calculation of either the likelihood or the product of the likelihood and the
+prior may be infeasible. For example, one or both of these quantities may be
+expressible only as an intractable integral. \Gls{ABC} is designed for such
+cases, where standard likelihood-based techniques for model fitting cannot be
+applied. 
 
-Ordinarily, Bayesian inference targets the posterior distribution $\Pr(\theta
-\mid \vec{y})$. That is, in the Bayesian framework, model parameters with
-higher posterior density are ``better'' in the sense that they offer a more
-credible explanation for the observed data. Approximate Bayesian computation
-offers an alternative metric for parameter credibility, namely the similarity
-of simulated datasets to the observed data. If datasets simulated under the
-model closely resemble the real data, it follows that the model is a reasonable
+Ordinarily, Bayesian inference targets the posterior distribution $f(\theta
+\mid y)$. That is, in the Bayesian framework, model parameters with higher
+posterior density are ``better'' in the sense that they offer a more credible
+explanation for the observed data. Approximate Bayesian computation offers an
+alternative metric for parameter credibility, namely the similarity of
+simulated datasets to the observed data. If datasets simulated under the model
+closely resemble the real data, it follows that the model is a reasonable
 approximation to the real-world process generating the observed data. More
 formally, suppose we have a distance measure $\rho$ defined on the space of all
 possible data our model could generate. \gls{ABC} aims to sample from the joint
-posterior distribution of model parameters and simulated datasets $\vec{z}$
-which are within some small distance $\varepsilon$ of the observed data
-$\vec{y}$,
+posterior distribution of model parameters and simulated datasets $z$ which are
+within some small distance $\varepsilon$ of the observed data $y$,
 \[
-  \Pr(\theta, \vec{z} \mid \vec{y}, \varepsilon) =
-  \frac{\Pr(\theta) \Pr(\vec{z} \mid \theta) \I_{A_{\varepsilon, \vec{y}}} (\vec{z})}
-  {\int_{A_{\varepsilon, \vec{y}} \times \Theta} \Pr(\theta) \Pr(\vec{z} \mid \theta) \d \theta}.
+  \pi_{\varepsilon}(\theta, z \mid y) =
+  \frac{\pi(\theta) f(z \mid \theta) \I_{A_{\varepsilon, y}} (z)}
+  {\int_{A_{\varepsilon, y} \times \Theta} \pi(\theta) f(z \mid \theta) \d \theta}.
 \]
-Here, $A_{\varepsilon, \vec{y}}$ is an $\varepsilon$-ball around $\vec{y}$ with
+Here, $A_{\varepsilon, y}$ is an $\varepsilon$-ball around $y$ with
 respect to $\rho$, $\Theta$ is the space of all possible model parameters, and
 $\I$ is the indicator function~\autocite{marin2012approximate}. As we shall
 see in the next section, this distribution can be sampled from exactly. The
 word ``approximate'' derives from the assumption that, for a suitably chosen
-distance $\rho$ and a small enough $\varepsilon$, the marginal in $\vec{z}$ of
+distance $\rho$ and a small enough $\varepsilon$, the marginal in $z$ of
 this distribution approximates the posterior of
 interest~\autocite{marin2012approximate}. That is,
 \[
-  \int \Pr(\theta, \vec{z} \mid \vec{y}, \varepsilon) \d\vec{z}
-  \approx \Pr(\theta \mid \vec{y}).
+  \int \pi_\varepsilon(\theta, z \mid y) \d z \approx f(\theta \mid y).
 \]
-To emphasize that the distribution on the left only approximates the posterior,
-we will refer to it as the \textit{\gls{ABC} target distribution}. Note that in
+This distribution is variously referred to as the  \textit{\gls{ABC} target
+distribution} or the \gls{ABC} approximation to the posterior. Note that in
 many formulations, the distance function $\rho$ is defined as $\rho(S(\cdot),
 S(\cdot))$ where $S$ is a function which maps data points into a vector of
 summary statistics. This can be useful if the data are high-dimensional or of a
@@ -1034,22 +1022,24 @@ Algorithms for performing \gls{ABC} fall into one of three categories:
 rejection, \gls{MCMC}, and \gls{SMC}. To simplify the math, we shall restrict
 the descriptions of these algorithms to the case of one simulated dataset per
 parameter particle (the meaning of this will become clear shortly). The
-extension to multiple datasets per particle will be given at the end.
+extension to multiple datasets per particle is straightforward and will be
+given at the end of the section. We use the variable $x$ to refer to the pair
+$(\theta, z)$, so that the \gls{ABC} target distribution can be written
+$\pi_\varepsilon(x \mid y)$.
 
 Rejection ABC is the simplest method, and also the one which was first
 proposed~\autocite{rubin1984bayesianly, tavare1997inferring}. The algorithm,
 outlined in \cref{alg:abcrej}, repeats the following steps until a desired
 number of samples from the target distribution are obtained. Parameter values
-$\theta$ are sampled according to the prior distribution $\Pr(\theta)$. Then, a
-simulated dataset $\vec{z}$ is generated from the model with the sampled
-parameter values. By definition, the probability density of obtaining the
-particular dataset $\vec{z}$ is $\Pr(\vec{z} \mid \theta)$. Finally, the
-parameters are sampled if the distance of $\vec{z}$ from the observed data
-$\vec{y}$ is less than $\varepsilon$ - that is, with probability
-$\I_{A_{\varepsilon, \vec{y}}}(\vec{z})$. Putting this all together, the
+$\theta$ are sampled according to the prior distribution $\pi(\theta)$. Then, a
+simulated dataset $z$ is generated from the model with the sampled parameter
+values. By definition, the probability density of obtaining the particular
+dataset $z$ is $f(z \mid \theta)$. Finally, the parameters are sampled if the
+distance of $z$ from the observed data $y$ is less than $\varepsilon$, that is,
+with probability $\I_{A_{\varepsilon, y}}(z)$. Putting this all together, the
 parameters $\theta$ are sampled with probability proportional to
 \[
-  \Pr(\theta) \Pr(\vec{z} \mid \theta) \I_{A_{\varepsilon, \vec{y}}}(\vec{z}),
+  \pi(\theta) f(z \mid \theta) \I_{A_{\varepsilon, y}}(z),
 \]
 which is exactly the numerator of the \gls{ABC} target distribution. Thus,
 $\theta$ represents an unbiased sample from the approximate posterior.
@@ -1058,9 +1048,9 @@ $\theta$ represents an unbiased sample from the approximate posterior.
   \caption{Rejection \gls{ABC}.}
   \begin{algorithmic}
     \Loop
-      \State Draw $\theta$ according to $\Pr(\theta)$
-      \State Simulate a dataset $\vec{z}$ from the model with parameters $\theta$
-      \If{$\rho(\vec{y}, \vec{z}) < \varepsilon$}
+      \State Draw $\theta$ according to $\pi(\theta)$
+      \State Simulate a dataset $z$ from the model with parameters $\theta$
+      \If{$\rho(y, z) < \varepsilon$}
         \State Sample $\theta$
       \EndIf
     \EndLoop
@@ -1071,23 +1061,22 @@ $\theta$ represents an unbiased sample from the approximate posterior.
 Rejection \gls{ABC} is easy to understand and implement, but it is not
 generally computationally feasible. If the posterior is very different from the
 prior, a very large number of samples may need to be taken in order to find a
-simulated dataset which is close to $\vec{z}$. The inefficiency is compounded
+simulated dataset which is close to $z$. The inefficiency is compounded
 by the curse of dimensionality - the measure of the $\varepsilon$-ball around
-$\vec{y}$ decreases exponentially with the number of dimensions.
+$y$ decreases exponentially with the number of dimensions.
 \gls{ABC}-\gls{MCMC} (\cref{alg:abcmcmc}) was designed to overcome these
 hurdles~\autocite{marjoram2003markov}. The approach is similar to ordinary
 Bayesian \gls{MCMC} (\cref{subsec:mfit}), except that a distance cutoff
 replaces the likelihood ratio. That is, the transition probability between
-states $\theta_1$ and $\theta_2$, with simulated datasets $\vec{z_1}$ and
-$\vec{z_2}$, is defined as
+states $x$ and $x'$ is defined as
 \[
-  \max\left(1, \frac{\Pr(\vec{z_2} \mid \theta_2) q(\theta_2, \theta_1)}
-                    {\Pr(\vec{z_1} \mid \theta_1) q(\theta_1, \theta_2)} 
-    \cdot \I_{A_{\varepsilon, \vec{y}}}(\vec{z_2}) \right).
+  \max\left(1, \frac{f(z' \mid \theta') q(\theta', \theta)}
+                    {f(z \mid \theta) q(\theta, \theta')} 
+    \cdot \I_{A_{\varepsilon, y}}(z') \right).
 \]
 
 \begin{algorithm}
-  \caption{ABC-MCMC.}
+  \caption{\gls{ABC}-\gls{MCMC}.}
   \begin{algorithmic}
     \State Draw $\theta$ according to $\Pr(\theta)$
     \Loop
@@ -1096,9 +1085,9 @@ $\vec{z_2}$, is defined as
              parameters $\theta$
       \State Accept $\theta \gets \theta'$ with probability
       $\max \left( 1, 
-       \dfrac{\Pr(\theta') q(\theta', \theta)}
-             {\Pr(\theta\phantom{'}) q(\theta, \theta')} 
-       \cdot \I_{A_{\varepsilon, \vec{y}}}(\vec{z'}) \right)$
+       \dfrac{\pi(\theta') q(\theta', \theta)}
+             {\pi(\theta\phantom{'}) q(\theta, \theta')} 
+       \cdot \I_{A_{\varepsilon, y}}(z') \right)$
     \EndLoop
   \end{algorithmic}
   \label{alg:abcmcmc}
@@ -1116,14 +1105,14 @@ The most recently developed class of algorithm for \gls{ABC} is
 with \gls{ABC}-\gls{MCMC}, the algorithm is a straightforward modification of
 an existing Bayesian inference method, in this case the \gls{SMC} sampler
 (\cref{subsec:smcsamp}). The sequence of target distributions is defined as
-$\pi_i = \Pr(\theta, \vec{z} \mid \vec{y}, \varepsilon_i)$ for a decreasing
-sequence of tolerances $\varepsilon_i$. The intention is for the algorithm to
-progress smoothly through a sequence of target distributions which ends at the
-\gls{ABC} approximation to the posterior. As discussed in
-\cref{subsec:smcsamp}, the choices of the kernels $K$ and $L$ is
-problem-specific, and so appropriate kernels must be chosen for \gls{ABC}.
-Several options have been proposed~\autocite{beaumont2009adaptive,
-sisson2007sequential, del2012adaptive}.
+$\pi_i = \pi_{\varepsilon_i}(x \mid y)$ for a decreasing sequence of tolerances
+$\varepsilon_i$. The intention is for the algorithm to progress smoothly
+through a sequence of target distributions which ends at the \gls{ABC}
+approximation to the posterior. As discussed in \cref{subsec:smcsamp}, the
+choices of the kernels $K$ and $L$ is problem-specific, and so appropriate
+kernels must be chosen for \gls{ABC}. Several options have been
+proposed~\autocite{beaumont2009adaptive, sisson2007sequential,
+del2012adaptive}.
 
 All the algorithms discussed in this section can be straightforwardly extended
 to sample from the joint distribution
@@ -1132,7 +1121,7 @@ to sample from the joint distribution
 \]
 which is equivalent to associating $M$ simulated datasets to each parameter
 particle instead of just one. The simulated dataset $z$ is replaced by
-$\vec{z} = z_1, \ldots, z_M$, and the indicator function for the
+$z = z_1, \ldots, z_M$, and the indicator function for the
 $\varepsilon$-ball around $y$ is replaced by
 \[
   \sum_{k=1}^M \I_{A_{\varepsilon, y}} (z_i).

@@ -194,7 +194,7 @@ solved numerically by bisection. The forward kernels $K_i$ are taken to be
 \gls{MCMC} kernels with stationary distributions $\pi_{\varepsilon_i}$ and
 proposal distributions
 \[
-  q_i(\theta, \theta') \prod_{k=1}^M \Pr(X_i^{(k)}' \mid \theta'),
+  q_i(\theta, \theta') \prod_{k=1}^M \Pr(X_i^{(k)'} \mid \theta'),
 \]
 where $\theta$ is the vector of model parameters and $X_k$ are $M$ datasets
 simulated according to $\theta$. In our implementation, $q$ is a Gaussian
@@ -278,10 +278,10 @@ using our \software{treestat} binary, and stored them in a second $300 \times
 
 To investigate the effect of \gls{alpha} on tree shape, we constructed
 classifiers for \gls{alpha} based on three statistics. First, we used the
-\software{kernlab} package~\autocite{zeileis2004kernlab} to create a \gls{kSVM}
+\software{kernlab} package~\autocite{zeileis2004kernlab} to create a \gls{kSVR}
 classifier using the computed kernel matrix. Second, we used the
 \software{e1071} package~\autocite{meyer2015e1071} to create an ordinary
-\gls{SVM} classifier using the pairwise \gls{nltt} matrix. Finally, we
+\gls{SVR} classifier using the pairwise \gls{nltt} matrix. Finally, we
 performed an ordinary linear regression of \gls{alpha} against Sackin's index.
 Each of these classifiers was evaluated with 1000 two-fold cross-validations.
 We also performed a \gls{kPCA} projection of the kernel matrix, and used it to

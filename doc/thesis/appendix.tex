@@ -31,48 +31,96 @@
 \begin{figure}
   \centering
   \includegraphics{kernel-alpha-crossv.pdf}
+  \caption{
+    Cross validation accuracy of classifiers for \gls{BA} model parameter
+    \gls{alpha} for eight epidemic scenarios. Solid lines and points are
+    $R^2$ of tree kernel \gls{kSVR} under various kernel meta-parameters.
+    Dashed and dotted lines are $R^2$ of linear regression against Sackin's
+    index, and \gls{SVR} using \gls{nltt}.
+  }
   \label{fig:alphacrossv}
 \end{figure}
 
 \begin{figure}
   \centering
   \includegraphics{kernel-I-crossv.pdf}
+  \caption{
+    Cross validation accuracy of classifiers for \gls{BA} model parameter
+    \gls{I} for eight epidemic scenarios. Solid lines and points are $R^2$ of
+    tree kernel \gls{kSVR} under various kernel meta-parameters. Dashed and
+    dotted lines are $R^2$ of linear regression against Sackin's index, and
+    \gls{SVR} using \gls{nltt}.
+  }
   \label{fig:Icrossv}
 \end{figure}
 
 \begin{figure}
   \centering
   \includegraphics{kernel-m-crossv.pdf}
+  \caption{
+    Cross validation accuracy of classifiers for \gls{BA} model parameter
+    \gls{m} for eight epidemic scenarios. Solid lines and points are $R^2$ of
+    tree kernel \gls{kSVR} under various kernel meta-parameters. Dashed and
+    dotted lines are $R^2$ of linear regression against Sackin's index, and
+    \gls{SVR} using \gls{nltt}.
+  }
   \label{fig:mcrossv}
 \end{figure}
 
 \begin{figure}
   \centering
   \includegraphics{kernel-N-crossv.pdf}
+  \caption{
+    Cross validation accuracy of classifiers for \gls{BA} model parameter
+    \gls{N} for eight epidemic scenarios. Solid lines and points are $R^2$ of
+    tree kernel \gls{kSVR} under various kernel meta-parameters. Dashed and
+    dotted lines are $R^2$ of linear regression against Sackin's index, and
+    \gls{SVR} using \gls{nltt}.
+  }
   \label{fig:Ncrossv}
 \end{figure}
 
 \begin{figure}
   \centering
   \includegraphics{kernel-alpha-kpca.pdf}
+  \caption{
+    Kernel principal components projection of trees simulated under three
+    different values of \gls{BA} parameter \gls{alpha}, for eight epidemic
+    scenarios.
+  }
   \label{fig:alphakpca}
 \end{figure}
 
 \begin{figure}
   \centering
   \includegraphics{kernel-I-kpca.pdf}
+  \caption{
+    Kernel principal components projection of trees simulated under three
+    different values of \gls{BA} parameter \gls{I}, for eight epidemic
+    scenarios.
+  }
   \label{fig:Ikpca}
 \end{figure}
 
 \begin{figure}
   \centering
   \includegraphics{kernel-m-kpca.pdf}
+  \caption{
+    Kernel principal components projection of trees simulated under three
+    different values of \gls{BA} parameter \gls{m}, for eight epidemic
+    scenarios.
+  }
   \label{fig:mkpca}
 \end{figure}
 
 \begin{figure}
   \centering
   \includegraphics{kernel-N-kpca.pdf}
+  \caption{
+    Kernel principal components projection of trees simulated under three
+    different values of \gls{BA} parameter \gls{N}, for eight epidemic
+    scenarios.
+  }
   \label{fig:Nkpca}
 \end{figure}
 
@@ -118,4 +166,32 @@
     1.0, \gls{I} = 1000, and \gls{m} = 2. 
   }        
   \label{fig:gridN}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics{abc-point-estimate-m3.pdf}
+  \caption{                                              
+    \Acrlong{MAP} point estimates for \gls{BA} model parameters obtained by
+    running \software{netabc} on simulated data. Values shown are for
+    simulations with \gls{m} = 3. Dashed lines indicate true values. (A)
+    Estimates of \gls{alpha} and \gls{I} which were varied in these simulations
+    against known values. (B) Estimates of \gls{m} and \gls{N} which were held
+    fixed in these simulations at the values \gls{m} = 3 and \gls{N} = 5000.
+  }        
+  \label{fig:abcm3}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics{abc-point-estimate-m4.pdf}
+  \caption{                                              
+    \Acrlong{MAP} point estimates for \gls{BA} model parameters obtained by
+    running \software{netabc} on simulated data. Values shown are for
+    simulations with \gls{m} = 4. Dashed lines indicate true values. (A)
+    Estimates of \gls{alpha} and \gls{I} which were varied in these simulations
+    against known values. (B) Estimates of \gls{m} and \gls{N} which were held
+    fixed in these simulations at the values \gls{m} = 4 and \gls{N} = 5000.
+  }        
+  \label{fig:abcm4}
 \end{figure}
