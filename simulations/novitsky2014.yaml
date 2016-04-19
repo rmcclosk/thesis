@@ -160,8 +160,8 @@ Steps:
     abc-config:
         Extension: yaml
         Parameters:
-            m_min: 2
-            m_max: 6
+            m_min: [1, 2]
+            m_max: 5
             alpha_min: 0
             alpha_max: 2
             N_max: 10000
@@ -175,14 +175,15 @@ Steps:
             echo "time: 0" >> {abc-config}
             echo "transmit_rate: 1" >> {abc-config}
             echo "remove_rate: 0" >> {abc-config}
-            echo "m: [\"uniform\", {m_min}, {m_max}]" >> {abc-config}
+            echo "m: [\"discrete_uniform\", {m_min}, {m_max}]" >> {abc-config}
             echo "alpha: [\"uniform\", {alpha_min}, {alpha_max}]" >> {abc-config}
 
     abc:
         Extension: tsv
         Sleep: 600
         Threads: 12
-        Walltime: 08:00:00
+        Walltime: 016:00:00
+        Processes: 2
         Parameters:
             decay_factor: 0.3
             rbf_variance: 4
@@ -192,8 +193,8 @@ Steps:
             quality: 0.95
             final_epsilon: 0.0
             final_accept: 0.015
-            m_min: 2
-            m_max: 6
+            m_min: [1, 2]
+            m_max: 5
             N_max: 10000
             I_max: 10000
             alpha_min: 0
