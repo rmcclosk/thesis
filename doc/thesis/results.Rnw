@@ -306,7 +306,7 @@ see \cref{subsec:treeshape}). The average error for \gls{N} was
 on a grid from 1000 to 15000, and was positively correlated with the true value
 of \gls{N}
     (Spearman's $\rho$ = \Sexpr{value.cor["N", round(estimate, 2)]},
-    $p \Sexpr{value.cor["N", pp(p.value)]}$).
+    $p\ \Sexpr{value.cor["N", pp(p.value)]}$).
 
 \begin{figure}[ht]
   \centering

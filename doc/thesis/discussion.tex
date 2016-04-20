@@ -14,13 +14,7 @@ made to \software{netabc}. Firstly, our implementation uses simple multinomial
 sampling for the resampling step, as well as for generating the final sample
 from the target distribution.  Several other sampling strategies have been
 developed~\autocite{douc2005comparison}, and it is possible that the use of a
-more sophisticated scheme might increase the algorithm's accuracy. Secondly,
-the model parameters \gls{I}, \gls{N}, and \gls{m} are all integer-valued, but
-we treat them as continuous-valued when performing \gls{SMC}. This is not
-inherently wrong, in that it simply assigns equal probability density to the
-interval $[i, i+1)$ for all integers $i$. However, computational effort could
-be wasted if particles are moved around within these intervals. To improve
-efficiency, alternative proposals could be used for discrete-valued particles.
+more sophisticated scheme might increase the algorithm's accuracy. 
 
 % spatial networks, see section 5.4 in keeling2005networks
 

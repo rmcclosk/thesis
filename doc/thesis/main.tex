@@ -1,6 +1,7 @@
 \input{preamble}
 
 \begin{document}
+\pagenumbering{roman}
 
 \newcommand{\titlesize}{\Large}
 \newcommand{\subtitlesize}{\large}
@@ -37,6 +38,7 @@
   {\subtitlesize\copyright Rosemary Martha McCloskey, 2016\par}
 \end{titlepage}
 
+\setcounter{page}{2}
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
 \newpage
@@ -64,10 +66,10 @@
 
 \chapter*{Acknowledgements}
 \addcontentsline{toc}{chapter}{Acknowledgements}
-\input{acknowledgements}
+%\input{acknowledgements}
 \newpage
 
-
+\pagenumbering{arabic}
 \chapter{Introduction}
 
 \section{Objective}
@@ -88,8 +90,11 @@
 \chapter{Conclusion}
 \input{conclusion}
 
+\singlespacing
+\setlength{\bibitemsep}{10pt}
 \printbibliography
 \addcontentsline{toc}{chapter}{Bibliography}
+\onehalfspacing
 
 \chapter*{Appendix: Supplemental Figures}
 
