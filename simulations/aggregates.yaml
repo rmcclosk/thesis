@@ -1,0 +1,334 @@
+Name: aggregates
+Description: Plots and tables which aggregate multiple experiments together
+Processes: 1
+Sleep: 5
+Hostname: (n[0-9]|Brannigan)
+Steps:
+    abc:
+        Extension: tsv
+        Parameters:
+            m_min: [1, 2]
+            dataset: ["cuevas2009", "wang2015", "novitsky2014",
+                      "niculescu2015", "li2015"]
+        Interpreter: R --silent --vanilla
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            m <- collect.metadata("{dataset}/abc/*")
+            trace <- rownames(m)[m$m_min == {m_min}]
+            d <- fread(trace)[iter == max(iter),]
+            d <- d[sample(1:nrow(d), prob=weight, replace=TRUE)]
+            m <- c(as.list(collect.metadata(trace)), dataset="{dataset}")
+            yaml <- sub("^", "{{", sub(", $", "}}", gsub("\n", ", ", as.yaml(m))))
+            cat(paste0("#", yaml, "\n"), file="{abc}")
+            write.tsv(d, file="{abc}", append=TRUE)
+
+    tree:
+        Extension: nwk
+        Parameters:
+            m_min: [1, 2]
+            dataset: ["cuevas2009", "wang2015", "novitsky2014",
+                      "niculescu2015", "li2015", "shiino2014"]
+        Interpreter: R --silent --vanilla
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            tree <- read.tree(Sys.glob("{dataset}/subtree/*"))
+            cat("#{{dataset: {dataset}}}\n", file="{tree}")
+            write.tree(tree, file="{tree}", append=TRUE)
+
+    hpd:
+        Extension: tsv
+        Parameters:
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+            nparticle: 1000
+            nsample: 5
+            quality: 0.95
+            m_min: [1, 2]
+            m_max: 5
+            N_max: 10000
+            I_max: 10000
+            alpha_min: 0
+            alpha_max: 2
+        Depends: abc tree
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(coda))
+        Rule: |
+            m <- collect.metadata(strsplit( "{tree}", " ")[[1]])
+            m$ntip <- sapply(lapply(rownames(m), read.tree), Ntip)
+
+            d <- merge(collect.data(strsplit("{abc}", " ")[[1]]), m, by="dataset")
+            setDT(d)
+            d <- subset(d, m_min == {m_min})
+
+            d <- melt(d, measure.vars=c("alpha", "I", "N", "m"), variable.name="parameter")
+            d[,map := density(value)$x[which.max(density(value)$y)], by=list(parameter, dataset)]
+            d[,hpd.min := HPDinterval(mcmc(value))[,"lower"], by=list(parameter, dataset)]
+            d[,hpd.max := HPDinterval(mcmc(value))[,"upper"], by=list(parameter, dataset)]
+            setkey(d, parameter, dataset)
+            cat("#{yaml}\n", file="{hpd}")
+            write.tsv(unique(d), "{hpd}", append=TRUE)
+
+    hpd-plot:
+        Extension: pdf
+        Parameters:
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+            nparticle: 1000
+            nsample: 5
+            quality: 0.95
+            m_min: [1, 2]
+            m_max: 5
+            N_max: 10000
+            I_max: 10000
+            alpha_min: 0
+            alpha_max: 2
+            bctree: 0
+        Depends: hpd
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(coda))
+        Rule: |
+            d <- fread("{hpd}")
+            ds.names <- list(
+                novitsky2014="mixed/Botswana (Novitsky et al. 2013 & 2014)",
+                cuevas2009="mixed/Spain (Cuevas et al. 2009)",
+                li2015="MSM/China (Li et al. 2015)",
+                wang2015="MSM/China (Wang et al. 2015)",
+                niculescu2015="IDU/Romania (Niculescu et al. 2015)",
+                bctree="IDU/Canada (unpublished)"
+            )
+            if ({bctree} == 0) {{
+                d <- d[dataset != "bctree",]
+                ds.names <- ds.names[names(ds.names) != "bctree"]
+            }}
+
+            ds <- factor(d[,dataset], levels=names(ds.names), ordered=TRUE)
+            levels(ds) <- unlist(ds.names[levels(ds)])
+            d[,dataset := ds]
+            d[parameter == "m", map := round(map)]
+
+            # https://github.com/hadley/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
+            g_legend <- function(a.gplot) {{
+                tmp <- ggplot_gtable(ggplot_build(a.gplot))
+                leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+                tmp$grobs[[leg]]
+            }}
+            plot.aes <- aes(x=map, xmax=hpd.max, xmin=hpd.min, y=dataset,
+                            color=dataset, shape=dataset)
+            plot.theme <- theme(legend.position="none",
+                                axis.text.y=element_blank(), 
+                                axis.ticks.y=element_blank(),
+                                axis.title.y=element_text(angle=0),
+                                plot.margin=unit(c(0, 0.5, 0, 0.5), "line"),
+                                text=element_text(size=14))
+            palpha <- ggplot(d[parameter == 'alpha'], plot.aes) + 
+                        geom_point(size=3) + geom_errorbarh(height=0.2) + theme_bw() +
+                        labs(y=expression(alpha), x="") +
+                        xlim({alpha_min}, {alpha_max}) + plot.theme
+            pI <- ggplot(d[parameter == 'I'], plot.aes) +
+                    geom_point(size=3) + geom_errorbarh(height=0.2) + theme_bw() +
+                    labs(y="I", x="") + xlim(d[,min(ntip)], {I_max}) +
+                    plot.theme
+            pm <- ggplot(d[parameter == 'm'], plot.aes) +
+                    geom_point(size=3) + geom_errorbarh(height=0.2) +
+                    theme_bw() +
+                    labs(y="m", x="") + xlim({m_min}, {m_max}) +
+                    theme(axis.text.y=element_blank(), 
+                          axis.ticks.y=element_blank(),
+                          axis.title.y=element_text(angle=0),
+                          text=element_text(size=14)) +
+                    scale_color_discrete(guide = guide_legend(reverse=TRUE)) +
+                    scale_shape_discrete(guide = guide_legend(reverse=TRUE))
+            pN <- ggplot(d[parameter == 'N'], plot.aes) +
+                    geom_point(size=3) + geom_errorbarh(height=0.2) + theme_bw() +
+                    labs(y="N", x="") + xlim(d[,min(ntip)], {N_max}) +
+                    plot.theme
+            layout <- rbind(c(1,1,2,2), c(3,3,4,4), c(5,5,5,5))
+            g <- arrangeGrob(palpha, pI, pm + theme(legend.position="none"), pN, g_legend(pm), layout_matrix=layout)
+            ggsave(g, file="{hpd-plot}", width=6, height=5)
+
+    classifier:
+        Extension: tsv
+        Parameters:
+            parameter: ["alpha", "m", "N", "I"]
+            method: ["kernel", "sackin", "nltt"]
+        Interpreter: R --silent --vanilla
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            if ("{method}" == "kernel") {{
+                m <- collect.metadata("kernel-{parameter}/classifier/*")
+                m <- subset(m, decay_factor == 0.3 & rbf_variance == 4)
+            }} else if ("{method}" == "sackin") {{
+                m <- collect.metadata("kernel-{parameter}/stats-classifier/*")
+                m <- subset(m, statistic == "sackin")
+            }} else if ("{method}" == "nltt") {{
+                m <- collect.metadata("kernel-{parameter}/nltt-classifier/*")
+            }}
+            if ("{parameter}" == "alpha")
+                m <- subset(m, m == 2)
+            d <- setDT(collect.data(rownames(m)))
+            if ("nsimnode" %in% colnames(d))
+                d <- setnames(d, "nsimnode", "I")
+            cat("#{yaml}\n", file="{classifier}")
+            write.tsv(d, file="{classifier}", append=TRUE)
+
+    classifier-plot:
+        Extension: pdf
+        Parameters:
+            placeholder: foo
+        Depends: classifier
+        Interpreter: R --silent --vanilla
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            d <- suppressWarnings(collect.data(strsplit("{classifier}", " ")[[1]]))
+            setnames(setDT(d), "ntip", "tips")
+            d[,parameter := ifelse(is.na(parameter), "N", as.character(parameter))]
+            d[,parameter := as.factor(parameter)]
+            d[,I := factor(I)]
+            d[,tips := factor(tips)]
+
+            plot.data <- d[,list(median=median(rsquared), 
+                                 q05=quantile(rsquared, 0.05),
+                                 q95=quantile(rsquared, 0.95)),
+                            by=list(method, parameter, tips, I)]
+
+            ggplot(plot.data, aes(x=parameter, y=median, ymin=q05, ymax=q95,
+                                  shape=tips, fill=I, color=I)) +
+                scale_shape_manual(values=c(21, 22, 24)) +
+                geom_pointrange(size=0.8, position=position_dodge(width=0.9)) + 
+                facet_grid(~method, labeller="label_both") +
+                theme_bw() +
+                scale_fill_grey(start=0.75, end=0.25, na.value="white") +
+                scale_color_grey(start=0.75, end=0.25, na.value="black") +
+                geom_vline(xintercept=1:3+0.5, linetype="dotted") +
+                labs(y=expression(R^2)) +
+                scale_x_discrete(breaks=d[,levels(parameter)], 
+                                 labels=c(expression(alpha), "I", "m", "N")) +
+                theme(text=element_text(size=16),
+                      panel.grid=element_blank())
+            ggsave("{classifier-plot}", width=10, height=3)
+
+    kpca:
+        Extension: tsv
+        Parameters:
+            parameter: ["alpha", "m", "N", "I"]
+            plot_ntip: 500
+            plot_I: 1000
+        Interpreter: R --silent --vanilla
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            d <- collect.metadata("kernel-{parameter}/kpca/*")
+            if ("m" %in% colnames(d)) {{
+                d <- subset(d, m == 2)
+            }}
+            colnames(d)[colnames(d) == "nsimnode"] <- "I"
+            colnames(d)[colnames(d) == "nnode"] <- "N"
+            d <- subset(d, ntip == {plot_ntip})
+            if ("I" %in% colnames(d)) {{
+                d <- subset(d, I == {plot_I})
+            }}
+            colnames(d)[colnames(d) == "ntip"] <- "tips"
+
+            d <- collect.data(rownames(d))
+            cat("#{yaml}\n", file="{kpca}")
+            write.tsv(d, file="{kpca}", append=TRUE)
+
+    kpca-plot:
+        Extension: pdf
+        Parameters:
+            plot_ntip: 500
+            plot_I: 1000
+        Depends: kpca
+        Interpreter: R --silent --vanilla
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(grid))
+        Rule: |
+            d <- setDT(collect.data(strsplit("{kpca}", " ")[[1]]))
+            d[,alpha := factor(alpha)]
+            d[,m := factor(m)]
+            d[,N := factor(N)]
+            d[,I := factor(I)]
+
+            plot.theme <- theme_bw() +
+                          theme(axis.ticks=element_blank(),
+                                axis.text=element_blank(),
+                                axis.title=element_blank(),
+                                text=element_text(size=14),
+                                legend.margin=unit(0, "line"))
+            palpha <- ggplot(d[parameter == "alpha"], 
+                             aes(x=PC1, y=PC2, color=alpha, shape=alpha)) + 
+                geom_point() + plot.theme +
+                scale_color_discrete(name=expression(alpha)) +
+                scale_shape_discrete(name=expression(alpha))
+            pI <- ggplot(d[parameter == "I"], 
+                         aes(x=PC1, y=PC2, color=I, shape=I)) +
+                geom_point() + plot.theme
+            pm <- ggplot(d[parameter == "m"], 
+                         aes(x=PC1, y=PC2, color=m, shape=m)) +
+                geom_point() + theme_bw() +
+                theme(axis.ticks=element_blank(),
+                      axis.text=element_blank(),
+                      axis.title=element_blank(),
+                      text=element_text(size=14),
+                      legend.margin=unit(0.2, "line"))
+            pN <- ggplot(d[parameter == "N"], 
+                         aes(x=PC1, y=PC2, color=N, shape=N)) +
+                geom_point() + plot.theme
+           
+            gp <- gpar(fontsize=14)
+            xlab <- textGrob("first principal component", gp=gp)
+            ylab <- textGrob("second principal component", gp=gp, rot=90)
+            g <- arrangeGrob(palpha, pI, pm, pN, ncol=2, 
+                             bottom=xlab, left=ylab)
+            ggsave(g, file="{kpca-plot}", height=5)
+
+    gridsearch:
+        Extension: tsv
+        Parameters:
+            parameter: ["alpha", "m", "N", "I"]
+        Interpreter: R --silent --vanilla
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            d <- fread(Sys.glob("gridsearch-{parameter}/point-estimate/*"))
+            setnames(d, c("ntip", "true_{parameter}"), c("tips", "true_value"))
+
+            cat("#{yaml}\n", file="{gridsearch}")
+            write.tsv(d, file="{gridsearch}", append=TRUE)
+
+    gridsearch-plot:
+        Extension: pdf
+        Parameters:
+            plot_ntip: 500
+            replicate: 0
+        Depends: gridsearch
+        Interpreter: R --silent --vanilla
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            d <- setDT(collect.data(strsplit("{gridsearch}", " ")[[1]]))
+            d <- subset(d, tips == {plot_ntip} & test_replicate == {replicate})
+            plot.aes <- aes(x=true_value, y=point.est, ymin=lower, ymax=upper) 
+            palpha <- ggplot(d[parameter == "alpha"], plot.aes) + 
+                geom_pointrange() + theme_bw() + 
+                labs(y=expression(paste("estimated ", alpha)),
+                     x=expression(paste("true ", alpha))) +
+                geom_abline(slope=1, intercept=0, linetype="dashed")
+            pI <- ggplot(d[parameter == "I"], plot.aes) + 
+                geom_pointrange() + theme_bw() +
+                labs(y="estimated I", x="true I") +
+                geom_abline(slope=1, intercept=0, linetype="dashed")
+            pm <- ggplot(d[parameter == "m"], plot.aes) + 
+                geom_pointrange() + theme_bw() +
+                labs(y="estimated m", x="true m") +
+                geom_abline(slope=1, intercept=0, linetype="dashed")
+            pN <- ggplot(d[parameter == "N"], plot.aes) + 
+                geom_pointrange() + theme_bw() +
+                labs(y="estimated N", x="true N") +
+                geom_abline(slope=1, intercept=0, linetype="dashed")
+            g <- arrangeGrob(palpha, pI, pm, pN, ncol=2)
+            ggsave(g, file="{gridsearch-plot}", height=5)

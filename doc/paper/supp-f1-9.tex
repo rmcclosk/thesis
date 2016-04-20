@@ -1,0 +1,136 @@
+\documentclass[12pt]{article}
+\usepackage{graphicx}
+\usepackage{fullpage}
+
+\begin{document}
+
+\section*{Supplementary Figures S1-S9}
+
+\renewcommand{\thefigure}{S\arabic{figure}}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics{leventhal2012fig1.pdf}
+  \caption{
+    Reproduction of Figure 1A from Leventhal \textit{et al.} (2012) used to
+    check the accuracy of our implementation of Gillespie simulation.
+    Transmission trees were simulated over three types of network, with
+    pathogen transmissibility varying from 0 to 1. Sackin's index was
+    calculated for each simulated transmission tree.
+  }
+  \label{fig:sf1}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics{smc-test.pdf}
+  \caption{Approximation of mixture of Gaussians used by
+    Del Moral \textit{et al.} (2012) and Sisson \textit{et al.} (2009) to test
+    SMC. Solid black line indicates true distribution. Grey shaded area shows
+    SMC approximation obtained with our implementation, using 10000
+    particles with one simulated data point per particle.
+  }
+  \label{fig:smctest}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics{kernel-alpha-crossv.pdf}
+  \caption{
+    Cross-validation accuracy of kernel-SVM classifiers for $\alpha$ parameter
+    of BA network model, for various tree kernel meta-parameters and
+    epidemic scenarios. Each point was calculated based on 300 simulated
+    transmission trees over networks with $\alpha$ = 0.5, 1.0, or 1.5. Dotted
+    and and dashed lines indicate, respectively, performance of SVM using the
+    nLTT statistic, and linear regression using Sackin's index. Facets
+    are number of infected nodes before the simulation was stopped ($I$) and
+    number of tips in the sampled transmission tree.
+  }
+  \label{fig:alphacrossv}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics{kernel-m-crossv.pdf}
+  \caption{Cross-validation accuracy of kernel-SVM classifiers for $m$
+      parameter of BA network model, for various tree kernel
+      meta-parameters and epidemic scenarios. Each point was calculated based
+      on 300 simulated transmission trees over networks with $m$ = 2, 3, or 4.
+      Dotted and and dashed lines indicate, respectively, performance of SVM
+      using the nLTT statistic, and linear regression using Sackin's
+      index. Facets are number of infected nodes before the simulation was
+      stopped ($I$) and number of tips in the sampled transmission tree.
+  }
+  \label{fig:mcrossv}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics{kernel-I-crossv.pdf}
+  \caption{Cross-validation accuracy of kernel-SVM classifiers for number of
+      infected nodes ($I$) under BA network model, for various tree
+      kernel meta-parameters and two tree sizes. Each point was calculated
+      based on 300 simulated transmission trees over networks with $I$ = 500,
+      1000, or 2000. Dotted and and dashed lines indicate, respectively,
+      performance of SVM using the nLTT statistic, and linear regression
+      using Sackin's index. Facets are the number of tips in the sampled
+      transmission tree.
+  }
+  \label{fig:Icrossv}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics{kernel-N-crossv.pdf}
+  \caption{Cross-validation accuracy of kernel-SVM classifiers for total number
+      of nodes ($N$) under BA network model, for various tree kernel
+      meta-parameters and epidemic scenarios sizes. Each point was calculated
+      based on 300 simulated transmission trees over networks with $N$ = 3000,
+      5000, or 8000. Dotted and and dashed lines indicate, respectively,
+      performance of SVM using the nLTT statistic, and linear regression
+      using Sackin's index. Facets are the number of tips in the sampled
+      transmission tree.
+  }
+  \label{fig:Ncrossv}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics{abc-point-estimate-m3.pdf}
+  \caption{
+    Point estimates of BA model parameters obtained by running kernel-ABC
+    on simulated phylogenies without training, for simulations with $m = 3$.
+    Dotted lines indicate true values, and limits of the $y$-axes are regions
+    of uniform prior density. (A) Estimates for $\alpha$ and $I$ against their
+    true values in simulations. (B) Estimates for $m$ and $N$, which were held
+    fixed in these simulations, against true values of $\alpha$.
+  }
+  \label{fig:abcptm3}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics{abc-point-estimate-m4.pdf}
+  \caption{
+    Point estimates of BA model parameters obtained by running kernel-ABC
+    on simulated phylogenies without training, for simulations with $m = 4$.
+    Dotted lines indicate true values, and limits of the $y$-axes are regions
+    of uniform prior density. (A) Estimates for $\alpha$ and $I$ against their
+    true values in simulations. (B) Estimates for $m$ and $N$, which were held
+    fixed in these simulations, against true values of $\alpha$.
+  }
+  \label{fig:abcptm4}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics{alpha-gamma.pdf}
+  \caption{
+      Relationship between preferential attachment power parameter $\alpha$
+      and power law exponent $\gamma$ for networks simulated under the BA
+      network model with $N$ = 5000 and $m$ = 2.
+  }
+  \label{fig:gamma}
+\end{figure}
+
+\end{document}

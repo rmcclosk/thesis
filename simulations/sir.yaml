@@ -1,0 +1,97 @@
+Name: sir
+Description: Epidemic growth on contact networks
+Processes: 1
+Sleep: 5
+Steps:
+    network:
+        Extension: gml
+        Walltime: 00:00:30
+        Parameters:
+            net_type: ["full", "pa"]
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: | 
+            set.seed({seed})
+            if ("{net_type}" == "pa") {{
+                g <- sample_pa(1000, m=2, directed=FALSE)
+            }} else {{
+                g <- make_full_graph(1000, directed=FALSE)
+            }}
+            g <- SIR.net(g, transmit.rate=2.0/ecount(g), remove.rate=1.0/vcount(g))
+            graph_attr(g, "comment") <- "{yaml}"
+            write.graph(g, "{network}", format="gml")
+
+    tree:
+        Extension: nwk
+        Walltime: 00:00:30
+        Parameters:
+            net_type: ["full", "pa"]
+            replicate: "range(100)"
+        Depends: network
+        Interpreter: bash
+        Rule: |
+            TF=`mktemp`
+            echo "#{yaml}" > {tree}
+            nettree {network} > $TF
+            while [[ `treestat -s ntip $TF` -eq 1 ]]; do
+                sleep 1
+                nettree {network} > $TF
+            done
+            cat $TF >> {tree}
+
+    trajectory:
+        Extension: tsv
+        Parameters:
+            net_type: ["full", "pa"]
+            replicate: "range(100)"
+        Depends: network tree
+        Interpreter: R --silent --vanilla
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            N <- vcount(read.graph("{network}", "gml"))
+            t <- read.tree("{tree}")
+            times <- node.depth.edgelength(t)
+            time.order <- order(times)
+            times <- times[time.order]
+
+            S <- N-2
+            I <- 2
+            R <- 0
+
+            for (i in tail(time.order, -1)) {{
+                # removal
+                if (i <= Ntip(t)) {{
+                    S <- c(S, tail(S, 1))
+                    I <- c(I, tail(I, 1)-1)
+                    R <- c(R, tail(R, 1)+1)
+                }}
+
+                # infection
+                else {{
+                    S <- c(S, tail(S, 1)-1)
+                    I <- c(I, tail(I, 1)+1)
+                    R <- c(R, tail(R, 1))
+                }}
+            }}
+
+            df <- data.frame(t=times, S=S, I=I, R=R)
+            cat("#{yaml}\n", file="{trajectory}")
+            write.tsv(df, "{trajectory}", append=TRUE)
+
+    trajectory-plot:
+        Extension: pdf
+        Parameters:
+            placeholder: 0
+        Depends: trajectory
+        Interpreter: R --silent --vanilla
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            d <- setDT(collect.data(strsplit("{trajectory}", " ")[[1]]))
+            d <- melt(d, id.vars=c("t", "net_type", "replicate"), 
+                      variable.name="compartment", value.name="population")
+            d[,net_type := ifelse(net_type == "full", "full graph", "preferential attachment")]
+            ggplot(d, aes(x=t, y=population, color=compartment)) + stat_smooth() +
+                theme_bw() + facet_grid(~net_type) + xlim(0, 7500) +
+                theme(text=element_text(size=18, family="Gillius ADF"),
+                      legend.position="bottom")
+            ggsave("{trajectory-plot}", height=5)

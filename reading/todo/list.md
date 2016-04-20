@@ -1,28 +1,40 @@
-## robert2011lack
+## hamilton2008degree
 
-Problems with model selection within ABC, and steps to remedy (?).
-
-## volz2009phylodynamics
-
-Exact phylodynamic inference of SI/SIR model parameters.
+Fits power law distributions to network models.
 
 ## lewis2008episodic
 
 Phylogenetic clustering in UK.
 
-## hohna2015tess
+## li1988rates
 
-Art sent me this in an email.
+Original reference for outgroup rooting?
 
-## minin2008fast
+## morelli2012bayesian
 
-Stochastic mapping, from Alex.
+Another sophisticated method to reconstruct transmission trees.
+
+## neal2004statistical
+
+Apparently this is supposed to be about inferring network parameters with epi
+data, but I can't quite figure out how.
+
+## rahmandad2008heterogeneity
+
+Compares agent-based (ie. network) with DE-based models of disease spread.
 
 ## sloot2008stochastic
 
 Simulation of HIV spread over a contact network, looks related.
 
-## kenah2015algorithms
+## volz2008sir
 
-New algorithm for phylogeny => transmission tree, plus nice overview of
-established methods.
+How SIR epidemics spread over Erdos-Renyi networks.
+
+## volz2009phylodynamics
+
+Exact phylodynamic inference of SI/SIR model parameters.
+
+## yirrell1997molecular
+
+Detailed account of the spread of HIV in a Scottish prison.

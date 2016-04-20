@@ -1,47 +1,78 @@
-\subsection{Computer program}
+\subsection{Kernel-ABC method}
 
-I implemented the adaptive \gls{SMC} algorithm for \gls{ABC} developed by
-\textcite{del2012adaptive}. The program was written in the
-\software{C} programming language. The \software{igraph}
-library~\autocite{csardi2006igraph} was used to generate and store contact
-networks and phylogenies. Judy arrays~\autocite{baskins2004judy} were used for
-hash tables and dynamic programming arrays. The
-\gls{GSL}~\autocite{gough2009gnu} was used to generate random draws from
-probability distributions, and to perform the bisection step in the
-\gls{ABC}-\gls{SMC} algorithm.
+\software{Netabc} is a computer program to perform statistical inference of
+contact network parameters from an estimated transmission tree using
+kernel-\gls{ABC}. The program combines three major components: Gillespie
+simulation, to simulate transmission trees on contact networks; the
+phylogenetic kernel, to compare simulated to observed transmission trees; and
+adaptive \gls{ABC}-\gls{SMC}, to maintain a population of particles and advance
+it toward the \gls{ABC} target distribution. We give a high-level overview of
+the program here, before describing these three components in detail.
 
-For ease of exposition, we simplifiy the notation of \textcite{del2012adaptive}
-by dropping the subscripts on the variables which indicate the current
-iteration number. Instead, we will add a prime $'$ to indicate a value which
-will be used in the next iteration (this should become clear later on). 
+As described in \cref{sec:smc}, \software{netabc} keeps track of a population
+of particles $x^{(k)}$, each of which contains particular parameter values
+$\theta^{(k)}$ for the model we are trying to fit. A small number of contact
+networks $z^{(k)}$ are generated for each particle, in accordance with that
+particle's parameters. An epidemic is simulated over each of these networks
+using Gillespie simulation, and by keeping track of its progress, a
+transmission tree is obtained. Thus, each particle becomes associated with
+several simulated transmission trees. These trees are compared to the observed
+tree using the phylogenetic kernel. Particles are weighted according to the
+similarity of their associated simulated trees with the true tree, with more
+similar trees receiving higher weights. The particles are iteratively perturbed
+to explore the parameter space, and particles with simulated trees too distant
+from the true tree are periodically dropped and resampled. Once a convergence
+criterion is attained, the final set of particles is used as a Monte Carlo
+approximation to the target distribution of \gls{ABC}, which is assumed to
+resemble the posterior distribution on model parameters (see \cref{sec:abc}). A
+graphical schematic of this algorithm is given in \cref{fig:abcsmc}.
 
-In the algorithm, we keep track of a population of $n$ sets of model
-parameters, called \defn{particles}, denoted $\set{X_i}_{i=1}^{n}$. For the
-\gls{BA} model, the particles would be 4-tuples (\gls{N}, \gls{I}, \gls{m},
-\gls{alpha}). Each particle $X_i$ is associated with a set of \gls{M} simulated
-datasets, denoted $\set{X_{i,j}}_{j=1}^M$, and a weight $W_i$. 
+\begin{figure}
+    \includegraphics{abc-smc.pdf}
+    \caption[Graphical schematic of \gls{ABC}-\gls{SMC} algorithm.]{
+      Graphical schematic of the \gls{ABC}-\gls{SMC} algorithm implemented in
+      \software{netabc}. Particles are initially drawn from their prior
+      distributions, making the initial population a Monte Carlo approximation
+      to the prior. At each iteration, particles are perturbed, and a distance
+      threshold around the true tree contracts. Particles are rejected, and
+      eventually resampled, when all their associated simulated trees lie
+      outside the threshold. As the algorithm progresses, the population
+      smoothly approaches a Monte Carlo approximation of the \gls{ABC} target
+      distribution, which is assumed to resemble the posterior.
+    }
+    \label{fig:abcsmc}
+\end{figure}
 
-The particles are initially drawn from the prior distribution.
+\software{Netabc} is written in the \software{C} programming language. The
+\software{igraph} library~\autocite{csardi2006igraph} is used to generate and
+store contact networks and phylogenies. Judy arrays~\autocite{baskins2004judy}
+are used for hash tables and dynamic programming matrices. The
+\gls{GSL}~\autocite{gough2009gnu} is used to generate random draws from
+probability distributions, and to perform the bisection step in the adaptive
+\gls{ABC}-\gls{SMC} algorithm. Parallelization is implemented with POSIX
+threads~\autocite{barney2009posix}. In addition to the \software{netabc} binary
+to perform kernel-\gls{ABC}, we provide three additional stand-alone utilities:
+\software{treekernel}, to calculate the phylogenetic kernel;
+\software{nettree}, to simulate a transmission tree over a contact network; and
+\software{treestat}, to compute various summary statistics of phylogenies. The
+programs are freely available at \url{https://github.com/rmcclosk/netabc}.
 
-Let $d$ be a
-distance measure on data sets, so that $d(x, y)$ is smaller the more similar
-$x$ and $y$ are to each other. Let $\varepsilon$ be the tolerance level which
-indicates whether a data set is ``close'' to the observed data. That is, if
-$d(x, y) < \varepsilon$, we will say that $x$ and $y$ are close, otherwise they
-are distant.
+\subsubsection*{Epidemic simulation}
+\label{subsubsec:nettree}
 
-I implemented a Gillespie simulation algorithm~\autocite{gillespie1976general}
-for simulating epidemics, and the corresponding transmission trees, over static
-contact networks. This method has been independently implemented and applied by
-several authors~\autocite[\textit{e.g.}][]{o2010contact, robinson2013dynamics,
-leventhal2012inferring, groendyke2011bayesian}.
+The simulation of epidemics, and the corresponding transmission, trees over
+contact networks is performed in \software{netabc} using the Gillespie
+simulation algorithm~\autocite{gillespie1976general}. This method has been
+independently implemented and applied by several
+authors~\autocite[\textit{e.g.}][]{o2011contact, robinson2013dynamics,
+leventhal2012inferring, groendyke2011bayesian, villandre2016assessment}.
 \textcite{groendyke2011bayesian} published their implementation as an
 \software{R} package, but since the \gls{SMC} algorithm is quite
 computationally intensive, we chose to implement our own version in
 \software{C}.
 
-Let $G = (V, E)$ be a directed contact network. The individual nodes and edges
-of $G$ follow the dynamics of the \gls{SIR}
+Let $G = (V, E)$ be a directed contact network. We assume the individual nodes
+and edges of $G$ follow the dynamics of the \gls{SIR}
 model~\autocite{kermack1927contribution}. Each directed edge $e = (u, v)$ in
 the network is associated with a transmission rate $\beta_e$, which indicates
 that, once $u$ becomes infected, the waiting time until $u$ infects $v$ is
@@ -51,8 +82,8 @@ removal rate $\gamma_v$, so that the waiting time until removal of $v$ from the
 population is $\Exponential(\gamma_v)$. Removal may correspond to death or
 recovery with immunity, or a combination of both, but in our implementation
 recovered nodes never re-enter the susceptible population. We define a
-\defn{discordant edge} as an edge $(u, v)$ where $u$ is infected and $v$
-has never been infected.
+\defn{discordant edge} as an edge $(u, v)$ where $u$ is infected and $v$ has
+never been infected.
 
 To describe the algorithm, we introduce some notation and variables. Let
 $\inc(v)$ be the set of incoming edges to $v$, and $\out(v)$ be the set of
@@ -67,14 +98,15 @@ rate of all infected nodes,
 \]
 The variables $S$, $I$, $R$, $D$, $\beta$, and $\gamma$ are all updated as the
 simulation progresses. When a node $v$ becomes infected, it is deleted from $S$
-and added to $I$, any formerly discordant edges in $\in(v)$ are deleted from
+and added to $I$. Any formerly discordant edges in $\in(v)$ are deleted from
 $D$, and edges in $\out(v)$ to nodes in $S$ are added to $D$. If $v$ is later
 removed, it is deleted from $I$ and added to $R$, and any discordant edges in
-$\out(v)$ are deleted from $D$. In both cases, the variables $\beta$ and
-$\gamma$ are updated to reflect the changes. Since these updates are
-straightforward, we do not write them explicitly in the algorithm.
+$\out(v)$ are deleted from $D$. At the time of either infection or removal, the
+variables $\beta$ and $\gamma$ are updated to reflect the changes in the
+network. Since these updates are straightforward, we do not write them
+explicitly in the algorithm.
 
-\newcommand{\tip}{\mathrm{tip}}
+\newcommand{\tip}{\mathit{tip}}
 
 The Gillespie simulation algorithm is given as Algorithm~\ref{alg:nettree}. The
 transmission tree $T$ is simulated along with the epidemic. We keep a map
@@ -105,7 +137,6 @@ is denoted $|T|$.
           \State choose an edge $e = (u, v)$ from $D$ with probability $\beta_e / \beta$
                  and infect $v$
           \State add tips with labels $(|T|+1)$ and $(|T|+2)$ to $T$
-          \Comment $|T|$ increased by 2
           \State connect the new nodes to $\tip[v]$ in $T$, with branch lengths $0$
           \State $\tip[v] \gets |T|-1$
           \State $\tip[u] \gets |T|$
@@ -120,272 +151,343 @@ is denoted $|T|$.
   \end{algorithmic}
 \end{algorithm}
 
-\subsubsection{Phylogenetic kernel and normalized lineages-through-time}
+\subsubsection{Phylogenetic kernel}
 
-The tree kernel developed in~\autocite{poon2013mapping} provides a
-comprehensive similarity score between two phylogenetic trees. The kernel
-computes the dot-product of two feature vectors, corresponding to the two
-trees, in the infinite-dimensional feature space of all possible subset trees
-with branch lengths. I implemented the fast algorithm developed
-in~\autocite{moschitti2006making}, which first enumerates all pairs of subtrees
-with the same number of leaf children, and then computes the kernel by dynamic
-programming.
+The tree kernel developed by \textcite{poon2013mapping} provides a
+comprehensive similarity score between two phylogenetic trees, via the
+dot-product of the two trees' feature vectors in the infinite-dimensional space
+of all possible subset trees with branch lengths (see \cref{subsec:treeshape}).
+The kernel was implemented using the fast algorithm developed by
+\textcite{moschitti2006making}. First, the production rule of each node, which
+is the total number of children and the number of leaf children, is recorded.
+The nodes of both trees are ordered by production rule, and a list of pairs of
+nodes sharing the same production rule is created. These are the nodes for
+which the value of the tree kernel must be computed - all other pairs have a
+value of zero. The pairs to be compared are then re-ordered so that the child
+nodes are always evaluated before their parents. Due to its recursive
+definition, ordering the pairs in this way allows the tree kernel to be
+computed by dynamic programming. The complexity of this implementation is
+$O(|T_1||T_2|)$, where $|T|$ counts the number of nodes in the tree $T$.
 
-In addition, we implemented a modified version of the normalized
-lineages-through-time statistic developed in~\autocite{janzen2015approximate},
-which uses piecewise linear functions instead of step functions for the
-lineages-through-time plots. This modification is to address a potential
-inconsistency for trees of different sizes, illustrated in
-Figure~\ref{fig:nltt}.
+The tree kernel cannot be used directly as a distance measure for \gls{ABC},
+since it is maximized, not minimized, when the two trees being compared are the
+same. Therefore, we defined the distance between two trees as
+\[
+  \rho(T_1, T_2) = 1 - \frac{K(T_1, T_2)}{\sqrt{K(T_1, T_1) K(T_2, T_2)}},
+\]
+which is a number between 0 and 1 minimized when $T_1 = T_2$. This is similar
+to the normalization used by \textcite{collins2002new, poon2013mapping}.
 
-\begin{figure}[ht]
+\subsubsection*{Adaptive sequential Monte Carlo for Approximate Bayesian computation}
+\label{subsubsec:adaptsmc}
+
+We implemented the adaptive \gls{SMC} algorithm for \gls{ABC} developed by
+\textcite{del2012adaptive}. This algorithm is similar to the reference
+\gls{ABC}-\gls{SMC} algorithm described in \cref{subsec:abcalg}, except that
+the sequence of tolerances $\varepsilon_i$ is automatically determined rather
+than specified in advance. The tolerances are chosen such that the \gls{ESS} of
+the particle population, which indicates the quality of the Monte Carlo
+approximation (see \cref{subsec:sis}), decays at a controlled rate. This
+prevents the Monte Carlo approxmiation from collapsing by the variance in
+weights growing too large. A single parameter $\alpha$ (not to be confused with
+the \gls{BA} model parameter) controls the decay rate, with $\varepsilon_i$
+being chosen to satisfy
+\[
+  \ESS(w_i) = \alpha \ESS(w_{i-1}).
+\]
+Here, $w_i$ is the vector of weights at the $i$th step. Note that, since $w_i$
+depends on $\varepsilon_i$, this equation solves for the updated weights and
+the updated tolerance simultaneously. As pointed out by
+\textcite{del2012adaptive}, the equation has no analytic solution, but can be
+solved numerically by bisection. The forward kernels $K_i$ are taken to be
+\gls{MCMC} kernels with stationary distributions $\pi_{\varepsilon_i}$ and
+proposal distributions
+\[
+  q_i(\theta, \theta') \prod_{k=1}^M \Pr(z_i^{(k)'} \mid \theta'),
+\]
+where $\theta$ is the vector of model parameters and $z_k$ are $M$ datasets
+simulated according to $\theta'$. In our implementation, $q$ is either a
+Gaussian proposal for continuous parameters, or a Poisson proposal for discrete
+parameters. For the Poisson proposals, the number of steps to move the particle
+is drawn from a Poisson distribution, and the direction in which to move the
+particle is chosen uniformly at random. For both proposals, the variance was
+set equal to twice the empirical variance of the particles,
+following~\autocite{beaumont2009adaptive, del2012adaptive}. The backwards
+kernels are
+\[
+  L_{i-1}(x', x) = \frac{\pi_n(x)K(x, x')}{\pi_n(x')}.
+\]
+When substituted into \cref{eq:smcwt}, the forward kernels $K(x, x')$ and
+densities $\pi_n(x') = \pi_{\varepsilon_n}(x')$ cancel out, and we are left
+with the weight update 
+\begin{align*}
+  w_i(x) 
+    &\propto w_{i-1}(x) \frac{\pi_n(x \mid y)}{\pi_{i-1}(x \mid y)} \\
+    &= w_{i-1}(x) \frac{\pi(x) \pi_i(y \mid x)}{\pi(x) \pi_{i-1}(y \mid x)} \\
+    &= w_{i-1}(x) \frac{\sum_{k=i}^M \I_{A_{\varepsilon_i, y}}(z_k)}
+            {\sum_{k=i}^M \I_{A_{\varepsilon_{i-1}, y}}(z_k)}.
+\end{align*}
+In other words, when the distance threshold $\varepsilon_{i-1}$ is contracted
+to $\varepsilon_i$, the particles' weights are multiplied by the proportion of
+simulated datasets which are still inside the new threshold. The algorithm may
+be stopped when one of two termination conditions is reached. The user may
+specify a final tolerance $\varepsilon$, or a final acceptance rate of the
+\gls{MCMC} kernel. The latter condition stops the algorithm when the particles
+are not moving around very much, implying little change in the estimated
+target.
+
+\subsection{Analysis of \acrlong{BA} model}
+
+We investigated four parameters related to the \gls{BA} model, denoted
+\gls{N}, \gls{m}, \gls{alpha}, \gls{I}. The first three of these are parameters
+of the model itself, while \gls{I} is related to the simulation of transmission
+trees over the network. However, we will refer to all four as \gls{BA}
+parameters. \gls{N} denotes the total number of nodes in the network, or
+equivalently, susceptible individuals in the population. When a node is added
+to the network, \gls{m} new undirected edges are added incident to it, and are
+attached to existing nodes of degree $k$ with probability proportional to
+$k^\alpha$ (\cref{subsec:pa}). To simulate transmission trees over a
+\gls{BA} network, we allowed an epidemic to spread until \gls{I} nodes were
+infected, and sampled a transmission tree at that time. We assumed that all
+contacts had symmetric transmission risk, which was implemented by replacing
+each undirected edge in the network with two directed edges (one in each
+direction).
+
+We did not consider the time scale of the transmission trees in these
+simulations, only their shape. Therefore, the transmission rate along each edge
+in the network was set to 1, and all transmission trees' branch lengths were
+scaled by their mean. The removal rate of each node was set to 0, implying no
+recovery or death in the population. These assumptions are similar to those
+made by \textcite{leventhal2012inferring}.
+
+\subsubsection*{Kernel classifiers}
+\label{subsec:kernel}
+
+The experiments presented here involved a large number of variables which were
+varied combinatorially. For ease of exposition, we will describe a single
+experiment first, then enumerate the values of all variables for which the
+experiment was repeated. The parameters of the tree kernel, $\lambda$ and
+$\sigma$ (\cref{subsec:treeshape}) will be referred to as
+\defn{meta-parameters} to distinguish them from the parameters of the \gls{BA}
+model. With the exception of our own programs, all analyses were done in
+\software{R}, and all packages listed below are \software{R} packages.
+
+The attachment power parameter \gls{alpha} was varied among three values: 0.5,
+1.0, and 1.5. For each value, the \software{sample\_pa} function in the
+\software{igraph} package was used to simulate 100 networks, with the other
+parameters set to \gls{N} = 5000 and \gls{m} = 2. This step yielded a total of
+300 networks. An epidemic was simulated on each network using our
+\software{nettree} binary until \gls{I} = 1000 nodes were infected, at which
+point 500 of them were sampled to form a transmission tree. A total of 300
+transmission trees were thus obtained, comprised of 100 trees for each of the
+three values of \gls{alpha}. The trees were ``ladderized'' so that the subtree
+descending from the left child of each node was not smaller than that
+descending from the right child. Summary statistics, such as Sackin's index and
+the ratio of internal to terminal branch lengths, were computed for each
+simulated tree using our \software{treestat} binary. The trees were visualized
+using the \software{ape} package~\autocite{paradis2004ape}. Our
+\software{treekernel} binary was used to calculate the value of the kernel for
+each pair of trees, with the meta-parameters set to $\lambda = 0.3$ and $\sigma
+= 4$. These values were stored in a symmetric 300 $\times$ 300 kernel matrix.
+Similarly, we computed the \gls{nltt} statistic between each pair of trees
+using our \software{treestat} binary, and stored them in a second $300 \times
+300$ matrix.
+
+To investigate the effect of \gls{alpha} on tree shape, we constructed
+classifiers for \gls{alpha} based on three statistics. First, we used the
+\software{kernlab} package~\autocite{zeileis2004kernlab} to create a \gls{kSVR}
+classifier using the computed kernel matrix. Second, we used the
+\software{e1071} package~\autocite{meyer2015e1071} to create an ordinary
+\gls{SVR} classifier using the pairwise \gls{nltt} matrix. Finally, we
+performed an ordinary linear regression of \gls{alpha} against Sackin's index.
+Each of these classifiers was evaluated with 1000 two-fold cross-validations.
+We also performed a \gls{kPCA} projection of the kernel matrix, and used it to
+visualize the separation of the different \gls{alpha} values in the tree
+kernel's feature space. A schematic of this experiment is presented in
+\cref{fig:kernelexpt}.
+
+Similar experiments were performed with the values shown in
+\cref{tab:kernelexpt}. The other three \gls{BA} parameters, namely \gls{N},
+\gls{m}, and \gls{I}, were each varied while holding the others fixed. The
+experiments for \gls{alpha}, \gls{m}, and \gls{N} were repeated with three
+different values of \gls{I}. All experiments were repeated with trees having
+three different numbers of tips. Kernel matrices were computed for all pairs of
+the meta-parameters \gls{lambda} = \sett{0.2, 0.3, 0.4} and \gls{sigma} =
+\sett{\nicefrac18, \nicefrac14, \nicefrac12, 1, 2, 4, 8}.
+
+\begin{landscape}
+\begin{table}[ht]
   \centering
-  \caption[Comparison of original and modified normalised lineages-through-time]
-    {Comparison of original formulation of normalized lineages-through-time,
-     developed in~\autocite{janzen2015approximate}, with our modified version
-     using linear interpolation. Here, the red and blue trees both have
-     uniformly spaced branching times. Using step functions (left), the nLTT
-     of the two trees is non-zero due to the differing numbers of internal
-     branches. Using linear interpolation, the nLTT is zero (right). The lines
-     on the right graph have been offset for visibility.}
-  \includegraphics[scale=0.75]{nltt}
-  \label{fig:nltt}
-\end{figure}
-
-
-% begin by sampling from the prior and setting all weights to equal
-
-Next, we calculate the next tolerance $\varepsilon^*$. Before we explain how
-this is done, we first need to define how we adjust the weights on the
-particles. As explained above (see subsection~\ref{subsubsec:abcalg}), the idea
-of sequential Monte-Carlo is to begin with the prior distribution $\pi$,
-progress smoothly through a series of intermediate distributions $\pi_1,
-\ldots, \pi_{n-1}$, and eventually arrive at the target posterior distribution
-$\pi_n$. In the $k$th iteration, the distribution $\pi_k$ is approximated by
-the particles and their weights. 
-
-In contrast to most existing sequential Monte-Carlo methods, this
-algorithm does not require the user to specify a sequence of decreasing
-tolerances to approach the target posterior distribution. Rather, the
-tolerances are computed adaptively at each step, starting from infinity at the
-first iteration. 
-
-The algorithm may be stopped when the tolerance reaches a
-user-defined final value, or when the rate of acceptance of the
-Metropolis-Hastings kernel reaches a user-defined threshold. Following a
-heuristic applied by the authors~\autocite{del2012adaptive}, we used the latter
-stopping criterion, accepting the SMC approximation to the posterior when the
-\gls{MCMC} acceptance rate dropped below 1.5\%.
-
-\subsection{Simulation experiments}
-
-\subsubsection{Identification of separable parameters in kernel space}
-\label{subsubsec:kernel}
-
-Recall that our approximate Bayesian computation approach to fitting contact
-network models involves simulating transmission trees under a wide variety of
-parameter values, and then comparing these simulated trees to the true
-transmission tree. Values which produce trees similar to the observed
-transmission tree are distinguished as more likely than values which produce
-trees very different from the truth. In order for this type of analysis to
-succeed, it is critical that different parameter values produce different
-looking trees. Otherwise, if many different values produce trees which are too
-similar to each other, it will be impossible to distinguish which value is most
-consistent with the real tree. Just as importantly, trees simulated with
-similar parameter values must be similar to each other. In mathematical terms,
-we require the trees simulated from distinct parameter values to be
-\defn{separable} in tree space. The concept of separability is illustrated in
-Figure~\ref{fig:separable}.
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics{separable}
-  \caption[Separable versus non-separable pararameters in kernel space]{
-    Separable versus non-separable parameters in kernel space. Trees have been
-    simulated under three sets of parameters, represented as blue, red, and
-    green. An observed tree is shown in black. Trees are layed out such that
-    the distance between two trees corresponds to their similarity. In panel A,
-    trees from the same parameter set are similar to each other, but different
-    from other trees. The true tree is most consistent with the red parameters.
-    In panels B and C, trees from the same parameter set are not similar to
-    each other (B), or trees from different parameter sets are similar to each
-    other (C). It's difficult to say which parameters the true tree is most
-    consistent with.
+  \input{\tablepath/kernel-expt}
+  \caption[Variables used in tree kernel simulation experiments]
+  {
+    Values of parameters and other variables used in tree kernel simulation
+    experiments. Each row corresponds to one of the \gls{BA} model parameters.
+    One kernel matrix was created for every combination of values except the
+    one indicated in the ``varied parameter'' column, which was varied when
+    producing simulated trees.
   }
-  \label{fig:separable}
-\end{figure}
+  \label{tab:kernelexpt}
+\end{table}
 
-Before undertaking a complete ABC analysis, I analysed four simple contact
-network models to determine whether their parameters could be separated in tree
-kernel space. The four models are described in detail in
-subsection~\ref{subsubsec:generative} of the introduction. Briefly, they are:
-random networks, where each possible contact has a fixed probability of
-occuring; preferential attachment networks, where highly connected nodes tend
-to attract more contacts; small world networks, where nodes are connected to
-their immediate neighbours and the occasional far-flung contact; and full
-networks, where every possible connection is present. I will describe here only
-the procedure and results for the preferential attachment networks. The details
-of the other three types of graph can be found in the supplemental materials. A
-graphical schematic of the analysis undertaken here is given in
-Figure~\ref{fig:kernelexpt}.
+\begin{table}[ht]
+  \centering
+  \input{\tablepath/gridsearch-expt}
+  \caption[Variables used in grid search experiments]
+  {
+    Variables and \gls{BA} parameter values used for grid search experiments. 
+    Trees were simulated under the test values, and compared to a grid of trees
+    simulated under the grid values. Kernel scores were used to calculate point
+    estimates and credible intervals for the test values.
+  }
+  \label{tab:gridexpt}
+\end{table}
+\end{landscape}
 
 \begin{figure}[ht]
   \centering
+  \includegraphics{kernel-expt.pdf}
+  \caption[Schematic of kernel classifier experiment]{
+    Schematic of investigation of \gls{BA} model parameters using the tree
+    kernel.
+  }
   \label{fig:kernelexpt}
-  \includegraphics{kernel_expt}
-  \caption[Schematic of first set of simulation experiments]{
-    Schematic of first set of simulation experiments to determine separable
-    parameters in kernel space, along with optimal tree kernel meta-parameters.
+\end{figure}
+
+\subsubsection*{Grid search}
+
+As in the previous section, we will begin by describing a single experiment,
+and then list the variables for which similar experiments were performed. We
+varied \gls{alpha} along a narrowly spaced grid of values: 0, 0.01, \ldots, 2.
+For each value, fifteen networks were generated with \software{igraph}, and
+transmission trees were simulated over each using \software{nettree}. These
+trees will be referred to as ``grid trees'', and their associated values ``grid
+values''. Next, one further test tree was simulated with the test value
+\gls{alpha} = 0. Both the grid trees and the test tree had 500 tips, and were
+simulated with the other \gls{BA} parameters set to $N$ = 5000, $m$ = 2, and
+$I$ = 1000. The test tree was compared to each of the grid trees using the tree
+kernel, with the meta-parameters set to $\lambda = 0.3$ and $\sigma = 4$, using
+the \software{treekernel} binary. The median kernel score was calculated for
+each grid value, and the scores were normalized such that the area under the
+curve was equal to 1. The grid value with the highest median kernel score was
+taken as the point estimate for the test value, and a 95\% credible interval
+was obtained using the \software{hpd} function in the \software{TeachingDemos}
+package.
+
+Each experiment of the type just described was repeated ten times with the same
+test value. Similar experiments were performed for each of the four \gls{BA}
+parameters, with several test values and trees of varying sizes. The variables
+are listed in \cref{tab:gridexpt}. A graphical schematic of the grid search
+experiments is shown in \cref{fig:gridexpt}.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\textwidth]{gridsearch-expt}
+  \caption{Graphical schematic of grid search experiments used to investigate 
+    \gls{BA} model parameters.}
+  \label{fig:gridexpt}
+\end{figure}
+
+\subsubsection*{Approximate Bayesian computation}
+
+To test the full kernel-\gls{ABC} algorithm, we simulated four trees each under
+a variety of parameter values, and ran the \software{netabc} program to
+estimate posterior distributions for the parameters. The parameter values and
+priors used are listed in \ref{tab:abcexpt}. The tree kernel meta-parameters
+were set to $\lambda = 0.3$ and $\sigma = 4$. The \gls{SMC} algorithm was run
+with 1000 particles, five sampled datasets per particle, and the $\alpha$
+parameter (not to be confused with the \gls{BA} preferential attachment
+parameter, see \cref{subsubsec:adaptsmc}) set to 0.95. The algorithm was
+stopped when the acceptance rate of the \gls{MH} kernel dropped below 1.5\%,
+the same criterion used by \citeauthor{del2012adaptive}. Approximate marginal
+posterior densities for each parameter were calculated using the
+\software{density} function in \software{R} applied to the final weighted
+population of particles. Credible intervals were obtained for each parameter
+using the \software{HPDinterval} function in the \software{coda}
+package~\autocite{plummer2006coda}.
+
+\begin{table}[ht]
+  \centering
+  \input{\tablepath/abc-expt}
+  \caption[Variables used in grid search experiments]
+  {
+    Variables and \gls{BA} parameter values used for \gls{ABC} validation
+    experiments. Trees were simulated under the test values, and
+    kernel-\gls{ABC} was used to re-estimate posterior distributions for the
+    \gls{BA} parameters without training.
   }
-\end{figure}
+  \label{tab:abcexpt}
+\end{table}
 
-The method of testing for separability was described previously
-in~\autocite{poon2015phylodynamic}, but I will reiterate it here for
-completeness. As a concrete example, consider the attachment power parameter
-\gls{alpha} of the preferential attachment networks. This parameter describes the
-strength of attraction to highly connected nodes and is bounded below by zero
-indicating no extra attraction. By qualitative observation, I determined that a
-power of 2.0, which produced networks with very few ``hub'' nodes with
-extremely high degree, was a suitable upper bound (see
-Figure~\ref{fig:pabounds}). Therefore, I chose to test the values 0.5, 1.0, and
-1.5 for separability. The other parameters were fixed: the number of nodes in
-the network was 5000, and the mean degree of each node in the network was four.
-As discussed in subsection~\ref{subsubsec:generative}, this is the smallest
-mean degree value for preferential attachment networks which produces networks
-which are more than trees. 
+%\subsubsection*{Characterization of power-law exponent in Barab\'asi-Albert networks}
+%
+%Most studies of social network or transmission network
+%parameters~\autocite[e.g.][]{liljeros2001web, jones2003assessment,
+%schneeberger2004scale, brown2011transmission} report the coefficient
+%\gls{gamma} of the power law degree distribution. To make our results
+%comparable to previous work, we used simulated networks to investigate the
+%relationship between the \gls{BA} model parameters and \gls{gamma}. A network
+%was simulated for each combination of parameters listed in
+%\cref{tab:gammaexpt}. A power law distribution was fitted to the degree
+%distribution of each simulated network using the \software{fit\_power\_law}
+%function in \software{igraph} with the `R.mle' implementation. We fitted a
+%\gls{GLM} with Gamma-distributed errors and a log link function to the observed
+%distribution of \gls{gamma} values, with \gls{alpha}, \gls{m}, \gls{N}, and all
+%possible interaction terms as predictors.
 
-\begin{figure}[ht]
+\begin{table}
   \centering
-  \label{fig:pabounds}
-  \includegraphics{pa_power_bounds}
-  \caption[Upper and lower bounds on preferential attachment power]{
-    Qualitative justification for choice of zero and two as lower and upper
-    bounds on preferential attachment power $\alpha$. (A) Preferential
-    attachment network on 50 nodes with $\alpha = 0$, the lower bound enforced
-    by the model. (B) Preferential attachment network on 50 nodes with $\alpha
-    = 2$, where a few nodes have very high degree but the majority have very
-    low degree. (C) Density plot of node degrees in a 5000-node network with
-    $\alpha = 0$. The maximum degree of a node in this network was 24. (D)
-    Density plot of node degrees in a 5000-node network with $\alpha = 2$. The
-    maximum degree of a node in this network was 4942. 
+  \input{\tablepath/gamma-expt}
+  \caption[\gls{BA} parameters used as input \gls{GLM} predicting $\gamma$]
+  {
+    \gls{BA} model parameters used as input to \gls{GLM} predicting power law
+    exponent $\gamma$. One network was simulated with each combination of
+    parameters, and $\gamma$ was calculated for each network. A \gls{GLM} with
+    Gamma-distributed errors and a log link function was fit to the $\gamma$
+    values with all parameters and interaction terms as predictors.
   }
-\end{figure}
+  \label{tab:gammaexpt}
+\end{table}
 
-For each of the values of $\alpha$, I generated 100 networks on 5000 nodes. An
-epidemic was simulated over each network (see subsection X) until 1000 nodes
-were infected, and 500 of those infected nodes were sampled to form a
-transmission tree. This resulted in 300 total simulated transmission trees -
-100 for each of the three values of $\alpha$. The data generation steps are
-shown on the left side of Figure~\ref{fig:kernelexpt}. Next, I computed the
-tree kernel~\autocite{poon2013mapping} (see
-subsection~\ref{subsubsec:treeshape}) for each pair of trees. These values were
-placed into a 300 $\times$ 300 kernel matrix, where the value at the $(i, j)$th
-position was the tree kernel of the $i$th and $j$th trees. 
+\subsection{Real data experiments}
 
-The tree kernel provides a pairwise similarity score between two trees. The
-higher the kernel score, the more similar the trees are to each other.
-Therefore, to have separability, we need trees simulated with the same value of
-$\alpha$ to have high kernel scores with each other, but low kernel scores with
-trees from different $\alpha$ values. We can visually check whether or not this
-is true by laying out the trees as points on a graph, in such a way that trees
-with high scores are close to each other, but trees with low scores are far
-apart. This is accomplished by performing a kernel principal components
-analysis (kPCA)~\autocite{scholkopf1998nonlinear} on the kernel matrix.
-Briefly, ordinary principal components analysis (PCA) finds a lower dimensional
-representation of points in a high dimensional space which preserves as much of
-the variation in the data as possible. kPCA performs the same task, but using
-the dot products of each pair of points as input, instead of the data points
-themselves. A two-dimensional kPCA projection of the simulated trees is shown
-in Figure~\ref{fig:pakpca}. The scenario just described - 500 samples from 1000
-infected nodes - is the central panel. To ensure that the method could be used
-in a variety of contexts, the same analysis was performed with 500 and 2000
-infected nodes, as well as 100 and 1000 sampled tips. 
+Because the \gls{BA} model assumes a single connected contact network, it is
+most appropriate to apply to groups of individuals who are epidemiologically
+related. Therefore, we searched for published \gls{HIV} datasets which
+originated from existing clusters, either phylogenetically or geographically
+defined. In addition, we analysed an in-house dataset sampled from
+\gls{HIV}-positive individuals in British Columbia, Canada (the ``BC data'').
+The datasets are summarized in \cref{tab:realdata}.
 
-The next step was to quantify how well trees simulated with different $\alpha$
-values could be distinguished from each other. As described
-previously~\autocite{poon2015phylodynamic}, this was done by assessing the
-accuracy of a support vector machine regression
-(SVR)~\autocite{smola1997support}. Briefly, an SVR operates by finding a
-hyperplane (in two dimensions, a line) such that the deviation of most of the
-data points from the line is less than some prescribed threshold. Points
-further away than this threshold are ignored in the model. I performed 1000
-replicate 2-fold cross-validations of an SVR predicting preferential attachment
-power on the simulated trees, using the \software{ksvm} function from
-\software{kernlab}~\autocite{karatzoglou2004kernlab}. That is, the SVR was
-trained on a random subset of 150 trees, and then used to predict $\alpha$ of
-the remaining 150 trees. The predictions were correlated against the true
-values of $\alpha$ to obtain an $R^2$, and this procedure was repeated 1000
-times with different subsets of trees.
+We downloaded all sequences associated with each published study from GenBank.
+For the \textcite{novitsky2014impact} data, each \textit{env} sequence was
+aligned pairwise to the HXB2 reference sequence (GenBank accession number
+K03455) and the hypervariable regions were clipped out with
+\software{BioPython} version 1.66+~\autocite{cock2009biopython}. Sequences were
+multiply aligned using \software{MUSCLE} version 3.8.31
+\autocite{edgar2004muscle}, and alignments were manually inspected with
+\software{Seaview} version 4.4.2 \autocite{gouy2010seaview}. Phylogenies were
+constructed from the nucleotide alignments by approximate maximum likelihood
+using \software{FastTree2} version 2.1.7 with the \gls{GTR} model. Transmission
+trees were estimated by rooting and time-scaling the phylogenies by root-to-tip
+regression, using a modified version of Path-O-Gen (distributed as part of
+BEAST~\autocite{drummond2007beast}) as described
+previously~\autocite{poon2015phylodynamic}. 
 
-The cross-validation had the dual purpose of providing a means to selecting the
-optimal meta-parameters to the tree kernel (see
-subsection~\ref{subsubsec:treeshape}) - they are be those which provide the
-highest average $R^2$. To this end, the cross-validation was repeated for
-several values of $\lambda$ and $\sigma$ as shown in Figure~\ref{fig:kernelexpt}
-Each combination was evaluated with and without multiplying the tree kernel by
-the normalized lineages-through-time (nLTT) statistic, and was further repeated
-for the scenarios with differing numbers of infected and sampled nodes
-described above. To ensure that the tree kernel was the most appropriate
-similarity measure to use for ABC, we also computed the $R^2$ of $\alpha$
-against Sackin's index, a widely used tree balance statistic (see
-subsection~\ref{subsubsec:treeshape}), by the same cross-validation procedure.
+Three of the datasets \autocite[][and the BC data]{li2015hiv,novitsky2014impact}
+were initially much larger than the others, containing 1265, 1299, and 7923
+sequences respectively. To ensure that the analyses were comparable, we reduced
+these to a number of sequences similar to the smaller datasets. For the
+\citeauthor{li2015hiv} and BC datasets, we detected clusters of size 280 and
+399 respectively using a patristic distance cutoff of 0.02 as described
+previously~\autocite{poon2015impact}. Only sequences within these clusters were
+carried forward. For the \textcite{novitsky2014impact} data, no large clusters
+were detected using the same cutoff, so we analysed a subtree of size 180
+chosen arbitrarily.
 
-\subsubsection{Grid search}
-
-The previous set of simulations were intended to investigate which contact
-network parameters could and could not be inferred by examining transmission
-trees. However, they tell us nothing about the accuracy or precision we might
-expect when inferring those parameters numerically. As illustrated in
-Figure~\ref{fig:accprec}, the ideal situation is one where we are accurate and
-precise, and the worst situation is when we are precise but not accurate.
-
-\begin{figure}[ht]
+\begin{table}[ht]
   \centering
-  \includegraphics{acc_prec}
-  \caption{Illustration of accurate vs. precise kernel score estimates}
-  \label{fig:accprec}
-\end{figure}
-
-Figure~\ref{fig:gridsearch} shows a schematic of this experiment. A number of
-representative values, here denoted $k$, were chosen for the parameter of
-interest. In the case of preferential attachment power $\alpha$, I chose $k =
-8$ testing values, namely $0, 0.25, \ldots, 2.0$. For each of these values, ten
-networks on 5000 nodes were generated, an epidemic of 1000 nodes was simulated
-over each, and a transmission tree of 500 tips was sampled. The resulting $10
-\times k$ simulated transmission trees were referred to as the \defn{testing
-trees}. In addition, I chose a further $n \gg k$ training values spanning the
-range of the parameter. For $\alpha$, these were $0, 0.01, \ldots, 2.0$.
-Fifteen trees were simulated in the same manner for each of these values,
-referred to here as \defn{training trees}.
-
-For each of the testing trees, I computed the tree kernel with all of the
-training trees. This resulted in 15 kernel scores per training value. The
-training value with the highest median kernel score was used as a point
-estimate of the testing value. The kernel scores were then normalized to lie in
-[0, 1], and an interval was found which contained 95\% of the area under the
-curve and was of minimal width. This was used as a 95\% confidence interval for
-the parameter.
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics{gridsearch_expt}
-  \caption{Schematic of grid search simulation experiments.}
-  \label{fig:gridsearch}
-\end{figure}
-
-\subsubsection{Approximate Bayesian computation}
-
-Our final set of simulation experiments was to test the ABC-SMC algorithm on
-simulated data. For each replicate, we generated a network on 5000 nodes,
-simulated an epidemic over that network until 1000 nodes were infected, and
-sampled either 500 or all 1000 of those nodes to form a transmission tree.
-Priors were specified as follows: for the total number of nodes in the network,
-$\Uniform(1000, 10000)$; for the number of infected nodes, $\Uniform(500,
-2000)$; for the preferential attachment power, $\Uniform(0, 2)$. The mean
-degree of nodes in the network was fixed at either 4, 10, or 16. The
-algorithm was run with 1000 particles, and was stopped when the \gls{MCMC}
-acceptance probability dropped below 1.5\%.
-
-\subsection{Applications}
-
-\subsubsection{HIV in British Columubia}
+  \input{\tablepath/realdata-bc}
+  \caption{Characteristics of published HIV datasets analyzed with kernel-ABC.}
+  \label{tab:realdata}
+\end{table}

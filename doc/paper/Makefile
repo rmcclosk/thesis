@@ -1,10 +1,27 @@
-all: paper.pdf
+.INTERMEDIATE: paper.tex
 
-paper.pdf: paper.tex papers.bib figures 
-	pdflatex $(word 1, $^)
-	biber $(patsubst %.tex,%,$(word 1, $^))
-	pdflatex $(word 1, $^)
-	pdflatex $(word 1, $^)
+all: paper.pdf supp-f1-9.pdf supp-f10.pdf mbe_submission.pdf
+
+clean:
+	rm -f *.aux *.pdf *.log *.acn *.bbl *.bcf *.blg *.glo *.idx *.ist *.xml *.bak *.dvi
+
+check: paper.Rnw mbe_submission.tex abstract.tex
+	aspell check --mode=tex --add-tex-command="citep op" --add-tex-command="citet op" $(word 1,$^)
+	aspell check --mode=tex --add-tex-command="citep op" --add-tex-command="citet op" $(word 2,$^)
+	aspell check --mode=tex --add-tex-command="citep op" --add-tex-command="citet op" $(word 3,$^)
+
+mbe_submission.pdf: mbe_submission.tex abstract.tex
+	pdflatex --enable-write18 $^
+
+paper.pdf: paper.tex papers.bib MBE.cls figures abstract.tex
+	latex $(word 1, $^)
+	bibtex $(patsubst %.tex,%,$(word 1, $^))
+	latex $(word 1, $^)
+	latex $(word 1, $^)
+	dvipdf $(patsubst %.tex,%.dvi,$(word 1, $^))
+
+supp-f1-9.pdf: supp-f1-9.tex supp-f1-9
+	pdflatex $^
 
 paper.tex: paper.Rnw
 	R -e "library(knitr); knit('$^')"
@@ -12,23 +29,26 @@ paper.tex: paper.Rnw
 papers.bib:
 	ln -s ../../reading/papers.bib .
 
-figures: figures/leventhal2012fig1.pdf \
-	figures/kernel-alpha-crossv.pdf \
-	figures/smc_test.pdf \
-	figures/abc-point-est.pdf \
-	figures/abc-example.pdf
+figures: kernel-rsquared.eps \
+	abc-point-estimate-m2.eps \
+	abc-posterior-example.eps \
+	realdata-hpd.eps
 
-figures/leventhal2012fig1.pdf:
-	cp ../../simulations/leventhal2012-fig1/sackin-plot/* $@
+supp-f1-9: leventhal2012fig1.pdf \
+	smc-test.pdf \
+	kernel-alpha-crossv.pdf \
+	kernel-m-crossv.pdf \
+	kernel-I-crossv.pdf \
+	kernel-N-crossv.pdf \
+	abc-point-estimate-m3.pdf \
+	abc-point-estimate-m4.pdf \
+	alpha-gamma.pdf
 
-figures/kernel-alpha-crossv.pdf:
-	cp ../../simulations/kernel-alpha/crossv-plot/* $@
+supp-f10.pdf:
+	ln -s ../figures/abc-posterior.pdf $@
 
-figures/smc_test.pdf:
-	cp ../../programs/netsim/build/tests/check_smc_hist.pdf $@
+%.eps:
+	ln -s ../figures/$@ .
 
-figures/abc-point-est.pdf:
-	cp ../../simulations/`echo "SELECT path FROM data WHERE step = 'point-estimate-plot' AND parameter = 'true_m' AND value = 2;" | sqlite3 ../../simulations/abc-pa-free-m.sqlite` $@
-
-figures/abc-example.pdf:
-	cp ../../simulations/`echo "SELECT path FROM data WHERE step = 'posterior-plot' AND parameter = 'true_m' AND value = 2 UNION SELECT path FROM data WHERE step = 'posterior-plot' AND parameter = 'true_alpha' AND value = 1.0;" | sqlite3 ../../simulations/abc-pa-free-m.sqlite | head -n 1` $@
+%.pdf:
+	ln -s ../figures/$@ .

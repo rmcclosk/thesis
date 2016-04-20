@@ -1,0 +1,177 @@
+\documentclass[12pt]{article}
+\usepackage{fullpage}
+\usepackage{garamondx}
+\usepackage{parskip}
+\usepackage{setspace}
+
+% http://tex.stackexchange.com/questions/44618/dynamically-count-and-return-number-of-words-in-a-section
+\newcommand\wordcount{\immediate\write18{texcount -sub=section \jobname.tex  | grep "Section" | sed -e 's/+.*//' | sed -n \thesection p > '/tmp/count.txt'}\ignorespaces\input{/tmp/count.txt}}
+
+\title{Phylodynamic inference of contact network parameters through approximate Bayesian computation}
+\author{Rosemary M. McCloskey, Richard H. Liang, and Art F.Y. Poon}
+
+\doublespacing
+\pagestyle{empty}
+\begin{document}
+\maketitle
+
+\section{Abstract}
+
+(\wordcount / 250 words)
+
+Models of the spread of disease in a population often make the simplifying
+assumption that the population is homogeneously mixed, or is divided into
+homogeneously mixed compartments. However, human populations have complex
+structures formed by social contacts, which can have a significant influence on
+the rate of epidemic spread. Contact network models capture this structure by
+explicitly representing each contact which could possibly lead to a
+transmission. We developed a method based on kernel approximate Bayesian
+computation (kernel-ABC) for estimating structural parameters of the contact
+network underlying an observed viral phylogeny. The method combines adaptive
+sequential Monte Carlo for ABC, Gillespie simulation for propagating epidemics
+though networks, and a kernel-based tree similarity score. We used the method
+to fit the Barab\'{a}si-Albert network model to simulated transmission trees,
+and also applied it to viral phylogenies estimated from five published HIV
+sequence datasets. On simulated data, we found that the preferential attachment
+power and the number of infected nodes in the network can often be accurately
+estimated. On the other hand, the mean degree of the network, as well as the
+total number of nodes, were not estimable with kernel-ABC. We observed
+substantial heterogeneity in the parameter estimates on real datasets, with
+point estimates for the preferential attachment power ranging from 0.2 to 1.1.
+These results underscore the importance of considering contact structures when
+performing phylodynamic inference. Our method offers the potential to
+quantitatively investigate the network structure underlying viral epidemics,
+using models appropriate to the context being studied.
+
+\section{Keywords}
+
+Phylogenetics, phylodynamics, approximate Bayesian computation, contact network,
+transmission tree, human immunodeficiency virus.
+
+\section{Cover Letter}
+
+Dear editors of \textit{Molecular Biology and Evolution},
+
+On behalf of my coauthors and myself, I am submitting a manuscript entitled
+``\textit{Phylodynamic inference of contact network parameters through
+approximate Bayesian computation}'' for your consideration. 
+
+In this work, we have developed a method to fit contact network models to viral
+phylogenetic data. These models capture the contact heterogeneity and
+population structure often observed in real host communities. It has previously
+been demonstrated analytically and through simulation studies that network
+structure can affect the speed and pattern of epidemic spread. Consequently,
+the often-made assumption of a homogeneously mixed population may introduce
+errors into epidemiological predictions. Furthermore, the network itself may be
+of interest from a public health perspective, such as for investigating the
+presence of highly-connected ``superspreader'' nodes.
+
+Despite their potential usefulness, most network parameters are extraordinarily
+difficult to estimate with existing methods. Direct epidemiological
+investigation of contact networks requires extensive contact tracing and may be
+hampered by misreporting. Viral genetic data are much easier to collect, but as
+far as we are aware, no other phylodynamic methods have been developed to make
+use of this data to fit network models. Therefore, our work opens new avenues
+for phylodynamic investigation, and we believe it will be of broad interest to
+the molecular evolution and epidemiology community.
+
+All authors fulfill the authorship criteria, and have agreed to this
+submission. \textit{Molecular Biology and Evolution} is our first choice for
+this manuscript, which has not been submitted to any other journal.
+
+Thank you for your time,
+
+Rosemary M. McCloskey
+
+\section{Reviewers}
+
+\begin{enumerate}
+  \item David Welch
+  \item Gabriel Leventhal
+  \item Erik Volz
+  \item Tanja Stadler
+  \item Oliver Ratmann
+  \item Andrew Rambaut
+\end{enumerate}
+
+\section{Editors}
+
+\begin{enumerate}
+  \item Thomas Leitner
+  \item Beth Shapiro
+  \item Kieth Crandall
+  \item John Novembre
+\end{enumerate}
+
+\section{Funding}
+
+\begin{enumerate}
+  \item Bill \& Melinda Gates Foundation (OPP1110049)
+  \item Canadian Institutes for Health Research (HOP-111406)
+\end{enumerate}
+
+\section{Significant discoveries}
+
+(\wordcount / 150 words)
+
+Through a simulation study, we have found that certain parameters of the
+contact network underlying a viral epidemic can be quantitatively estimated
+from phylogenetic data. In particular, we investigated a preferential
+attachment network model and were able to accurately infer the attachment power
+and the number of infected nodes in the network, in most simulation scenarios
+we considered. On the other hand, the average degree and total number of nodes
+in the network had an insufficient effect on tree shape and could not be
+quantitatively estimated. When applied five real-world HIV epidemics, we found
+substantial heterogeneity of these parameters, which are known to have a
+significant impact on the speed and pattern of epidemic spread.
+
+\section{Significant methodological or theoretical advances}
+
+(\wordcount / 150 words)
+
+We have developed a phylodynamic method to quantitatively estimate the
+parameters of contact network models from phylogenetic data. Our method is
+based on approximate Bayesian computation, and combines adaptive sequential
+Monte Carlo, Gillespie simulation, and a kernel-based tree similarity score.
+Due to the use of the tree kernel, the method falls under the heading of
+"kernel-ABC", which has been previously demonstrated to be a robust and
+effective means of estimating epidemiological quantities from observed
+phylogenies. To our knowledge, no other methods have been developed to estimate
+network parameters from this type of data. Therefore, our method expands the
+domain of phylodynamic inference to include network structure, offering
+molecular epidemiologists a new perspective into ongoing epidemics. 
+
+\section{Significant new tools or resources}
+
+(\wordcount / 150 words)
+
+We provide a computer program "netabc" implementing our kernel-ABC method. The
+C source code for the tool is freely available under a permissive license at
+github.com/rmcclosk/netabc. This allows users to both apply the method as-is to
+their data, and to incorporate new network models tailored to particular
+research questions. The program is multithreaded, facilitating faster analysis
+when more computing power is available. In addition, we provide two
+supplemental programs to assist in phylodynamic analyses involving contact
+networks: "nettree", which simulates a transmission tree over a contact network
+by Gillespie simulation, and "treekernel", which quickly computes the kernel
+similarity score between two trees. These tools will enable researchers to
+quickly test hypotheses about the effect of network structure on transmission
+tree shape.
+
+\section{Broad impact}
+
+(\wordcount / 150 words)
+
+Phylodynamics and molecular epidemiology are relatively new areas of study, yet
+they have undergone rapid development and have already seen public health
+applications for real epidemics. Recent advances in sequencing technology have
+allowed the collection of viral genetic data on a population scale in diverse
+geographic and demographic settings. These data, together with phylodynamic
+methods, provide an opportunity to gain insight into the real-world dynamics of
+disease spread. Our work expands the domain of phylodynamic inference to
+include structural parameters of the contact network underlying an epidemic.
+Because our method is broadly applicable to any model from which networks can
+be sampled, it will enable researchers to quantitatively investigate population
+structure and contact heterogeneity in a variety of contexts.
+
+\end{document}

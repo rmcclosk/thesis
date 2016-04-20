@@ -39,6 +39,10 @@ n-grams.
 * Introduces the concept of approximate Bayesian computation, although not by
 that name. Didn't read.
 
+**[@tavare1997inferring]**
+
+* First "real" use of ABC.
+
 **[@sisson2007sequential]**
 
 * Introduces the sequential Monte Carlo approach to ABC.
@@ -173,6 +177,10 @@ related.
 
 # Kernel-ABC
 
+**[@nakagome2013kernel]**
+
+* First use of the kernel-ABC concept.
+
 **[@poon2015phylodynamic]**
 
 * Kernel-ABC was able to distinguish differing contact rates in a compartmental
@@ -232,6 +240,15 @@ methods were crude.
 * Choice of gene has more of an impact than choice of method or model; more
 data was better.
 
+**[@bernard2007hiv]**
+
+* Not possible to phylogenetically ascertain who transmitted to whom (didn't
+read).
+
+**[@ou1992molecular]**
+
+* First use of genetic data to establish transmission links.
+
 **[@jombart2011reconstructing]**
 
 * Phylogenetic methods will fail to reconstruct the transmission tree if both
@@ -261,7 +278,10 @@ transmissions when within-host diversity is zero.
 epidemiological parameters. 
 * Develops the birth-death model for serially sampled data.
 * The likeilhood can be explicitly calculated. This is very pretty math.
-* 
+
+**[@minin2008smooth]**
+
+* Introduces the Bayesian skyride (just used for background, didn't read).
 
 ## Stochastic Mapping
 
@@ -350,7 +370,7 @@ distribution in the contact network.
 * Sackin's index is pretty bad at distinguishing network types, especially if
 the networks are dynamic (Figure 8).
 * It's still possible to distinguish trees from realistic vs. random networks
-if the incidence nand prevalence curves are very closely matched.
+if the incidence and prevalence curves are very closely matched.
 * Imbalance, or rather the relationship between epidemic dynamics and
 imbalance, is significantly affected by sampling schemes (Figure 11).
 
@@ -373,6 +393,24 @@ implicitly via construction rules (eg. preferential attachment).
 * Subsection "Inference about contact networks from disease data" is a goldmine
 of references, several past papers which have tried to infer network parameters
 from epidemic data.
+
+**[@keeling2005networks]**
+
+* Overview of the interface between contact networks and epidemiology.
+* There are some published networks obtained through contact tracing, where
+infected people listed their contacts for the purposes of identifying new
+infections. However these don't ask anything from the uninfected people.
+* Some other groups seems to have independently discovered the BA model in
+different contexts, should read the references.
+* This is a really useful review with a lot of good references, although it's
+old.
+
+**[@pastor2001epidemic]**
+
+* Describes how an epidemic spreads on a scale-free network, in the context of
+a computer virus spreading over the internet.
+* References for epidemic threshold, should mention in intro.
+* No epidemic threshold for scale-free networks with alpha = 1.
 
 **[@britton2002bayesian]**
 
@@ -426,11 +464,120 @@ I'm doing.
 * Use some odd summary statistics to show there isn't much difference between
 trees simulated with different levels of clustering.
 
+**[@bansal2007individual]**
+
+* Contrasts contact networks with homogeneous mixing models, explaining
+situations where each type is useful.
+* Exponential degree distribution, now power-law, was best fit to six published
+contact networks.
+* Should reread this one.
+
+**[@volz2008sir]**
+
+* Ah Erik. Of course you have done this already. Le sigh.
+* Uses probability generating functions to derive explicit formulae for SIR
+epidemic trajectories on random networks.
+* The word "random" here is like in random variable, it doesn't mean ER
+networks. They are defined in terms of their degree distributions.
+* He does this by considering what happens in the limit of effective population
+size.
+* Final DEs are written in terms of probability generating functions of the
+degree distribution. Ah it's pretty.
+
+**[@volz2007susceptible]**
+
+* Argh. Apparently there are tonnes of papers which fit contact network models
+to epi data. Check the references.
+* Extends the above to dynamic networks (but was published sooner? dunno).
+
 **[@klovdahl1985social]**
 
 * Canonical reference for the (modern) use of social networks in an
 epidimiological context.
 * This is a very politically incorrect article.
+
+**[@barthelemy2005dynamical]**
+
+* This is basically about how different contact network structures can
+influence the prevalence curve.
+* Turns out R0 is proportional to the second moment of the degree distribution.
+That is E(k^2) / E(k).
+* The speed of epidemic spread in a structured network can be dramatically
+different than in a homogeneously mixing population.
+* Seems gamma is bounded between 2 and 3?
+* Most of this isn't relevant to me and was skimmed.
+* Basically the epidemic makes its way to the superspreaders, and from there is
+rapidly disseminated to everybody else.
+
+**[@kemper1980identification]**
+
+* Canonical reference for the "superspreader" concept.
+
+**[@brown2011transmission]**
+
+* The authors previously showed that the degree distribution of the
+phylogenetic network of HIV+ MSM in the UK followed a power law.
+* Here, they show that a preferential attachment model fit the data better than
+a random attachment model.
+* The Waring distribution, which results from a somewhat more complex
+preferential attachment model, was the best fit.
+
+**[@yirrell1998molecular]**
+
+* Finds very little concordance between the phylogenetic and actual (based on
+contact tracing) networks in a Ugandan town.
+
+**[@resik2007limitations]**
+
+* The phylogenetic network doesn't always agree with the contact network,
+especially in cases where there is a long delay between transmission and
+sampling.
+
+**[@schneeberger2004scale]**
+
+* Networks with a power-law degree distribution are only "scale free" if 2 <
+gamma < 3.
+* References 12 and 13 for the fact that gamma in "real systems" lies between 1
+and 4.
+* References 24-27 for arguments for and against real networks being scale-free.
+* This has real data values for gamma.
+
+**[@colgate1989risk]**
+
+* Growth of HIV in early 1980's was cubic, which is not consistent with a
+homogeneously mixed population, even taking increasing education and behaviour
+change into account.
+* Find that a biased mixing model can produce the kind of cubic growth seen.
+* A power law distribution with exponent between 3 and 4 gives a good fit to
+surveys of number of sex partners among MSM.
+
+**[@liljeros2001web]**
+
+* First study to indicate that sexual networks follow a power law. Has real
+data values for gamma.
+
+**[@jones2003assessment]**
+
+* Disagrees with the other literature on PA networks for real data - it says
+that PA provides a "very poor fit" to sexual networks in the USA.
+* Fixing the minimum degree above 1 yields "wildly increasing confidince
+intervals" apparently. Dammit.
+* Estimated power-law exponents varied from 3.03 to 17.04 (!).
+
+**[@handcock2004likelihood]**
+
+* Persistence of STDs in the population is because of contact heterogeneity.
+Without it, they would die out.
+* Good historical references for some basic results (STDs only survive because
+of heterogeneity; R0 increases with variance of degree distribution).
+* Most people have 1 or fewer sex partners, so spread is driven primarily by
+the tail of the degree distribution.
+* Consider three types of network model: non-homogeneous Poisson, preferential
+attachment, and vetting.
+* Fit all three models to six survey datasets.
+* Most networks were best fit by the non-homogeneous Poisson model over
+preferential attachment. However the difference in fit was very small for all
+but one dataset (American men).
 
 ## Other Phylodynamics
 
@@ -449,6 +596,19 @@ infectiousness doesn't play a role in the heterosexual UK epidemic (Figure 4).
 rates even when there is no elevated transmission risk during acute infection.
 * This might just be because of the use of a distance cutoff for clustering.
 Acute infections = shorter branches = more clustering.
+
+**[@volz2012complex]**
+
+* Develops the likelihood of a phylogeny under a general compartmental model.
+
+**[@rasmussen2014phylodynamic]**
+
+* The coalescent process can be used to fit arbitrarily complex demographic
+models to phylogenies.
+* Uses a particle filter to sample population state trajectories given
+compartmental model parameters at each iteration of MCMC.
+* Based on the framework of [@volz2012complex].
+* Too complicated. I have no idea.
 
 **[@volz2013viral]**
 
@@ -507,6 +667,24 @@ with clustal, then tree building with phylip.
 * HIV underwent exponential growth in the past but more constant in the
 present, whereas HCV was endemic in the past but became epidemic recently.
 
+**[@poon2014impact]**
+
+* Reference for clustering by patristic distance cutoff.
+
+**[@kenah2015algorithms]**
+
+* Overview of relationship between transmission trees and viral phylogenies.
+* This would make a good journal club paper, although it's really long.
+* Great source of references for all the "standard" phylodynamics stuff.
+* Data from uninfected individuals is not used by any phylodynamic methods.
+* This develops a framework for the formation of transmission trees from
+contact networks, including epidemiological data.
+
+**[@stadler2013uncovering]**
+
+* Develops the multi-type birth-death branching process.
+* Detects evidence for superspreaders in MSM in Latvia.
+
 # ERGMs
 
 **[@robins2007introduction]**
@@ -535,6 +713,10 @@ effects (Figure 1 and Equation 4).
 **[@watts1998collective]**
 
 * Didn't read. Describes small world networks.
+
+**[@simon1955class]**
+
+* This is a much older description of the preferential attachment mechanism.
 
 # Other Statistics
 
@@ -581,6 +763,90 @@ person based on their viral DNA (presumably from a phylogeny-derived network).
 * Surveillance data about MSM in Canada.
 * Tables 10, 11, 14, 18 give numbers of contacts.
 
+**[@wang2015targeting]**
+
+* Pretty solid analysis of acutely infected MSM from Beijing.
+* Authors claim that they have "deeply sampled" the MSM subnetwork.
+* "Similar to previously inferred HIV networks among MSM [3,23], the inferred
+transmission network was best described by a preferential attachment model (ie. 
+Waring distribution, rho = 3.19) [24]."
+* See refs 3, 5, 33-37 for other deeply sampled MSM cohorts.
+
+**[@novitsky2013phylogenetic]**
+
+* Tested ~6000 residents of Mochudi, Botswana, and found ~1300 HIV+. 75\% of
+those who tested positive were female.
+* They hypothesize that there were "multiple introductions of HIV into the
+community", which would explain the low PA power.
+* Mother-to-child transmission pairs can be used as a control for clustering
+analysis.
+* The town is also close to Gabarone (the capital of Botswana), so it's likely
+that the sexual network extends into the city.
+* However they do say that the epidemic is "dominated by locally circulating
+viral variants."
+
+**[@novitsky2014impact]**
+
+* The concept of an HIV cluster is poorly defined in the current literature.
+* Very densely sampled a village in Botswana.
+
+**[@cuevas2009hiv]**
+
+* Analysed pol sequences from 261 newly diagnosed individuals from six
+hospitals in the Basque Country, Spain.
+* About half of the sequences (47%) grouped in transmission clusters.
+
+**[@shiino2014phylodynamic]**
+
+* Large drug resistance surveillance network in Japan.
+* 3618 individuals. I assumed the second part of the Genbank identifier (eg.
+"2069136" in "C12-2069136-1") was the patient ID, because there are
+3563 unique IDs in the pol sequences.
+
+**[@li2015hiv]**
+
+* 1265 newly infected MSM from Shangai, China. There are exactly 1265 linked
+sequences in Genbank.
+
+**[@niculescu2015recent]**
+
+* Outbreak of HIV among IDU in Romainia.
+
+**[@morris1993epidemiology]**
+
+* Early reference arguing for the use of social networks in epidemic modelling.
+* "The diffusion of disease through a human population traces the structure of
+social networks."
+* Nice historical overview.
+* Talks about the introduction of compartmental models and preferential mixing.
+* Basically this is extending the compartmental model idea all the way down to
+one differential equation per person.
+
+# Other Contact Networks
+
+**[@wasserman1994social]**
+
+* Book about social network analysis, primarily in the social science context.
+
+**[@barnes1954class]**
+
+* Apparently the first use of the term "social network", according to
+[@wasserman1994social].
+
+**[@moreno1953shall]**
+
+* Invention of the graphical form of social network (he called it a
+"sociogram").
+
+**[@jeong2000large]**
+
+* Metabolic networks are scale-free (didn't read).
+
+**[@shen2004superspreading]**
+
+* Contribution of super-spreaders to the 2003 SARS epidemic in Beijing (didn't
+read).
+
 # HIV Biology
 
 **[@mcmichael2001cellular]**
@@ -592,9 +858,8 @@ HIV) adapt to selection pressure exerted by the host immune response.
 
 * Overview of the concept of treating a within-host viral population as a
 quasispecies.
-* The quasispecies idea was apparently developed by Manfred Eigen, although not
-in a virological context. Refs 240-242 possibly have some "original" uses of
-viral quasispecies, good for references. Also ref 206.
+* Refs 240-242 possibly have some "original" uses of viral quasispecies, good
+for references. Also ref 206.
 * Also some good references for the fact that quasispecies theory is really the
 same as species theory, with selection etc.
 * On pg. 167 some good references for inter- and intra-host bottlenecking.
@@ -625,6 +890,16 @@ populations (MEPs).
 * MEPs are "operationally defined", meaning that what exactly constitutes an
 MEP depends on the amount of data available and the range of sampling times.
 * Some useful references for "seminal" papers in here.
+
+**[@drummond2003inference]**
+
+* Review of dated-tips methods for estimating viral evolutionary rates (also a
+good reference for root-to-tip regression).
+* Three main methods of estimating mutation rates from serially sample data:
+linear regression, ML, and Bayesian inference.
+* Substitution rate is not the same as mutation rate - mutation rate is much
+higher and depends only on replication errors, while substitution rate is an
+expression of how many polymorphisms become fixed in a population per unit time.
 
 **[@janzen2015approximate]**
 
@@ -674,6 +949,19 @@ it gives a nice definition.
 
 * Defines Sackin's index.
 
+**[@korber2000timing]**
+
+* One of the earliest uses of a root-to-tip regression.
+
+**[@shankarappa1999consistent]**
+
+* The other early use of root-to-tip regression, also one of the most famous
+HIV datasets.
+
+**[@li1988rates]**
+
+* First use of rooting with an outgroup (I think).
+
 # Population Genetics
 
 **[@kendall1948generalized]**
@@ -707,3 +995,47 @@ it says on the GSL page that I should be citing one by a different guy?
 **[@karatzoglou2004kernlab]**
 
 * The reference for kernlab. Didn't read.
+
+**[@cock2009biopython]**
+
+* Biopython.
+
+**[@katoh2013mafft]**
+
+* MAFFT.
+
+**[@edgar2004muscle]**
+
+* MUSCLE.
+
+**[@gouy2010seaview]**
+
+* Seaview.
+
+**[@price2010fasttree]**
+
+* FastTree2.
+
+**[@capella2009trimal]**
+
+* trimAl.
+
+**[@drummond2007beast]**
+
+* BEAST.
+
+**[@plummer2006coda]**
+
+* coda.
+
+**[@to2015fast]**
+
+* Least-square dating.
+
+**[@bouckaert2014beast]**
+
+* BEAST2.
+
+**[@ronquist2012mrbayes]**
+
+* MrBayes.

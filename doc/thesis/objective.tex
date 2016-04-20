@@ -1,94 +1,107 @@
-Our objective is to develop a method to estimate structural parameters of the
-contact network underlying an observed transmission tree.
+The spread of a disease is most often modelled by assuming either a
+homogeneously mixed population~\autocite{hamer1906milroy,
+kermack1927contribution}, or a population divided into a small number of
+homogeneously mixed groups~\autocite{rushton1955deterministic}. This
+assumption, also called the ``law of mass action'' or \defn{panmixia}, implies
+that any two individuals in the same compartment are equally likely to come
+into contact causing transmission. Although this provides a reasonable
+approximation in many cases, the error introduced by assuming a panmictic
+population can be substantial when significant contact heterogeneity exists in
+the underlying population. Contact network models provide an alternative to
+compartmental models which do not require the assumption of panmixia. In
+addition to more accurate predictions, the parameters of the networks
+themselves may be of interest from a public health perspective. For example,
+certain vaccination strategies may be more or less effective in curtailing an
+epidemic depending on the underlying network's degree distribution.
+Phylodynamic methods have been used to fit many different types of model to
+phylogenetic data, but as far as we know, no methods have yet been developed to
+fit contact network models. The primary objective of this work is to develop
+such a method.
 
-\subsection{Prior work}
+\newcommand{\G}{\mathcal{G}}
+\newcommand{\Nu}{\mathcal{N}}
 
-The present study is closely related to three groups of work with distinct
-objectives, which will be reviewed in detail below. 
-%, by
-%comparing trees simulated from different network models. These have
-%demonstrated that network structure does profoundly influence tree shape, but
-%did not attempt to quantitatively infer the parameter from observed trees. The
-%third group consists of studies which infer a structural network parameter from
-%observed infection and recovery times, using Bayesian methods. These are most
-%similar in aims to our work, but they rely on epidemiological observations
-%rather than evolutionary information from phylogenies.
+Calculating the likelihood of the parameters of a contact network models seems
+likely to be an intractable problem, which would imply that these models are
+amenable to neither \gls{ML} nor Bayesian inference. We not proven this is the
+case, but some intuition can be provided by examining the process involved in
+the likelihood calculation. Consider a contact network model with parameters
+$\theta$, and an observed transmission tree $T$ with $n$ tips.  In general, we
+do not know the labels of the internal nodes of $T$, only the labels of its
+tips. To fit this model using likelihood-based methods, we must calculate the
+likelihood of $\theta$, that is, $\Pr(T \mid \theta)$. Let $\G$ be the set of
+all possible contact networks, and $\Nu$ be the set of all possible labellings
+of the internal nodes of $T$. We can write the likelihood as
+\begin{align}
+\begin{split}
+  \label{eq:netlik}
+  \Pr(T \mid \theta)
+    &= \sum_{\nu \in \Nu} \Pr(T, \nu \mid \theta) \\
+    &= \sum_{G \in \G} \sum_{\nu \in \Nu} \Pr(T, \nu \mid G, \theta) \Pr(G \mid \theta) \\
+    &= \sum_{G \in \G} \sum_{\nu \in \Nu} \Pr(T, \nu \mid G) \Pr(G \mid \theta),
+\end{split}
+\end{align}
+the last equality following from the fact that $T$ and $\nu$ depend only on
+$G$, not on $\theta$. Although $\Pr(T, \nu \mid G)$ and $\Pr(G \mid \theta)$
+may individually be straightforward to calculate, the number of possible
+directed graphs on $N$ nodes is $2^{N(N-1)}$, larger if the nodes and edges in
+the graph may have different labels or attributes. Hence, the number of terms
+in the sum is at least exponential in $n$, as there must be at least $n$ nodes
+in the network. In addition, \cref{eq:netlik} assumes that $T$ is complete,
+meaning that all infected individuals were sampled. This is rarely the case in
+practice - most often, the observed tree is a subsampled version of the true
+tree. In this case, the likelihood calculation becomes even more complex,
+because we must also sum over all possible complete trees.
 
-The first and largest group of related studies are phylodynamic investigations
-of epidemiological parameters such as transmission rate, recovery rate, and
-basic reproductive number~\autocite{pybus2009evolutionary, volz2013viral}. Like
-our work, these studies make inferences about epidemiological processes from
-the genetic diversity of virus populations, which is usually represented in the
-form of a phylogeny. The majority of these employ a Bayesian \gls{MCMC}
-approach to infer parameters of an epidemiological model whose likelihood can
-be calculated, most often some variation of the
-birth-death~\autocite{kendall1948generalized} or
-coalescent~\autocite{kingman1982coalescent} models. Stadler
-\etal~\autocite{stadler2011estimating} develop a formula for the likelihood of
-a phylogeny with heterochronous tips under the birth-death model, which has
-been used to estimate the basic reproductive number of several viral
-epidemics~\autocite{stadler2011estimating}. However, the birth-death model is
-cannot tell us anything about population structure, as it assumes that every
-individual becomes infected at the same rate. Volz~\autocite{volz2012complex}
-writes down the likelihood of a heterochronous phylogeny under a coalescent
-model with arbitrarily complex population dynamics. This opens the door to more
-complex inferences about population structure, as the population can be
-partitioned into compartments with different transmission and recovery rates,
-but still assumes that each compartment is homogeneously mixed. In other words,
-the coalescent model can tell us about the \emph{global} structure of a
-population, such as whether there exists a high-risk subgroup, but not about
-the \emph{local} structure, such as the average number of contacts each
-individual has. 
+Depending on the network model studied, it is possible that \cref{eq:netlik}
+could be simplified into a tractable expression. However, a simpler alternative
+to likelihood-based methods, which would apply to any network model, is
+provided by \gls{ABC}. All of the ingredients required to apply \gls{ABC} to
+this problem are readily available. Simulating networks is straightforward
+under a variety of models. Epidemics on those networks, and the corresponding
+transmission trees, can also be easily simulated. As mentioned above, contact
+networks can profoundly affect transmission tree shape, and those shapes can be
+compared using a highly informative similarity measure. \Gls{SMC} has several
+advantages over other algorithms for \gls{ABC}~\autocite{mckinley2009inference},
+including a recently-developed adaptive algorithm requiring minimal tuning on
+the part of the user~\autocite{del2012adaptive}. In summary, our method to
+infer contact network parameters will combine the following: stochastic
+simulation of epidemics on networks, the tree kernel, and adaptive
+\gls{ABC}-\gls{SMC}. Since our distance measure is a kernel function, our
+method is a type of kernel-\gls{ABC}. For ease of exposition, we will often use
+the term ``kernel-\gls{ABC}'' to refer to our method specifically.
 
-A second, more recent group of studies has evaluated the effect of network
-structure on transmission tree shape. The use of models which assume a
-\defn{panmictic} (that is, homogeneously mixed) population in phylodynamics has
-become widespread, so it is natural that some researchers have investigated the
-effects of this assumption. In particular, since phylodynamic methods use
-phylogenies as their data source, several studies have examined the shapes of
-phylogenies arising from non-panmictic populations. 
-\citeauthor{o2010contact}~(\citeyear{o2010contact}) simulated epidemics over
-networks with four types of degree distribution. They then estimated the
-Bayesian skyride~\autocite{minin2008smooth} population size trajectory in two
-ways: from the phylogeny, using \gls{MCMC}; and from the incidence and
-prevalence trajectories, using the method developed by Volz
-\etal~\autocite{volz2009phylodynamics}. They found that the concordance between
-the two skyrides, as well as the relationship between the skyride and
-prevalence curve, was qualitatively different for each degree distribution.
-\citeauthor{leventhal2012inferring} simulated transmission trees over \gls{ER},
-\gls{WS}, \gls{BA}, and full networks with fixed number of nodes and mean
-degree. They calculated Sackin's index of the simulated trees while varying the
-epidemic, network, and sampling parameters, and found that the relationship
-between these parameters and Sackin's index varies considerably among the
-different network models. In summary, studies in this group have demonstrated
-that network structure profoundly influences tree shape, but have not attempted
-to quantitatively infer network parameters from observed trees.
+Empirical studies of sexual contact networks have found that these networks
+tend to be scale-free, meaning that their degree distributions follow a power
+law (although there has been some disagreement). Preferential attachment has
+been postulated as a mechanism by which scale-free networks could be generated.
+This makes the \gls{BA} model, one of the simplest preferential attachment
+models, a natural choice to explore with our method. The second aim of this
+work is to use simulations to investigate the parameters of the \gls{BA} model,
+including whether they have a detectable impact on tree shape, and whether they
+can be accurately recovered using kernel-\gls{ABC}.
 
-Finally, a third group of studies has used Bayesian methods to infer a
-structural network parameter from observed infection and recovery times. This
-third group is most similar in aims to our own work; rather than using
-epidemiological observations, we employ viral phylogenies. The pioneering study
-in this group was by \textcite{britton2002bayesian}, who developed a Bayesian
-method to infer the $p$ parameter of an \gls{ER} network, along with the
-$\beta$ and $\gamma$ parameters of \gls{SI} model. Their method is able to use
-either infection and removal times, or removal times only. However, it is
-designed for only a small number of observations (15 and 42 cases in their
-applications), and their estimates of $p$ for real outbreaks were mostly
-uninformative (95\% confidence intervals [0.11-0.96] and 0.055-0.96]; $p$ is
-bounded in [0, 1]).
-\textcite{groendyke2011bayesian} significantly updated and extended the
-methodology of \citeauthor{britton2002bayesian}, and applied it to a measles
-outbreak affecting 188 individuals. They were able to obtain a much more
-informative estimate of $p$, although this data set included both symptom onset
-and recovery times for all individuals. They also assumed that the entire
-network was infected, so that the network size was exactly 188. It is unclear
-how well their method would scale to networks with thousands of nodes.
+Due to its high global prevalence and fast mutation rate, \gls{HIV} is one of
+the most commonly-studied viruses in a phylodynamic context. Consequently, a
+large volume of \gls{HIV} sequence data is publicly available, more than for
+any other pathogen, and including sequences sampled from diverse geographic and
+demographic contexts. Since \gls{HIV} is almost always spread through either
+sexual contact or sharing of injection drug supplies, the contact networks
+underlying \gls{HIV} epidemics are highly structured. Moreover, since no cure
+yet exists, efforts to curtail the progression of an epidemic have relied on
+preventing further transmissions through measures such as \gls{tasp} and
+education leading to behaviour change. The effectiveness of this type of
+intervention can vary significantly based on the underlying structure of the
+network and the particular nodes to whom the intervention is targeted. Due to
+this combination of data availability and potential public health impact,
+\gls{HIV} is an obvious context in which our method could be applied.
+Therefore, the third and final aim of this work is to apply kernel-\gls{ABC} to
+fit the \gls{BA} model to existing \gls{HIV} outbreaks.
 
-% TODO: I don't know where to put this so it's going here for now.
-Several studies~\autocite{little2014using, wang2015targeting,
-brown2011transmission, schneeberger2004scale} have found that the preferential
-attachment model provides a good fit to MSM networks.
-
-The phylogenetic network may show little to no agreement with a contact data
-obtained through epidemiological methods~\autocite{yirrell1998molecular,
-resik2007limitations}.
+To summarize, this work has three objectives. First, we will develop a method
+which uses kernel-\gls{ABC} to infer parameters of contact network models from
+observed transmission trees. Second, we will use simulations to characterize
+the parameters of the \gls{BA} network model in terms of their effect on tree
+shape and how accurately they can be recovered with kernel-\gls{ABC}. Finally,
+we will apply the method fit the \gls{BA} model to several real-world \gls{HIV}
+datasets.

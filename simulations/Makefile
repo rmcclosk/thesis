@@ -1,76 +1,77 @@
-all: kernel-edge-density \
-	kernel-mean-degree \
-	kernel-nbhd-size \
-	kernel-pa-power \
-	kernel-rewire \
-	kernel-nnode \
-	gridsearch-edge-density \
-	gridsearch-pa-power \
-	abc-pa \
-	abc-pa-bctree
+define FETCH
+	rsync --delete -avz rmcclosk@$(1):/home/rmcclosk/thesis/simulations/$(2).yaml `pwd`
+	rsync --delete -avz rmcclosk@$(1):/home/rmcclosk/thesis/simulations/$(2).sqlite `pwd`
+	rsync --delete -avz rmcclosk@$(1):/home/rmcclosk/thesis/simulations/$(2) `pwd`
+endef
 
-%-bctree:
-	rsync --delete -avz rmcclosk@bulbasaur:/home/rmcclosk/thesis/simulations/$@.sqlite `pwd`
-	rsync --delete -avz rmcclosk@bulbasaur:/home/rmcclosk/thesis/simulations/$@ `pwd`
+define RUN
+	./expt.py -vv $(1).yaml
+endef
 
-pcbr-goodreau pcbr-cliques:
-	rsync --delete -avz rmcclosk@hermes:/home/rmcclosk/thesis/simulations/$@.sqlite `pwd`
-	rsync --delete -avz rmcclosk@hermes:/home/rmcclosk/thesis/simulations/$@ `pwd`
+.PHONY: bulbasaur breezy.westgrid.ca jasper.westgrid.ca local
 
-pcbr-%:
-	rsync --delete -avz rmcclosk@bulbasaur:/home/rmcclosk/thesis/simulations/$@.sqlite `pwd`
-	rsync --delete -avz rmcclosk@bulbasaur:/home/rmcclosk/thesis/simulations/$@ `pwd`
+all: bctree novitsky2014 cuevas2009 li2015 wang2015 niculescu2015 \
+	abc-pa-free-m abc-pa-mixed-alpha abc-pa-peerdriven \
+	kernel-alpha kernel-I kernel-m kernel-N \
+	gridsearch-alpha gridsearch-I gridsearch-m gridsearch-n \
+	aggregates
 
-kernel-nnode:
-	rsync --delete -avz rmcclosk@bulbasaur:/home/rmcclosk/thesis/simulations/$@.sqlite `pwd`
-	rsync --delete -avz rmcclosk@bulbasaur:/home/rmcclosk/thesis/simulations/$@ `pwd`
+# kernel classifier experiments
 
-kernel-pa-nsimnode:
-	rsync --delete -avz rmcclosk@bulbasaur:/home/rmcclosk/thesis/simulations/$@.sqlite `pwd`
-	rsync --delete -avz rmcclosk@bulbasaur:/home/rmcclosk/thesis/simulations/$@ `pwd`
+kernel-%: local
+	$(call RUN,$@)
 
-kernel-pa-power:
-	rsync --delete -avz rmcclosk@bulbasaur:/home/rmcclosk/thesis/simulations/$@.sqlite `pwd`
-	rsync --delete -avz rmcclosk@bulbasaur:/home/rmcclosk/thesis/simulations/$@ `pwd`
+# grid search experiments
 
-kernel-edge-density:
-	rsync --delete -avz rmcclosk@bulbasaur:/home/rmcclosk/thesis/simulations/$@.sqlite `pwd`
-	rsync --delete -avz rmcclosk@bulbasaur:/home/rmcclosk/thesis/simulations/$@ `pwd`
+gridsearch-%: local
+	$(call RUN,$@)
 
-kernel-nbhd-size:
-	rsync --delete -avz rmcclosk@bulbasaur:/home/rmcclosk/thesis/simulations/$@.sqlite `pwd`
-	rsync --delete -avz rmcclosk@bulbasaur:/home/rmcclosk/thesis/simulations/$@ `pwd`
+# ABC simulation experiments
 
-kernel-%:
-	rsync --delete -avz rmcclosk@hermes.westgrid.ca:/home/rmcclosk/thesis/simulations/$@.sqlite `pwd`
-	rsync --delete -avz rmcclosk@hermes.westgrid.ca:/home/rmcclosk/thesis/simulations/$@ `pwd`
+abc-pa-free-m: breezy.westgrid.ca
+	$(call FETCH,$^,$@)
 
-gridsearch-pa-power:
-	rsync --delete -avz rmcclosk@bulbasaur:/home/rmcclosk/thesis/simulations/$@.sqlite `pwd`
-	rsync --delete -avz rmcclosk@bulbasaur:/home/rmcclosk/thesis/simulations/$@ `pwd`
+abc-pa-mixed-alpha: jasper.westgrid.ca
+	$(call FETCH,$^,$@)
 
-gridsearch-%:
-	rsync --delete -avz rmcclosk@hermes.westgrid.ca:/home/rmcclosk/thesis/simulations/$@.sqlite `pwd`
-	rsync --delete -avz rmcclosk@hermes.westgrid.ca:/home/rmcclosk/thesis/simulations/$@ `pwd`
+abc-pa-peerdriven: jasper.westgrid.ca
+	$(call FETCH,$^,$@)
 
-abc-pa:
-	rsync --delete -avz rmcclosk@breezy:/home/rmcclosk/thesis/simulations/$@.sqlite `pwd`
-	rsync --delete -avz rmcclosk@breezy:/home/rmcclosk/thesis/simulations/$@ `pwd`
+# real data
 
-abc-pa-%:
-	rsync --delete -avz rmcclosk@bulbasaur:/home/rmcclosk/thesis/simulations/$@.sqlite `pwd`
-	rsync --delete -avz rmcclosk@bulbasaur:/home/rmcclosk/thesis/simulations/$@ `pwd`
+bctree: bulbasaur
+	$(call FETCH,$^,$@)
 
-abc-genbank:
-	rsync --delete -avz rmcclosk@hermes:/home/rmcclosk/thesis/simulations/$@.sqlite `pwd`
-	rsync --delete -avz rmcclosk@hermes:/home/rmcclosk/thesis/simulations/$@ `pwd`
+novitsky2014: jasper.westgrid.ca
+	$(call FETCH,$^,$@)
+	$(call RUN,$@)
 
-abc-%:
-	rsync --delete -avz rmcclosk@breezy.westgrid.ca:/home/rmcclosk/thesis/simulations/$@.sqlite `pwd`
-	rsync --delete -avz rmcclosk@breezy.westgrid.ca:/home/rmcclosk/thesis/simulations/$@ `pwd`
+cuevas2009: jasper.westgrid.ca
+	$(call FETCH,$^,$@)
+	$(call RUN,$@)
 
-clean:
-	rm -f Rplots.pdf
-	rm -f .expttmp/*
-	rm -f *.[eo][0-9][0-9][0-9][0-9][0-9][0-9]
-	rm -f *.[eo][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]
+li2015: jasper.westgrid.ca
+	$(call FETCH,$^,$@)
+	$(call RUN,$@)
+
+wang2015: jasper.westgrid.ca
+	$(call FETCH,$^,$@)
+	$(call RUN,$@)
+
+niculescu2015: jasper.westgrid.ca
+	$(call FETCH,$^,$@)
+	$(call RUN,$@)
+
+# misc
+
+aggregates: local
+	$(call RUN,$@)
+
+leventhal2012-fig1: local
+	$(call RUN,$@)
+
+pa-gamma: local
+	$(call RUN,$@)
+
+sir: local
+	$(call RUN,$@)
