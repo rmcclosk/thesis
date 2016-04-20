@@ -160,8 +160,9 @@ which is represented as branching in the transmission tree, causes branching in
 the viral phylogeny as well. Similarly, the removal of an individual from the
 transmission tree causes the extinction of their viral lineage in the
 phylogeny. Consequently, the topology of the viral phylogeny is sometimes used
-as a proxy for the topology of the transmission tree. Modern likelihood-based
-methods of phylogenetic reconstruction~\autocite[\eg][]{price2010fasttree,
+as a proxy for the topology of the transmission
+tree~\autocite{hall2015epidemic}. Modern likelihood-based methods of
+phylogenetic reconstruction~\autocite[\eg][]{price2010fasttree,
 stamatakis2014raxml} produce unrooted trees whose branch lengths measure
 genetic distance in units of expected substitutions per site. On the other
 hand, transmission trees are rooted, and have branches measuring calendar
@@ -175,17 +176,18 @@ with an outgroup~\autocite{li1988rates} before time-scaling.
 
 A caveat of estimating transmission trees in this manner is that the
 correspondence between the topologies of the viral phylogeny and transmission
-tree is not necessarily exact~\autocite{ypma2013relating}. Due to intra-host
-diversity, the viral strain which is transmitted may have split from another
-lineage within the donor long before the transmission event occurred. Hence,
-the branching point in the viral phylogeny may be much earlier than that in the
-transmission tree. Another possibility is that one host transmitted to two or
-more recipients, but the lineages they each received originated within the
-donor host in a different order than that in which the transmissions occurred.
-In this case, the topology of the transmission tree and the viral phylogeny
-will be mismatched. In practice, this discordance has not proven an
-insurmountable problem: for example, \textcite{leitner1996accurate} were able
-to accurately recover a known transmission tree using a viral phylogeny. The
+tree is not necessarily exact~\autocite{ypma2013relating, romero2014timing}.
+Due to intra-host diversity, the viral strain which is transmitted may have
+split from another lineage within the donor long before the transmission event
+occurred. Hence, the branching point in the viral phylogeny may be much earlier
+than that in the transmission tree. Another possibility is that one host
+transmitted to two or more recipients, but the lineages they each received
+originated within the donor host in a different order than that in which the
+transmissions occurred.  In this case, the topology of the transmission tree
+and the viral phylogeny will be mismatched. In practice, this discordance has
+not proven an insurmountable problem: for example,
+\textcite{leitner1996accurate, paraskevis2004phylogenetic} were able to
+accurately recover a known transmission tree using a viral phylogeny. The
 problem of accurately estimating transmission trees is an ongoing area of
 research~\autocite{cottam2008integrating, jombart2011reconstructing,
 ypma2012unravelling, didelot2014bayesian}.
