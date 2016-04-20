@@ -1,4 +1,4 @@
-#' Plot a 2-dimensional PCA projection of a kernel-matrix 
+#' Plot a 2-dimensional PCA projection of a kernel-matrix
 #'
 #' @param kmat kernel matrix
 #' @param color either NULL, or a list of one element to display with color
@@ -101,7 +101,7 @@ cluster.plot <- function (net, tree, yaml="", palette="Set1", status.only=FALSE,
     }
     d$cluster[bg] <- 1
     cluster.colors <- c("#bdbdbd", brewer.pal(max(d$cluster)-1, palette))
-    
+
     labels <- c(tree$tip.label, tree$node.label)
     parents <- labels[tree$edge[,1]]
     children <- labels[tree$edge[,2]]
@@ -152,37 +152,37 @@ edge.color.plot <- function (tree, labels, yaml="", palette="PuBu", parent=TRUE,
 #' @param truth true parameter values to indicate on plots
 #' @param limits axis limits for plots
 #' @export
-marginal.plot <- function (d, truth, limits) {                                   
-    vary.cols <- colnames(d)[apply(d, 2, function (x) length(unique(x)) > 1)]       
-                                                                                 
-    if (length(vary.cols) >= 2) {                                                
-    # 2D marginals                                                               
-        combos <- combn(vary.cols, 2)                                            
-        plot.data <- apply(combos, 2, function (c) d[, c, with=FALSE])           
-        plot.aes <- apply(combos, 2, function (c) aes_string(x=c[1], y=c[2]))       
-        plot.limits <- apply(combos, 2, function (c) limits[c])                  
-        plots <- mapply(ggplot, plot.data, plot.aes, SIMPLIFY=FALSE)             
-        plots <- mapply(function (p, lim) {                                      
+marginal.plot <- function (d, truth, limits) {
+    vary.cols <- colnames(d)[apply(d, 2, function (x) length(unique(x)) > 1)]
+
+    if (length(vary.cols) >= 2) {
+    # 2D marginals
+        combos <- combn(vary.cols, 2)
+        plot.data <- apply(combos, 2, function (c) d[, c, with=FALSE])
+        plot.aes <- apply(combos, 2, function (c) aes_string(x=c[1], y=c[2]))
+        plot.limits <- apply(combos, 2, function (c) limits[c])
+        plots <- mapply(ggplot, plot.data, plot.aes, SIMPLIFY=FALSE)
+        plots <- mapply(function (p, lim) {
             p + stat_density2d(aes(fill=..level..), geom="polygon") + theme_bw() +
-                guides(fill=FALSE) +                                             
-                geom_point(data=truth, color="black", size=8) +                  
-                geom_point(data=truth, color="white", size=6) +                  
-                xlim(lim[[1]][1], lim[[1]][2]) +                                 
-                ylim(lim[[2]][1], lim[[2]][2])                                   
-        }, plots, plot.limits, SIMPLIFY=FALSE)                                   
-        do.call(grid.arrange, c(plots, ncol=ceiling(sqrt(ncol(combos))),         
-                                top="2D marginals"))                             
-    }                                                                            
-                                                                                 
-    # 1D marginals                                                               
-    plot.aes <- lapply(vary.cols, function (c) aes_string(x=c))                  
-    plots <- mapply(ggplot, list(d), plot.aes, SIMPLIFY=FALSE)                   
-    plots <- mapply(function (p, col) {                                          
+                guides(fill=FALSE) +
+                geom_point(data=truth, color="black", size=8) +
+                geom_point(data=truth, color="white", size=6) +
+                xlim(lim[[1]][1], lim[[1]][2]) +
+                ylim(lim[[2]][1], lim[[2]][2])
+        }, plots, plot.limits, SIMPLIFY=FALSE)
+        do.call(grid.arrange, c(plots, ncol=ceiling(sqrt(ncol(combos))),
+                                top="2D marginals"))
+    }
+
+    # 1D marginals
+    plot.aes <- lapply(vary.cols, function (c) aes_string(x=c))
+    plots <- mapply(ggplot, list(d), plot.aes, SIMPLIFY=FALSE)
+    plots <- mapply(function (p, col) {
         p + geom_density() + theme_bw() + xlim(limits[[col]][1], limits[[col]][2]) +
-            geom_vline(xintercept=truth[,col], linetype=2)                       
-    }, plots, vary.cols, SIMPLIFY=FALSE)                                         
-    do.call(grid.arrange, c(plots, ncol=ceiling(sqrt(length(vary.cols))),        
-                            top="1D marginals"))                                 
+            geom_vline(xintercept=truth[,col], linetype=2)
+    }, plots, vary.cols, SIMPLIFY=FALSE)
+    do.call(grid.arrange, c(plots, ncol=ceiling(sqrt(length(vary.cols))),
+                            top="1D marginals"))
 }
 
 #' Label wrapped facets.
@@ -194,17 +194,17 @@ facet_wrap_labeller <- function(gg.plot,labels=NULL) {
   #works with R 3.0.1 and ggplot2 0.9.3.1
 
   g <- ggplotGrob(gg.plot)
-  gg <- g$grobs      
+  gg <- g$grobs
   strips <- grep("strip_t", names(gg))
 
   for(ii in seq_along(labels))  {
-    modgrob <- getGrob(gg[[strips[ii]]], "strip.text", 
+    modgrob <- getGrob(gg[[strips[ii]]], "strip.text",
                        grep=TRUE, global=TRUE)
     gg[[strips[ii]]]$children[[modgrob$name]] <- editGrob(modgrob,label=labels[ii])
   }
 
   g$grobs <- gg
-  class(g) = c("arrange", "ggplot",class(g)) 
+  class(g) = c("arrange", "ggplot",class(g))
   g
 }
 
@@ -239,4 +239,69 @@ tiny.tree <- function (ntip=4, color="black", ultra=FALSE, lwd=8)
 #' @export
 polar2rect <- function (r, theta) {
     cbind(r*cos(theta), r*sin(theta))
+}
+
+#' Plot posterior distributions from a netabc trace for the Barabasi-Albert
+#' preferential attachment model.
+#'
+#' @param trace data.frame output by netabc
+#' @export
+posterior.plot.pa <- function (trace, I_min=500, I_max=10000, N_min=500, N_max=10000,
+                               alpha_min=0, alpha_max=2, m_min=1, m_max=5) {
+    setDT(trace)
+    d <- trace[iter == max(iter)]
+    d <- d[sample(1:nrow(d), prob=weight, replace=TRUE)]
+    font.size <- 14
+    options(scipen=-1)
+
+    denspoly <- function (x, q=0.95) {
+        dens <- density(x)
+        dens <- data.frame(x=dens$x, y=dens$y)
+        dens <- dens[dens$x >= quantile(x, 1-q) & dens$x <= quantile(x, q),]
+        rbind(c(dens[1, "x"], 0), dens, c(dens[nrow(dens), "x"], 0))
+    }
+    map <- function (x) {
+        dens <- density(x)
+        dens$x[which.max(dens$y)]
+    }
+
+    plot.theme <- theme_bw() +
+                  theme(text=element_text(family="Gillius ADF", size=font.size),
+                        axis.ticks.y=element_blank(),
+                        axis.text.y=element_blank(),
+                        legend.position="none")
+    palpha <- ggplot(d, aes(x=alpha)) + 
+            geom_density() +
+            labs(x=expression(alpha), y="") + 
+            xlim(alpha_min, alpha_max) +
+            geom_polygon(data=denspoly(d[,alpha]), aes(x=x, y=y), fill="black", alpha=0.3) +
+            geom_vline(xintercept=d[,map(alpha)]) + 
+            plot.theme
+
+    pI <- ggplot(d, aes(x=I)) + 
+            geom_density() +
+            geom_polygon(data=denspoly(d[,I]), aes(x=x, y=y), fill="black", alpha=0.3) +
+            labs(x="I", y="") + 
+            xlim(ntip, I_max) +
+            geom_vline(xintercept=d[,map(I)]) + 
+            plot.theme
+    pN <- ggplot(d, aes(x=N)) + 
+            geom_density() + 
+            labs(x="N", y="") +
+            geom_polygon(data=denspoly(d[,N]), aes(x=x, y=y), fill="black", alpha=0.3) +
+            xlim(ntip, N_max) +
+            geom_vline(xintercept=d[,map(N)]) + 
+            plot.theme
+
+    d[,shade := m >= quantile(m, 0.05) & m <= quantile(m, 0.95)]
+    pm <- ggplot(d, aes(x=floor(m))) +
+            geom_histogram(aes(alpha=shade), fill="black", col="black", binwidth=1) +
+            labs(x="m", y="") +
+            xlim({m_min}-0.5, {m_max}+0.5) +
+            scale_alpha_manual(values=c("TRUE"=0.3, "FALSE"=0)) +
+            geom_vline(xintercept=d[,map(m)]) + 
+            plot.theme
+
+    arrangeGrob(palpha, pI, pm, pN, ncol=2)
+    ggsave(g, file="{posterior-plot}", height=5, width=6)
 }
