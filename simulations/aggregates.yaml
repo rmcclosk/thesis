@@ -8,7 +8,7 @@ Steps:
         Extension: tsv
         Parameters:
             m_min: [1, 2]
-            dataset: ["cuevas2009", "wang2015", "novitsky2014",
+            dataset: ["bctree", "cuevas2009", "wang2015", "novitsky2014",
                       "niculescu2015", "li2015"]
         Interpreter: R --silent --vanilla
         Startup: suppressPackageStartupMessages(library(netabc))
@@ -26,7 +26,7 @@ Steps:
         Extension: nwk
         Parameters:
             m_min: [1, 2]
-            dataset: ["cuevas2009", "wang2015", "novitsky2014",
+            dataset: ["bctree", "cuevas2009", "wang2015", "novitsky2014",
                       "niculescu2015", "li2015", "shiino2014"]
         Interpreter: R --silent --vanilla
         Startup: suppressPackageStartupMessages(library(netabc))
@@ -86,7 +86,7 @@ Steps:
             I_max: 10000
             alpha_min: 0
             alpha_max: 2
-            bctree: 0
+            bctree: [0, 1]
         Depends: hpd
         Interpreter: R --vanilla --silent
         Startup: |
@@ -95,7 +95,7 @@ Steps:
         Rule: |
             d <- fread("{hpd}")
             ds.names <- list(
-                novitsky2014="mixed/Botswana (Novitsky et al. 2013 & 2014)",
+                novitsky2014="HET/Botswana (Novitsky et al. 2013 & 2014)",
                 cuevas2009="mixed/Spain (Cuevas et al. 2009)",
                 li2015="MSM/China (Li et al. 2015)",
                 wang2015="MSM/China (Wang et al. 2015)",

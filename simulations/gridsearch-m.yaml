@@ -118,7 +118,9 @@ Steps:
             alpha: 1.0
         Depends: kernel train-tree
         Interpreter: R --quiet --vanilla
-        Startup: suppressPackageStartupMessages(library(netabc))
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(grid))
         Rule: |
             d <- setDT(collect.data(strsplit("{kernel}", " ")[[1]], header=FALSE))
             setnames(d, c("V1", "V2"), c("tree", "score"))
@@ -129,19 +131,20 @@ Steps:
             d <- merge(d, md, by=c("tree", "alpha", "ntip"))
             d[,ntip := as.factor(ntip)]
 
-            d[,label := paste("true m =", true_m)]
-            poly.data <- d[,unique(true_m) + rep(c(-0.5, 0.5), each=2), by=label]
-            poly.data <- setnames(poly.data, "V1", "x")
-            poly.data[,y := c(0.9, 1, 1, 0.9), by=label]
-            ggplot(d, aes(x=factor(m), y=score, fill=factor(ntip))) + 
-                geom_violin() + facet_wrap(~label) + 
-                scale_y_log10() + ylim(0.9, 1) + 
-                geom_polygon(data=poly.data, aes(x=x, y=y, fill=NA), alpha=0.2) +
-                scale_fill_discrete(name="number of tips") +
-                labs(x="simulated m", y="kernel score") +
+            setkey(d, alpha, ntip, true_m, replicate, m)
+            d[,score := score / sum(score), by=c("alpha", "ntip", "true_m", "replicate")]
+            
+            ggplot(d, aes(x=m, y=score, color=factor(ntip), group=ntip)) + 
+                stat_summary(fun.y=median, geom="line") +
+                facet_wrap(~true_m, labeller = label_bquote(m == .(true_m))) +
+                geom_vline(aes(xintercept=true_m), linetype="dashed") + 
+                scale_color_discrete(name="number of tips") +
+                labs(x="simulated m", y="normalized kernel score") +
+                stat_summary(fun.y=median, geom="line") +
                 theme_bw() +
-                theme(text=element_text(size=18, family="Gillius ADF"))
-            ggsave("{kernel-plot}")
+                theme(text=element_text(size=14, family="Gillius ADF"),
+                      axis.text.y=element_blank(), axis.ticks.y=element_blank())
+            ggsave("{kernel-plot}", height=5, width=6)
 
     point-estimate:
         Extension: tsv

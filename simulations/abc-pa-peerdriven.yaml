@@ -1,8 +1,8 @@
-Name: abc-pa-mixed-alpha
-Description: ABC inference on 2-parameter preferential attachment networks with "mixed" alpha
+Name: abc-pa-peerdriven
+Description: ABC inference on 2-parameter preferential attachment networks with peer-driven sampling
 Processes: 1
-Hostname: ".*"
 Threads: 1
+Hostname: ".*"
 Steps:
     network:
         Extension: gml
@@ -10,14 +10,12 @@ Steps:
         Parameters:
             N: 5000
             m: 2
-            alpha_1: 0.5
-            alpha_2: 1.5
+            alpha: 0.5
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: | 
             set.seed({seed})
-            alpha <- rep(c({alpha_1}, {alpha_2}), each={N}/2)
-            g <- sample_pa_mixed_power({N}, m={m}, power=alpha, directed=FALSE)
+            g <- sample_pa({N}, m={m}, power={alpha}, directed=FALSE)
             graph_attr(g, "comment") <- "{yaml}"
             write.graph(SIR.net(g), "{network}", format="gml")
 
@@ -25,13 +23,14 @@ Steps:
         Extension: nwk
         Walltime: 00:00:30
         Parameters:
-            I: 1000
+            I: 2000
             ntip: 500
+            sample_peer: [0, 1]
         Depends: network
         Interpreter: bash
         Rule: |
             echo "#{yaml}" > {tree}
-            nettree --sim-nodes {I} --tree-tips {ntip} --seed {seed} {network} >> {tree}
+            nettree --sim-nodes {I} --tree-tips {ntip} --seed 0 --sample-peer {sample_peer} {network} >> {tree}
 
     abc-config:
         Extension: yaml
@@ -57,10 +56,12 @@ Steps:
 
     abc:
         Extension: tsv.bz2
+        Processes: 2
         Threads: 12
         Sleep: 600
-        Walltime: 09:00:00
+        Walltime: 010:00:00
         Parameters:
+            sample_peer: [0, 1]
             m_min: 1
             m_max: 5
             N_min: 500
@@ -93,17 +94,17 @@ Steps:
         Extension: pdf
         Processes: 1
         Parameters:
+            sample_peer: [0, 1]
             m: 2
             m_min: 1
             m_max: 5
             N: 5000
             N_min: 500
             N_max: 15000
-            I: 1000
+            I: 2000
             I_min: 500
             I_max: 5000
-            alpha_1: 0.5
-            alpha_2: 1.5
+            alpha: 0.5
             alpha_min: 0
             alpha_max: 2
             decay_factor: 0.3
@@ -122,9 +123,9 @@ Steps:
             vars <- c("N", "I", "m", "alpha")
             priors <- data.table(variable=vars, 
                                  min=c({N_min}, {I_min}, {m_min}, {alpha_min}),
-                                 max=c({N_max}, {I_max}, {m_max}, {alpha_max}))
-            truth <- data.table(variable=rep(vars, c(1, 1, 1, 2)), 
-                                value=c({N}, {I}, {m}, {alpha_1}, {alpha_2}))
+                                 max=c({N_max}, {I_max}, {m_max}-1, {alpha_max}))
+            truth <- data.table(variable=vars,
+                                value=c({N}, {I}, {m}, {alpha}))
             d <- melt(d[,vars,with=FALSE], measure.vars=vars)
             d <- merge(d, priors, by="variable")
 
@@ -133,13 +134,7 @@ Steps:
             d[variable == "m", label := "m"]
             d[variable == "alpha", label := "alpha"]
             plots <- by(d, d[,variable], function (by.d) {{
-                p <- ggplot(by.d, aes(x=value))
-                if (by.d[1,variable] == "m") {{
-                    p <- p + geom_histogram(fill="white", col="black", binwidth=1)
-                }} else {{
-                    p <- p + geom_density()
-                }}
-                p <- p + theme_bw() +
+                p <- ggplot(by.d, aes(x=value)) + geom_density() + theme_bw() +
                     by.d[1,xlim(min, max)] +
                     geom_vline(xintercept=truth[variable==by.d[1,variable], value], linetype=2) +
                     theme(axis.text.y=element_blank(),
@@ -149,6 +144,6 @@ Steps:
                 else
                     p + labs(x=by.d[1, label], y="")
             }})
-            pdf("{posterior-plot}", width=5, height=5)
+            pdf("{posterior-plot}")
             do.call(grid.arrange, c(plots, ncol=2))
             dev.off()
