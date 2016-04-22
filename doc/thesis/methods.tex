@@ -449,6 +449,18 @@ package~\autocite{plummer2006coda}.
   \label{tab:gammaexpt}
 \end{table}
 
+Two further experiments were performed to address potential sources of error.
+To evaluate the effect of model misspecification in the case of heterogeneity
+among nodes, we generated a network where half the nodes were attached with
+power $\alpha$ = 0.5, and the other half with power $\alpha$ = 1.5. The other
+parameters for this network were $N$ = 5000, $I$ = 1000, and $m$ = 2. To
+investigate the effects of potential sampling
+bias~\autocite{karcher2016quantifying}, we simulated a transmission tree where
+the tips were sampled in a peer-driven fashion, rather than at random. That is,
+the probability to sample a node was twice as high if any of that node's
+network peers had already been sampled. The parameters of this network were $N$
+= 5000, $I$ = 2000, $m$ = 2, and $\alpha$ = 0.5.
+
 \subsection{Real data experiments}
 
 Because the \gls{BA} model assumes a single connected contact network, it is

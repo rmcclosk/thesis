@@ -209,7 +209,7 @@ see \cref{subsec:treeshape}). The average error for \gls{N} was
 on a grid from 1000 to 15000, and was positively correlated with the true value
 of \gls{N}
     (Spearman's $\rho$ = 0.43,
-    $p {<}10^{-5}$).
+    $p\ {<}10^{-5}$).
 
 \begin{figure}[ht]
   \centering
@@ -317,69 +317,3 @@ interpretable as multiplicative effects.
 
 
 
-We applied kernel-ABC to five published HIV datasets (\cref{tab:data}),
-and found substantial heterogeneity among the parameter estimates
-(\cref{fig:abchpd}). Two of the datasets~\autocite{niculescu2015recent,
-wang2015targeting} had estimated $\alpha$ values near unity (MAP estimates
-[95\% HPD] 
-  1.06 
-  [0.63 - 
-   1.27]
-and
-  1 
-  [0.41 -
-   1.16] respectively). 
-Another two datasets~\autocite{li2015hiv, cuevas2009hiv} had lower estimated
-values and wider HPD intervals
-  (0.77 
-  [0.01 - 
-  1.03]
-and
-  0.66 
-  [0.03 -
-   0.84]). 
-The \textcite{novitsky2014impact} data had an extremely low estimated $\alpha$
-and a very wide HPD interval
-  (0.17 
-  [0.04 -
-   1.39]). 
-For all the datasets except \citeauthor{novitsky2014impact}, estimated values of
-$I$ were below 2000, with narrow HPD intervals around two of the
-datasets
-  (\citeauthor{cuevas2009hiv}, 880 
-  [290 -
-   \ensuremath{1.51\times 10^{3}}];
-   \citeauthor{niculescu2015recent}, 175
-  [138 - 
-   454])
-and wider intervals around the other two
-  (\citeauthor{li2015hiv}, \ensuremath{1.59\times 10^{3}} 
-  [284 -
-   \ensuremath{3.81\times 10^{3}}];
-   \citeauthor{wang2015targeting}, 651
-  [268 - 
-   \ensuremath{4.24\times 10^{3}}]).
-The \citeauthor{novitsky2014impact} data was again the outlier, with a very high
-estimated $I$, and HPD interval spanning almost the entire prior region
-  (\ensuremath{7.55\times 10^{3}} 
-  [228 -
-   \ensuremath{8.92\times 10^{3}}]).
-No information was gleaned about the $m$ parameter, with the HPD interval
-occupying the entire prior region for all datasets. The estimates of $N$ were
-similarly uninformative, with the exception that the point estimate for the
-\citeauthor{wang2015targeting} data was smaller
-  (\ensuremath{5.84\times 10^{3}})
-than the estimates for other datasets
- (average \ensuremath{8.93\times 10^{3}}).
-
-\begin{figure*}[ht]
-  \centering
-  \includegraphics{realdata-hpd-bc.pdf}
-  \vspace{8pt}
-  \caption{
-      Maximum \textit{a posteriori} point estimates and 95\% HPD intervals for
-      parameters of the BA network model, fitted to five published HIV datasets
-      with kernel-ABC.
-  }
-  \label{fig:abchpd}
-\end{figure*}

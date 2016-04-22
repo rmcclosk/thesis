@@ -190,7 +190,7 @@ not proven an insurmountable problem: for example,
 accurately recover a known transmission tree using a viral phylogeny. The
 problem of accurately estimating transmission trees is an ongoing area of
 research~\autocite{cottam2008integrating, jombart2011reconstructing,
-ypma2012unravelling, didelot2014bayesian}.
+ypma2012unravelling, morelli2012bayesian, didelot2014bayesian}.
 
 %Although phylodynamics is quite new, these phenomena have been studied in
 %evolutionary biology for some time. Viral phylogenies are a specific version of
@@ -398,19 +398,19 @@ that every possible contact between a member of group $i$ and a member of group
 $j$ is equally likely. This assumption is clearly unrealistic for the majority
 of human communities, and can lead to significant errors in predicted epidemic
 trajectories when there is substantial heterogeneity
-present~\autocite{bansal2007individual, volz2007susceptible}. Contact networks
-provide a way to relax this assumption by representing individuals and their
-contacts explicitly. It is important to note that, although panmixia is an
-unrealistic modelling assumption, it has not proven a substantial hurdle to
-epidemic modelling in practice~\autocite{anderson1992infectious}. Using this
-assumption, researchers have been able to derive estimates of the transmission
-rate and the basic reproductive number of various outbreaks, which have agreed
-with values obtained by on-the-ground data collection. Therefore, if one is
-interested only in these population-level variables, the additional complexity
-of contact network models may not be warranted. Rather, these models are most
-useful when we are interested in properties of the network itself, such as
-centrality, structural balance, and
-transitivity~\autocite{wasserman1994social}.
+present~\autocite{bansal2007individual, volz2007susceptible,
+rolls2015simulation}. Contact networks provide a way to relax this assumption
+by representing individuals and their contacts explicitly. It is important to
+note that, although panmixia is an unrealistic modelling assumption, it has not
+proven a substantial hurdle to epidemic modelling in
+practice~\autocite{anderson1992infectious}. Using this assumption, researchers
+have been able to derive estimates of the transmission rate and the basic
+reproductive number of various outbreaks, which have agreed with values
+obtained by on-the-ground data collection. Therefore, if one is interested only
+in these population-level variables, the additional complexity of contact
+network models may not be warranted. Rather, these models are most useful when
+we are interested in properties of the network itself, such as centrality,
+structural balance, and transitivity~\autocite{wasserman1994social}.
 
 From a public health perspective, knowledge of contact networks has the
 potential to be extremely useful. On a population level, network structure can
@@ -612,9 +612,10 @@ matrix in a finite-state Markov model.  For some spaces $X$ and $Y$, $K \maps X
     \int_Y K(x, y) \d y = 1
 \end{align}
 for all $x \in X$. This is an ``operational'' definition of Markov kernel which
-will be suitable for our purposes. Note that a Markov kernels have nothing to
-do with the kernel functions defined in \cref{subsec:treeshape}, other than
-sharing a name (the word ``kernel'' is ubiquitous in mathematics).
+will be suitable for our purposes. A more rigorous definition can be found in
+\eg \autocite{kallenberg2006foundations}. Note that a Markov kernels have
+nothing to do with the kernel functions defined in \cref{subsec:treeshape},
+other than sharing a name (the word ``kernel'' is ubiquitous in mathematics).
 
 \subsection{Sequential importance sampling for sequential Monte Carlo}
 \label{subsec:sis}
@@ -914,8 +915,6 @@ distribution with mean zero and variance $\sigma^2$. Note that we are treating
 the $x_i$ as fixed quantities, and therefore have not conditioned the
 probability density on $\vec{x}$. Also, we have assumed that all the $y_i$ are
 independent.
-
-TODO
 
 For a general model, the probability density of $y$ given the parameters
 $\theta$ is also known as the \defn{likelihood}, written $\L$, of $\theta$.
