@@ -1,6 +1,7 @@
 \input{preamble}
 
 \begin{document}
+\pagenumbering{roman}
 
 \newcommand{\titlesize}{\Large}
 \newcommand{\subtitlesize}{\large}
@@ -37,6 +38,7 @@
   {\subtitlesize\copyright Rosemary Martha McCloskey, 2016\par}
 \end{titlepage}
 
+\setcounter{page}{2}
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
 \newpage
@@ -64,32 +66,35 @@
 
 \chapter*{Acknowledgements}
 \addcontentsline{toc}{chapter}{Acknowledgements}
-\input{acknowledgements}
+%\input{acknowledgements}
 \newpage
 
-
+\pagenumbering{arabic}
 \chapter{Introduction}
 
 \section{Objective}
 \input{objective}
 \input{intro}
 
-\chapter{Body of Thesis}
+\chapter{Reconstructing contact network parameters from viral phylogenies}
 
 \section{Methods}
-%\input{methods}
+\input{methods}
 
 \section{Results}
-%\input{results}
+\input{results}
 
 \section{Discussion}
-%\input{discussion}
+\input{discussion}
 
 \chapter{Conclusion}
-%\input{conclusion}
+\input{conclusion}
 
+\singlespacing
+\setlength{\bibitemsep}{10pt}
 \printbibliography
 \addcontentsline{toc}{chapter}{Bibliography}
+\onehalfspacing
 
 \chapter*{Appendix: Supplemental Figures}
 
@@ -100,6 +105,6 @@
 \renewcommand{\thefigure}{S\arabic{figure}}
 \setcounter{data}{0}
 \renewcommand{\thedata}{S\arabic{data}}
-%\input{appendix}
+\input{appendix}
 
 \end{document}

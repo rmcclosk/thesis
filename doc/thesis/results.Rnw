@@ -3,6 +3,14 @@
 <<setup, include=FALSE>>=
     library(netabc)
     library(Hmisc)
+
+    pp <- function (p) {
+        if (p < 1e-5) {
+            "{<}10^{-5}"
+        } else {
+            latexSN(round(p, -floor(log10(p))))
+        }
+    }
 @
 
 \subsubsection*{Classifiers for parameters based on tree shape}
@@ -10,14 +18,6 @@
 <<treestats, include=FALSE>>=
     params <- c("alpha", "I", "m", "N")
 
-    pp <- function (p) {
-        if (p < 1e-5) {
-            "<10^{-5}"
-        } else {
-            latexSN(round(p, -floor(log10(p))))
-        }
-    }
-    
     get.treestats <- function (param) {
         stats <- paste0("../../simulations/kernel-", param, "/statistics/*")
         d <- collect.data(stats)
@@ -80,11 +80,7 @@ The ratio of internal to terminal branch lengths was negatively correlated with
     \Sexpr{round(I.ratio.cor$estimate, 2)},
     \Sexpr{round(m.ratio.cor$estimate, 2)},
     \Sexpr{round(N.ratio.cor$estimate, 2)};
-  $p$-values
-    $\Sexpr{latexSN(round(alpha.ratio.cor$p.value, -floor(log10(alpha.ratio.cor$p.value))))}$,
-    $\Sexpr{latexSN(round(I.ratio.cor$p.value, -floor(log10(I.ratio.cor$p.value))))}$,
-    $\Sexpr{latexSN(round(m.ratio.cor$p.value, -floor(log10(m.ratio.cor$p.value))))}$,
-    $\Sexpr{latexSN(round(N.ratio.cor$p.value, -floor(log10(N.ratio.cor$p.value))))}$).
+  all $p < 10^{-5}$).
 
 \begin{figure}[ht]
   \centering
@@ -101,15 +97,14 @@ The ratio of internal to terminal branch lengths was negatively correlated with
 
 \Cref{fig:kpca} shows \gls{kPCA} projections of the simulated trees onto the
 first two principal components of the kernel matrix. The figure shows only the
-simulations with 500-tip trees and, for all parameters except $I$, 1000
-infected nodes. The three \gls{alpha} and \gls{I} values considered are well
-separated from each other in feature space. On the other hand, the three
-\gls{N} values overlap significantly, and the three \gls{m} values are
-virtually indistinguishable. Similar observations can be made for other values
-of \gls{I} and the number of tips
+simulations with 500-tip trees and 1000 infected nodes. The three \gls{alpha}
+and \gls{I} values considered are well separated from each other in feature
+space. On the other hand, the three \gls{N} values overlap significantly, and
+the three \gls{m} values are virtually indistinguishable. Similar observations
+can be made for other values of \gls{I} and the number of tips
 (\cref{fig:alphakpca,fig:Nkpca,fig:Ikpca,fig:mkpca}). The values of \gls{I} and
-\gls{N} separate more clearly with larger numbers of tips, and in the case of
-\gls{N} larger epidemic sizes.
+\gls{N} separated more clearly with larger numbers of tips, and in the case of
+\gls{N}, larger epidemic sizes.
 
 \begin{figure}[ht]
   \centering
@@ -161,7 +156,7 @@ of \gls{I} and the number of tips
     nltt.N <- get.kernel.data('N', 'nltt-classifier')
 @
 
-Accuracy of the \gls{kSVM} classifiers varied based on the parameter being
+Accuracy of the \gls{kSVR} classifiers varied based on the parameter being
 tested (\cref{fig:rsquared}, left). Classifiers based on two other tree
 statistics, the \gls{nltt} and Sackin's index, generally exhibited worse
 performance than the tree kernel, although the magnitude of the disparity
@@ -171,22 +166,27 @@ $\lambda$ and $\sigma$, although accuracy varied between different epidemic and
 sampling scenarios
 (\cref{fig:alphacrossv,fig:mcrossv,fig:Icrossv,fig:Ncrossv}).
 
-When classifying $\alpha$, the kernel-SVM classifier had an average $R^2$ of 
+When classifying $\alpha$, the \gls{kSVR} classifier had an average $R^2$ of 
     \Sexpr{kernel.alpha[,round(mean(rsquared), 2)]},
 compared to 
     \Sexpr{nltt.alpha[,round(mean(rsquared), 2)]}
-for the \gls{nltt}-based SVM, and
+for the \gls{nltt}-based SVR, and
     \Sexpr{sackin.alpha[,round(mean(rsquared), 2)]}
 for the linear regression against Sackin's index. There was little variation
 about the mean for different tree and epidemic sizes. No classifier could
 accurately identify the $m$ parameter in any epidemic scenario, with average
 $R^2$ values of 
-  \Sexpr{kernel.m[,round(mean(rsquared), 2)]} for \gls{kSVM},
+  \Sexpr{kernel.m[,round(mean(rsquared), 2)]} for \gls{kSVR},
   \Sexpr{nltt.m[,round(mean(rsquared), 2)]} for the \gls{nltt}, and
   \Sexpr{sackin.m[,round(mean(rsquared), 2)]}
 for Sackin's index. Again, there was little variation in accuracy between
-epidemic scenarios, although the accuracy of the \gls{kSVM} was slightly higher
-on 1000-tip trees.
+epidemic scenarios, although the accuracy of the \gls{kSVR} was slightly higher
+on 1000-tip trees 
+    (average $R^2$ 
+     \Sexpr{kernel.m[ntip == 100,round(mean(rsquared, 2))]},
+     \Sexpr{kernel.m[ntip == 500,round(mean(rsquared, 2))]},
+     \Sexpr{kernel.m[ntip == 1000,round(mean(rsquared, 2))]}
+     for 100, 500, and 1000 tips respectively).
 
 The accuracy of classifiers $I$ varied significantly with the number of tips in
 the tree. For 100-tip trees, the average $R^2$ values were
@@ -199,11 +199,11 @@ trees, the values increased to
   \Sexpr{nltt.I[ntip == 500, round(mean(rsquared), 2)]}, and
   \Sexpr{sackin.I[ntip == 500, round(mean(rsquared), 2)]}.
 Finally, the performance of classifiers for $N$ depended heavily on the
-epidemic scenario. The $R^2$ of the \gls{kSVM} classifier ranged from
+epidemic scenario. The $R^2$ of the \gls{kSVR} classifier ranged from
   \Sexpr{kernel.N[,round(min(rsquared), 2)]}
 for the smallest epidemic and smallest sample size, to
   \Sexpr{kernel.N[,round(max(rsquared), 2)]}
-for the largest. Likewise, $R^2$ for the \gls{nltt}-based SVM ranged from 
+for the largest. Likewise, $R^2$ for the \gls{nltt}-based SVR ranged from 
   \Sexpr{nltt.N[,round(min(rsquared), 2)]}
 to
   \Sexpr{nltt.N[,round(max(rsquared), 2)]}.
@@ -216,7 +216,7 @@ and little variation between scenarios.
   \centering
   \includegraphics[width=\textwidth]{kernel-rsquared.pdf}
   \caption{
-      Cross-validation accuracy of kernel-SVM classifier (left), SVM classifier
+      Cross-validation accuracy of kernel-SVR classifier (left), SVR classifier
       using \gls{nltt} (centre), and linear regression using Sackin's index
       (right) for \gls{BA} model parameters. Kernel meta-parameters were set to
       $\lambda = 0.3$ and $\sigma = 4$. Each point was calculated based on 300
@@ -249,7 +249,7 @@ and little variation between scenarios.
     stopifnot(value.cor["I", p.value] >= 0.05)
 @
 
-The accuracy of grid search estimates largely paralleled that of the \gls{kSVM}
+The accuracy of grid search estimates largely paralleled that of the \gls{kSVR}
 classifiers. \Cref{fig:gridest} shows point estimates and 95\% highest density
 intervals for each of the \gls{BA} parameters, for one replicate experiment
 with 500-tip trees. For all parameters except $m$, the error of point estimates
@@ -258,12 +258,12 @@ was negatively correlated with the number of sampled tips in the tree (for
     \Sexpr{tip.cor["alpha", round(estimate, 2)]},
     \Sexpr{tip.cor["I", round(estimate, 2)]},
     \Sexpr{tip.cor["N", round(estimate, 2)]};
-$p$-value = 
-    $\Sexpr{tip.cor["alpha", latexSN(round(p.value, -floor(log10(p.value))))]}$,
-    $\Sexpr{tip.cor["I", latexSN(round(p.value, -floor(log10(p.value))))]}$,
-    $\Sexpr{tip.cor["N", latexSN(round(p.value, -floor(log10(p.value))))]})$.
+$p$-values
+    $\Sexpr{tip.cor["alpha", pp(p.value)]}$,
+    $\Sexpr{tip.cor["I", pp(p.value)]}$,
+    $\Sexpr{tip.cor["N", pp(p.value)]}$).
 The highest density intervals obtained for all parameters were extremely wide,
-occcupying $>$90\% of the grid in all cases. 
+occcupying $>$90\% of the grid in all cases (\cref{fig:gridest}).
 
 The \gls{alpha} parameter was the most accurately estimated, with point
 estimates having an average deviation of 
@@ -271,7 +271,7 @@ estimates having an average deviation of
 from the true value, on a grid from 0 to 2. The error was negatively correlated
 with the true value of \gls{alpha} 
     (Spearman's $\rho$ = \Sexpr{value.cor["alpha", round(estimate, 2)]},
-     $p = \Sexpr{value.cor["alpha", latexSN(round(p.value, -floor(log10(p.value))))]}$),
+     $p = \Sexpr{value.cor["alpha", pp(p.value)]}$),
 although the relationship was clearly nonlinear (\cref{fig:gridest,fig:gridalpha}).
 The accuracy was highest for the test value \gls{alpha} = 1.25
     (mean error \Sexpr{d[parameter == "alpha" & true_value == 1.25, round(mean(error), 2)]})
@@ -284,28 +284,29 @@ average absolute error of the point estimates for \gls{I} was
     \Sexpr{d[parameter == "I", round(mean(error))]},
 on a grid of 500 to 5000, and the errors were not significantly correlated with
 the true value of \gls{I}. Kernel score distributions for all test values
-exhibited the same rounded shape (\cref{fig:gridI}). 
+exhibited a similar rounded shape (\cref{fig:gridI}). 
 
-For the other two parameters, \gls{m} and \gls{N}, accuracy was much poorer
-(\cref{fig:gridest,fig:gridm,fig:gridN}). The average error for \gls{m} was
+The average error for \gls{m} was
     \Sexpr{d[parameter == "m", round(mean(error), 2)]},
 on a grid from 1 to 6; this error was positively correlated with increasing
 \gls{m}
     (Spearman's $\rho$ = \Sexpr{value.cor["m", round(estimate, 2)]},
-     $p = \Sexpr{value.cor["m", latexSN(round(p.value, -floor(log10(p.value))))]}$).
-This positive correlation was apparently due to the much lower error for $m =
-1$ than for the other $m$ values (\cref{fig:gridm})
-    (mean errors \Sexpr{d[parameter == "m" & true_value == 1, mean(error)]} for
-     $m = 1$ vs. \Sexpr{d[parameter == "m" & true_value > 1, mean(error)]} for
-     $m > 1$).
+     $p = \Sexpr{value.cor["m", pp(p.value)]}$).
+This positive correlation was apparently due to the much lower error for
+\gls{m} = 1 and 2 than for the other $m$ values 
+    (mean errors 
+    \Sexpr{d[parameter == "m" & true_value <= 2, round(mean(error), 2)]} 
+    for $m \leq 2$ vs. 
+    \Sexpr{d[parameter == "m" & true_value > 2, round(mean(error), 2)]} 
+    for $m > 2$, \cref{fig:gridm}).
 The value $m = 1$ causes the network to take on a distinct shape relative to
-higher $m$ values, namely a tree (\textit{i.e.} there are no cycles,
-\cref{subsec:treeshape}). The average error for \gls{N} was 
+higher \gls{m} values, namely a tree (\textit{i.e.} there are no cycles,
+see \cref{subsec:treeshape}). The average error for \gls{N} was 
     \Sexpr{d[parameter == "N", round(mean(error))]},
 on a grid from 1000 to 15000, and was positively correlated with the true value
 of \gls{N}
     (Spearman's $\rho$ = \Sexpr{value.cor["N", round(estimate, 2)]},
-     $p = \Sexpr{value.cor["N", latexSN(round(p.value, -floor(log10(p.value))))]}$).
+    $p\ \Sexpr{value.cor["N", pp(p.value)]}$).
 
 \begin{figure}[ht]
   \centering
@@ -339,6 +340,10 @@ of \gls{N}
     m.av <- anova(lm(m_error ~ factor(true_alpha) + factor(true_m) + factor(true_I), d))
     N.av <- anova(lm(N_error ~ factor(true_alpha) + factor(true_m) + factor(true_I), d))
     I.av <- anova(lm(I_error ~ factor(true_alpha) + factor(true_m) + factor(true_I), d))
+    stopifnot(I.av["factor(true_m)", "Pr(>F)"] >= 0.05)
+    stopifnot(m.av["factor(true_m)", "Pr(>F)"] >= 0.05)
+    stopifnot(m.av["factor(true_I)", "Pr(>F)"] >= 0.05)
+    stopifnot(min(na.omit(N.av[,"Pr(>F)"])) >= 0.05)
 
     m.tbl <- d[,prop.table(table(m_error))]
     zero.alpha.test <- wilcox.test(d[true_alpha == 0, alpha_error], 
@@ -349,15 +354,15 @@ of \gls{N}
                             d[true_I == 2000, I_error])
     alpha.m.test <- wilcox.test(d[true_alpha == 0 | true_alpha == 1, m_error],
                                 d[true_alpha == 0.5 | true_alpha == 1.5, m_error])
-
     options(scipen=-1, digits=2)
 @
 
-We used kernel-\gls{ABC} to estimate the parameters of the \gls{BA} model 
-on simulated trees where the true parameter values were known. Point estimates
-for each parameter are shown in Figure~\ref{fig:abcpt}. Of the four parameters,
-\gls{alpha} was the most accurately estimated, with a median [IQR] absolute error
-of 
+We used \software{netabc} to estimate the parameters of the \gls{BA} model on
+simulated trees where the true parameter values were known. Point estimates for
+each parameter are shown in \cref{fig:abcpt} for the simulations with \gls{m} =
+2. The results for the other values of \gls{m} were similar
+(\cref{fig:abcm3,fig:abcm4}). The median [IQR] absolute error of estimates of
+\gls{alpha} across all simulations was
     \Sexpr{d[,median(alpha_error)]} 
     [\Sexpr{d[,quantile(alpha_error, 0.25)]}-\Sexpr{d[,quantile(alpha_error, 0.75)]}].
 The accuracy of the estimates was not significantly different between values of
@@ -367,35 +372,41 @@ and
     \Sexpr{alpha.av["factor(true_I)", "Pr(>F)"]}),
 although the errors when the true value of \gls{alpha} was zero were
 significantly greater than the other values 
-    (Wilcoxon rank-sum test, $p$ = \Sexpr{zero.alpha.test$p.value}).
+    (Wilcoxon rank-sum test, $p = \Sexpr{pp(zero.alpha.test$p.value)}$).
 The error in the estimated value of $I$ was
     \Sexpr{d[,round(median(I_error))]} 
     [\Sexpr{d[,round(quantile(I_error, 0.25))]}-\Sexpr{d[,round(quantile(I_error, 0.75))]}].
 Errors were significantly higher for $\alpha \geq 1$
-    (Wilcoxon rank-sum test, $p$ = \Sexpr{alpha.I.test$p.value})
+    (Wilcoxon rank-sum test, $p = \Sexpr{pp(alpha.I.test$p.value)}$)
 and for $I$ = 2000
-    ($p$ = \Sexpr{I.I.test$p.value}),
-but not for any values of $m$
-    (one-way ANOVA, $p$ = \Sexpr{I.av["factor(true_m)", "Pr(>F)"]}).
-The $m$ parameter was estimated correctly in
+    ($p = \Sexpr{pp(I.I.test$p.value)}$),
+but not for any values of $m$ (one-way ANOVA). The $m$ parameter was estimated
+correctly in only
     \Sexpr{as.integer(m.tbl[1] * 100)} \%
-of simulations, with an error of one in
-    \Sexpr{as.integer(m.tbl[2] * 100)} \%
-and of two or more in 
-    \Sexpr{as.integer(sum(m.tbl[3:length(m.tbl)]) * 100)} \%
-(the only possible $m$ values were 2, 3, 4, or 5). The true values of
-$m$ and $I$ did not significantly affect the error
-    (one-way ANOVA, $p$ = \Sexpr{m.av["factor(true_m)", "Pr(>F)"]} and
-                          \Sexpr{m.av["factor(true_I)", "Pr(>F)"]}),
-but the accuracy was significantly lower for integral than non-integral
-values of \gls{alpha}
-    (Wilcoxon rank-sum test, $p$ = \Sexpr{alpha.m.test$p.value}).
+of simulations. The true values of $m$ and $I$ did not significantly affect the
+error (one-way ANOVA), but the accuracy was significantly lower for integral
+than non-integral values of \gls{alpha}
+    (Wilcoxon rank-sum test, $p = \Sexpr{pp(alpha.m.test$p.value)}$).
 Finally, the total number of nodes \gls{N} was consistently over-estimated by
 about a factor of two
-    (error \Sexpr{d[,median(N_error)]} 
-    [\Sexpr{d[,quantile(N_error, 0.25)]}-\Sexpr{d[,quantile(N_error, 0.75)]}]).
-No other parameters influenced the accuracy of the $N$ estimates 
-    (one-way ANOVA, $p \geq$ \Sexpr{min(N.av[,"Pr(>F)"])}).
+    (error \Sexpr{d[,format(median(N_error), scientific=FALSE)]} 
+    [\Sexpr{d[,format(quantile(N_error, 0.25), scientific=FALSE)]} - 
+     \Sexpr{d[,format(quantile(N_error, 0.75), scientific=FALSE)]}]).
+No other parameters influenced the accuracy of the $N$ estimates (one-way
+ANOVA)
+
+\begin{figure}
+  \includegraphics{abc-point-estimate-m2}
+  \caption{
+    \Acrlong{MAP} point estimates for \gls{BA} model parameters obtained by         
+    running \software{netabc} on simulated data. Values shown are for               
+    simulations with \gls{m} = 3. Dashed lines indicate true values. (A)            
+    Estimates of \gls{alpha} and \gls{I} which were varied in these simulations  
+    against known values. (B) Estimates of \gls{m} and \gls{N} which were held   
+    fixed in these simulations at the values \gls{m} = 3 and \gls{N} = 5000. 
+  }
+  \label{fig:abcm2}
+\end{figure}
 
 \Cref{fig:abcex} shows the \gls{ABC} approximation to the posterior
 distribution on the \gls{BA} parameters for one simulation (equivalent plots

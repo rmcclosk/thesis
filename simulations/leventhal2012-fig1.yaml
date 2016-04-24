@@ -1,33 +1,35 @@
 Name: leventhal2012-fig1
-Processes: 8
+Description: Recreating figure 1A from Leventhal et al. 2012
+Processes: 1
 Steps:
     network:
-        Extension: gml
+        Extension: gml.bz2
         Parameters:
             nnode: 5000
             mean_degree: 8
-            net_type: ["BA", "ER", "WS"]
+            net_type: ["BA", "ER", "WS", "FG"]
             ws_prob: 0.01
-            transmissibility: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-            seed: !!python/object/apply:__builtin__.xrange [0, 100, 1]
+            transmissibility: "[i/20 for i in range(1, 20)]"
+            replicate: "range(100)"
         Interpreter: R --vanilla --silent
         Startup: |
             suppressPackageStartupMessages(library(netabc))
             suppressPackageStartupMessages(library(igraph))
         Rule: | 
-            seed <- {seed} * {transmissibility} * 10
+            set.seed({seed})
             if ("{net_type}" == "BA") {{
-                set.seed(seed * 3)
-                g <- barabasi.game({nnode}, m={mean_degree}/2, directed=F)
+                g <- sample_pa({nnode}, m={mean_degree}/2, directed=F)
             }} else if ("{net_type}" == "WS") {{
-                set.seed(seed * 3 + 1)
-                g <- watts.strogatz.game(1, {nnode}, {mean_degree}/2, {ws_prob})
+                g <- sample_smallworld(1, {nnode}, {mean_degree}/2, {ws_prob})
             }} else if ("{net_type}" == "ER") {{
-                set.seed(seed * 3 + 2)
-                g <- erdos.renyi.game({nnode}, {mean_degree}/{nnode})
+                g <- sample_gnp({nnode}, {mean_degree}/{nnode})
+            }} else if ("{net_type}" == "FG") {{
+                g <- make_full_graph({nnode}, directed=FALSE)
             }}
             graph_attr(g, "comment") <- "{yaml}"
-            write.graph(SIR.net(g, transmit.rate=1, remove.rate=(1-{transmissibility})/{transmissibility}), "{network}", format="gml")
+            f <- bzfile("{network}", open="wb")
+            write.graph(SIR.net(g, transmit.rate=1, remove.rate=(1-{transmissibility})/{transmissibility}), f, format="gml")
+            close(f)
 
     tree:
         Extension: nwk
@@ -36,45 +38,45 @@ Steps:
             mean_degree: 8
             net_type: ["BA", "ER", "WS"]
             ws_prob: 0.01
-            transmissibility: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-            seed: !!python/object/apply:__builtin__.xrange [0, 100, 1]
+            transmissibility: "[i/20 for i in range(1, 20)]"
+            replicate: "range(100)"
         Depends: network
         Interpreter: bash
         Rule: |
             echo "#{yaml}" > {tree}
-            if [[ "{net_type}" == "BA" ]]; then
-                SEED=$(({seed}*3))
-            else if [[ "{net_type}" == "ER" ]]; then
-                SEED=$(({seed}*3+1))
-            else
-                SEED=$(({seed}*3+2))
-            fi
-            nettree --seed $SEED {network} >> {tree}
+            bzcat {network} | nettree --seed {seed} >> {tree}
 
     sackin:
         Extension: tsv
         Parameters:
-            norm: "none"
+            placeholder: 0
         Depends: tree
         Interpreter: bash
         Rule: |
+            echo -e "\tsackin" > {sackin}
             for T in {tree}; do
-                treestat -i -s sackin -k {norm} {tree} > {sackin}
+                echo $T$'\t'`treestat -i -s sackin $T` >> {sackin}
             done
 
     sackin-plot:
         Extension: pdf
         Parameters:
-            norm: "none"
+            placeholder: 0
         Depends: tree sackin
         Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
-            library(netabc)
-            d <- collect.metadata(strsplit("{tree}", " ")[[1]])
-            d$sackin <- read.table("{sackin}")[,1]
-            ggplot(d, aes(x=transmissibility, y=sackin, fill=net.type)) +
+            d <- read.table("{sackin}", row.names=1, header=TRUE)
+            d <- merge(d, collect.metadata(strsplit("{tree}", " ")[[1]]), by=0)
+            q25 <- function (x) quantile(x, 0.25)
+            q75 <- function (x) quantile(x, 0.75)
+            ggplot(d, aes(x=transmissibility, y=sackin, fill=net_type)) +
                 stat_summary(fun.ymin=q25, fun.ymax=q75, geom='ribbon', alpha=0.5) +
-                stat_summary(fun.y=median, geom='line', aes(color=net.type)) +
+                stat_summary(fun.y=median, geom='line', aes(color=net_type)) +
                 theme(legend.position=c(1, 0), legend.justification=c(0, 1)) +
-                theme_bw()
-            ggsave("{sackin-plot}")
+                theme_bw() +
+                scale_fill_discrete(name="network type") +
+                scale_color_discrete(name="network type") +
+                labs(y="Sackin's index") +
+                theme(text=element_text(size=14, family="Gillius ADF"))
+            ggsave("{sackin-plot}", width=5, height=4)

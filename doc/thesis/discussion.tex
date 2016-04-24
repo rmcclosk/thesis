@@ -3,7 +3,7 @@
 The method behind \software{netabc} is model-agnostic, meaning that it can be
 used to infer parameters of any network model, as long as it allows simulated
 networks can be easily generated. We have included generators for the \gls{BA}
-model discussed here, as well as the \gls{ER} and \gls{SW} network models.
+model discussed here, as well as the \gls{ER} and \gls{WS} network models.
 Instructions for adding additional models are available in the project's online
 documentation. We have made \software{netabc} publicly available at
 \url{github.com/rmcclosk/netabc} under a permissive open source license, to
@@ -14,13 +14,7 @@ made to \software{netabc}. Firstly, our implementation uses simple multinomial
 sampling for the resampling step, as well as for generating the final sample
 from the target distribution.  Several other sampling strategies have been
 developed~\autocite{douc2005comparison}, and it is possible that the use of a
-more sophisticated scheme might increase the algorithm's accuracy. Secondly,
-the model parameters \gls{I}, \gls{N}, and \gls{m} are all integer-valued, but
-we treat them as continuous-valued when performing \gls{SMC}. This is not
-inherently wrong, in that it simply assigns equal probability density to the
-interval $[i, i+1)$ for all integers $i$. However, computational effort could
-be wasted if particles are moved around within these intervals. To improve
-efficiency, alternative proposals could be used for discrete-valued particles.
+more sophisticated scheme might increase the algorithm's accuracy. 
 
 % spatial networks, see section 5.4 in keeling2005networks
 

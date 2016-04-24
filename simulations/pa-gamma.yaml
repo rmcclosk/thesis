@@ -1,0 +1,89 @@
+Name: pa-gamma
+Description: Relationship between BA model parameters and gamma.
+Processes: 1
+Sleep: 5
+Steps:
+    gamma:
+        Extension: tsv
+        Walltime: 00:00:30
+        Parameters:
+            N_min: 500
+            N_max: 15000
+            N_step: 100
+            m_min: 1
+            m_max: 8
+            m_step: 1
+            alpha_min: 0.0
+            alpha_max: 2.0
+            alpha_step: 0.01
+            replicates: 1
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: | 
+            set.seed({seed})
+            N <- seq({N_min}, {N_max}, {N_step})
+            m <- seq({m_min}, {m_max}, {m_step})
+            alpha <- seq({alpha_min}, {alpha_max}, {alpha_step})
+            replicate <- 1:{replicates}
+            d <- setDT(expand.grid(alpha=alpha, m=m, N=N, replicate=replicate))
+            pb <- txtProgressBar(min=0, max=nrow(d), style=3)
+            get.gamma <- function (alpha, m, N) {{
+                g <- sample_pa(N, m=m, power=alpha, directed=FALSE)
+                setTxtProgressBar(pb, getTxtProgressBar(pb)+1)
+                attr(fit_power_law(degree(g), implementation="R.mle"), "coef")
+            }}
+            d[,gamma := mcmapply(get.gamma, alpha, m, N, mc.cores=8)]
+            close(pb)
+            cat("#{yaml}\n", file="{gamma}")
+            write.tsv(d, file="{gamma}", append=TRUE)
+
+    glm:
+        Extension: tex
+        Walltime: 00:00:30
+        Parameters:
+            N_min: 500
+            N_max: 15000
+            N_step: 100
+            m_min: 1
+            m_max: 8
+            m_step: 1
+            alpha_min: 0.0
+            alpha_max: 2.0
+            alpha_step: 0.01
+            replicates: 1
+        Interpreter: R --vanilla --silent
+        Depends: gamma
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(xtable))
+        Rule: | 
+            d <- fread("{gamma}")
+            model <- glm(gamma ~ alpha + m + N + alpha:m + alpha:N + m:N + alpha:m:N, 
+                         data=d, family=Gamma(link="log"))
+            tbl <- as.data.frame(coef(summary(model))[,-3])
+            tbl$Estimate <- exp(tbl$Estimate)
+            colnames(tbl) <- c("exp(Estimate)", "Standard error", "P-value")
+            tbl$`P-value` <- ifelse(tbl$`P-value` < 1e-5, "$<10^{{-5}}$", 
+                                    round(tbl$`P-value`, 2))
+            rownames(tbl) <- gsub(":", " \\\\times ", rownames(tbl))
+            rownames(tbl) <- gsub("alpha", "\\\\alpha", rownames(tbl))
+            rownames(tbl)[2:nrow(tbl)] <- paste0("$", rownames(tbl)[2:nrow(tbl)], "$")
+            print(xtable(tbl, digits=c(0, 2, 1, 1), display=c("s", "f", "e", "e")), 
+                  math.style.exponents=TRUE, floating=FALSE,
+                  sanitize.text.function=identity, file="{glm}")
+
+    alpha-gamma-plot:
+        Extension: pdf
+        Walltime: 00:00:30
+        Parameters:
+            N: 5000
+            m: 2
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Depends: gamma
+        Rule: | 
+            d <- fread("{gamma}")
+            d <- d[m == {m} & N == {N}]
+            pdf("{alpha-gamma-plot}", family="Gillius ADF", width=4, height=4)
+            d[,plot(alpha, gamma, type="l", xlab=expression(alpha), ylab=expression(gamma))]
+            dev.off()

@@ -1,6 +1,6 @@
 .INTERMEDIATE: paper.tex
 
-all: paper.pdf supp-f1-9.pdf supp-f10.pdf mbe_submission.pdf
+all: paper.pdf
 
 clean:
 	rm -f *.aux *.pdf *.log *.acn *.bbl *.bcf *.blg *.glo *.idx *.ist *.xml *.bak *.dvi
@@ -14,11 +14,10 @@ mbe_submission.pdf: mbe_submission.tex abstract.tex
 	pdflatex --enable-write18 $^
 
 paper.pdf: paper.tex papers.bib MBE.cls figures abstract.tex
-	latex $(word 1, $^)
-	bibtex $(patsubst %.tex,%,$(word 1, $^))
-	latex $(word 1, $^)
-	latex $(word 1, $^)
-	dvipdf $(patsubst %.tex,%.dvi,$(word 1, $^))
+	pdflatex $(word 1, $^)
+	biber $(patsubst %.tex,%,$(word 1, $^))
+	pdflatex $(word 1, $^)
+	pdflatex $(word 1, $^)
 
 supp-f1-9.pdf: supp-f1-9.tex supp-f1-9
 	pdflatex $^

@@ -1,6 +1,6 @@
-Name: gridsearch-alpha
-Description: Grid search for preferential attachment power
-Processes: 4
+Name: gridsearch-I
+Description: Grid search for number of infected nodes
+Processes: 2
 Sleep: 5
 Hostname: Brannigan
 Memory: 256m
@@ -8,15 +8,16 @@ Steps:
     train-network:
         Extension: gml.bz2
         Parameters:
-            nnode: 5000
+            N: 5000
             m: 2
-            alpha: "[i/100 for i in range(201)]"
+            alpha: 1.0
+            I: "[i*25 for i in range(20, 201)]"
             replicate: "range(15)"
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: | 
             set.seed({seed})
-            g <- sample_pa({nnode}, power={alpha}, m={m}, directed=FALSE)
+            g <- sample_pa({N}, power={alpha}, m={m}, directed=FALSE)
             graph_attr(g, "comment") <- "{yaml}"
             f <- bzfile("{train-network}", "wb")
             write.graph(SIR.net(g), f, format="gml")
@@ -25,8 +26,9 @@ Steps:
     train-gamma:
         Extension: tsv.bz2
         Parameters:
-            nnode: 5000
+            N: 5000
             m: 2
+            alpha: 1.0
         Depends: train-network
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
@@ -46,31 +48,33 @@ Steps:
     train-tree:
         Extension: nwk.bz2
         Parameters:
+            N: 5000
             m: 2
-            alpha: "[i/100 for i in range(201)]"
+            alpha: 1.0
             replicate: "range(15)"
-            nsimnode: 1000
-            ntip: [100, 500, 1000]
+            I: "[i*25 for i in range(20, 201)]"
+            ntip: [100, 500]
         Depends: train-network
         Interpreter: bash
         Rule: |
             NWKFILE=`echo {train-tree} | sed s/'.bz2'//`
             echo "#{yaml}" > $NWKFILE
-            bzcat {train-network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> $NWKFILE
+            bzcat {train-network} | nettree --sim-nodes {I} --tree-tips {ntip} --seed {seed} >> $NWKFILE
             bzip2 $NWKFILE
 
     test-network:
         Extension: gml.bz2
         Parameters:
-            nnode: 5000
+            N: 5000
             m: 2
-            true_alpha: [0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+            alpha: 1.0
+            true_I: [500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500]
             test_replicate: "range(10)"
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: | 
             set.seed({seed})
-            g <- sample_pa({nnode}, power={true_alpha}, m={m}, directed=FALSE)
+            g <- sample_pa({N}, power={alpha}, m={m}, directed=FALSE)
             graph_attr(g, "comment") <- "{yaml}"
             f <- bzfile("{test-network}", "wb")
             write.graph(SIR.net(g), f, format="gml")
@@ -79,8 +83,9 @@ Steps:
     test-gamma:
         Extension: tsv.bz2
         Parameters:
-            nnode: 5000
+            N: 5000
             m: 2
+            alpha: 1.0
         Depends: test-network
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
@@ -100,26 +105,29 @@ Steps:
     test-tree:
         Extension: nwk.bz2
         Parameters:
+            N: 5000
             m: 2
-            true_alpha: [0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+            alpha: 1.0
+            true_I: [500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500]
             test_replicate: "range(10)"
-            nsimnode: 1000
-            ntip: [100, 500, 1000]
+            ntip: [100, 500]
         Depends: test-network
         Interpreter: bash
         Rule: |
             NWKFILE=`echo {test-tree} | sed s/'.bz2'//`
             echo "#{yaml}" > $NWKFILE
-            bzcat {test-network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> $NWKFILE
+            bzcat {test-network} | nettree --sim-nodes {true_I} --tree-tips {ntip} --seed {seed} >> $NWKFILE
             bzip2 $NWKFILE
 
     kernel:
         Extension: tsv.bz2
         Sleep: 300
         Parameters:
-            ntip: [100, 500, 1000]
+            N: 5000
             m: 2
-            true_alpha: [0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+            alpha: 1.0
+            true_I: [500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500]
+            ntip: [100, 500]
             test_replicate: "range(10)"
             decay_factor: 0.3
             rbf_variance: 4
@@ -152,6 +160,8 @@ Steps:
         Extension: pdf
         Parameters:
             m: 2
+            alpha: 1.0
+            N: 5000
         Depends: kernel train-tree
         Interpreter: R --quiet --vanilla
         Startup: |
@@ -164,27 +174,29 @@ Steps:
             m <- collect.metadata(strsplit("{train-tree}", " ")[[1]])
             m$tree <- rownames(m)
             setDT(m)
-            d <- merge(d, m, by=c("tree", "m", "ntip"))
+            d <- merge(d, m, by=c("tree", "m", "ntip", "alpha", "N"))
             d[,ntip := as.factor(ntip)]
 
-            setkey(d, m, ntip, true_alpha, replicate, alpha)
+            setkey(d, m, ntip, true_I, replicate, I)
             normconst <- function (x, y) integrate(splinefun(x, y), min(x), max(x), subdivisions=1000)$value
-            d[,score := score / normconst(alpha, score), by=c("m", "ntip", "true_alpha", "replicate")]
+            d[,score := score / normconst(I, score), by=c("m", "ntip", "true_I", "replicate")]
 
-            g <- ggplot(d, aes(x=alpha, y=score, color=factor(ntip))) + stat_smooth() +
-                facet_wrap(~true_alpha, labeller = label_bquote(alpha == .(true_alpha))) +
-                geom_vline(aes(xintercept=true_alpha), linetype="dashed") + 
+            g <- ggplot(d, aes(x=I, y=score, color=factor(ntip))) + stat_smooth() +
+                facet_wrap(~true_I, labeller = label_bquote(I == .(true_I))) +
+                geom_vline(aes(xintercept=true_I), linetype="dashed") +
                 scale_color_discrete(name="number of tips") +
-                labs(x=expression(paste("simulated ", alpha)), y="normalized kernel score") +
+                labs(x="simulated I", y="normalized kernel score") +
+                scale_x_continuous(breaks=c(1000, 3000, 5000)) +
                 theme_bw() +
                 theme(text=element_text(size=14, family="Gillius ADF"),
-                      axis.ticks.y=element_blank(), axis.text.y=element_blank())
+                      axis.text.y=element_blank(), axis.ticks.y=element_blank())
             ggsave("{kernel-plot}", height=5, width=6)
 
     point-estimate:
         Extension: tsv
         Parameters:
             m: 2
+            alpha: 1.0
         Startup: |
             suppressPackageStartupMessages(library(netabc))
             suppressPackageStartupMessages(library(coda))
@@ -199,13 +211,13 @@ Steps:
             setkey(d, tree)
 
             # combine with metadata from train and test trees
-            test.cols <- c("ntip", "test_replicate", "true_alpha")
+            test.cols <- c("ntip", "test_replicate", "true_I")
 
             train <- collect.metadata(strsplit("{train-tree}", " ")[[1]])
             train$tree <- rownames(train)
             setDT(train)
             setkey(train, tree)
-            d <- d[train[,.(tree, alpha)]]
+            d <- d[train[,.(tree, I)]]
 
             test <- setDT(collect.metadata(strsplit("{test-tree}", " ")[[1]]))
             test <- test[,test.cols,with=F]
@@ -214,12 +226,12 @@ Steps:
             d <- d[test]
 
             # get median score for each grid value
-            d <- d[,list(score=median(score)), by=c(test.cols, "alpha")]
-            setkeyv(d, c(test.cols, "alpha"))
+            d <- d[,list(score=median(score)), by=c(test.cols, "I")]
+            setkeyv(d, c(test.cols, "I"))
 
             # normalize scores so AUC = 1
             normconst <- function (x, y) integrate(splinefun(x, y), min(x), max(x), subdivisions=1000)$value
-            d[,score := score / normconst(alpha, score), by=test.cols]
+            d[,score := score / normconst(I, score), by=test.cols]
 
             point.est <- function (x, y) {{ x[which.max(y)] }}
             icdf <- function (x, y) {{
@@ -235,72 +247,8 @@ Steps:
             hpd.lower <- function (x, y) {{ hpd(icdf(x, y))[1] }}
             hpd.upper <- function (x, y) {{ hpd(icdf(x, y))[2] }}
 
-            d <- d[,list(point.est=point.est(alpha, score), 
-                         lower=hpd.lower(alpha, score), 
-                         upper=hpd.upper(alpha, score)), by=test.cols]
+            d <- d[,list(point.est=point.est(I, score), 
+                         lower=hpd.lower(I, score), 
+                         upper=hpd.upper(I, score)), by=test.cols]
             cat("#{yaml}\n", file="{point-estimate}")
             write.tsv(d, "{point-estimate}", append=TRUE)
-
-    point-estimate-plot:
-        Extension: pdf
-        Parameters:
-            m: 2
-            ntip: 500
-        Depends: point-estimate
-        Interpreter: R --quiet --vanilla
-        Startup: suppressPackageStartupMessages(library(netabc))
-        Rule: |
-            d <- fread("{point-estimate}")
-            ggplot(d, aes(x=factor(true_alpha), y=alpha)) + geom_point() +
-                geom_abline(slope=2/8, intercept=-2/8, linetype="dashed") +
-                labs(x=expression(paste( "true ", alpha)), 
-                     y=expression(paste( "simulated ", alpha))) +
-                theme_bw() +
-                theme(text=element_text(size=18, family="Gillius ADF"))
-            ggsave("{point-estimate-plot}")
-
-    gamma-alpha-plot:
-        Extension: pdf
-        Parameters:
-            m: 2
-        Depends: train-network train-gamma
-        Interpreter: R --quiet --vanilla
-        Startup: suppressPackageStartupMessages(library(netabc))
-        Rule: |
-            gamma <- setNames(fread("bzcat {train-gamma}"), c("net", "gamma"))
-            d <- collect.metadata(strsplit("{train-network}", " ")[[1]])
-            d$net <- rownames(d)
-            d <- merge(setDT(d), gamma, by="net")
-            ggplot(d, aes(x=alpha, y=gamma)) + geom_point() + theme_bw() + 
-                labs(x=expression(alpha), y=expression(gamma)) +
-                theme(text=element_text(size=18, family="Gillius ADF"))
-            ggsave("{gamma-alpha-plot}")
-
-    gamma-plot:
-        Extension: pdf
-        Parameters:
-            m: 2
-            ntip: 500
-        Depends: point-estimate test-network test-gamma train-network train-gamma
-        Interpreter: R --quiet --vanilla
-        Startup: suppressPackageStartupMessages(library(netabc))
-        Rule: |
-            d <- fread("{point-estimate}")
-
-            train.gamma <- setNames(fread("bzcat {train-gamma}"), c("net", "gamma"))
-            mtrain <- collect.metadata(strsplit("{train-network}", " ")[[1]])
-            mtrain$net <- rownames(mtrain)
-            mtrain <- merge(setDT(mtrain), train.gamma, by="net")
-
-            test.gamma <- setNames(fread("bzcat {test-gamma}"), c("net", "true_gamma"))
-            mtest <- collect.metadata(strsplit("{test-network}", " ")[[1]])
-            mtest$net <- rownames(mtest)
-            mtest <- merge(setDT(mtest), test.gamma, by="net")
-
-            d <- merge(d, mtrain[,list(gamma=median(gamma)),by=alpha], by="alpha")
-            d <- merge(d, mtest, by=c("true_alpha", "test_replicate"))
-            ggplot(d, aes(x=true_gamma, y=gamma)) + geom_point() + theme_bw() +
-                labs(x=expression(paste( "true ", gamma)), 
-                     y=expression(paste( "estimated ", gamma))) +
-                scale_y_log10() + scale_x_log10()
-            ggsave("{gamma-plot}")
