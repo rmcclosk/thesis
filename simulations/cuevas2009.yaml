@@ -125,3 +125,34 @@ Steps:
                    --final-epsilon {final_epsilon} --final-accept {final_accept} \
                    $NLTT --net-type pa --trace {abc} --seed {seed} {subtree} {abc-config}
             echo "EOF" >> {abc}
+
+    posterior-plot:
+        Extension: pdf
+        Walltime: 00:30:00
+        Parameters:
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+            nparticle: 1000
+            nsample: 5
+            quality: 0.95
+            final_epsilon: 0.0
+            final_accept: 0.015
+            m_min: [1, 2]
+            m_max: 5
+            N_max: 10000
+            I_max: 10000
+            alpha_min: 0
+            alpha_max: 2
+        Depends: abc subtree
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(grid))
+        Rule: |
+            ntip <- Ntip(read.tree("{subtree}"))
+            d <- fread("{abc}")[iter == max(iter)]
+            p <- posterior.plot.pa(d, alpha_min={alpha_min}, 
+                    alpha_max={alpha_max}, I_min=ntip, I_max={I_max},
+                    N_min=ntip, N_max={N_max}, m_min={m_min}, m_max={m_max})
+            ggsave(p, file="{posterior-plot}", height=5, width=6)
