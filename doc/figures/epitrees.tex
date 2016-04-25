@@ -1,0 +1,62 @@
+\documentclass[landscape]{article}
+\usepackage{tikz}
+\usepackage[T1]{fontenc}
+\usepackage[default]{gillius}
+\usepackage{fullpage}
+
+\usetikzlibrary{positioning}
+\usetikzlibrary{calc}
+\usetikzlibrary{arrows}
+\usetikzlibrary{automata}
+
+\graphicspath{{stock/}}
+
+\begin{document}
+\pagestyle{empty}
+
+\begin{tikzpicture}
+  [every node/.style = {inner sep=0pt},
+   every path/.style = {->, >=stealth, very thick},
+   label/.style = {anchor=south, color=white, inner sep=6pt},
+   time/.style = {anchor=north west, inner sep=2pt}]
+  \def\pht{1.5cm}
+  \def\vht{1.75cm}
+  \node (a) at (0, 1) {\includegraphics[height=\pht]{person}};
+  \node at (a.south) [label] {\huge a};
+  \node (b) at (5.5, 3) {\includegraphics[height=\pht]{person}};
+  \node at (b.south) [label] {\huge b};
+  \node (c) at (4, 0) {\includegraphics[height=\pht]{person}};
+  \node at (c.south) [label] {\huge c};
+  \node (d) at (2, 0) {\includegraphics[height=\pht]{person}};
+  \node at (d.south) [label] {\huge d};
+
+  \node (cd) at (3, 2) {\includegraphics[height=\pht]{person}};
+  \node at (cd.south) [label] {\huge c};
+  \node (acd) at (2, 4) {\includegraphics[height=\pht]{person}};
+  \node at (acd.south) [label] {\huge a};
+  \node (abcd) at (3, 6) {\includegraphics[height=\pht]{person}};
+  \node at (abcd.south) [label] {\huge a};
+
+  \draw [red] (abcd) -- (b);
+  \draw [-, dashed] (abcd) -- (acd);
+  \draw [blue] (acd) -- (cd);
+  \draw [-, dashed] (acd) -- (a);
+  \draw [-, dashed] (cd) -- (c);
+  \draw [green!80!black] (cd) -- (d);
+
+  \node (b) at (10, 5) {\includegraphics[height=\vht]{stock/virus}};
+  \node at (b.south) [anchor=south, inner ysep=18pt] {\huge b};
+  \node (a) at (11, 1) {\includegraphics[height=\vht]{stock/virus}};
+  \node at (a.south) [anchor=south, inner ysep=18pt] {\huge a};
+  \node (d) at (18, 2) {\includegraphics[height=\vht]{stock/virus}};
+  \node at (d.south) [anchor=south, inner ysep=18pt] {\huge d};
+  \node (c) at (17, 5) {\includegraphics[height=\vht]{stock/virus}};
+  \node at (c.south) [anchor=south, inner ysep=18pt] {\huge c};
+  \coordinate (cd) at (15, 4);
+  \draw [-] (c) -- (cd) -- (d);
+  \coordinate (ab) at (12, 4);
+  \draw [-] (a) -- (ab) -- (b);
+  \draw [-] (ab) -- (cd);
+\end{tikzpicture}
+
+\end{document}

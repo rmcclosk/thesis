@@ -1,0 +1,229 @@
+Name: gridsearch-m
+Description: Grid search for preferential attachment number of edges
+Processes: 4
+Sleep: 5
+Hostname: Brannigan
+Memory: 256m
+Steps:
+    train-network:
+        Extension: gml.bz2
+        Walltime: 00:00:30
+        Parameters:
+            nnode: 5000
+            m: "range(1, 7)"
+            alpha: 1.0
+            replicate: "range(15)"
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: | 
+            set.seed({seed})
+            g <- sample_pa({nnode}, power={alpha}, m={m}, directed=FALSE)
+            graph_attr(g, "comment") <- "{yaml}"
+            f <- bzfile("{train-network}", "wb")
+            write.graph(SIR.net(g), f, format="gml")
+            close(f)
+
+    train-tree:
+        Extension: nwk.bz2
+        Walltime: 00:00:30
+        Parameters:
+            m: "range(1, 7)"
+            alpha: 1.0
+            replicate: "range(15)"
+            nsimnode: 1000
+            ntip: [100, 500, 1000]
+        Depends: train-network
+        Interpreter: bash
+        Rule: |
+            NWKFILE=`echo {train-tree} | sed s/'.bz2'//`
+            echo "#{yaml}" > $NWKFILE
+            bzcat {train-network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> $NWKFILE
+            bzip2 $NWKFILE
+
+    test-network:
+        Extension: gml.bz2
+        Walltime: 00:00:30
+        Parameters:
+            nnode: 5000
+            alpha: 1.0
+            true_m: "range(1, 7)"
+            test_replicate: "range(10)"
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: | 
+            set.seed({seed})
+            g <- sample_pa({nnode}, power={alpha}, m={true_m}, directed=FALSE)
+            graph_attr(g, "comment") <- "{yaml}"
+            f <- bzfile("{test-network}", "wb")
+            write.graph(SIR.net(g), f, format="gml")
+            close(f)
+
+    test-tree:
+        Extension: nwk.bz2
+        Walltime: 00:00:30
+        Parameters:
+            alpha: 1.0
+            true_m: "range(1, 7)"
+            test_replicate: "range(10)"
+            nsimnode: 1000
+            ntip: [100, 500, 1000]
+        Depends: test-network
+        Interpreter: bash
+        Rule: |
+            NWKFILE=`echo {test-tree} | sed s/'.bz2'//`
+            echo "#{yaml}" > $NWKFILE
+            bzcat {test-network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> $NWKFILE
+            bzip2 $NWKFILE
+
+    kernel:
+        Extension: tsv.bz2
+        Sleep: 300
+        Walltime: 01:00:00
+        Parameters:
+            alpha: 1.0
+            true_m: "range(1, 7)"
+            ntip: [100, 500, 1000]
+            test_replicate: "range(10)"
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+        Depends: train-tree test-tree
+        Interpreter: bash
+        Rule: |
+            TSVFILE=`echo {kernel} | sed s/'.bz2'//`
+            echo "#{yaml}" > $TSVFILE
+            if [[ {nltt} -eq 1 ]]; then
+                NLTT="--nLTT"
+            else
+                NLTT=""
+            fi
+            TF1=`mktemp`
+            TF2=`mktemp`
+            bzcat {test-tree} > $TF1
+            for T in {train-tree}; do
+                echo -n "$T"$'\t' >> $TSVFILE
+                bzcat $T > $TF2
+                treekernel --ladderize --normalize --scale-branches mean \
+                           --decay-factor {decay_factor} \
+                           --gauss-factor {rbf_variance} \
+                           $NLTT $TF1 $TF2 >> $TSVFILE
+            done
+            rm $TF1 $TF2
+            bzip2 $TSVFILE
+
+    kernel-plot:
+        Extension: pdf
+        Walltime: 00:10:00
+        Parameters:
+            alpha: 1.0
+        Depends: kernel train-tree
+        Interpreter: R --quiet --vanilla
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(grid))
+        Rule: |
+            d <- setDT(collect.data(strsplit("{kernel}", " ")[[1]], header=FALSE))
+            setnames(d, c("V1", "V2"), c("tree", "score"))
+            
+            md <- collect.metadata(strsplit("{train-tree}", " ")[[1]])
+            md$tree <- rownames(md)
+            setDT(md)
+            d <- merge(d, md, by=c("tree", "alpha", "ntip"))
+            d[,ntip := as.factor(ntip)]
+
+            setkey(d, alpha, ntip, true_m, replicate, m)
+            d[,score := score / sum(score), by=c("alpha", "ntip", "true_m", "replicate")]
+            
+            ggplot(d, aes(x=m, y=score, color=factor(ntip), group=ntip)) + 
+                stat_summary(fun.y=median, geom="line") +
+                facet_wrap(~true_m, labeller = label_bquote(m == .(true_m))) +
+                geom_vline(aes(xintercept=true_m), linetype="dashed") + 
+                scale_color_discrete(name="number of tips") +
+                labs(x="simulated m", y="normalized kernel score") +
+                stat_summary(fun.y=median, geom="line") +
+                theme_bw() +
+                theme(text=element_text(size=14, family="Gillius ADF"),
+                      axis.text.y=element_blank(), axis.ticks.y=element_blank())
+            ggsave("{kernel-plot}", height=5, width=6)
+
+    point-estimate:
+        Extension: tsv
+        Walltime: 00:10:00
+        Parameters:
+            alpha: 1.0
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(coda))
+            suppressPackageStartupMessages(library(TeachingDemos))
+        Interpreter: R --quiet --vanilla
+        Depends: kernel test-tree train-tree
+        Rule: |
+            # collect all kernel scores
+            files <- strsplit("{kernel}", " ")[[1]]
+            d <- collect.data(files, header=FALSE, col.names=c("tree", "score"))
+            setDT(d)
+            setkey(d, tree)
+
+            # combine with metadata from train and test trees
+            test.cols <- c("ntip", "test_replicate", "true_m")
+
+            train <- collect.metadata(strsplit("{train-tree}", " ")[[1]])
+            train$tree <- rownames(train)
+            setDT(train)
+            setkey(train, tree)
+            d <- d[train[,.(tree, m)]]
+
+            test <- setDT(collect.metadata(strsplit("{test-tree}", " ")[[1]]))
+            test <- test[,test.cols,with=F]
+            setkeyv(d, test.cols)
+            setkeyv(test, test.cols)
+            d <- d[test]
+
+            # get median score for each grid value
+            d <- d[,list(score=median(score)), by=c(test.cols, "m")]
+            setkeyv(d, c(test.cols, "m"))
+
+            # normalize scores so AUC = 1
+            normconst <- function (x, y) integrate(splinefun(x, y), min(x), max(x), subdivisions=1000)$value
+            d[,score := score / normconst(m, score), by=test.cols]
+
+            point.est <- function (x, y) {{ x[which.max(y)] }}
+            icdf <- function (x, y) {{
+                pdf <- splinefun(x, y)
+                cdf <- function (z) sapply(z, function (zi) integrate(pdf, min(x), zi, subdivisions=1000)$value)
+                function (p) {{
+                    sapply(p, function (pi) {{
+                        optfun <- function (z) abs(cdf(z) - pi)
+                        optimize(optfun, interval=c(min(x), max(x)))$minimum
+                    }})
+                }}
+            }}
+            hpd.lower <- function (x, y) {{ hpd(icdf(x, y))[1] }}
+            hpd.upper <- function (x, y) {{ hpd(icdf(x, y))[2] }}
+
+            d <- d[,list(point.est=point.est(m, score), 
+                         lower=hpd.lower(m, score), 
+                         upper=hpd.upper(m, score)), by=test.cols]
+            cat("#{yaml}\n", file="{point-estimate}")
+            write.tsv(d, "{point-estimate}", append=TRUE)
+
+    point-estimate-plot:
+        Extension: pdf
+        Walltime: 00:02:00
+        Parameters:
+            alpha: 1.0
+            ntip: 500
+        Depends: point-estimate
+        Interpreter: R --quiet --vanilla
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            d <- collect.data(strsplit("{point-estimate}", " ")[[1]])
+            d$grp <- as.factor(paste0(d$true_m, d$point.est))
+            print(d)
+            ggplot(d, aes(x=true_m, y=point.est, group=grp)) + 
+                geom_dotplot(binaxis="y", stackdir="center", binwidth=0.05) +
+                geom_abline(slope=1, intercept=0, linetype="dashed") +
+                theme_bw() +
+                labs(x="true m", y="simulated m") +
+                theme(text=element_text(size=18, family="Gillius ADF"))
+            ggsave("{point-estimate-plot}")

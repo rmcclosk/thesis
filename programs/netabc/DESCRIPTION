@@ -20,5 +20,6 @@ Depends:
     reshape2,
     gridExtra,
     png,
-    extrafont
+    extrafont,
+    e1071
 RoxygenNote: 5.0.1

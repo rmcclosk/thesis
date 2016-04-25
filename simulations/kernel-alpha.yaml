@@ -1,0 +1,357 @@
+Name: kernel-alpha
+Description: Testing if the tree kernel can recover the preferential attachment power in a Barabasi-Albert graph
+Processes: 8
+Hostname: Brannigan
+Steps:
+    network:
+        Extension: gml.bz2
+        Walltime: 00:00:30
+        Parameters:
+            nnode: 5000
+            m: [2, 10]
+            alpha: [0.5, 1.0, 1.5]
+            replicate: "range(100)"
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            f <- bzfile("{network}", "wb")
+            set.seed({seed})
+            g <- sample_pa({nnode}, m={m}, power={alpha}, directed=FALSE)
+            graph_attr(g, "comment") <- "{yaml}"
+            write.graph(SIR.net(g), f, format="gml")
+            close(f)
+
+    tree:
+        Extension: nwk.bz2
+        Walltime: 00:00:30
+        Parameters:
+            m: [2, 10]
+            alpha: [0.5, 1.0, 1.5]
+            replicate: "range(100)"
+            nsimnode: [500, 1000, 2000]
+            ntip: [100, 500, 1000]
+        Exclusions:
+            -
+                nsimnode: 500
+                ntip: 1000
+        Depends: network
+        Interpreter: bash
+        Rule: |
+            NWKFILE=`echo {tree} | sed s/'.bz2'//`
+            echo "#{yaml}" > $NWKFILE
+            bzcat {network} | nettree --sim-nodes {nsimnode} --tree-tips {ntip} --seed {seed} >> $NWKFILE
+            bzip2 $NWKFILE
+
+    tree-plot:
+        Extension: pdf
+        Walltime: 00:00:30
+        Parameters:
+            m: 2
+            replicate: "range(100)"
+            nsimnode: 1000
+            ntip: 500
+        Depends: tree
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(extrafont))
+        Rule: |
+            tree.files <- strsplit("{tree}", " ")[[1]]
+            t <- lapply(tree.files, read.tree)
+            t <- lapply(t, ladderize)
+            y <- collect.metadata(tree.files)$alpha
+            t <- t[order(y)]
+            y <- y[order(y)]
+
+            pdf("{tree-plot}", family="Gillius ADF", height=4)
+            par(mar=c(0, 0, 2, 0) + 0.1, mfrow=c(1, 3), oma=c(0, 0, 0, 0) + 0.1, cex=1.2)
+            lapply(1:length(t), function (i) {{
+                plot(t[[i]], show.tip.label=FALSE, main=bquote(alpha == .(y[i])))
+            }})
+            dev.off()
+
+    statistics:
+        Extension: tsv
+        Walltime: 00:10:00
+        Sleep: 60
+        Parameters:
+            m: [2, 10]
+            nsimnode: [500, 1000, 2000]
+            ntip: [100, 500, 1000]
+        Depends: tree
+        Interpreter: bash
+        Rule: |
+            echo "#{yaml}" > {statistics}
+            echo -e "\tcolless\til.portion\tmax.ladder\tbmi\tdelta.w\twidth\tcherries\tprop.unbalanced\tavg.unbalance\tsackin\tcophenetic\tint.tip.ratio\tgamma" >> {statistics}
+            for T in {tree}; do
+                echo -n $T$'\t' >> {statistics}
+                echo -n `bzcat $T | treestat -i -y -s colless`$'\t' >> {statistics}
+                echo -n `bzcat $T | treestat -i -n -s il`$'\t' >> {statistics}
+                echo -n `bzcat $T | treestat -i -n -s ladder`$'\t' >> {statistics}
+                echo -n `bzcat $T | treestat -i -s bmi`$'\t' >> {statistics}
+                echo -n `bzcat $T | treestat -i -n -s max-delta-width`$'\t' >> {statistics}
+                echo -n `bzcat $T | treestat -i -n -s width`$'\t' >> {statistics}
+                echo -n `bzcat $T | treestat -i -n -s cherries`$'\t' >> {statistics}
+                echo -n `bzcat $T | treestat -i -s prop-unbalanced`$'\t' >> {statistics}
+                echo -n `bzcat $T | treestat -i -s unbalance`$'\t' >> {statistics}
+                echo -n `bzcat $T | treestat -i -y -s sackin`$'\t' >> {statistics}
+                echo -n `bzcat $T | treestat -i -y -s cophenetic`$'\t' >> {statistics}
+                echo -n `bzcat $T | treestat -s int-tip-ratio`$'\t' >> {statistics}
+                echo `bzcat $T | treestat -i -s gamma` >> {statistics}
+            done
+
+    stats-plot:
+        Extension: pdf
+        Walltime: 00:10:00
+        Parameters:
+            statistic: "sackin"
+        Depends: statistics tree
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(extrafont))
+        Rule: |
+            d <- collect.data(strsplit("{statistics}", " ")[[1]])
+            m <- collect.metadata(strsplit("{tree}", " ")[[1]])
+            d <- setDT(merge(d, m, by=0))
+            d[,alpha := as.factor(alpha)]
+            setnames(d, c("ntip.x", "nsimnode.x"), c("tips", "I"))
+            ylab <- switch("{statistic}", sackin="Sackin's index")
+            ggplot(d, aes(x=alpha, y={statistic})) + geom_violin() +
+                facet_grid(tips~I, labeller="label_both") + theme_bw() +
+                labs(x=expression(alpha), y=ylab) +
+                theme(text=element_text(size=18, family="Gillius ADF"))
+            ggsave("{stats-plot}")
+
+    stats-classifier:
+        Extension: tsv.bz2
+        Walltime: 00:20:00
+        Sleep: 60
+        Parameters:
+            m: [2, 10]
+            nsimnode: [500, 1000, 2000]
+            ntip: [100, 500, 1000]
+            statistic: "sackin"
+        Depends: statistics tree
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            x <- fread("{statistics}")[,sackin]
+            y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"alpha"]
+            results <- lm.cv(x, y, n.cv=1000, stats=c("rsquared"))
+            f <- bzfile("{stats-classifier}", "wb")
+            cat("#{yaml}\n", file=f)
+            write.tsv(results, f, append=TRUE)
+            close(f)
+
+    kernel-matrix:
+        Extension: mtx.bz2
+        Sleep: 300
+        Walltime: 04:00:00
+        Memory: 256m
+        Parameters:
+            m: [2, 10]
+            nsimnode: [500, 1000, 2000]
+            ntip: [100, 500, 1000]
+            decay_factor: [0.2, 0.3, 0.4]
+            rbf_variance: [0.125, 0.25, 0.5, 1, 2, 4, 8]
+            nltt: "no"
+        Depends: tree
+        Interpreter: bash
+        Rule: |
+            MTXFILE=`echo "{kernel-matrix}" | sed s/'.bz2'//`
+            if [[ "{nltt}" == "yes" ]]; then
+                NLTT="--nLTT"
+            else
+                NLTT=""
+            fi
+            echo "%%MatrixMarket matrix array real symmetric" > $MTXFILE
+            echo "%{yaml}" >> $MTXFILE
+            echo "{$#} {$#}" >> $MTXFILE
+            for T1 in {tree}; do
+                for T2 in {tree}; do
+                    if [[ "$T1" < "$T2" || "$T1" == "$T2" ]]; then
+                        treekernel --ladderize --decay-factor {decay_factor} \
+                                   --gauss-factor {rbf_variance} \
+                                   --scale-branches mean $NLTT \
+                                   <(bzcat $T1) <(bzcat $T2) >> $MTXFILE
+                    fi
+                done
+            done
+            bzip2 $MTXFILE
+
+    nltt-matrix:
+        Extension: mtx.bz2
+        Sleep: 300
+        Parameters:
+            m: [2, 10]
+            nsimnode: [500, 1000, 2000]
+            ntip: [100, 500, 1000]
+        Depends: tree
+        Interpreter: R --vanilla --quiet
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            mtxfile <- bzfile("{nltt-matrix}", "w")
+            cat("%%MatrixMarket matrix array real symmetric\n", file=mtxfile)
+            cat("%{yaml}\n", file=mtxfile)
+            cat("{$#} {$#}\n", file=mtxfile)
+            tree.files <- strsplit("{tree}", " ")[[1]]
+            trees <- lapply(tree.files, read.tree)
+            for (i in 1:length(trees)) {{
+                for (j in i:length(trees)) {{
+                    cat(sprintf("%.6f\n", nLTT(trees[[i]], trees[[j]], subdivisions=10000)), file=mtxfile)
+                }}
+            }}
+            close(mtxfile)
+
+    nltt-classifier:
+        Extension: tsv.bz2
+        Walltime: 00:20:00
+        Sleep: 60
+        Parameters:
+            m: [2, 10]
+            nsimnode: [500, 1000, 2000]
+            ntip: [100, 500, 1000]
+        Depends: nltt-matrix tree
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            d <- read.mm("{nltt-matrix}")
+            y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"alpha"]
+            results <- dsvm.cv(d, y, n.cv=1000, stats=c("rsquared"))
+            f <- bzfile("{nltt-classifier}", "wb")
+            cat("#{yaml}\n", file=f)
+            write.tsv(results, f, append=TRUE)
+            close(f)
+
+    kpca:
+        Extension: tsv
+        Walltime: 00:01:00
+        Parameters:
+            m: [2, 10]
+            nsimnode: [500, 1000, 2000]
+            ntip: [100, 500, 1000]
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: "no"
+        Depends: kernel-matrix tree
+        Interpreter: R --vanilla --silent
+        Startup: library(netabc)
+        Rule: |
+            k <- as.kernelMatrix(read.mm("{kernel-matrix}"))
+            y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"alpha"]
+            pc <- as.data.frame(rotated(kpca(k, features=2)))
+            colnames(pc) <- c("PC1", "PC2")
+            pc <- cbind(pc, alpha=y)
+            cat("#{yaml}\n", file="{kpca}")
+            write.tsv(pc, "{kpca}", append=TRUE)
+
+    kpca-plot:
+        Extension: pdf
+        Walltime: 00:01:00
+        Parameters:
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: "no"
+            m: 2
+        Depends: kpca
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(extrafont))
+            suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            d <- setDT(collect.data(strsplit("{kpca}", " ")[[1]]))
+            setnames(d, c("ntip", "nsimnode"), c("tips", "I"))
+            d[,alpha := as.factor(alpha)]
+            ggplot(d, aes(x=PC1, y=PC2, color=alpha)) + geom_point() +
+                facet_grid(tips~I, scales="free", labeller="label_both") +
+                labs(x="first principal component", 
+                     y="second principal component") +
+                theme_bw() +
+                theme(text=element_text(size=14, family="Gillius ADF"),
+                      axis.ticks=element_blank(),
+                      axis.text=element_blank()) +
+                scale_color_discrete(name=expression(alpha))
+            ggsave("{kpca-plot}", height=5, width=6)
+
+    classifier:
+        Extension: tsv.bz2
+        Walltime: 00:20:00
+        Sleep: 60
+        Parameters:
+            m: [2, 10]
+            nsimnode: [500, 1000, 2000]
+            ntip: [100, 500, 1000]
+            decay_factor: [0.2, 0.3, 0.4]
+            rbf_variance: [0.125, 0.25, 0.5, 1, 2, 4, 8]
+            nltt: "no"
+        Depends: kernel-matrix tree
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            k <- read.mm("{kernel-matrix}")
+            y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"alpha"]
+            results <- tryCatch({{ksvm.cv(k, y, n.cv=1000, stats=c("rsquared"))}},
+                error = function (e) {{data.frame(rsquared = rep(0, 1000))}})
+            f <- bzfile("{classifier}", "wb")
+            cat("#{yaml}\n", file=f)
+            write.tsv(results, f, append=TRUE)
+            close(f)
+
+    crossv-plot:
+        Extension: pdf
+        Walltime: 00:01:00
+        Parameters:
+            m: 2
+        Depends: classifier stats-classifier nltt-classifier
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(extrafont))
+        Rule: |
+            d <- setDT(collect.data(strsplit("{classifier}", " ")[[1]]))
+            d2 <- setDT(collect.data(strsplit("{stats-classifier}", " ")[[1]]))
+            d3 <- setDT(collect.data(strsplit("{nltt-classifier}", " ")[[1]]))
+            by.cols <- c("nsimnode", "ntip", "decay_factor", "rbf_variance", "nltt")
+            d <- setnames(d[,mean(rsquared), by=by.cols], "V1", "rsquared")
+            d2 <- setnames(d2[,mean(rsquared), by=c("ntip", "nsimnode")], "V1", "rsquared")
+            d3 <- setnames(d3[,mean(rsquared), by=c("ntip", "nsimnode")], "V1", "rsquared")
+            setnames(d, c("ntip", "nsimnode"), c("tips", "I"))
+            setnames(d2, c("ntip", "nsimnode"), c("tips", "I"))
+            setnames(d3, c("ntip", "nsimnode"), c("tips", "I"))
+            d[,classifier := "kernel"]
+            d2[,classifier := "Sackin"]
+            d3[,classifier := "nLTT"]
+            d2 <- rbind(d2, d3)
+            d[,decay_factor := as.factor(decay_factor)]
+            d[,rbf_variance := as.factor(rbf_variance)]
+            plot.aes <- aes(x=rbf_variance, y=rsquared, color=decay_factor,
+                            shape=decay_factor, group=decay_factor,
+                            linetype=classifier)
+            ggplot(d) +
+                geom_point(size=3, plot.aes) + geom_line(plot.aes) +
+                geom_hline(data=d2, aes(yintercept=rsquared, linetype=classifier), color="black") +
+                theme_bw() +
+                facet_grid(tips~I, labeller="label_both") +
+                labs(x="radial basis function variance", y=expression(R^2)) +
+                scale_color_discrete(name="decay factor") +
+                scale_shape_discrete(name="decay factor") +
+                theme(text=element_text(size=14, family="Gillius ADF"),
+                      axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+            ggsave("{crossv-plot}", height=5, width=6)
+
+    kernel-parameters:
+        Extension: tsv
+        Walltime: 00:01:00
+        Parameters:
+            placeholder: 0
+        Depends: classifier
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            d <- setDT(collect.data(strsplit("{classifier}", " ")[[1]]))
+            by.cols <- tail(colnames(d, -1), -1)
+            d <- d[,mean(rsquared), by=by.cols]
+            d <- d[,.SD[which.max(V1),], by=c("nsimnode", "ntip", "m")]
+            setnames(d, "V1", "rsquared")
+            write.tsv(d, "{kernel-parameters}")

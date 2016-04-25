@@ -1,0 +1,3 @@
+# ignore generated files, but keep stock images and logos
+/*.png
+/*.pdf

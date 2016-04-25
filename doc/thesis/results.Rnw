@@ -1,0 +1,591 @@
+\subsection{Analysis of \acrlong{BA} model}
+
+<<setup, include=FALSE>>=
+    library(netabc)
+    library(Hmisc)
+
+    pp <- function (p) {
+        if (p < 1e-5) {
+            "{<}10^{-5}"
+        } else {
+            latexSN(round(p, -floor(log10(p))))
+        }
+    }
+@
+
+\subsubsection*{Classifiers for parameters based on tree shape}
+
+<<treestats, include=FALSE>>=
+    params <- c("alpha", "I", "m", "N")
+
+    get.treestats <- function (param) {
+        stats <- paste0("../../simulations/kernel-", param, "/statistics/*")
+        d <- collect.data(stats)
+        trees <- paste0("../../simulations/kernel-", param, "/tree/*")
+        m <- collect.metadata(trees)
+        rownames(m) <- sub("../../simulations/", "", rownames(m))
+        d <- merge(d, m, by=0, suffixes=c("", ".1"))
+        if (param == "alpha") {
+            d <- subset(d, m == 2)
+            colnames(d)[colnames(d) == "nsimnode"] <- "I"
+        }
+        setDT(d)
+    }
+    
+    alpha.stats <- get.treestats("alpha")
+    I.stats <- get.treestats("I")
+    m.stats <- get.treestats("m")
+    N.stats <- get.treestats("N")
+
+    alpha.sackin.cor <- alpha.stats[,cor.test(alpha, sackin, method="spearman")]
+    I.sackin.cor <- I.stats[,cor.test(I, sackin, method="spearman")]
+    m.sackin.cor <- m.stats[,cor.test(m, sackin, method="spearman")]
+    N.sackin.cor <- N.stats[,cor.test(N, sackin, method="spearman")]
+    stopifnot(alpha.sackin.cor$p.value < 1e-5)
+
+    alpha.ratio.cor <- alpha.stats[,cor.test(int.tip.ratio, alpha)]
+    I.ratio.cor <- I.stats[,cor.test(int.tip.ratio, I)]
+    m.ratio.cor <- m.stats[,cor.test(int.tip.ratio, m)]
+    N.ratio.cor <- N.stats[,cor.test(int.tip.ratio, N)]
+    stopifnot(alpha.ratio.cor$p.value < 1e-5)
+    stopifnot(I.ratio.cor$p.value < 1e-5)
+    stopifnot(m.ratio.cor$p.value < 1e-5)
+    stopifnot(N.ratio.cor$p.value < 1e-5)
+@
+
+Trees simulated under different values of \gls{alpha} were visibly quite
+distinct (\cref{fig:alphatrees}). In particular, higher values of \gls{alpha}
+produce networks with a small number of highly connected nodes which, once
+infected, are likely to transmit to many other nodes. This results in a more
+unbalanced, ladder-like structure in the phylogeny, compared to networks with
+lower \gls{alpha} values. None of the other three parameters produced trees
+which were as easily distinguished from each other
+(\cref{fig:Itrees,fig:mtrees,fig:Ntrees,fig:Itrees}).
+Sackin's index, which measures tree imbalance, was significantly correlated with
+all four parameters
+    (for $\alpha$, $I$, $m$, and $N$ respectively: Spearman's rho =
+     \Sexpr{round(alpha.sackin.cor$estimate, 2)},
+     \Sexpr{round(I.sackin.cor$estimate, 2)},
+     \Sexpr{round(m.sackin.cor$estimate, 2)},
+     \Sexpr{round(N.sackin.cor$estimate, 2)};
+     $p$-values
+     $\Sexpr{pp(alpha.sackin.cor$p.value)}$,
+     $\Sexpr{pp(I.sackin.cor$p.value)}$,
+     $\Sexpr{pp(m.sackin.cor$p.value)}$,
+     $\Sexpr{pp(N.sackin.cor$p.value)}$)
+The ratio of internal to terminal branch lengths was negatively correlated with
+\gls{alpha} and \gls{I}, and positively corelated with \gls{N} and \gls{m}
+  (Spearman's rho
+    \Sexpr{round(alpha.ratio.cor$estimate, 2)},
+    \Sexpr{round(I.ratio.cor$estimate, 2)},
+    \Sexpr{round(m.ratio.cor$estimate, 2)},
+    \Sexpr{round(N.ratio.cor$estimate, 2)};
+  all $p < 10^{-5}$).
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics{kernel-alpha-tree.pdf}
+  \caption[Visibly distinctive trees simulated under three values of \gls{alpha}]{
+    Epidemics simulated on \gls{BA} networks of 5000 nodes, with \gls{alpha}
+    equal to 0.5, 1.0, or 1.5, until 1000 individuals were infected.
+    Transmission trees were created by sampling 500 infected nodes. Higher
+    \gls{alpha} values produced networks with a small number of
+    highly-connected nodes, resulting in highly unbalanced, ladder-like trees.
+  }
+  \label{fig:alphatrees}
+\end{figure}
+
+\Cref{fig:kpca} shows \gls{kPCA} projections of the simulated trees onto the
+first two principal components of the kernel matrix. The figure shows only the
+simulations with 500-tip trees and 1000 infected nodes. The three \gls{alpha}
+and \gls{I} values considered are well separated from each other in feature
+space. On the other hand, the three \gls{N} values overlap significantly, and
+the three \gls{m} values are virtually indistinguishable. Similar observations
+can be made for other values of \gls{I} and the number of tips
+(\cref{fig:alphakpca,fig:Nkpca,fig:Ikpca,fig:mkpca}). The values of \gls{I} and
+\gls{N} separated more clearly with larger numbers of tips, and in the case of
+\gls{N}, larger epidemic sizes.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics{kernel-kpca.pdf}
+  \caption[\gls{kPCA} projections of simulated trees under varying \gls{BA}
+           parameter values]{
+    Each parameter of the \gls{BA} model was individually varied to produce 300
+    simulated trees. Kernel matrices were formed from all pairwise kernel
+    scores among each set of 300 trees. The trees were projected onto the first
+    two principal components of the kernel matrix calculated using \gls{kPCA}.
+    All trees had 500 tips. The parameters not being varied were set to
+    \gls{alpha} = 1, \gls{I} = 1000, \gls{m} = 2, and \gls{N} = 5000. The tree
+    kernel meta-parameters were $\lambda = 0.3$ and $\sigma = 4$.
+  }
+  \label{fig:kpca}
+\end{figure}
+
+<<classifiers, include=FALSE>>=
+    get.kernel.data <- function (param, step) {
+        md <- collect.metadata(paste0('../../simulations/kernel-', param, '/', step, '/*'))
+        if ('rbf_variance' %in% colnames(md)) {
+          md <- subset(md, rbf_variance == 4 & decay_factor == 0.3)
+        }
+        if (param == 'alpha') {
+            md <- subset(md, m == 2)
+        }
+        d <- setDT(collect.data(rownames(md)))
+        if (param %in% c('alpha', 'm')) {
+            d[,list(rsquared=mean(rsquared)), by=c('nsimnode', 'ntip')]
+        } else if (param == 'I') {
+            d[,list(rsquared=mean(rsquared)), by=ntip]
+        } else {
+            d[,list(rsquared=mean(rsquared)), by=c('I', 'ntip')]
+        }
+    }
+    kernel.alpha <- get.kernel.data('alpha' ,'classifier')
+    kernel.m <- get.kernel.data('m', 'classifier')
+    kernel.I <- get.kernel.data('I', 'classifier')
+    kernel.N <- get.kernel.data('N', 'classifier')
+
+    sackin.alpha <- get.kernel.data('alpha', 'stats-classifier')
+    sackin.m <- get.kernel.data('m', 'stats-classifier')
+    sackin.I <- get.kernel.data('I', 'stats-classifier')
+    sackin.N <- get.kernel.data('N', 'stats-classifier')
+
+    nltt.alpha <- get.kernel.data('alpha', 'nltt-classifier')
+    nltt.m <- get.kernel.data('m', 'nltt-classifier')
+    nltt.I <- get.kernel.data('I', 'nltt-classifier')
+    nltt.N <- get.kernel.data('N', 'nltt-classifier')
+@
+
+Accuracy of the \gls{kSVR} classifiers varied based on the parameter being
+tested (\cref{fig:rsquared}, left). Classifiers based on two other tree
+statistics, the \gls{nltt} and Sackin's index, generally exhibited worse
+performance than the tree kernel, although the magnitude of the disparity
+varied between the parameters (\cref{fig:rsquared}, centre and right). The
+results were largely robust to variations in the tree kernel meta-parameters
+$\lambda$ and $\sigma$, although accuracy varied between different epidemic and
+sampling scenarios
+(\cref{fig:alphacrossv,fig:mcrossv,fig:Icrossv,fig:Ncrossv}).
+
+When classifying $\alpha$, the \gls{kSVR} classifier had an average $R^2$ of 
+    \Sexpr{kernel.alpha[,round(mean(rsquared), 2)]},
+compared to 
+    \Sexpr{nltt.alpha[,round(mean(rsquared), 2)]}
+for the \gls{nltt}-based SVR, and
+    \Sexpr{sackin.alpha[,round(mean(rsquared), 2)]}
+for the linear regression against Sackin's index. There was little variation
+about the mean for different tree and epidemic sizes. No classifier could
+accurately identify the $m$ parameter in any epidemic scenario, with average
+$R^2$ values of 
+  \Sexpr{kernel.m[,round(mean(rsquared), 2)]} for \gls{kSVR},
+  \Sexpr{nltt.m[,round(mean(rsquared), 2)]} for the \gls{nltt}, and
+  \Sexpr{sackin.m[,round(mean(rsquared), 2)]}
+for Sackin's index. Again, there was little variation in accuracy between
+epidemic scenarios, although the accuracy of the \gls{kSVR} was slightly higher
+on 1000-tip trees 
+    (average $R^2$ 
+     \Sexpr{kernel.m[ntip == 100,round(mean(rsquared, 2))]},
+     \Sexpr{kernel.m[ntip == 500,round(mean(rsquared, 2))]},
+     \Sexpr{kernel.m[ntip == 1000,round(mean(rsquared, 2))]}
+     for 100, 500, and 1000 tips respectively).
+
+The accuracy of classifiers $I$ varied significantly with the number of tips in
+the tree. For 100-tip trees, the average $R^2$ values were
+  \Sexpr{kernel.I[ntip == 100, round(mean(rsquared), 2)]},
+  \Sexpr{nltt.I[ntip == 100, round(mean(rsquared), 2)]}, and
+  \Sexpr{sackin.I[ntip == 100, round(mean(rsquared), 2)]}
+for the tree kernel, \gls{nltt}, and Sackin's index respectively. For 500-tip
+trees, the values increased to
+  \Sexpr{kernel.I[ntip == 500, round(mean(rsquared), 2)]},
+  \Sexpr{nltt.I[ntip == 500, round(mean(rsquared), 2)]}, and
+  \Sexpr{sackin.I[ntip == 500, round(mean(rsquared), 2)]}.
+Finally, the performance of classifiers for $N$ depended heavily on the
+epidemic scenario. The $R^2$ of the \gls{kSVR} classifier ranged from
+  \Sexpr{kernel.N[,round(min(rsquared), 2)]}
+for the smallest epidemic and smallest sample size, to
+  \Sexpr{kernel.N[,round(max(rsquared), 2)]}
+for the largest. Likewise, $R^2$ for the \gls{nltt}-based SVR ranged from 
+  \Sexpr{nltt.N[,round(min(rsquared), 2)]}
+to
+  \Sexpr{nltt.N[,round(max(rsquared), 2)]}.
+Sackin's index did not accurately classify $N$ in any scenario, with an average
+$R^2$ of
+  \Sexpr{sackin.N[,round(mean(rsquared), 2)]}
+and little variation between scenarios.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\textwidth]{kernel-rsquared.pdf}
+  \caption{
+      Cross-validation accuracy of kernel-SVR classifier (left), SVR classifier
+      using \gls{nltt} (centre), and linear regression using Sackin's index
+      (right) for \gls{BA} model parameters. Kernel meta-parameters were set to
+      $\lambda = 0.3$ and $\sigma = 4$. Each point was calculated based on 300
+      simulated transmission trees over networks with three different values of
+      the parameter being tested. Vertical lines are empirical 95\% confidence
+      intervals based on 1000 two-fold cross-validations.
+  }
+  \label{fig:rsquared}
+\end{figure}
+
+\subsubsection*{Marginal parameter estimates with grid search}
+
+<<gridsearch, include=FALSE>>=
+    d <- setDT(collect.data("../../simulations/aggregates/gridsearch/*"))
+    d[,error := abs(true_value - point.est)]
+
+    # correlation between number of tips and error
+    tip.cor <- d[,cor.test(error, tips, method="spearman")[c("p.value", "estimate")], by=parameter]
+    setkey(tip.cor, parameter)
+
+    # CI takes up >90% of grid
+    d[parameter == "alpha", all(upper - lower >= 1.8)]
+    d[parameter == "I", all(upper - lower >= 4050)]
+    d[parameter == "N", all(upper - lower >= 12555)]
+    d[parameter == "m", all(upper - lower >= 5)]
+
+    # correlation between value and error
+    value.cor <- d[,cor.test(error, true_value)[c("p.value", "estimate")], by=parameter]
+    setkey(value.cor, parameter)
+    stopifnot(value.cor["I", p.value] >= 0.05)
+@
+
+The accuracy of grid search estimates largely paralleled that of the \gls{kSVR}
+classifiers. \Cref{fig:gridest} shows point estimates and 95\% highest density
+intervals for each of the \gls{BA} parameters, for one replicate experiment
+with 500-tip trees. For all parameters except $m$, the error of point estimates
+was negatively correlated with the number of sampled tips in the tree (for
+\gls{alpha}, \gls{I}, and \gls{N} respectively: Spearman's $\rho$ = 
+    \Sexpr{tip.cor["alpha", round(estimate, 2)]},
+    \Sexpr{tip.cor["I", round(estimate, 2)]},
+    \Sexpr{tip.cor["N", round(estimate, 2)]};
+$p$-values
+    $\Sexpr{tip.cor["alpha", pp(p.value)]}$,
+    $\Sexpr{tip.cor["I", pp(p.value)]}$,
+    $\Sexpr{tip.cor["N", pp(p.value)]}$).
+The highest density intervals obtained for all parameters were extremely wide,
+occcupying $>$90\% of the grid in all cases (\cref{fig:gridest}).
+
+The \gls{alpha} parameter was the most accurately estimated, with point
+estimates having an average deviation of 
+    \Sexpr{d[parameter == "alpha", round(mean(error), 2)]}
+from the true value, on a grid from 0 to 2. The error was negatively correlated
+with the true value of \gls{alpha} 
+    (Spearman's $\rho$ = \Sexpr{value.cor["alpha", round(estimate, 2)]},
+     $p = \Sexpr{value.cor["alpha", pp(p.value)]}$),
+although the relationship was clearly nonlinear (\cref{fig:gridest,fig:gridalpha}).
+The accuracy was highest for the test value \gls{alpha} = 1.25
+    (mean error \Sexpr{d[parameter == "alpha" & true_value == 1.25, round(mean(error), 2)]})
+which exhibited markedly different behaviour than the other values in terms of
+the distribution of kernel scores along the grid (\cref{fig:gridalpha}). In
+particular, there was a very pronounced peak in scores around the true value,
+in contrast to most other values where the scores were flat around the true
+value. The peak was also observed to a lesser degree for \gls{alpha} = 1. The
+average absolute error of the point estimates for \gls{I} was 
+    \Sexpr{d[parameter == "I", round(mean(error))]},
+on a grid of 500 to 5000, and the errors were not significantly correlated with
+the true value of \gls{I}. Kernel score distributions for all test values
+exhibited a similar rounded shape (\cref{fig:gridI}). 
+
+The average error for \gls{m} was
+    \Sexpr{d[parameter == "m", round(mean(error), 2)]},
+on a grid from 1 to 6; this error was positively correlated with increasing
+\gls{m}
+    (Spearman's $\rho$ = \Sexpr{value.cor["m", round(estimate, 2)]},
+     $p = \Sexpr{value.cor["m", pp(p.value)]}$).
+This positive correlation was apparently due to the much lower error for
+\gls{m} = 1 and 2 than for the other $m$ values 
+    (mean errors 
+    \Sexpr{d[parameter == "m" & true_value <= 2, round(mean(error), 2)]} 
+    for $m \leq 2$ vs. 
+    \Sexpr{d[parameter == "m" & true_value > 2, round(mean(error), 2)]} 
+    for $m > 2$, \cref{fig:gridm}).
+The value $m = 1$ causes the network to take on a distinct shape relative to
+higher \gls{m} values, namely a tree (\textit{i.e.} there are no cycles,
+see \cref{subsec:treeshape}). The average error for \gls{N} was 
+    \Sexpr{d[parameter == "N", round(mean(error))]},
+on a grid from 1000 to 15000, and was positively correlated with the true value
+of \gls{N}
+    (Spearman's $\rho$ = \Sexpr{value.cor["N", round(estimate, 2)]},
+    $p\ \Sexpr{value.cor["N", pp(p.value)]}$).
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\textwidth]{gridsearch-example}
+  \caption[Grid search estimates of \gls{BA} model parameters]{Point estimates
+      and 95\% highest density intervals for each \gls{BA} model parameter,
+      obtained using grid search. Networks and transmission trees were
+      simulated over a grid of values for each parameter while holding the
+      others fixed. For a subset of the grid values ($x$-axis), test networks
+      and trees were created and compared to each tree on the grid using the
+      tree kernel. The kernel scores along the grid were normalized to resemble
+      a probability distribution, from which the mode and highest density
+      interval were calculated. Shown values correspond to one replicate
+      experiment, with trees of size 500.
+  } 
+  \label{fig:gridest}
+\end{figure}
+
+\subsubsection*{Joint parameter estimates with kernel-ABC}
+
+<<point_est, include=FALSE>>=
+    f <- Sys.glob("../../simulations/abc-pa-free-m/point-estimate/*")
+    d <- fread(f)
+    d[,m := floor(m)]
+    d[,alpha_error := abs(true_alpha - alpha)]
+    d[,N_error := abs(true_N - N)]
+    d[,I_error := abs(true_I - I)]
+    d[,m_error := abs(true_m - m)]
+
+    alpha.av <- anova(lm(alpha_error ~ factor(true_alpha) + factor(true_m) + factor(true_I), d))
+    m.av <- anova(lm(m_error ~ factor(true_alpha) + factor(true_m) + factor(true_I), d))
+    N.av <- anova(lm(N_error ~ factor(true_alpha) + factor(true_m) + factor(true_I), d))
+    I.av <- anova(lm(I_error ~ factor(true_alpha) + factor(true_m) + factor(true_I), d))
+    stopifnot(I.av["factor(true_m)", "Pr(>F)"] >= 0.05)
+    stopifnot(m.av["factor(true_m)", "Pr(>F)"] >= 0.05)
+    stopifnot(m.av["factor(true_I)", "Pr(>F)"] >= 0.05)
+    stopifnot(min(na.omit(N.av[,"Pr(>F)"])) >= 0.05)
+
+    m.tbl <- d[,prop.table(table(m_error))]
+    zero.alpha.test <- wilcox.test(d[true_alpha == 0, alpha_error], 
+                                   d[true_alpha != 0, alpha_error])
+    alpha.I.test <- wilcox.test(d[true_alpha < 1, I_error],
+                                d[true_alpha >= 1, I_error])
+    I.I.test <- wilcox.test(d[true_I == 1000, I_error],
+                            d[true_I == 2000, I_error])
+    alpha.m.test <- wilcox.test(d[true_alpha == 0 | true_alpha == 1, m_error],
+                                d[true_alpha == 0.5 | true_alpha == 1.5, m_error])
+    options(scipen=-1, digits=2)
+@
+
+We used \software{netabc} to estimate the parameters of the \gls{BA} model on
+simulated trees where the true parameter values were known. Point estimates for
+each parameter are shown in \cref{fig:abcptm2} for the simulations with \gls{m} =
+2. The results for the other values of \gls{m} were similar
+(\cref{fig:abcm3,fig:abcm4}). The median [IQR] absolute error of estimates of
+\gls{alpha} across all simulations was
+    \Sexpr{d[,median(alpha_error)]} 
+    [\Sexpr{d[,quantile(alpha_error, 0.25)]}-\Sexpr{d[,quantile(alpha_error, 0.75)]}].
+The accuracy of the estimates was not significantly different between values of
+$m$ or $I$ (both one-way ANOVA,
+    $p$ = \Sexpr{alpha.av["factor(true_m)", "Pr(>F)"]}
+and 
+    \Sexpr{alpha.av["factor(true_I)", "Pr(>F)"]}),
+although the errors when the true value of \gls{alpha} was zero were
+significantly greater than the other values 
+    (Wilcoxon rank-sum test, $p = \Sexpr{pp(zero.alpha.test$p.value)}$).
+The error in the estimated value of $I$ was
+    \Sexpr{d[,round(median(I_error))]} 
+    [\Sexpr{d[,round(quantile(I_error, 0.25))]}-\Sexpr{d[,round(quantile(I_error, 0.75))]}].
+Errors were significantly higher for $\alpha \geq 1$
+    (Wilcoxon rank-sum test, $p = \Sexpr{pp(alpha.I.test$p.value)}$)
+and for $I$ = 2000
+    ($p = \Sexpr{pp(I.I.test$p.value)}$),
+but not for any values of $m$ (one-way ANOVA). The $m$ parameter was estimated
+correctly in only
+    \Sexpr{as.integer(m.tbl[1] * 100)} \%
+of simulations. The true values of $m$ and $I$ did not significantly affect the
+error (one-way ANOVA), but the accuracy was significantly lower for integral
+than non-integral values of \gls{alpha}
+    (Wilcoxon rank-sum test, $p = \Sexpr{pp(alpha.m.test$p.value)}$).
+Finally, the total number of nodes \gls{N} was consistently over-estimated by
+about a factor of two
+    (error \Sexpr{d[,format(median(N_error), scientific=FALSE)]} 
+    [\Sexpr{d[,format(quantile(N_error, 0.25), scientific=FALSE)]} - 
+     \Sexpr{d[,format(quantile(N_error, 0.75), scientific=FALSE)]}]).
+No other parameters influenced the accuracy of the $N$ estimates (one-way
+ANOVA).
+
+\begin{figure}
+  \includegraphics{abc-point-estimate-m2}
+  \caption[\Acrlong{MAP} point estimates for \gls{BA} model parameters obtained
+    by running \software{netabc} on simulated data, for simulations with $m = 2$.] 
+  {
+    \Acrlong{MAP} point estimates for \gls{BA} model parameters obtained by         
+    running \software{netabc} on simulated data. Values shown are for               
+    simulations with \gls{m} = 2. Dashed lines indicate true values. (A)            
+    Estimates of \gls{alpha} and \gls{I} which were varied in these simulations  
+    against known values. (B) Estimates of \gls{m} and \gls{N} which were held   
+    fixed in these simulations at the values \gls{m} = 2 and \gls{N} = 5000. 
+  }
+  \label{fig:abcptm2}
+\end{figure}
+
+\Cref{fig:abcex} shows the \gls{ABC} approximation to the posterior
+distribution on the \gls{BA} parameters for one simulation. Equivalent plots
+for one replicate simulation with each combination of parameters can be found
+in
+<<posterior_sims, echo=FALSE, results="asis">>=
+    N <- 5000
+    replicate <- 0
+    lab <- NULL
+    for (m in c(2, 3, 4)) {
+    for (I in c(1000, 2000)) {
+    for (alpha in c(0, 0.5, 1, 1.5, 2)) {
+        lab <- c(lab, sprintf("fig:%2f-%d-%d-%d-%d", alpha, I, m, N, replicate))
+    }
+    }
+    }
+    cat(paste0("\\cref{", paste(lab, sep=","), "}."))
+@
+\Gls{HPD} intervals around \gls{alpha} and \gls{I} were narrow relative to the
+region of nonzero prior density, whereas the intervals for $m$ and \gls{N} were
+widely dispersed. \Cref{tab:abchpd} shows point estimates and 95\% \gls{HPD}
+intervals averaged over all simulations.
+
+\begin{figure}
+  \includegraphics{{abc-posterior/1.0_1000_2_5000_0}.pdf}
+  \caption{
+    \Acrlong{MAP} point estimates for \gls{BA} model parameters obtained by         
+    running \software{netabc} on simulated data. Values shown are for               
+    simulations with \gls{m} = 3. Dashed lines indicate true values. (A)            
+    Estimates of \gls{alpha} and \gls{I} which were varied in these simulations  
+    against known values. (B) Estimates of \gls{m} and \gls{N} which were held   
+    fixed in these simulations at the values \gls{m} = 3 and \gls{N} = 5000. 
+  }
+  \label{fig:abcptm2}
+\end{figure}
+
+
+\begin{table}
+    \centering
+    \input{\tablepath/abc-hpd}
+    \caption{Average widths of 95\% confidence intervals for \gls{BA} model
+    parameters estimated with kernel-\gls{ABC}.}
+    \label{tab:glm}
+\end{table}
+
+\subsubsection*{Effect of parameters on power-law exponent}
+
+\Cref{tab:glm} shows the estimated parameters for a log-link \gls{GLM} fitted
+to the observed distribution of \gls{gamma} values. The coefficients are
+interpretable as multiplicative effects.
+
+\begin{table}
+    \centering
+    \input{\tablepath/pa-gamma-glm}
+    \caption{Estimated \gls{GLM} parameters for relationship between power-law
+    exponent \gls{gamma} and \gls{BA} model parameters.}
+    \label{tab:glm}
+\end{table}
+
+\subsection{Application to HIV data}
+
+<<realdata, include=FALSE>>=
+  m <- collect.metadata("../../simulations/aggregates/hpd/*")
+  d1 <- fread(rownames(m)[m$m_min == 1])
+  d2 <- fread(rownames(m)[m$m_min == 2])
+
+  map1 <- dcast.data.table(d1, dataset~parameter, value.var="map")
+  up1 <- dcast.data.table(d1, dataset~parameter, value.var="hpd.max")
+  low1 <- dcast.data.table(d1, dataset~parameter, value.var="hpd.min")
+  setkey(map1, dataset)
+  setkey(up1, dataset)
+  setkey(low1, dataset)
+
+  map2 <- dcast.data.table(d2, dataset~parameter, value.var="map")
+  up2 <- dcast.data.table(d2, dataset~parameter, value.var="hpd.max")
+  low2 <- dcast.data.table(d2, dataset~parameter, value.var="hpd.min")
+  setkey(map2, dataset)
+  setkey(up2, dataset)
+  setkey(low2, dataset)
+@
+
+We applied kernel-ABC to five published HIV datasets (\cref{tab:data}),
+and found substantial heterogeneity among the parameter estimates
+(\cref{fig:abchpd,fig:abchpdm2}). Plots of the marginal posterior distributions
+for each dataset are shown in
+\cref{fig:cuevas,fig:li,fig:niculescu,fig:novitsky,fig:wang}.
+Two of the datasets~\autocite{niculescu2015recent, wang2015targeting} had
+estimated $\alpha$ values near unity for the prior allowing $m = 1$ (MAP
+estimates [95\% HPD] 
+  \Sexpr{map1["niculescu2015", round(alpha, 2)]} 
+  [\Sexpr{low1["niculescu2015", round(alpha, 2)]} - 
+   \Sexpr{up1["niculescu2015", round(alpha, 2)]}]
+and
+  \Sexpr{map1["wang2015", round(alpha, 2)]} 
+  [\Sexpr{low1["wang2015", round(alpha, 2)]} -
+   \Sexpr{up1["wang2015", round(alpha, 2)]}] respectively).
+The MAP estimates did not change appreciably when $m = 1$ was disallowed by the
+prior, although the credible interval of the \textcite{niculescu2015recent}
+data was narrower
+  (\Sexpr{low1["niculescu2015", round(alpha, 2)]} - 
+   \Sexpr{up1["niculescu2015", round(alpha, 2)]}).
+When $m = 1$ was permitted, the \textcite{li2015hiv, cuevas2009hiv} both had
+low estimated $\alpha$ values
+  (\Sexpr{map1["li2015", round(alpha, 2)]} 
+  [\Sexpr{low1["li2015", round(alpha, 2)]} - 
+  \Sexpr{up1["li2015", round(alpha, 2)]}]
+and
+  \Sexpr{map1["cuevas2009", round(alpha, 2)]} 
+  [\Sexpr{low1["cuevas2009", round(alpha, 2)]} -
+   \Sexpr{up1["cuevas2009", round(alpha, 2)]}]). 
+However, the MAP estimates increased when $m = 1$ was not permitted, although
+the HPD intervals remained roughly the same
+  (\Sexpr{map2["li2015", round(alpha, 2)]} 
+  [\Sexpr{low2["li2015", round(alpha, 2)]} - 
+  \Sexpr{up2["li2015", round(alpha, 2)]}]
+and
+  \Sexpr{map2["cuevas2009", round(alpha, 2)]} 
+  [\Sexpr{low2["cuevas2009", round(alpha, 2)]} -
+   \Sexpr{up2["cuevas2009", round(alpha, 2)]}]).
+The \textcite{novitsky2014impact} data had a fairly low estimated $\alpha$
+for both priors on $m$
+  (\Sexpr{map1["novitsky2014", round(alpha, 2)]} for $m \geq 1$;
+   \Sexpr{map2["novitsky2014", round(alpha, 2)]} for $m \geq 2$).
+However, the confidence interval was much wider when $m = 1$ was allowed
+  ([\Sexpr{low1["novitsky2014", round(alpha, 2)]} -
+    \Sexpr{up1["novitsky2014", round(alpha, 2)]}] for $m \geq 1$ vs.
+    \Sexpr{low2["novitsky2014", round(alpha, 2)]} -
+    \Sexpr{up2["novitsky2014", round(alpha, 2)]} for $m \geq 2$).
+
+For all the datasets except \citeauthor{novitsky2014impact}, estimated values
+of $I$ were below 2000 when $m = 1$ was allowed, with relatively narrow HPD
+intervals compared to the nonzero prior density region
+  (\citeauthor{cuevas2009hiv}, \Sexpr{map1["cuevas2009", floor(I)]} 
+  [\Sexpr{low1["cuevas2009", floor(I)]} -
+   \Sexpr{up1["cuevas2009", floor(I)]}];
+   \citeauthor{niculescu2015recent}, \Sexpr{map1["niculescu2015", floor(I)]}
+  [\Sexpr{low1["niculescu2015", floor(I)]} - 
+   \Sexpr{up1["niculescu2015", floor(I)]}];
+  \citeauthor{li2015hiv}, \Sexpr{map1["li2015", floor(I)]} 
+  [\Sexpr{low1["li2015", floor(I)]} -
+   \Sexpr{up1["li2015", floor(I)]}];
+   \citeauthor{wang2015targeting}, \Sexpr{map1["wang2015", floor(I)]}
+  [\Sexpr{low1["wang2015", floor(I)]} - 
+   \Sexpr{up1["wang2015", floor(I)]}]).
+The \citeauthor{novitsky2014impact} data was the outlier, with a very high
+estimated $I$, and HPD interval spanning almost the entire prior region
+  (\Sexpr{map1["novitsky2014", floor(I)]} 
+  [\Sexpr{low1["novitsky2014", floor(I)]} -
+   \Sexpr{up1["novitsky2014", floor(I)]}]).
+The $I$ estimates and HPD intervals were generally robust to the choice of
+prior on $m$, with slightly narrower HPD intervals (compare
+\cref{fig:abchpd,fig:abchpdm2}).
+
+The MAP estimate of $m$ was equal to 1 for all but the
+\citeauthor{novitsky2014impact} data, when this value was allowed. However, the
+upper bound of the HPD interval was different for each dataset
+  (\citeauthor{niculescu2015recent}, \Sexpr{up1["niculescu2015", round(m)]};
+   \citeauthor{wang2015targeting}, \Sexpr{up1["wang2015", round(m)]};
+   \citeauthor{li2015hiv}, \Sexpr{up1["li2015", round(m)]};
+   \citeauthor{cuevas2009hiv}, \Sexpr{up1["cuevas2009", round(m)]}).
+When $m = 1$ was disallowed, the MAP for all datasets was either 2 or 3, with
+HPD intervals spanning the entire prior region. The estimates for the total
+number of nodes $N$ were largely uninformative for all samples, with almost all
+MAP estimates greater than 7500 and HPD intervals spanning almost the entire
+nonzero prior density region. The only exception was the \citeauthor{li2015hiv}
+data, for which the MAP estimate was lower 
+  (\Sexpr{map1["li2015", floor(N)]})
+when $m = 1$ was allowed.
+
+\begin{figure*}[ht]
+  \centering
+  %\includegraphics{realdata-hpd}
+  \vspace{8pt}
+  \caption{
+      Maximum \textit{a posteriori} point estimates and 95\% HPD intervals for
+      parameters of the BA network model, fitted to five published HIV datasets
+      with kernel-ABC.
+  }
+  \label{fig:abchpd}
+\end{figure*}

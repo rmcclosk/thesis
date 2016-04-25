@@ -1,0 +1,275 @@
+\begin{figure}
+  \centering
+  \includegraphics{kernel-I-tree.pdf}
+  \caption{
+    Transmission trees simulated over \gls{BA} networks with varying values of
+    $I$, the number of infected nodes when the epidemic simulation was stopped.
+  }
+  \label{fig:Itrees}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics{kernel-m-tree.pdf}
+  \caption{
+    Transmission trees simulated over \gls{BA} networks with varying values of
+    $m$, the number of edges added per vertex.
+  }
+  \label{fig:mtrees}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics{kernel-N-tree.pdf}
+  \caption{
+    Transmission trees simulated over \gls{BA} networks with varying values of
+    $N$, the number of nodes in the network.
+  }
+  \label{fig:Ntrees}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics{kernel-alpha-crossv.pdf}
+  \caption{
+    Cross validation accuracy of classifiers for \gls{BA} model parameter
+    \gls{alpha} for eight epidemic scenarios. Solid lines and points are
+    $R^2$ of tree kernel \gls{kSVR} under various kernel meta-parameters.
+    Dashed and dotted lines are $R^2$ of linear regression against Sackin's
+    index, and \gls{SVR} using \gls{nltt}.
+  }
+  \label{fig:alphacrossv}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics{kernel-I-crossv.pdf}
+  \caption{
+    Cross validation accuracy of classifiers for \gls{BA} model parameter
+    \gls{I} for eight epidemic scenarios. Solid lines and points are $R^2$ of
+    tree kernel \gls{kSVR} under various kernel meta-parameters. Dashed and
+    dotted lines are $R^2$ of linear regression against Sackin's index, and
+    \gls{SVR} using \gls{nltt}.
+  }
+  \label{fig:Icrossv}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics{kernel-m-crossv.pdf}
+  \caption{
+    Cross validation accuracy of classifiers for \gls{BA} model parameter
+    \gls{m} for eight epidemic scenarios. Solid lines and points are $R^2$ of
+    tree kernel \gls{kSVR} under various kernel meta-parameters. Dashed and
+    dotted lines are $R^2$ of linear regression against Sackin's index, and
+    \gls{SVR} using \gls{nltt}.
+  }
+  \label{fig:mcrossv}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics{kernel-N-crossv.pdf}
+  \caption{
+    Cross validation accuracy of classifiers for \gls{BA} model parameter
+    \gls{N} for eight epidemic scenarios. Solid lines and points are $R^2$ of
+    tree kernel \gls{kSVR} under various kernel meta-parameters. Dashed and
+    dotted lines are $R^2$ of linear regression against Sackin's index, and
+    \gls{SVR} using \gls{nltt}.
+  }
+  \label{fig:Ncrossv}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics{kernel-alpha-kpca.pdf}
+  \caption{
+    Kernel principal components projection of trees simulated under three
+    different values of \gls{BA} parameter \gls{alpha}, for eight epidemic
+    scenarios.
+  }
+  \label{fig:alphakpca}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics{kernel-I-kpca.pdf}
+  \caption{
+    Kernel principal components projection of trees simulated under three
+    different values of \gls{BA} parameter \gls{I}, for eight epidemic
+    scenarios.
+  }
+  \label{fig:Ikpca}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics{kernel-m-kpca.pdf}
+  \caption{
+    Kernel principal components projection of trees simulated under three
+    different values of \gls{BA} parameter \gls{m}, for eight epidemic
+    scenarios.
+  }
+  \label{fig:mkpca}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics{kernel-N-kpca.pdf}
+  \caption{
+    Kernel principal components projection of trees simulated under three
+    different values of \gls{BA} parameter \gls{N}, for eight epidemic
+    scenarios.
+  }
+  \label{fig:Nkpca}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics{gridsearch-alpha-kernel.pdf}
+  \caption{                                              
+    Grid search kernel scores for testing trees simulated under various             
+    \gls{alpha} values. The other \gls{BA} parameters were fixed at \gls{I} =
+    1000, \gls{N} = 5000, and \gls{m} = 2. 
+  }        
+  \label{fig:gridalpha}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics{gridsearch-I-kernel.pdf}
+  \caption{                                              
+    Grid search kernel scores for testing trees simulated under various             
+    \gls{I} values. The other \gls{BA} parameters were fixed at \gls{alpha} =
+    1.0, \gls{N} = 5000, and \gls{m} = 2. 
+  }        
+  \label{fig:gridI}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics{gridsearch-m-kernel.pdf}
+  \caption{                                              
+    Grid search kernel scores for testing trees simulated under various             
+    \gls{m} values. The other \gls{BA} parameters were fixed at \gls{alpha} =
+    1.0, \gls{I} = 1000, and \gls{N} = 5000.
+  }        
+  \label{fig:gridm}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics{gridsearch-N-kernel.pdf}
+  \caption{                                              
+    Grid search kernel scores for testing trees simulated under various             
+    \gls{N} values. The other \gls{BA} parameters were fixed at \gls{alpha} =
+    1.0, \gls{I} = 1000, and \gls{m} = 2. 
+  }        
+  \label{fig:gridN}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics{abc-point-estimate-m3.pdf}
+  \caption{                                              
+    \Acrlong{MAP} point estimates for \gls{BA} model parameters obtained by
+    running \software{netabc} on simulated data. Values shown are for
+    simulations with \gls{m} = 3. Dashed lines indicate true values. (A)
+    Estimates of \gls{alpha} and \gls{I} which were varied in these simulations
+    against known values. (B) Estimates of \gls{m} and \gls{N} which were held
+    fixed in these simulations at the values \gls{m} = 3 and \gls{N} = 5000.
+  }        
+  \label{fig:abcm3}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics{abc-point-estimate-m4.pdf}
+  \caption{                                              
+    \Acrlong{MAP} point estimates for \gls{BA} model parameters obtained by
+    running \software{netabc} on simulated data. Values shown are for
+    simulations with \gls{m} = 4. Dashed lines indicate true values. (A)
+    Estimates of \gls{alpha} and \gls{I} which were varied in these simulations
+    against known values. (B) Estimates of \gls{m} and \gls{N} which were held
+    fixed in these simulations at the values \gls{m} = 4 and \gls{N} = 5000.
+  }        
+  \label{fig:abcm4}
+\end{figure}
+
+\begin{figure}
+  \includegraphics{cuevas2009-posterior}
+  \caption{
+      Posterior distribution of BA model parameters for
+      \textcite{cuevas2009hiv} data. Vertical lines indicate maximum \textit{a
+      posteriori} estimates, and shaded areas are 95\% highest posterior
+      density intervals. $x$-axis indicates regions of nonzero prior density.
+  }
+  \label{fig:cuevas}
+\end{figure}
+
+\begin{figure}
+  \includegraphics{li2015-posterior}
+  \caption{
+      Posterior distribution of BA model parameters for \textcite{li2015hiv}
+      data. Vertical lines indicate maximum \textit{a posteriori} estimates,
+      and shaded areas are 95\% highest posterior density intervals. $x$-axis
+      indicates regions of nonzero prior density.
+  }
+  \label{fig:li}
+\end{figure}
+
+\begin{figure}
+  \includegraphics{niculescu2015-posterior}
+  \caption{
+      Posterior distribution of BA model parameters for
+      \textcite{niculescu2015recent} data. Vertical lines indicate maximum
+      \textit{a posteriori} estimates, and shaded areas are 95\% highest
+      posterior density intervals. $x$-axis indicates regions of nonzero prior
+      density.
+  }
+  \label{fig:niculescu}
+\end{figure}
+
+\begin{figure}
+  \includegraphics{novitsky2014-posterior}
+  \caption{
+      Posterior distribution of BA model parameters for
+      \textcite{novitsky2013phylogenetic, novitsky2014impact} data. Vertical
+      lines indicate maximum \textit{a posteriori} estimates, and shaded areas
+      are 95\% highest posterior density intervals. $x$-axis indicates regions
+      of nonzero prior density.
+  }
+  \label{fig:novitsky}
+\end{figure}
+
+\begin{figure}
+  \includegraphics{wang2015-posterior}
+  \caption{
+      Posterior distribution of BA model parameters for
+      \textcite{wang2015targeting} data. Vertical lines indicate maximum
+      \textit{a posteriori} estimates, and shaded areas are 95\% highest
+      posterior density intervals. $x$-axis indicates regions of nonzero prior
+      density.
+  }
+  \label{fig:wang}
+\end{figure}
+
+<<abc_posterior, echo=FALSE, results="asis">>=
+    N <- 5000
+    replicate <- 0
+    for (m in c(2, 3, 4)) {
+    for (I in c(1000, 2000)) {
+    for (alpha in c(0, 0.5, 1, 1.5, 2)) {
+        fn <- sprintf("abc-posterior/%2f_%d_%d_%d_%d.pdf", alpha, I, m, N, replicate)
+        lab <- sprintf("fig:%2f-%d-%d-%d-%d", alpha, I, m, N, replicate)
+        cat("\\begin{figure}\n")
+        cat("\\centering\n")
+        cat("\\includegraphics{", fn, "}\n")
+        cat("\\caption{\n")
+        cat("Approximate marginal posterior distributions of Barab\\'asi-Albert model parameters obtained using kernel-ABC for one simulated dataset. Dashed lines indicate true values, and shaded areas shown 95\\% highest posterior density intervals.\n")
+        cat("}\n")
+        cat("\\label{", lab, "}\n")
+    }
+    }
+    }
+@

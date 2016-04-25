@@ -1,0 +1,159 @@
+Name: wang2015
+Processes: 1
+Sleep: 5
+Memory: 256m
+Steps:
+    raw-fasta:
+        Extension: fasta
+        Parameters:
+            pmid: 26129754
+        Interpreter: python3
+        Startup: |
+            from Bio import Entrez
+            from datetime import datetime
+        Rule: |
+            Entrez.email = "rmccloskey@cfenet.ubc.ca"
+            epoch = datetime.strptime("01-Jan-1970", "%d-%b-%Y")
+
+            # find all Genbank IDs for this study
+            id = "{pmid}"
+            handle = Entrez.elink(dbfrom="pubmed", id=id, linkname="pubmed_nuccore")
+            record = Entrez.read(handle)
+            handle.close()
+            gbids = ",".join([x["Id"] for x in record[0]["LinkSetDb"][0]["Link"]])
+
+            # fetch all Genbank records
+            handle = Entrez.efetch(db="nuccore", id=gbids, rettype="gb", retmode="xml")
+            headers = []
+            seqs = []
+            for record in Entrez.parse(handle):
+                for qual in record["GBSeq_feature-table"][0]["GBFeature_quals"]:
+                    header = None
+                    if qual["GBQualifier_name"] == "collection_date":
+                        date = datetime.strptime(qual["GBQualifier_value"], "%d-%b-%Y")
+                        header = "{{}}_{{}}".format(record["GBSeq_locus"], (date - epoch).days)
+                        break
+                if header is not None:
+                    headers.append(header)
+                    seqs.append(record["GBSeq_sequence"])
+
+            # write to FASTA file
+            with open("{raw-fasta}", "w") as f:
+                for header, seq in zip(headers, seqs):
+                    f.write(">{{}}\n{{}}\n".format(header, seq))
+
+    align:
+        Extension: fasta
+        Parameters:
+            placeholder: 0
+        Depends: raw-fasta
+        Interpreter: bash
+        Rule: |
+            TMP=`mktemp`
+            muscle -maxiters 1 -diags1 -in {raw-fasta} -out $TMP
+            trimal -in $TMP -automated1 | filter_duplicates > {align}
+            rm $TMP
+
+    subtree:
+        Extension: nwk
+        Parameters:
+            placeholder: 0
+        Depends: align
+        Interpreter: bash
+        Rule: |
+            UNROOTED=`mktemp`
+            ROOTED=`mktemp`
+            RTTJAR=`locate RLRootToTip.jar | head -n 1`
+            fasttreeMP -nt -gtr -quiet -nosupport < {align} | nw_reroot - > $UNROOTED
+            java -jar $RTTJAR -timetree $ROOTED -newick $UNROOTED
+            python3 -c "from Bio import Phylo; Phylo.convert('$ROOTED', 'nexus', '{subtree}', 'newick')"
+            rm $ROOTED $UNROOTED
+
+    abc-config:
+        Extension: yaml
+        Parameters:
+            m_min: [1, 2]
+            m_max: 5
+            alpha_min: 0
+            alpha_max: 2
+            N_max: 10000
+            I_max: 10000
+        Interpreter: bash
+        Depends: subtree
+        Rule: |
+            NTIP=`treestat -s ntip {subtree}`
+            echo "N: [\"uniform\", $NTIP, {N_max}]" > {abc-config}
+            echo "I: [\"uniform\", $NTIP, {I_max}]" >> {abc-config}
+            echo "time: 0" >> {abc-config}
+            echo "transmit_rate: 1" >> {abc-config}
+            echo "remove_rate: 0" >> {abc-config}
+            echo "m: [\"discrete_uniform\", {m_min}, {m_max}]" >> {abc-config}
+            echo "alpha: [\"uniform\", {alpha_min}, {alpha_max}]" >> {abc-config}
+
+    abc:
+        Extension: tsv
+        Sleep: 600
+        Threads: 12
+        Walltime: 08:00:00
+        Processes: 2
+        Parameters:
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+            nparticle: 1000
+            nsample: 5
+            quality: 0.95
+            final_epsilon: 0.0
+            final_accept: 0.015
+            m_min: [1, 2]
+            m_max: 5
+            N_max: 10000
+            I_max: 10000
+            alpha_min: 0
+            alpha_max: 2
+        Depends: subtree abc-config
+        Interpreter: bash
+        Rule: |
+            echo "#{yaml}" > {abc}
+            if [[ {nltt} -eq 1 ]]; then
+                NLTT=--nltt
+            else
+                NLTT=""
+            fi
+            netabc --num-threads 12 --decay-factor {decay_factor} \
+                   --rbf-variance {rbf_variance} --num-particles {nparticle} \
+                   --num-samples {nsample} --quality {quality} --seed {seed} \
+                   --final-epsilon {final_epsilon} --final-accept {final_accept} \
+                   $NLTT --net-type pa --trace {abc} --seed {seed} {subtree} {abc-config}
+            echo "EOF" >> {abc}
+
+    posterior-plot:
+        Extension: pdf
+        Walltime: 00:30:00
+        Parameters:
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+            nparticle: 1000
+            nsample: 5
+            quality: 0.95
+            final_epsilon: 0.0
+            final_accept: 0.015
+            m_min: [1, 2]
+            m_max: 5
+            N_max: 10000
+            I_max: 10000
+            alpha_min: 0
+            alpha_max: 2
+        Depends: abc subtree
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(grid))
+        Rule: |
+            ntip <- Ntip(read.tree("{subtree}"))
+            d <- fread("{abc}")[iter == max(iter)]
+            p <- posterior.plot.pa(d, alpha_min={alpha_min}, 
+                    alpha_max={alpha_max}, I_min=ntip, I_max={I_max},
+                    N_min=ntip, N_max={N_max}, m_min={m_min}, m_max={m_max})
+            ggsave(p, file="{posterior-plot}", height=5, width=6)
