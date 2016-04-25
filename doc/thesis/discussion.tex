@@ -9,57 +9,71 @@ documentation. We have made \software{netabc} publicly available at
 \url{github.com/rmcclosk/netabc} under a permissive open source license, to
 encourage other researchers to apply and extend our method.
 
-In retrospect, there are a few algorithmic improvements which could have been
-made to \software{netabc}. Firstly, our implementation uses simple multinomial
-sampling for the resampling step, as well as for generating the final sample
-from the target distribution.  Several other sampling strategies have been
-developed~\autocite{douc2005comparison}, and it is possible that the use of a
-more sophisticated scheme might increase the algorithm's accuracy. 
+Several alternative network models and modeling frameworks have been developed
+which may provide useful future targets for kernel-\gls{ABC}. Waring
+models~\autocite{irwin1963place,handcock2004likelihood} are a more flexible
+type of preferential attachment model which permit a subset of attachments to
+be formed non-prefentially. These models were used by
+\textcite{brown2011transmission} to characterize the transmission network in
+the United Kingdom. \Glspl{ERGM}~\autocite{robins2007introduction} are a
+flexible and expressive parameterization of contact networks in terms of
+statistics of network features such as pairs and triads.
+\textcite{goodreau2007assessing} evaluated the effect of several different
+\gls{ERGM} parameterizations on transmission tree shape and effective
+population size. The author suggested the use of \glspl{ERGM} as a general
+framework for estimation of epidemiological quantities related to \gls{HIV}
+transmission. Except for a few special cases, simulating a network according to
+an \gls{ERGM} generally requires \gls{MCMC}, which would be too computationally
+intensive to integrate into \software{netabc} as it currently stands. To fit
+\gls{ERGM} with kernel-\gls{ABC}, one possibility would be to consider the
+network itself as a parameter to be modified by the \gls{MCMC} kernel.
+Other network modelling frameworks include the partnership-centric formulation
+developed by~\textcite{eames2002modeling} and the log-linear adjacency matrix
+parameterization developed by~\textcite{morriz1993epidemiology}.
 
-% spatial networks, see section 5.4 in keeling2005networks
+%\Textcite{morris1993epidemiology} proposes to apply the standard compartmental
+%modelling framework to contact networks by assigning each individual their own
+%compartment. Thus, each individual is associated with a single \gls{ODE}, with
+%the entire \gls{ODE} system parameterized by the adjacency matrix of the
+%contact network. 
+%The author proposes to use log-linear models to parameterize the adjacency
+%5matrix of a contact network. This framework is highly expressive, and allows
+%straightforward incorporation of time-dependent dynamics. 
+%However, simulating a transmission tree would require the numerical solution of
+%a very large system of \glspl{ODE}, which may be computationally prohibitive
+%given the number of simulations required for kernel-\gls{ABC}.
 
 The two-step process of simulating a contact network and subsequently allowing
 an epidemic to spread over that network carries with it the assumption that the
 contact network is static over the duration of the epidemic. Clearly this
 assumption is invalid, as people make and break partnerships on a regular
-basis. Our work has not addressed this assumption, primarily due to our desire
-to avoid the additional complexity required to address the dynamic nature of
-networks. This simplifying assumption is made by most studies using contact
-network models in an epidemiological context~\autocite{welch2011statistical,
-bansal2007individual}. However, in principle, kernel-\gls{ABC} could be
-adapted to dynamic contact networks by using a method such as that developed by
-\textcite{robinson2012dynamics} to simulate a dynamic contact network, while
-concurrently simulating the spread of an epidemic.
-
-An alternative approach is the deterministic framework outlined by
-\textcite{morris1993epidemiology}, who proposes to apply the standard
-compartmental modelling framework to contact networks by assigning each
-individual their own compartment. Thus, each individual is associated with a
-single \gls{ODE}, with the entire \gls{ODE} system parameterized by the
-adjacency matrix of the contact network. \citeauthor{morris1993epidemiology}
-proposes to use log-linear models to parameterize the matrix. This framework is
-highly expressive, and allows straightforward incorporation of time-dependent
-dynamics. However, simulating a transmission tree would require the numerical
-solution of a very large system of \glspl{ODE}. Given the large number of
-simulations required for kernel-\gls{ABC}, it is not clear if this method would
-be computationally feasible in this context.
+basis. Addressing the impact of this simplifying assumption is outside the
+scope of this work. However, the same assumption is made by most studies using
+contact network models in an epidemiological
+context~\autocite{welch2011statistical, bansal2007individual}. In principle,
+kernel-\gls{ABC} could be adapted to dynamic contact networks by using a method
+such as that developed by \textcite{robinson2012dynamics} to simulate such a
+network, while concurrently simulating the spread of an epidemic.
 
 It is important to note that \software{netabc} takes a transmission tree as
 input, rather than a viral phylogeny. Thus, we have left the estimation of a
-transmission tree up to the user. There were two reasons for this choice. First
-and foremost, we wished again to avoid extra complexity and keep the number of
-estimated parameters small. In theory, it is possible to incorporate the
+transmission tree up to the user. In theory, it is possible to incorporate the
 process by which a viral phylogeny is generated along with a transmission tree
 into our method, for example by simulating within-host dynamics. Although this
 may be an avenue for future extension, we felt that it would obscure the
 primary purpose of this work, which is to study contact network parameters.
-Second, there are a number of different methods available for inferring
+In addition, there are a number of different methods available for inferring
 transmission trees~\autocite{didelot2014bayesian, ypma2012unravelling,
 jombart2011reconstructing, cottam2008integrating, poon2015phylodynamic}, some
 of which incorporate geographic and/or epidemiological data not accommodated by
 our method. We therefore felt it would be best to allow researchers to use
 their own preferred tree building method.
 
+Our implementation of \gls{SMC} uses a simple multinomial scheme to sample
+particles from the population according to their weights. Several other
+sampling strategies have been developed~\autocite{douc2005comparison}, and it
+is possible that the use of a more sophisticated technique might increase the
+algorithm's accuracy. 
 
 \subsection{Analysis of \acrlong{BA} model}
 
@@ -136,58 +150,82 @@ sophisticated method, even if values for some of the parameters are known
 \textit{a priori}, and especially if credible intervals are desired on the
 parameters of interest.
 
+As noted by \textcite{lintusaari2016identifiability}, uniform priors on model
+parameters may translate to highly informative priors on quantities of
+interest. We observed a non-linear relationship between the pcreferential
+attachment power $\alpha$ and the power law exponent $\gamma$
+(\cref{fig:gamma}). Thecrefore, placing a uniform prior on $\alpha$ between 0
+and 2 is equivalent to placing an informative prior that $\gamma$ is close to
+2. Thecrefore, if we were primarily interested in $\gamma$ rather than
+$\alpha$, a more sensible choice of prior might have a shape informed by
+\cref{fig:gamma} and be bounded above by approximately $\alpha$ = 1.5. This
+would uniformly bound $\gamma$ in the region $2 \leq \gamma \leq 4$ commonly
+reported in the network literature~\autocite{liljeros2001web,
+schneeberger2004scale, colgate1989risk, brown2011transmission}. We note however
+that \textcite{jones2003assessment} estimated $\gamma$ values greater than
+four for some datasets, in one case as high as 17, indicating that a wider
+range of permitted $\gamma$ values may be warranted.
+
 \subsection{Application to HIV data}
 
-The analysis of \gls{HIV} datasets indicated heterogeneity in the contact
-network structures underlying several distinct local epidemics. The five
-datasets analysed fell into three categories (Figure~\ref{fig:abchpd}). First,
-we estimated a preferential attachment power between 0.5 and 1 for the
-epidemics studied by \textcite{cuevas2009hiv} and \textcite{li2015hiv}, with
-credible intervals occupying nearly the entire region from 0 to 1.
-\citeauthor{cuevas2009hiv} studied a group of newly diagnosed individuals in
-the Basque Country, Spain. Although the individuals were of mixed risk groups,
-and therefore unlikely to comprise a single contact network, a high proportion
-of them (47\%) grouped into local clusters based on genetic distance. The low
-estimated attachment power for these data is consistent with the sampled
-sequences comprising many distinct sub-networks rather than a single connected
-network. \citeauthor{li2015hiv} sampled a large number of acutely infected MSM
-in Shanghai, China, in which we identified a large cluster from the phylogeny
-using a patristic distance cutoff~\autocite{poon2015impact}. The low attachment
-power estimated for this dataset was surprising given the high phylogenetic
-relatedness of the sequences. It is possible that the number and diversity of
-circulating recombinant forms in the data introduced errors into our estimated
-viral phylogeny.
+Our investigation of published HIV datasets indicated heterogeneity in the
+contact network structures underlying several distinct local epidemics. When
+interpreting these results, we caution that the BA model is quite simple and
+most likely misspecified for these data. In particular, the average degree of a
+node in the network is equal to $2m$, and thecrefore is constrained to be a
+multiple of 2. Furthermore, we considered the case $m = 1$, where the network
+has no cycles, to be implausible and thecrefore assigned it zero prior
+probability in one set of analyses. This forced the average degree to be at
+least four, which may be unrealistically high for sexual networks. The fact
+that the estimated values of $\alpha$ differed substatially for three datasets
+depending on whether or not $m = 1$ was allowed by the prior is futher evidence
+of this potential misspecification. However, we note that for two of the
+datasets, the estimated values of $\alpha$ did not change much between priors,
+and the estimates of $I$ were robust to the choice of prior for all datasets
+studied. More sophisticated models, for example models incorporating
+heterogeneity in node behaviour, are likely to provide a better fit to these
+data.
 
-For the outbreaks studied by \textcite{niculescu2015recent} and
-\textcite{wang2015targeting}, the estimated $\alpha$ was close to one, with a
-narrower credible interval than for the other studies.
-\citeauthor{niculescu2015recent} studied a recent outbreak among Romanian
-injection drug users (IDU), while \citeauthor{wang2015targeting} sampled
-acutely infected MSM in Beijing, China. Both studies discovered a high degree
-of phylogenetic relatedness owing to the recent infection times and homogeneous
-risk groups of the studied populations. The estimated number of infections for
-these datasets were also quite low, although the HPD interval for
-\citeauthor{wang2015targeting} was much wider than that for
-\citeauthor{niculescu2015recent}.
+With respect to the pcreferential attachment power $\alpha$, the five datasets
+analysed fell into three categories (\cref{fig:abchpd}). First, we
+estimated a pcreferential attachment power close to 1, indicating linear
+pcreferential attachment, for the outbreaks studied by
+\textcite{niculescu2015recent} and \textcite{wang2015targeting}. These values
+were robust to specifying different priors for $m$. Both studies were of
+populations in which we would expect a high degree of epidemiological
+relatedness: \textcite{niculescu2015recent} studied a recent outbreak among
+Romanian injection drug users (IDU), while \citeauthor{wang2015targeting}
+sampled acutely infected MSM in Beijing, China. Both these are contexts in
+which we would expect some of the assumptions of the BA model, such as a
+connected network, relatively high mean degree, and pcreferential attachment
+dynamics, to hold.
 
-The final studied dataset was an outlier in terms of estimated parameters.
-\textcite{novitsky2013phylogenetic} sampled approximately 44\% of the
-HIV-infected individuals in the northern area of Mochudi, Botswana. Additional
-sampling in a later study~\autocite{novitsky2014impact} brought the genotyping
-coverage up to 70\%. Even with such a high sampling coverage, we did not detect
-any large clusters using patristic distance, and therefore chose to analyze a
-subtree instead. Estimates of $\alpha$ and $N$ both had very wide HPD intervals
-and were markedly different from the other datasets. The estimated number of
-infected nodes was also extremely high, much higher than the estimated HIV
-prevalence of the town. Several factors may have contributed to these results.
-First, the authors note that the their sample was 75\% female.  In a primarily
-heterosexual risk environment, removal of a disproportionate number of males
-from the network could obfuscate the true network structure, for example if the
-majority of highly connected nodes were of one gender.  Second, the town in
-question was in close proximity to the country's capital, and the authors
-indicated that a high amount of migration takes place between the two
-locations. This suggests that the contact network may include a much larger
+The remaining three datasets (\textcite{cuevas2009hiv, novitsky2014impact,
+li2015hiv}) had estimated values of $\alpha$ below 0.5 when $m = 1$ was
+included in the prior, but these were not robust to changing the prior to
+exclude $m = 1$. For the \citeauthor{cuevas2009hiv} data, model
+misspecification is likely partially responsible. While the authors found that
+a large proportion of the samples were epidemiologically linked, these were
+mainly in small local clusters rather than the single large component
+postulated by the BA model. In addition, the mixed risk groups in the dataset
+would be unlikely to significantly interact, further weakening any global
+pcreferential attachment dynamics. The dataset studied by
+\textcite{novitsky2014impact} originated from a densely sampled population
+where the predominant risk factor was believed to be heterosexual exposure.
+Although the MAP estimate of $\alpha$ was almost unchanged when the value $m =
+1$ was excluded from the prior, the confidence interval shrank substantially.
+For both priors, the estimated prevalence was extremely high, in fact higher
+than the estimated HIV prevalence in the sampled region. The authors indicated
+that the source of the samples was a town in close proximity to the country's
+capital city, and suggested that there may have been a high degree of migration
+and partner interchange between the two locations. It is possible that the
+contact network underlying the subtree we investigated includes a much larger
 group based in the capital city, which would explain the high estimate of $I$.
+There is no clear explanation for the discrepancy between the two priors for
+the \textcite{li2015hiv} data, as the subset we analyzed formed a phylogenetic
+cluster and thecrefore was a good candidate for the BA model. However, nearly
+all the posterior density was assigned to $m = 1$ when this value was allowed,
+indicating that the network was more likely to have an acyclic tree structure.
 
 Our use of the \gls{BA} model makes several simplifying assumptions. First, we
 assume homogeneity across the network with respect to node behaviour and

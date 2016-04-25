@@ -195,3 +195,81 @@
   }        
   \label{fig:abcm4}
 \end{figure}
+
+\begin{figure}
+  \includegraphics{cuevas2009-posterior}
+  \caption{
+      Posterior distribution of BA model parameters for
+      \textcite{cuevas2009hiv} data. Vertical lines indicate maximum \textit{a
+      posteriori} estimates, and shaded areas are 95\% highest posterior
+      density intervals. $x$-axis indicates regions of nonzero prior density.
+  }
+  \label{fig:cuevas}
+\end{figure}
+
+\begin{figure}
+  \includegraphics{li2015-posterior}
+  \caption{
+      Posterior distribution of BA model parameters for \textcite{li2015hiv}
+      data. Vertical lines indicate maximum \textit{a posteriori} estimates,
+      and shaded areas are 95\% highest posterior density intervals. $x$-axis
+      indicates regions of nonzero prior density.
+  }
+  \label{fig:li}
+\end{figure}
+
+\begin{figure}
+  \includegraphics{niculescu2015-posterior}
+  \caption{
+      Posterior distribution of BA model parameters for
+      \textcite{niculescu2015recent} data. Vertical lines indicate maximum
+      \textit{a posteriori} estimates, and shaded areas are 95\% highest
+      posterior density intervals. $x$-axis indicates regions of nonzero prior
+      density.
+  }
+  \label{fig:niculescu}
+\end{figure}
+
+\begin{figure}
+  \includegraphics{novitsky2014-posterior}
+  \caption{
+      Posterior distribution of BA model parameters for
+      \textcite{novitsky2013phylogenetic, novitsky2014impact} data. Vertical
+      lines indicate maximum \textit{a posteriori} estimates, and shaded areas
+      are 95\% highest posterior density intervals. $x$-axis indicates regions
+      of nonzero prior density.
+  }
+  \label{fig:novitsky}
+\end{figure}
+
+\begin{figure}
+  \includegraphics{wang2015-posterior}
+  \caption{
+      Posterior distribution of BA model parameters for
+      \textcite{wang2015targeting} data. Vertical lines indicate maximum
+      \textit{a posteriori} estimates, and shaded areas are 95\% highest
+      posterior density intervals. $x$-axis indicates regions of nonzero prior
+      density.
+  }
+  \label{fig:wang}
+\end{figure}
+
+<<abc_posterior, echo=FALSE, results="asis">>=
+    N <- 5000
+    replicate <- 0
+    for (m in c(2, 3, 4)) {
+    for (I in c(1000, 2000)) {
+    for (alpha in c(0, 0.5, 1, 1.5, 2)) {
+        fn <- sprintf("abc-posterior/%2f_%d_%d_%d_%d.pdf", alpha, I, m, N, replicate)
+        lab <- sprintf("fig:%2f-%d-%d-%d-%d", alpha, I, m, N, replicate)
+        cat("\\begin{figure}\n")
+        cat("\\centering\n")
+        cat("\\includegraphics{", fn, "}\n")
+        cat("\\caption{\n")
+        cat("Approximate marginal posterior distributions of Barab\\'asi-Albert model parameters obtained using kernel-ABC for one simulated dataset. Dashed lines indicate true values, and shaded areas shown 95\\% highest posterior density intervals.\n")
+        cat("}\n")
+        cat("\\label{", lab, "}\n")
+    }
+    }
+    }
+@

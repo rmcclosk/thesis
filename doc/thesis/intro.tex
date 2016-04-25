@@ -54,7 +54,7 @@ have tips, nodes, edges, and branch lengths. However, rather than recording an
 evolutionary process (speciation), they record an epidemiological process
 (transmission). The tips of a transmission tree represent the removal of
 infected hosts, while internal nodes correspond to transmissions from one host
-to another.Transmission trees generally have branch lengths in units of
+to another. Transmission trees generally have branch lengths in units of
 calendar time, with branching times indicating times of transmission. The root
 of a transmission tree corresponds to the initially infected patient who
 introduced the epidemic into the network, also known as the \defn{index case}.
@@ -146,21 +146,22 @@ parameters of an epidemiological model for which the likelihood of an observed
 phylogeny can be calculated. Most often, this is some variation of the
 birth-death~\autocite{kendall1948generalized, stadler2012estimating} or
 coalescent~\autocite{kingman1982coalescent, volz2012complex} models. These
-methods generally assume the viral phylogeny is known, and we assume the same
-in this work (see \eg \autocite{nei2000molecular} for a review of phylogenetic
-inference). 
+methods either assume the viral phylogeny is known, as we do in this work, or
+(more commonly) integrate over phylogenetic uncertainty using Bayesian methods.
+Phylogenetic inference is a complex topic which we shall not discuss here; see
+\eg \autocite{nei2000molecular} for a full review.
 
 Due to the relationship between the aforementioned processes, there is a degree
 of correspondence between viral phylogenies and transmission
-trees~\autocite{ypma2013relating, kenah2015algorithms, kenah2016molecular}. In
-particular, the transmission process is quite similar to \defn{allopatric
-speciation}~\autocite{coyne2004speciation}, where genetic divergence follows
-the geographic isolation of a sub-population of organisms. Thus, transmission,
-which is represented as branching in the transmission tree, causes branching in
-the viral phylogeny as well. Similarly, the removal of an individual from the
-transmission tree causes the extinction of their viral lineage in the
-phylogeny. Consequently, the topology of the viral phylogeny is sometimes used
-as a proxy for the topology of the transmission
+trees~\autocite{leitner2002molecular, ypma2013relating, kenah2015algorithms,
+kenah2016molecular}. In particular, the transmission process is quite similar
+to \defn{allopatric speciation}~\autocite{coyne2004speciation}, where genetic
+divergence follows the geographic isolation of a sub-population of organisms.
+Thus, transmission, which is represented as branching in the transmission tree,
+causes branching in the viral phylogeny as well. Similarly, the removal of an
+individual from the transmission tree causes the extinction of their viral
+lineage in the phylogeny. Consequently, the topology of the viral phylogeny is
+sometimes used as a proxy for the topology of the transmission
 tree~\autocite{hall2015epidemic}. Modern likelihood-based methods of
 phylogenetic reconstruction~\autocite[\eg][]{price2010fasttree,
 stamatakis2014raxml} produce unrooted trees whose branch lengths measure
@@ -176,19 +177,19 @@ with an outgroup~\autocite{li1988rates} before time-scaling.
 
 A caveat of estimating transmission trees in this manner is that the
 correspondence between the topologies of the viral phylogeny and transmission
-tree is not necessarily exact~\autocite{ypma2013relating, romero2014timing}.
-Due to intra-host diversity, the viral strain which is transmitted may have
-split from another lineage within the donor long before the transmission event
-occurred. Hence, the branching point in the viral phylogeny may be much earlier
-than that in the transmission tree. Another possibility is that one host
-transmitted to two or more recipients, but the lineages they each received
-originated within the donor host in a different order than that in which the
-transmissions occurred.  In this case, the topology of the transmission tree
-and the viral phylogeny will be mismatched. In practice, this discordance has
-not proven an insurmountable problem: for example,
-\textcite{leitner1996accurate, paraskevis2004phylogenetic} were able to
-accurately recover a known transmission tree using a viral phylogeny. The
-problem of accurately estimating transmission trees is an ongoing area of
+tree is far from exact~\autocite{ypma2013relating, romero2014timing}.  Due to
+intra-host diversity, the viral strain which is transmitted may have split from
+another lineage within the donor long before the transmission event occurred.
+Hence, the branching point in the viral phylogeny may be much earlier than that
+in the transmission tree. Another possibility is that one host transmitted to
+two or more recipients, but the lineages they each received originated within
+the donor host in a different order than that in which the transmissions
+occurred.  In this case, the topology of the transmission tree and the viral
+phylogeny will be mismatched. In practice, this discordance has not proven an
+insurmountable problem: for example, \textcite{leitner1996accurate,
+paraskevis2004phylogenetic} were able to accurately recover a known
+transmission tree using a viral phylogeny. The problem of accurately estimating
+transmission trees is an ongoing area of
 research~\autocite{cottam2008integrating, jombart2011reconstructing,
 ypma2012unravelling, morelli2012bayesian, didelot2014bayesian}.
 
@@ -294,11 +295,11 @@ dimension of $\F$. The utility of a kernel function $K$ is that it is
 constructed in such a way that it can compute the inner product without
 explicitly computing $\varphi(x)$. The kernel function developed in
 \autocite{poon2013mapping} will henceforth be referred to as the \defn{tree
-kernel}. The feature space into which trees are mapped is the space of all
-possible \defn{subset trees}, which are subtrees that do not necessarily extend
-all the way to the tips. The subset-tree kernel was originally developed for
-comparing parse trees in natural language processing~\autocite{collins2002new}
-and did not incorporate branch length information. The version developed by
+kernel}. This kernel maps trees into the space of all possible possible
+\defn{subset trees}, which are subtrees that do not necessarily extend all the
+way to the tips. The subset-tree kernel was originally developed for comparing
+parse trees in natural language processing~\autocite{collins2002new} and did
+not incorporate branch length information. The version developed by
 \textcite{poon2013mapping} includes a radial basis function to compare the
 differences in branch lengths, thus incorporating both the trees' topologies
 and their branch lengths in a single similarity score. 
@@ -376,11 +377,12 @@ to become infected. However, an infection which may be spread through
 blood-to-blood contact through transfusions transfusions would use directed
 edges, since the donor has no chance of transmitting to the recipient. Directed
 edges are also useful when the transmission risk is not equal between the
-hosts, such as with HIV transmission, where acting as the receptive partner
-carries a higher risk of infection than acting as the insertive partner. In
-this case, a contact could be represented by two directed edges, one in each
-direction between the two hosts, with the edges annotated by what kind of risk
-they imply~\autocite{wasserman1994social}. An undirected contact network is
+hosts, such as with \gls{HIV} transmission among \gls{MSM}, where the receptive
+partner carries a higher risk of infection than the insertive
+partner~\autocite{baggaley2010hiv}. In this case, a contact could be
+represented by two directed edges, one in each direction between the two hosts,
+with the edges annotated by what kind of risk they
+imply~\autocite{wasserman1994social}. An undirected contact network is
 equivalent to a directed network where each contact is represented by two
 symmetric directed edges. The \defn{degree} of a node in the network is how
 many contacts it has. In directed networks, we may make the distinction between
@@ -390,13 +392,14 @@ denotes the probability that a node has any given number of links. The set of
 edges attached to a node are referred to as its \defn{incident} edges.
 
 Epidemiological models most often assume some form of contact homogeneity. The
-simplest models, such as the \gls{SIR} model, assume a completely homogeneously
-mixed population, where every pair of contacts is equally likely. More
-sophisticated models partition the population into groups with different
-contact rates between and among each group. However, these models still assume
-that every possible contact between a member of group $i$ and a member of group
-$j$ is equally likely. This assumption is clearly unrealistic for the majority
-of human communities, and can lead to significant errors in predicted epidemic
+simplest models, such as the \gls{SIR} model~\autocite{anderson1992infectious},
+assume a completely homogeneously mixed population, where every pair of
+contacts is equally likely. More sophisticated models partition the population
+into groups with different contact rates between and among each
+group~\autocite{jacquez1988modeling}. However, these models still assume that
+every possible contact between a member of group $i$ and a member of group $j$
+is equally likely. This assumption is clearly unrealistic for the majority of
+human communities, and can lead to significant errors in predicted epidemic
 trajectories when there is substantial heterogeneity
 present~\autocite{bansal2007individual, volz2007susceptible,
 rolls2015simulation}. Contact networks provide a way to relax this assumption
@@ -406,11 +409,12 @@ proven a substantial hurdle to epidemic modelling in
 practice~\autocite{anderson1992infectious}. Using this assumption, researchers
 have been able to derive estimates of the transmission rate and the basic
 reproductive number of various outbreaks, which have agreed with values
-obtained by on-the-ground data collection. Therefore, if one is interested only
-in these population-level variables, the additional complexity of contact
-network models may not be warranted. Rather, these models are most useful when
-we are interested in properties of the network itself, such as centrality,
-structural balance, and transitivity~\autocite{wasserman1994social}.
+obtained by on-the-ground data collection~\autocite{stadler2014insights}.
+Therefore, if one is interested only in these population-level variables, the
+additional complexity of contact network models may not be warranted. Rather,
+these models are most useful when we are interested in properties of the
+network itself, such as centrality, structural balance, and
+transitivity~\autocite{wasserman1994social}.
 
 From a public health perspective, knowledge of contact networks has the
 potential to be extremely useful. On a population level, network structure can
@@ -423,13 +427,13 @@ transmitted infections would not be expected to survive in a homogeneously
 mixed population, but their long-term persistence can be explained by contact
 heterogeneity~\autocite{anderson1992infectious, pastor2001epidemic}. Hence, the
 contact network can provide an idea of what to expect as an epidemic unfolds.
-In terms of actionable information, vaccination strategies which would
-eradicate an epidemic in a random network might not work if the network is
-scale-free~\autocite[][see \cref{subsec:pa}]{keeling2005networks}. On a local
-level, contact networks can be informative about the groups or individuals who
-are at highest risk of acquiring or transmitting infection, and would therefore
-benefit most from public health interventions~\autocite{wang2015targeting,
-little2014using}.
+In terms of actionable information, the efficacy of different vaccination
+strategies may depend on the topology of the
+network~\autocite{keeling2005networks,peng2013vaccination, ma2013importance,
+rushmore2014network}. On a local level, contact networks can be informative
+about the groups or individuals who are at highest risk of acquiring or
+transmitting infection, and would therefore benefit most from public health
+interventions~\autocite{wang2015targeting, little2014using}.
 
 Contact networks are a challenging type of data to collect, requiring extensive
 epidemiological investigation in the form of contact
@@ -440,26 +444,30 @@ population structure. For instance, it is possible to obtain limited
 information about the contact network by individual interviews without contact
 tracing. Variables which can be estimated in this fashion are referred to as
 \defn{node-level} measures~\autocite{wasserman1994social}. One of the most
-well-studied of these is the degree distribution, which can be estimated by
-simply asking each person how many contacts they had in some interval of
-time~\autocite{liljeros2001web, schneeberger2004scale, colgate1989risk}.
+well-studied of these is the degree distribution mentioned above, which can 
+theoretically be estimated by simply asking each person how many contacts they
+had in some interval of time. However, the degree distributions often observed
+in real-world sexual networks are heavy-tailed~\autocite{liljeros2001web,
+schneeberger2004scale, colgate1989risk}, so dense or peer-driven sampling would
+be needed to capture the high-degree nodes characterizing the tail of the
+distribution.
 
-An alternative approach has been the analysis of other networks, which can be
-estimated with phylogenetic methods from viral sequence data. Some work focuses
-on the \defn{phylogenetic network}, in which two nodes are connected if the
-genetic distance between their viral sequences is below some threshold.
-Primarily, this work has focused on the detection of \defn{phylogenetic
-clusters}, which are groups of individuals whose viral sequences are
-significantly more similar to each other's than to the general population's.
-The phylogenetic network is informative about ``hotspots'' of transmission and
-can be used to identify demographic groups to whom targeted interventions are
-likely to have the greatest effect~\autocite{poon2015impact}.  However, this
-network may show little to no agreement with a contact data obtained through
-epidemiological methods~\autocite{yirrell1998molecular, resik2007limitations,
-robinson2013dynamics}, and therefore may be a poor proxy for the contact
-network. Other studies~\autocite{brown2011transmission} have investigated the
-\defn{transmission network}, which is the subgraph of the contact network
-consisting of infected nodes and the edges which led to their
+An alternative approach has been the analysis of other types of network, which
+can be directly estimated with phylogenetic methods from viral sequence data.
+Some work focuses on the \defn{phylogenetic network}, in which two nodes are
+connected if the genetic distance between their viral sequences is below some
+threshold.  Primarily, this work has focused on the detection of
+\defn{phylogenetic clusters}, which are groups of individuals whose viral
+sequences are significantly more similar to each other's than to the general
+population's.  The phylogenetic network is informative about ``hotspots'' of
+transmission and can be used to identify demographic groups to whom targeted
+interventions are likely to have the greatest effect~\autocite{poon2015impact}.
+However, this network may show little to no agreement with a contact data
+obtained through epidemiological methods~\autocite{yirrell1998molecular,
+resik2007limitations, robinson2013dynamics}, and therefore may be a poor proxy
+for the contact network. Other studies~\autocite{brown2011transmission} have
+investigated the \defn{transmission network}, which is the subgraph of the
+contact network consisting of infected nodes and the edges which led to their
 infections~\autocite{welch2011statistical} (\cref{fig:contactnet}, left). It is
 possible to estimate the transmission network phylogenetically, although the
 methods required for doing so are more sophisticated than for estimating the
@@ -569,7 +577,9 @@ qualitatively different for each degree distribution.
 \textcite{leventhal2012inferring} investigated the relationship between
 transmission tree imbalance and several epidemic parameters under four contact
 network models, and found that these relationships varied considerably
-depending on which model was being considered. \textcite{welch2011network}
+depending on which model was being considered. The authors also investigated a
+real-world \gls{HIV} phylogeny and found a level of unbalancedeness
+inconsistent with a randomly mixing population. \textcite{welch2011network}
 simulated transmission trees over networks with varying degrees of community
 structure. They found that transmission trees simulated under networks with low
 clustering could not generally be distinguished from those simulated under
@@ -613,7 +623,7 @@ matrix in a finite-state Markov model.  For some spaces $X$ and $Y$, $K \maps X
 \end{align}
 for all $x \in X$. This is an ``operational'' definition of Markov kernel which
 will be suitable for our purposes. A more rigorous definition can be found in
-\eg \autocite{kallenberg2006foundations}. Note that a Markov kernels have
+\eg~\autocite{kallenberg2006foundations}. Note that a Markov kernels have
 nothing to do with the kernel functions defined in \cref{subsec:treeshape},
 other than sharing a name (the word ``kernel'' is ubiquitous in mathematics).
 

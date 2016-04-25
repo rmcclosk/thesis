@@ -359,7 +359,7 @@ of \gls{N}
 
 We used \software{netabc} to estimate the parameters of the \gls{BA} model on
 simulated trees where the true parameter values were known. Point estimates for
-each parameter are shown in \cref{fig:abcpt} for the simulations with \gls{m} =
+each parameter are shown in \cref{fig:abcptm2} for the simulations with \gls{m} =
 2. The results for the other values of \gls{m} were similar
 (\cref{fig:abcm3,fig:abcm4}). The median [IQR] absolute error of estimates of
 \gls{alpha} across all simulations was
@@ -393,10 +393,47 @@ about a factor of two
     [\Sexpr{d[,format(quantile(N_error, 0.25), scientific=FALSE)]} - 
      \Sexpr{d[,format(quantile(N_error, 0.75), scientific=FALSE)]}]).
 No other parameters influenced the accuracy of the $N$ estimates (one-way
-ANOVA)
+ANOVA).
 
 \begin{figure}
   \includegraphics{abc-point-estimate-m2}
+  \caption[\Acrlong{MAP} point estimates for \gls{BA} model parameters obtained
+    by running \software{netabc} on simulated data, for simulations with $m = 2$.] 
+  {
+    \Acrlong{MAP} point estimates for \gls{BA} model parameters obtained by         
+    running \software{netabc} on simulated data. Values shown are for               
+    simulations with \gls{m} = 2. Dashed lines indicate true values. (A)            
+    Estimates of \gls{alpha} and \gls{I} which were varied in these simulations  
+    against known values. (B) Estimates of \gls{m} and \gls{N} which were held   
+    fixed in these simulations at the values \gls{m} = 2 and \gls{N} = 5000. 
+  }
+  \label{fig:abcptm2}
+\end{figure}
+
+\Cref{fig:abcex} shows the \gls{ABC} approximation to the posterior
+distribution on the \gls{BA} parameters for one simulation. Equivalent plots
+for one replicate simulation with each combination of parameters can be found
+in
+<<posterior_sims, echo=FALSE, results="asis">>=
+    N <- 5000
+    replicate <- 0
+    lab <- NULL
+    for (m in c(2, 3, 4)) {
+    for (I in c(1000, 2000)) {
+    for (alpha in c(0, 0.5, 1, 1.5, 2)) {
+        lab <- c(lab, sprintf("fig:%2f-%d-%d-%d-%d", alpha, I, m, N, replicate))
+    }
+    }
+    }
+    cat(paste0("\\cref{", paste(lab, sep=","), "}."))
+@
+\Gls{HPD} intervals around \gls{alpha} and \gls{I} were narrow relative to the
+region of nonzero prior density, whereas the intervals for $m$ and \gls{N} were
+widely dispersed. \Cref{tab:abchpd} shows point estimates and 95\% \gls{HPD}
+intervals averaged over all simulations.
+
+\begin{figure}
+  \includegraphics{{abc-posterior/1.0_1000_2_5000_0}.pdf}
   \caption{
     \Acrlong{MAP} point estimates for \gls{BA} model parameters obtained by         
     running \software{netabc} on simulated data. Values shown are for               
@@ -405,16 +442,9 @@ ANOVA)
     against known values. (B) Estimates of \gls{m} and \gls{N} which were held   
     fixed in these simulations at the values \gls{m} = 3 and \gls{N} = 5000. 
   }
-  \label{fig:abcm2}
+  \label{fig:abcptm2}
 \end{figure}
 
-\Cref{fig:abcex} shows the \gls{ABC} approximation to the posterior
-distribution on the \gls{BA} parameters for one simulation (equivalent plots
-for all the simulations can be found in the supplemental materials). \Gls{HPD}
-intervals around \gls{alpha} and \gls{I} were narrow relative to the region of
-nonzero prior density, whereas the intervals for $m$ and \gls{N} were widely
-dispersed. \Cref{tab:abchpd} shows point estimates and 95\% \gls{HPD}
-intervals averaged over all simulations.
 
 \begin{table}
     \centering
@@ -441,73 +471,116 @@ interpretable as multiplicative effects.
 \subsection{Application to HIV data}
 
 <<realdata, include=FALSE>>=
-  d <- fread(Sys.glob("../../simulations/aggregates/hpd/*"))
-  map <- dcast.data.table(d, dataset~parameter, value.var="map")
-  up <- dcast.data.table(d, dataset~parameter, value.var="hpd.max")
-  low <- dcast.data.table(d, dataset~parameter, value.var="hpd.min")
-  setkey(map, dataset)
-  setkey(up, dataset)
-  setkey(low, dataset)
+  m <- collect.metadata("../../simulations/aggregates/hpd/*")
+  d1 <- fread(rownames(m)[m$m_min == 1])
+  d2 <- fread(rownames(m)[m$m_min == 2])
+
+  map1 <- dcast.data.table(d1, dataset~parameter, value.var="map")
+  up1 <- dcast.data.table(d1, dataset~parameter, value.var="hpd.max")
+  low1 <- dcast.data.table(d1, dataset~parameter, value.var="hpd.min")
+  setkey(map1, dataset)
+  setkey(up1, dataset)
+  setkey(low1, dataset)
+
+  map2 <- dcast.data.table(d2, dataset~parameter, value.var="map")
+  up2 <- dcast.data.table(d2, dataset~parameter, value.var="hpd.max")
+  low2 <- dcast.data.table(d2, dataset~parameter, value.var="hpd.min")
+  setkey(map2, dataset)
+  setkey(up2, dataset)
+  setkey(low2, dataset)
 @
 
 We applied kernel-ABC to five published HIV datasets (\cref{tab:data}),
 and found substantial heterogeneity among the parameter estimates
-(\cref{fig:abchpd}). Two of the datasets~\autocite{niculescu2015recent,
-wang2015targeting} had estimated $\alpha$ values near unity (MAP estimates
-[95\% HPD] 
-  \Sexpr{map["niculescu2015", round(alpha, 2)]} 
-  [\Sexpr{low["niculescu2015", round(alpha, 2)]} - 
-   \Sexpr{up["niculescu2015", round(alpha, 2)]}]
+(\cref{fig:abchpd,fig:abchpdm2}). Plots of the marginal posterior distributions
+for each dataset are shown in
+\cref{fig:cuevas,fig:li,fig:niculescu,fig:novitsky,fig:wang}.
+Two of the datasets~\autocite{niculescu2015recent, wang2015targeting} had
+estimated $\alpha$ values near unity for the prior allowing $m = 1$ (MAP
+estimates [95\% HPD] 
+  \Sexpr{map1["niculescu2015", round(alpha, 2)]} 
+  [\Sexpr{low1["niculescu2015", round(alpha, 2)]} - 
+   \Sexpr{up1["niculescu2015", round(alpha, 2)]}]
 and
-  \Sexpr{map["wang2015", round(alpha, 2)]} 
-  [\Sexpr{low["wang2015", round(alpha, 2)]} -
-   \Sexpr{up["wang2015", round(alpha, 2)]}] respectively). 
-Another two datasets~\autocite{li2015hiv, cuevas2009hiv} had lower estimated
-values and wider HPD intervals
-  (\Sexpr{map["li2015", round(alpha, 2)]} 
-  [\Sexpr{low["li2015", round(alpha, 2)]} - 
-  \Sexpr{up["li2015", round(alpha, 2)]}]
+  \Sexpr{map1["wang2015", round(alpha, 2)]} 
+  [\Sexpr{low1["wang2015", round(alpha, 2)]} -
+   \Sexpr{up1["wang2015", round(alpha, 2)]}] respectively).
+The MAP estimates did not change appreciably when $m = 1$ was disallowed by the
+prior, although the credible interval of the \textcite{niculescu2015recent}
+data was narrower
+  (\Sexpr{low1["niculescu2015", round(alpha, 2)]} - 
+   \Sexpr{up1["niculescu2015", round(alpha, 2)]}).
+When $m = 1$ was permitted, the \textcite{li2015hiv, cuevas2009hiv} both had
+low estimated $\alpha$ values
+  (\Sexpr{map1["li2015", round(alpha, 2)]} 
+  [\Sexpr{low1["li2015", round(alpha, 2)]} - 
+  \Sexpr{up1["li2015", round(alpha, 2)]}]
 and
-  \Sexpr{map["cuevas2009", round(alpha, 2)]} 
-  [\Sexpr{low["cuevas2009", round(alpha, 2)]} -
-   \Sexpr{up["cuevas2009", round(alpha, 2)]}]). 
-The \textcite{novitsky2014impact} data had an extremely low estimated $\alpha$
-and a very wide HPD interval
-  (\Sexpr{map["novitsky2014", round(alpha, 2)]} 
-  [\Sexpr{low["novitsky2014", round(alpha, 2)]} -
-   \Sexpr{up["novitsky2014", round(alpha, 2)]}]). 
-For all the datasets except \citeauthor{novitsky2014impact}, estimated values of
-$I$ were below 2000, with narrow HPD intervals around two of the
-datasets
-  (\citeauthor{cuevas2009hiv}, \Sexpr{map["cuevas2009", floor(I)]} 
-  [\Sexpr{low["cuevas2009", floor(I)]} -
-   \Sexpr{up["cuevas2009", floor(I)]}];
-   \citeauthor{niculescu2015recent}, \Sexpr{map["niculescu2015", floor(I)]}
-  [\Sexpr{low["niculescu2015", floor(I)]} - 
-   \Sexpr{up["niculescu2015", floor(I)]}])
-and wider intervals around the other two
-  (\citeauthor{li2015hiv}, \Sexpr{map["li2015", floor(I)]} 
-  [\Sexpr{low["li2015", floor(I)]} -
-   \Sexpr{up["li2015", floor(I)]}];
-   \citeauthor{wang2015targeting}, \Sexpr{map["wang2015", floor(I)]}
-  [\Sexpr{low["wang2015", floor(I)]} - 
-   \Sexpr{up["wang2015", floor(I)]}]).
-The \citeauthor{novitsky2014impact} data was again the outlier, with a very high
+  \Sexpr{map1["cuevas2009", round(alpha, 2)]} 
+  [\Sexpr{low1["cuevas2009", round(alpha, 2)]} -
+   \Sexpr{up1["cuevas2009", round(alpha, 2)]}]). 
+However, the MAP estimates increased when $m = 1$ was not permitted, although
+the HPD intervals remained roughly the same
+  (\Sexpr{map2["li2015", round(alpha, 2)]} 
+  [\Sexpr{low2["li2015", round(alpha, 2)]} - 
+  \Sexpr{up2["li2015", round(alpha, 2)]}]
+and
+  \Sexpr{map2["cuevas2009", round(alpha, 2)]} 
+  [\Sexpr{low2["cuevas2009", round(alpha, 2)]} -
+   \Sexpr{up2["cuevas2009", round(alpha, 2)]}]).
+The \textcite{novitsky2014impact} data had a fairly low estimated $\alpha$
+for both priors on $m$
+  (\Sexpr{map1["novitsky2014", round(alpha, 2)]} for $m \geq 1$;
+   \Sexpr{map2["novitsky2014", round(alpha, 2)]} for $m \geq 2$).
+However, the confidence interval was much wider when $m = 1$ was allowed
+  ([\Sexpr{low1["novitsky2014", round(alpha, 2)]} -
+    \Sexpr{up1["novitsky2014", round(alpha, 2)]}] for $m \geq 1$ vs.
+    \Sexpr{low2["novitsky2014", round(alpha, 2)]} -
+    \Sexpr{up2["novitsky2014", round(alpha, 2)]} for $m \geq 2$).
+
+For all the datasets except \citeauthor{novitsky2014impact}, estimated values
+of $I$ were below 2000 when $m = 1$ was allowed, with relatively narrow HPD
+intervals compared to the nonzero prior density region
+  (\citeauthor{cuevas2009hiv}, \Sexpr{map1["cuevas2009", floor(I)]} 
+  [\Sexpr{low1["cuevas2009", floor(I)]} -
+   \Sexpr{up1["cuevas2009", floor(I)]}];
+   \citeauthor{niculescu2015recent}, \Sexpr{map1["niculescu2015", floor(I)]}
+  [\Sexpr{low1["niculescu2015", floor(I)]} - 
+   \Sexpr{up1["niculescu2015", floor(I)]}];
+  \citeauthor{li2015hiv}, \Sexpr{map1["li2015", floor(I)]} 
+  [\Sexpr{low1["li2015", floor(I)]} -
+   \Sexpr{up1["li2015", floor(I)]}];
+   \citeauthor{wang2015targeting}, \Sexpr{map1["wang2015", floor(I)]}
+  [\Sexpr{low1["wang2015", floor(I)]} - 
+   \Sexpr{up1["wang2015", floor(I)]}]).
+The \citeauthor{novitsky2014impact} data was the outlier, with a very high
 estimated $I$, and HPD interval spanning almost the entire prior region
-  (\Sexpr{map["novitsky2014", floor(I)]} 
-  [\Sexpr{low["novitsky2014", floor(I)]} -
-   \Sexpr{up["novitsky2014", floor(I)]}]).
-No information was gleaned about the $m$ parameter, with the HPD interval
-occupying the entire prior region for all datasets. The estimates of $N$ were
-similarly uninformative, with the exception that the point estimate for the
-\citeauthor{wang2015targeting} data was smaller
-  (\Sexpr{map["wang2015", floor(N)]})
-than the estimates for other datasets
- (average \Sexpr{map[dataset != "wang2015", floor(mean(N))]}).
+  (\Sexpr{map1["novitsky2014", floor(I)]} 
+  [\Sexpr{low1["novitsky2014", floor(I)]} -
+   \Sexpr{up1["novitsky2014", floor(I)]}]).
+The $I$ estimates and HPD intervals were generally robust to the choice of
+prior on $m$, with slightly narrower HPD intervals (compare
+\cref{fig:abchpd,fig:abchpdm2}).
+
+The MAP estimate of $m$ was equal to 1 for all but the
+\citeauthor{novitsky2014impact} data, when this value was allowed. However, the
+upper bound of the HPD interval was different for each dataset
+  (\citeauthor{niculescu2015recent}, \Sexpr{up1["niculescu2015", round(m)]};
+   \citeauthor{wang2015targeting}, \Sexpr{up1["wang2015", round(m)]};
+   \citeauthor{li2015hiv}, \Sexpr{up1["li2015", round(m)]};
+   \citeauthor{cuevas2009hiv}, \Sexpr{up1["cuevas2009", round(m)]}).
+When $m = 1$ was disallowed, the MAP for all datasets was either 2 or 3, with
+HPD intervals spanning the entire prior region. The estimates for the total
+number of nodes $N$ were largely uninformative for all samples, with almost all
+MAP estimates greater than 7500 and HPD intervals spanning almost the entire
+nonzero prior density region. The only exception was the \citeauthor{li2015hiv}
+data, for which the MAP estimate was lower 
+  (\Sexpr{map1["li2015", floor(N)]})
+when $m = 1$ was allowed.
 
 \begin{figure*}[ht]
   \centering
-  \includegraphics{realdata-hpd-bc.pdf}
+  %\includegraphics{realdata-hpd}
   \vspace{8pt}
   \caption{
       Maximum \textit{a posteriori} point estimates and 95\% HPD intervals for

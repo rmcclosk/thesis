@@ -19,5 +19,8 @@ main.pdf: main.tex preamble.tex preface.tex intro.tex objective.tex methods.tex 
 results.tex: results.Rnw
 	R -e "knitr::knit('$^')"
 
+appendix.tex: appendix.Rnw
+	R -e "knitr::knit('$^')"
+
 papers.bib:
 	ln -sf ../../reading/$@ .
