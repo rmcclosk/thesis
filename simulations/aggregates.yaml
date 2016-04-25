@@ -2,7 +2,6 @@ Name: aggregates
 Description: Plots and tables which aggregate multiple experiments together
 Processes: 1
 Sleep: 5
-Hostname: (n[0-9]|Brannigan)
 Steps:
     abc:
         Extension: tsv
