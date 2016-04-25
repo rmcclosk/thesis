@@ -324,5 +324,7 @@ posterior.plot.pa <- function (trace, I_min=500, I_max=10000, N_min=500, N_max=1
         pm <- pm + geom_vline(xintercept=true_m, linetype="dashed")
     }
 
-    arrangeGrob(palpha, pI, pm, pN, ncol=2)
+    arrangeGrob(palpha, pI, pm, pN, ncol=2, 
+                left=textGrob("approximate posterior density", rot=90, 
+                              gp=gpar(fontsize=14, fontfamily="Gillius ADF")))
 }
