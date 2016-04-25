@@ -60,9 +60,8 @@ infected, are likely to transmit to many other nodes. This results in a more
 unbalanced, ladder-like structure in the phylogeny, compared to networks with
 lower \gls{alpha} values. None of the other three parameters produced trees
 which were as easily distinguished from each other
-(\cref{fig:Itrees,fig:mtrees,fig:Ntrees,fig:Itrees}).
-Sackin's index, which measures tree imbalance, was significantly correlated with
-all four parameters
+(\cref{fig:Itrees,fig:mtrees,fig:Ntrees,fig:Itrees}).  Sackin's index, which
+measures tree imbalance, was significantly correlated with all four parameters
     (for $\alpha$, $I$, $m$, and $N$ respectively: Spearman's rho =
      \Sexpr{round(alpha.sackin.cor$estimate, 2)},
      \Sexpr{round(I.sackin.cor$estimate, 2)},

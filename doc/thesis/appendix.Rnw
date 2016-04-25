@@ -1,4 +1,4 @@
-\begin{figure}
+\begin{figure}[H]
   \centering
   \includegraphics{kernel-I-tree.pdf}
   \caption{
@@ -8,7 +8,7 @@
   \label{fig:Itrees}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
   \centering
   \includegraphics{kernel-m-tree.pdf}
   \caption{
@@ -18,7 +18,7 @@
   \label{fig:mtrees}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
   \centering
   \includegraphics{kernel-N-tree.pdf}
   \caption{
@@ -28,12 +28,12 @@
   \label{fig:Ntrees}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
   \centering
   \includegraphics{kernel-alpha-crossv.pdf}
   \caption{
     Cross validation accuracy of classifiers for \gls{BA} model parameter
-    \gls{alpha} for eight epidemic scenarios. Solid lines and points are
+    \gls{alpha} for eigH epidemic scenarios. Solid lines and points are
     $R^2$ of tree kernel \gls{kSVR} under various kernel meta-parameters.
     Dashed and dotted lines are $R^2$ of linear regression against Sackin's
     index, and \gls{SVR} using \gls{nltt}.
@@ -41,12 +41,12 @@
   \label{fig:alphacrossv}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
   \centering
   \includegraphics{kernel-I-crossv.pdf}
   \caption{
     Cross validation accuracy of classifiers for \gls{BA} model parameter
-    \gls{I} for eight epidemic scenarios. Solid lines and points are $R^2$ of
+    \gls{I} for eigH epidemic scenarios. Solid lines and points are $R^2$ of
     tree kernel \gls{kSVR} under various kernel meta-parameters. Dashed and
     dotted lines are $R^2$ of linear regression against Sackin's index, and
     \gls{SVR} using \gls{nltt}.
@@ -54,12 +54,12 @@
   \label{fig:Icrossv}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
   \centering
   \includegraphics{kernel-m-crossv.pdf}
   \caption{
     Cross validation accuracy of classifiers for \gls{BA} model parameter
-    \gls{m} for eight epidemic scenarios. Solid lines and points are $R^2$ of
+    \gls{m} for eigH epidemic scenarios. Solid lines and points are $R^2$ of
     tree kernel \gls{kSVR} under various kernel meta-parameters. Dashed and
     dotted lines are $R^2$ of linear regression against Sackin's index, and
     \gls{SVR} using \gls{nltt}.
@@ -67,12 +67,12 @@
   \label{fig:mcrossv}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
   \centering
   \includegraphics{kernel-N-crossv.pdf}
   \caption{
     Cross validation accuracy of classifiers for \gls{BA} model parameter
-    \gls{N} for eight epidemic scenarios. Solid lines and points are $R^2$ of
+    \gls{N} for eigH epidemic scenarios. Solid lines and points are $R^2$ of
     tree kernel \gls{kSVR} under various kernel meta-parameters. Dashed and
     dotted lines are $R^2$ of linear regression against Sackin's index, and
     \gls{SVR} using \gls{nltt}.
@@ -80,51 +80,51 @@
   \label{fig:Ncrossv}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
   \centering
   \includegraphics{kernel-alpha-kpca.pdf}
   \caption{
     Kernel principal components projection of trees simulated under three
-    different values of \gls{BA} parameter \gls{alpha}, for eight epidemic
+    different values of \gls{BA} parameter \gls{alpha}, for eigH epidemic
     scenarios.
   }
   \label{fig:alphakpca}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
   \centering
   \includegraphics{kernel-I-kpca.pdf}
   \caption{
     Kernel principal components projection of trees simulated under three
-    different values of \gls{BA} parameter \gls{I}, for eight epidemic
+    different values of \gls{BA} parameter \gls{I}, for eigH epidemic
     scenarios.
   }
   \label{fig:Ikpca}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
   \centering
   \includegraphics{kernel-m-kpca.pdf}
   \caption{
     Kernel principal components projection of trees simulated under three
-    different values of \gls{BA} parameter \gls{m}, for eight epidemic
+    different values of \gls{BA} parameter \gls{m}, for eigH epidemic
     scenarios.
   }
   \label{fig:mkpca}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
   \centering
   \includegraphics{kernel-N-kpca.pdf}
   \caption{
     Kernel principal components projection of trees simulated under three
-    different values of \gls{BA} parameter \gls{N}, for eight epidemic
+    different values of \gls{BA} parameter \gls{N}, for eigH epidemic
     scenarios.
   }
   \label{fig:Nkpca}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
   \centering
   \includegraphics{gridsearch-alpha-kernel.pdf}
   \caption{                                              
@@ -135,7 +135,7 @@
   \label{fig:gridalpha}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
   \centering
   \includegraphics{gridsearch-I-kernel.pdf}
   \caption{                                              
@@ -146,7 +146,7 @@
   \label{fig:gridI}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
   \centering
   \includegraphics{gridsearch-m-kernel.pdf}
   \caption{                                              
@@ -157,7 +157,7 @@
   \label{fig:gridm}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
   \centering
   \includegraphics{gridsearch-N-kernel.pdf}
   \caption{                                              
@@ -168,7 +168,7 @@
   \label{fig:gridN}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
   \centering
   \includegraphics{abc-point-estimate-m3.pdf}
   \caption{                                              
@@ -182,7 +182,7 @@
   \label{fig:abcm3}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
   \centering
   \includegraphics{abc-point-estimate-m4.pdf}
   \caption{                                              
@@ -196,7 +196,7 @@
   \label{fig:abcm4}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
   \includegraphics{cuevas2009-posterior}
   \caption{
       Posterior distribution of BA model parameters for
@@ -207,7 +207,7 @@
   \label{fig:cuevas}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
   \includegraphics{li2015-posterior}
   \caption{
       Posterior distribution of BA model parameters for \textcite{li2015hiv}
@@ -218,7 +218,7 @@
   \label{fig:li}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
   \includegraphics{niculescu2015-posterior}
   \caption{
       Posterior distribution of BA model parameters for
@@ -230,7 +230,7 @@
   \label{fig:niculescu}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
   \includegraphics{novitsky2014-posterior}
   \caption{
       Posterior distribution of BA model parameters for
@@ -242,7 +242,7 @@
   \label{fig:novitsky}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
   \includegraphics{wang2015-posterior}
   \caption{
       Posterior distribution of BA model parameters for
@@ -259,16 +259,17 @@
     replicate <- 0
     for (m in c(2, 3, 4)) {
     for (I in c(1000, 2000)) {
-    for (alpha in c(0, 0.5, 1, 1.5, 2)) {
-        fn <- sprintf("abc-posterior/%2f_%d_%d_%d_%d.pdf", alpha, I, m, N, replicate)
-        lab <- sprintf("fig:%2f-%d-%d-%d-%d", alpha, I, m, N, replicate)
-        cat("\\begin{figure}\n")
+    for (alpha in c(0, 0.5, 1, 1.5)) {
+        fn <- sprintf("{abc-posterior/%.1f_%d_%d_%d_%d}.pdf", alpha, I, m, N, replicate)
+        lab <- sprintf("{fig:%.1f-%d-%d-%d-%d}", alpha, I, m, N, replicate)
+        cat("\\begin{figure}[H]\n")
         cat("\\centering\n")
-        cat("\\includegraphics{", fn, "}\n")
+        cat(paste0("\\includegraphics{", fn, "}\n"))
         cat("\\caption{\n")
         cat("Approximate marginal posterior distributions of Barab\\'asi-Albert model parameters obtained using kernel-ABC for one simulated dataset. Dashed lines indicate true values, and shaded areas shown 95\\% highest posterior density intervals.\n")
         cat("}\n")
         cat("\\label{", lab, "}\n")
+        cat("\\end{figure}\n")
     }
     }
     }
