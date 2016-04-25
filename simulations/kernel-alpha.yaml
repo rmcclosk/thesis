@@ -265,13 +265,14 @@ Steps:
             d[,alpha := as.factor(alpha)]
             ggplot(d, aes(x=PC1, y=PC2, color=alpha)) + geom_point() +
                 facet_grid(tips~I, scales="free", labeller="label_both") +
-                labs(x="first principal component", y="second principal component") +
+                labs(x="first principal component", 
+                     y="second principal component") +
                 theme_bw() +
-                theme(text=element_text(size=18, family="Gillius ADF"),
+                theme(text=element_text(size=14, family="Gillius ADF"),
                       axis.ticks=element_blank(),
                       axis.text=element_blank()) +
                 scale_color_discrete(name=expression(alpha))
-            ggsave("{kpca-plot}")
+            ggsave("{kpca-plot}", height=5, width=6)
 
     classifier:
         Extension: tsv.bz2

@@ -174,16 +174,20 @@ Steps:
             d <- merge(d, m, by=c("tree", "m", "ntip", "alpha", "I"))
             d[,ntip := as.factor(ntip)]
 
-            d[,label := paste( "true N =", true_N)]
-            d[,label := factor(label, levels=unique(label[order(true_N)]))]
+            setkey(d, m, ntip, true_N, replicate, N)
+            normconst <- function (x, y) integrate(splinefun(x, y), min(x), max(x), subdivisions=1000)$value
+            d[,score := score / normconst(N, score), by=c("m", "alpha", "I", "ntip", "true_N", "replicate")]
+
             g <- ggplot(d, aes(x=N, y=score, color=factor(ntip))) + 
-                stat_smooth() + facet_wrap(~label) +
-                geom_vline(aes(xintercept=true_N)) + ylim(0.9, 1) +
+                stat_smooth() + 
+                facet_wrap(~true_N, labeller = label_bquote(N == .(true_N))) +
+                geom_vline(aes(xintercept=true_N), linetype="dashed") + 
                 scale_color_discrete(name="number of tips") +
-                labs(x="simulated N", y="kernel score") +
+                labs(x="simulated N", y="normalized kernel score") +
                 theme_bw() +
-                theme(text=element_text(size=18, family="Gillius ADF"))
-            ggsave("{kernel-plot}")
+                theme(text=element_text(size=14, family="Gillius ADF"),
+                      axis.text.y=element_blank(), axis.ticks.y=element_blank())
+            ggsave("{kernel-plot}", height=5, width=6)
 
     point-estimate:
         Extension: tsv
@@ -246,52 +250,3 @@ Steps:
                          upper=hpd.upper(N, score)), by=test.cols]
             cat("#{yaml}\n", file="{point-estimate}")
             write.tsv(d, "{point-estimate}", append=TRUE)
-
-    point-estimate-plot:
-        Extension: pdf
-        Parameters:
-            m: 2
-            alpha: 1.0
-            I: 1000
-            ntip: [100, 500, 1000]
-        Depends: point-estimate
-        Interpreter: R --quiet --vanilla
-        Startup: suppressPackageStartupMessages(library(netabc))
-        Rule: |
-            d <- fread("{point-estimate}")
-            ggplot(d, aes(x=factor(true_N), y=N)) + geom_point() +
-                geom_abline(slope=2/8, intercept=-2/8, linetype="dashed") +
-                labs(x="true N", y="simulated N") + theme_bw() +
-                theme(text=element_text(size=18, family="Gillius ADF"))
-            ggsave("{point-estimate-plot}")
-
-    gamma-plot:
-        Extension: pdf
-        Parameters:
-            m: 2
-            alpha: 1.0
-            I: 1000
-            ntip: [100, 500, 1000]
-        Depends: point-estimate test-network test-gamma train-network train-gamma
-        Interpreter: R --quiet --vanilla
-        Startup: suppressPackageStartupMessages(library(netabc))
-        Rule: |
-            d <- fread("{point-estimate}")
-
-            train.gamma <- setNames(fread("bzcat {train-gamma}"), c("net", "gamma"))
-            mtrain <- collect.metadata(strsplit("{train-network}", " ")[[1]])
-            mtrain$net <- rownames(mtrain)
-            mtrain <- merge(setDT(mtrain), train.gamma, by="net")
-
-            test.gamma <- setNames(fread("bzcat {test-gamma}"), c("net", "true_gamma"))
-            mtest <- collect.metadata(strsplit("{test-network}", " ")[[1]])
-            mtest$net <- rownames(mtest)
-            mtest <- merge(setDT(mtest), test.gamma, by="net")
-
-            d <- merge(d, mtrain[,list(gamma=median(gamma)),by=N], by="N")
-            d <- merge(d, mtest, by=c("true_N", "test_replicate"))
-            ggplot(d, aes(x=true_gamma, y=gamma)) + geom_point() + theme_bw() +
-                labs(x=expression(paste( "true ", gamma)), 
-                     y=expression(paste( "estimated ", gamma))) +
-                scale_y_log10() + scale_x_log10()
-            ggsave("{gamma-plot}")

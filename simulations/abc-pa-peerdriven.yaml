@@ -1,0 +1,149 @@
+Name: abc-pa-peerdriven
+Description: ABC inference on 2-parameter preferential attachment networks with peer-driven sampling
+Processes: 1
+Threads: 1
+Hostname: ".*"
+Steps:
+    network:
+        Extension: gml
+        Walltime: 00:00:30
+        Parameters:
+            N: 5000
+            m: 2
+            alpha: 0.5
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: | 
+            set.seed({seed})
+            g <- sample_pa({N}, m={m}, power={alpha}, directed=FALSE)
+            graph_attr(g, "comment") <- "{yaml}"
+            write.graph(SIR.net(g), "{network}", format="gml")
+
+    tree:
+        Extension: nwk
+        Walltime: 00:00:30
+        Parameters:
+            I: 2000
+            ntip: 500
+            sample_peer: [0, 1]
+        Depends: network
+        Interpreter: bash
+        Rule: |
+            echo "#{yaml}" > {tree}
+            nettree --sim-nodes {I} --tree-tips {ntip} --seed 0 --sample-peer {sample_peer} {network} >> {tree}
+
+    abc-config:
+        Extension: yaml
+        Walltime: 00:00:30
+        Parameters:
+            m_min: 1
+            m_max: 5
+            N_min: 500
+            N_max: 15000
+            I_min: 500
+            I_max: 5000
+            alpha_min: 0
+            alpha_max: 2
+        Interpreter: bash
+        Rule: |
+            echo "N: [\"uniform\", {N_min}, {N_max}]" > {abc-config}
+            echo "I: [\"uniform\", {I_min}, {I_max}]" >> {abc-config}
+            echo "time: 0" >> {abc-config}
+            echo "transmit_rate: 1" >> {abc-config}
+            echo "remove_rate: 0" >> {abc-config}
+            echo "m: [\"discrete_uniform\", {m_min}, {m_max}]" >> {abc-config}
+            echo "alpha: [\"uniform\", {alpha_min}, {alpha_max}]" >> {abc-config}
+
+    abc:
+        Extension: tsv.bz2
+        Processes: 2
+        Threads: 12
+        Sleep: 600
+        Walltime: 010:00:00
+        Parameters:
+            sample_peer: [0, 1]
+            m_min: 1
+            m_max: 5
+            N_min: 500
+            N_max: 15000
+            I_min: 500
+            I_max: 5000
+            alpha_min: 0
+            alpha_max: 2
+            decay_factor: 0.3
+            rbf_variance: 4
+            nparticle: 1000
+            nsample: 5
+            quality: 0.95
+            final_epsilon: 0.0
+            final_accept: 0.015
+        Depends: tree abc-config
+        Interpreter: bash
+        Rule: |
+            TSVFILE=`echo {abc} | sed s/'.bz2'//`
+            echo "#{yaml}" > $TSVFILE
+            netabc --num-threads 12 --decay-factor {decay_factor} \
+                   --rbf-variance {rbf_variance} --num-particles {nparticle} \
+                   --num-samples {nsample} --quality {quality} --seed {seed} \
+                   --final-epsilon {final_epsilon} --final-accept {final_accept} \
+                   --net-type pa --trace $TSVFILE --seed {seed} {tree} {abc-config}
+            echo "EOF" >> $TSVFILE
+            bzip2 $TSVFILE
+
+    posterior-plot:
+        Extension: pdf
+        Processes: 1
+        Parameters:
+            sample_peer: [0, 1]
+            m: 2
+            m_min: 1
+            m_max: 5
+            N: 5000
+            N_min: 500
+            N_max: 15000
+            I: 2000
+            I_min: 500
+            I_max: 5000
+            alpha: 0.5
+            alpha_min: 0
+            alpha_max: 2
+            decay_factor: 0.3
+            rbf_variance: 4
+            nparticle: 1000
+            nsample: 5
+            quality: 0.95
+            final_epsilon: 0.0
+            final_accept: 0.015
+        Depends: abc
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            d <- fread("bzcat {abc} | head -n -1")[iter == max(iter)]
+            d <- d[sample(1:nrow(d), prob=weight, replace=TRUE)]
+            vars <- c("N", "I", "m", "alpha")
+            priors <- data.table(variable=vars, 
+                                 min=c({N_min}, {I_min}, {m_min}, {alpha_min}),
+                                 max=c({N_max}, {I_max}, {m_max}-1, {alpha_max}))
+            truth <- data.table(variable=vars,
+                                value=c({N}, {I}, {m}, {alpha}))
+            d <- melt(d[,vars,with=FALSE], measure.vars=vars)
+            d <- merge(d, priors, by="variable")
+
+            d[,label := "N"]
+            d[variable == "I", label := "I"]
+            d[variable == "m", label := "m"]
+            d[variable == "alpha", label := "alpha"]
+            plots <- by(d, d[,variable], function (by.d) {{
+                p <- ggplot(by.d, aes(x=value)) + geom_density() + theme_bw() +
+                    by.d[1,xlim(min, max)] +
+                    geom_vline(xintercept=truth[variable==by.d[1,variable], value], linetype=2) +
+                    theme(axis.text.y=element_blank(),
+                          axis.ticks.y=element_blank())
+                if (by.d[1,label] == "alpha")
+                    p + labs(x=expression(alpha), y="")
+                else
+                    p + labs(x=by.d[1, label], y="")
+            }})
+            pdf("{posterior-plot}")
+            do.call(grid.arrange, c(plots, ncol=2))
+            dev.off()

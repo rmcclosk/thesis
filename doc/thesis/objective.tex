@@ -1,3 +1,5 @@
+\glsreset{ABC}
+
 The spread of a disease is most often modelled by assuming either a
 homogeneously mixed population~\autocite{hamer1906milroy,
 kermack1927contribution}, or a population divided into a small number of
@@ -5,28 +7,29 @@ homogeneously mixed groups~\autocite{rushton1955deterministic}. This
 assumption, also called the ``law of mass action'' or \defn{panmixia}, implies
 that any two individuals in the same compartment are equally likely to come
 into contact causing transmission. Although this provides a reasonable
-approximation in many cases, the error introduced by assuming a panmictic
-population can be substantial when significant contact heterogeneity exists in
-the underlying population. Contact network models provide an alternative to
-compartmental models which do not require the assumption of panmixia. In
-addition to more accurate predictions, the parameters of the networks
-themselves may be of interest from a public health perspective. For example,
-certain vaccination strategies may be more or less effective in curtailing an
-epidemic depending on the underlying network's degree distribution.
+approximation in many cases~\autocite{anderson1992infectious}, the error
+introduced by assuming a panmictic population can be substantial when
+significant contact heterogeneity exists in the underlying population. Contact
+network models provide an alternative to compartmental models which do not
+require the assumption of panmixia. In addition to more accurate predictions,
+the parameters of the networks themselves may be of interest from a public
+health perspective. For example, certain vaccination strategies may be more or
+less effective in curtailing an epidemic depending on the underlying network's
+degree distribution~\autocite{peng2013vaccination, ma2013importance}.
 Phylodynamic methods have been used to fit many different types of model to
-phylogenetic data, but as far as we know, no methods have yet been developed to
-fit contact network models. The primary objective of this work is to develop
-such a method.
+phylogenetic data~\autocite{pybus2009evolutionary,volz2013viral}, but as far as
+we know, no methods have yet been developed to fit contact network models. The
+primary objective of this work is to develop such a method.
 
 \newcommand{\G}{\mathcal{G}}
 \newcommand{\Nu}{\mathcal{N}}
 
 Calculating the likelihood of the parameters of a contact network models seems
 likely to be an intractable problem, which would imply that these models are
-amenable to neither \gls{ML} nor Bayesian inference. We not proven this is the
-case, but some intuition can be provided by examining the process involved in
-the likelihood calculation. Consider a contact network model with parameters
-$\theta$, and an observed transmission tree $T$ with $n$ tips.  In general, we
+amenable to neither \gls{ML} nor Bayesian inference. We have not proven this is
+the case, but some intuition can be provided by examining the process involved
+in the likelihood calculation. Consider a contact network model with parameters
+$\theta$, and an estimated transmission tree $T$ with $n$ tips. In general, we
 do not know the labels of the internal nodes of $T$, only the labels of its
 tips. To fit this model using likelihood-based methods, we must calculate the
 likelihood of $\theta$, that is, $\Pr(T \mid \theta)$. Let $\G$ be the set of
@@ -49,9 +52,9 @@ the graph may have different labels or attributes. Hence, the number of terms
 in the sum is at least exponential in $n$, as there must be at least $n$ nodes
 in the network. In addition, \cref{eq:netlik} assumes that $T$ is complete,
 meaning that all infected individuals were sampled. This is rarely the case in
-practice - most often, the observed tree is a subsampled version of the true
-tree. In this case, the likelihood calculation becomes even more complex,
-because we must also sum over all possible complete trees.
+practice - most often, we only have access to a subset of the infected
+individuals. In this case, the likelihood calculation becomes even more
+complex, because we must also sum over all possible complete trees.
 
 Depending on the network model studied, it is possible that \cref{eq:netlik}
 could be simplified into a tractable expression. However, a simpler alternative
@@ -61,42 +64,50 @@ this problem are readily available. Simulating networks is straightforward
 under a variety of models. Epidemics on those networks, and the corresponding
 transmission trees, can also be easily simulated. As mentioned above, contact
 networks can profoundly affect transmission tree shape, and those shapes can be
-compared using a highly informative similarity measure. \Gls{SMC} has several
-advantages over other algorithms for \gls{ABC}~\autocite{mckinley2009inference},
-including a recently-developed adaptive algorithm requiring minimal tuning on
-the part of the user~\autocite{del2012adaptive}. In summary, our method to
-infer contact network parameters will combine the following: stochastic
-simulation of epidemics on networks, the tree kernel, and adaptive
+compared using a highly informative similarity measure called the ``tree
+kernel''~\autocite{poon2013mapping}. \Gls{ABC} can be implemented with
+\gls{SMC}, which has several advantages over other
+algorithms~\autocite{mckinley2009inference}. A recently-developed adaptive
+algorithm requiring minimal tuning on the part of the user makes \gls{SMC} an
+even more attractive approach~\autocite{del2012adaptive}. In summary, our
+method to infer contact network parameters will combine the following:
+stochastic simulation of epidemics on networks, the tree kernel, and adaptive
 \gls{ABC}-\gls{SMC}. Since our distance measure is a kernel function, our
 method is a type of kernel-\gls{ABC}. For ease of exposition, we will often use
 the term ``kernel-\gls{ABC}'' to refer to our method specifically.
 
 Empirical studies of sexual contact networks have found that these networks
-tend to be scale-free, meaning that their degree distributions follow a power
-law (although there has been some disagreement). Preferential attachment has
-been postulated as a mechanism by which scale-free networks could be generated.
-This makes the \gls{BA} model, one of the simplest preferential attachment
-models, a natural choice to explore with our method. The second aim of this
-work is to use simulations to investigate the parameters of the \gls{BA} model,
-including whether they have a detectable impact on tree shape, and whether they
-can be accurately recovered using kernel-\gls{ABC}.
+tend to be scale-free~\autocite{colgate1989risk, liljeros2001web,
+schneeberger2004scale}, meaning that their degree distributions follow a power
+law (although there has been some disagreement, see
+\autocite{handcock2004likelihood, bansal2007individual}). Preferential
+attachment has been postulated as a mechanism by which scale-free networks
+could be generated~\autocite{barabasi1999emergence}. This makes the \gls{BA}
+model, one of the simplest preferential attachment models, a natural choice to
+explore with our method. The second aim of this work is to use simulations to
+investigate the parameters of the \gls{BA} model, including whether they have a
+detectable impact on tree shape, and whether they can be accurately recovered
+using kernel-\gls{ABC}.
 
 Due to its high global prevalence and fast mutation rate, \gls{HIV} is one of
 the most commonly-studied viruses in a phylodynamic context. Consequently, a
 large volume of \gls{HIV} sequence data is publicly available, more than for
 any other pathogen, and including sequences sampled from diverse geographic and
-demographic contexts. Since \gls{HIV} is almost always spread through either
-sexual contact or sharing of injection drug supplies, the contact networks
-underlying \gls{HIV} epidemics are highly structured. Moreover, since no cure
-yet exists, efforts to curtail the progression of an epidemic have relied on
-preventing further transmissions through measures such as \gls{tasp} and
-education leading to behaviour change. The effectiveness of this type of
-intervention can vary significantly based on the underlying structure of the
-network and the particular nodes to whom the intervention is targeted. Due to
-this combination of data availability and potential public health impact,
-\gls{HIV} is an obvious context in which our method could be applied.
-Therefore, the third and final aim of this work is to apply kernel-\gls{ABC} to
-fit the \gls{BA} model to existing \gls{HIV} outbreaks.
+demographic contexts. At the time of this writing, there were $635400$ HIV
+sequences publicly available in GenBank, annotated with 172 distinct countries
+of origin. Since \gls{HIV} is almost always spread through either sexual
+contact or sharing of injection drug supplies, the contact networks underlying
+\gls{HIV} epidemics are driven by social dynamics and are therefore likely to
+be highly nonrandom. Moreover, since no cure yet exists, efforts to curtail the
+progression of an epidemic have relied on preventing further transmissions
+through measures such as \gls{tasp} and education leading to behaviour change.
+The effectiveness of this type of intervention can vary significantly based on
+the underlying structure of the network and the particular nodes to whom the
+intervention is targeted. Due to this combination of data availability and
+potential public health impact, \gls{HIV} is an obvious context in which our
+method could be applied. Therefore, the third and final aim of this work is to
+apply kernel-\gls{ABC} to fit the \gls{BA} model to existing \gls{HIV}
+outbreaks.
 
 To summarize, this work has three objectives. First, we will develop a method
 which uses kernel-\gls{ABC} to infer parameters of contact network models from
@@ -105,3 +116,9 @@ the parameters of the \gls{BA} network model in terms of their effect on tree
 shape and how accurately they can be recovered with kernel-\gls{ABC}. Finally,
 we will apply the method fit the \gls{BA} model to several real-world \gls{HIV}
 datasets.
+
+\glsreset{ABC}
+\glsreset{BA}
+\glsreset{HIV}
+\glsreset{ML}
+\glsreset{SMC}

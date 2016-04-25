@@ -247,7 +247,8 @@ polar2rect <- function (r, theta) {
 #' @param trace data.frame output by netabc
 #' @export
 posterior.plot.pa <- function (trace, I_min=500, I_max=10000, N_min=500, N_max=10000,
-                               alpha_min=0, alpha_max=2, m_min=1, m_max=5) {
+                               alpha_min=0, alpha_max=2, m_min=1, m_max=5,
+                               show.map=TRUE, true_alpha=NA, true_m=NA, true_I=NA, true_N=NA) {
     setDT(trace)
     d <- trace[iter == max(iter)]
     d <- d[sample(1:nrow(d), prob=weight, replace=TRUE)]
@@ -275,23 +276,39 @@ posterior.plot.pa <- function (trace, I_min=500, I_max=10000, N_min=500, N_max=1
             labs(x=expression(alpha), y="") + 
             xlim(alpha_min, alpha_max) +
             geom_polygon(data=denspoly(d[,alpha]), aes(x=x, y=y), fill="black", alpha=0.3) +
-            geom_vline(xintercept=d[,map(alpha)]) + 
             plot.theme
+    if (show.map) {
+        palpha <- palpha + geom_vline(xintercept=d[,map(alpha)])
+    }
+    if (!is.na(true_alpha)) {
+        palpha <- palpha + geom_vline(xintercept=true_alpha, linetype="dashed")
+    }
 
     pI <- ggplot(d, aes(x=I)) + 
             geom_density() +
             geom_polygon(data=denspoly(d[,I]), aes(x=x, y=y), fill="black", alpha=0.3) +
             labs(x="I", y="") + 
-            xlim(ntip, I_max) +
-            geom_vline(xintercept=d[,map(I)]) + 
+            xlim(I_min, I_max) +
             plot.theme
+    if (show.map) {
+        pI <- pI + geom_vline(xintercept=d[,map(I)])
+    }
+    if (!is.na(true_I)) {
+        pI <- pI + geom_vline(xintercept=true_I, linetype="dashed")
+    }
+
     pN <- ggplot(d, aes(x=N)) + 
             geom_density() + 
             labs(x="N", y="") +
             geom_polygon(data=denspoly(d[,N]), aes(x=x, y=y), fill="black", alpha=0.3) +
-            xlim(ntip, N_max) +
-            geom_vline(xintercept=d[,map(N)]) + 
+            xlim(N_min, N_max) +
             plot.theme
+    if (show.map) {
+        pN <- pN + geom_vline(xintercept=d[,map(N)])
+    }
+    if (!is.na(true_N)) {
+        pN <- pN + geom_vline(xintercept=true_N, linetype="dashed")
+    }
 
     d[,shade := m >= quantile(m, 0.05) & m <= quantile(m, 0.95)]
     pm <- ggplot(d, aes(x=floor(m))) +
@@ -299,9 +316,13 @@ posterior.plot.pa <- function (trace, I_min=500, I_max=10000, N_min=500, N_max=1
             labs(x="m", y="") +
             xlim({m_min}-0.5, {m_max}+0.5) +
             scale_alpha_manual(values=c("TRUE"=0.3, "FALSE"=0)) +
-            geom_vline(xintercept=d[,map(m)]) + 
             plot.theme
+    if (show.map) {
+        pm <- pm + geom_vline(xintercept=d[,map(m)])
+    }
+    if (!is.na(true_m)) {
+        pm <- pm + geom_vline(xintercept=true_m, linetype="dashed")
+    }
 
     arrangeGrob(palpha, pI, pm, pN, ncol=2)
-    ggsave(g, file="{posterior-plot}", height=5, width=6)
 }

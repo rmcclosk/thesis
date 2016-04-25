@@ -58,8 +58,8 @@ Steps:
 
     abc:
         Extension: tsv.bz2
-        Processes: 1
-        Threads: 20
+        Processes: 0
+        Threads: 12
         Walltime: 012:00:00
         Sleep: 600
         Parameters:
@@ -95,7 +95,7 @@ Steps:
             else
                 NLTT=""
             fi
-            netabc --num-threads 20 --decay-factor {decay_factor} \
+            netabc --num-threads 12 --decay-factor {decay_factor} \
                    --rbf-variance {rbf_variance} --num-particles {nparticle} \
                    --num-samples {nsample} --quality {quality} --seed {seed} \
                    --final-epsilon {final_epsilon} --final-accept {final_accept} \
@@ -228,7 +228,7 @@ Steps:
 
     posterior-plot:
         Extension: pdf
-        Walltime: 00:30:00
+        Walltime: 00:05:00
         Parameters:
             decay_factor: 0.3
             rbf_variance: 4
@@ -238,45 +238,19 @@ Steps:
             true_m: [2, 3, 4]
             true_alpha: [0.0, 0.5, 1.0, 1.5]
             true_I: [1000, 2000]
-            replicate: "range(3)"
+            replicate: 0
         Depends: abc
         Interpreter: R --vanilla --silent
         Startup: |
             suppressPackageStartupMessages(library(netabc))
             suppressPackageStartupMessages(library(grid))
         Rule: |
-            d <- fread("bzcat {abc} | head -n -1")[iter == max(iter)]
-            d <- d[sample(1:nrow(d), prob=weight, replace=TRUE)]
-            font.size <- 14
-            options(scipen=-1)
-            palpha <- ggplot(d, aes(x=alpha)) + geom_density() + theme_bw() +
-                    labs(x=expression(alpha), y="density") + xlim(0, 2) +
-                    geom_vline(xintercept={true_alpha}, linetype=2) +
-                    theme(text=element_text(size=font.size))
-            pI <- ggplot(d, aes(x=I)) + geom_density() + theme_bw() +
-                    labs(x="I", y="density") + xlim(500, 5000) +
-                    geom_vline(xintercept={true_I}, linetype=2) +
-                    theme(text=element_text(size=font.size),
-                          plot.margin=unit(c(0.5, 1, 0.5, 0.5), "line"))
-
-            xmin <- {true_m}-0.5
-            xmax <- {true_m}+0.5
-            ymin <- 0
-            ymax <- d[,max(prop.table(table(floor(m))))]
-            poly <- data.frame(x=c(xmin, xmin, xmax, xmax), y=c(ymin, ymax, ymax, ymin))
-            pm <- ggplot(d, aes(x=floor(m))) + 
-                    geom_polygon(data=poly, aes(x, y), alpha=0.3) +
-                    stat_bin(aes(y=..count../sum(..count..))) +
-                    theme_bw() + labs(x="m", y="frequency") +
-                    theme(text=element_text(size=font.size))
-            pN <- ggplot(d, aes(x=N)) + geom_density() +
-                    theme_bw() + labs(x="N", y="density") +
-                    geom_vline(xintercept={true_N}, linetype=2) +
-                    xlim(500, 15000) +
-                    theme(text=element_text(size=font.size),
-                          plot.margin=unit(c(0.5, 1, 0.5, 0.5), "line"))
-            g <- arrangeGrob(palpha, pI, pm, pN, ncol=2, widths=c(0.46, 0.54))
-            ggsave(g, file="{posterior-plot}", height=5)
+            d <- fread("bzcat {abc} | head -n -1")
+            p <- posterior.plot.pa(d, alpha_min=0, alpha_max=2, I_min=500, I_max=5000,
+                    N_min=500, N_max=15000, m_min=1, m_max=5, show.map=FALSE,
+                    true_alpha={true_alpha}, true_I={true_I}, true_m={true_m}, 
+                    true_N={true_N})
+            ggsave(p, file="{posterior-plot}", height=5)
 
     hpd-table:
         Extension: txt

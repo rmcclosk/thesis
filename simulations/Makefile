@@ -30,17 +30,21 @@ gridsearch-%: local
 
 abc-pa-free-m: breezy.westgrid.ca
 	$(call FETCH,$^,$@)
+	$(call RUN,$@)
 
 abc-pa-mixed-alpha: jasper.westgrid.ca
 	$(call FETCH,$^,$@)
+	$(call RUN,$@)
 
 abc-pa-peerdriven: jasper.westgrid.ca
 	$(call FETCH,$^,$@)
+	$(call RUN,$@)
 
 # real data
 
 bctree: bulbasaur
 	$(call FETCH,$^,$@)
+	$(call RUN,$@)
 
 novitsky2014: jasper.westgrid.ca
 	$(call FETCH,$^,$@)

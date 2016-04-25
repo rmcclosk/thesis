@@ -383,17 +383,24 @@ experiments is shown in \cref{fig:gridexpt}.
 \begin{figure}[ht]
   \centering
   \includegraphics[width=\textwidth]{gridsearch-expt}
-  \caption{Graphical schematic of grid search experiments used to investigate 
-    \gls{BA} model parameters.}
+  \caption{
+    Graphical schematic of grid search experiments used to investigate \gls{BA}
+    model parameters. Trees were simulated along a narrowly spaced grid of
+    parameter values (``grid trees''). Separate trees were simulated for a
+    small subset of the grid values (``test trees''). Each test tree was
+    compared to every grid tree using the tree kernel, and the resulting kernel
+    scores were normalized to resemble a probability density from which the
+    mode and 95\% highest density interval were calculated.
+  }
   \label{fig:gridexpt}
 \end{figure}
 
 \subsubsection*{Approximate Bayesian computation}
 
-To test the full kernel-\gls{ABC} algorithm, we simulated four trees each under
+To test the full kernel-\gls{ABC} algorithm, we simulated three trees each under
 a variety of parameter values, and ran the \software{netabc} program to
 estimate posterior distributions for the parameters. The parameter values and
-priors used are listed in \ref{tab:abcexpt}. The tree kernel meta-parameters
+priors used are listed in \cref{tab:abcexpt}. The tree kernel meta-parameters
 were set to $\lambda = 0.3$ and $\sigma = 4$. The \gls{SMC} algorithm was run
 with 1000 particles, five sampled datasets per particle, and the $\alpha$
 parameter (not to be confused with the \gls{BA} preferential attachment
@@ -449,6 +456,18 @@ package~\autocite{plummer2006coda}.
   \label{tab:gammaexpt}
 \end{table}
 
+Two further experiments were performed to address potential sources of error.
+To evaluate the effect of model misspecification in the case of heterogeneity
+among nodes, we generated a network where half the nodes were attached with
+power $\alpha$ = 0.5, and the other half with power $\alpha$ = 1.5. The other
+parameters for this network were $N$ = 5000, $I$ = 1000, and $m$ = 2. To
+investigate the effects of potential sampling
+bias~\autocite{karcher2016quantifying}, we simulated a transmission tree where
+the tips were sampled in a peer-driven fashion, rather than at random. That is,
+the probability to sample a node was twice as high if any of that node's
+network peers had already been sampled. The parameters of this network were $N$
+= 5000, $I$ = 2000, $m$ = 2, and $\alpha$ = 0.5.
+
 \subsection{Real data experiments}
 
 Because the \gls{BA} model assumes a single connected contact network, it is
@@ -468,9 +487,10 @@ multiply aligned using \software{MUSCLE} version 3.8.31
 \autocite{edgar2004muscle}, and alignments were manually inspected with
 \software{Seaview} version 4.4.2 \autocite{gouy2010seaview}. Phylogenies were
 constructed from the nucleotide alignments by approximate maximum likelihood
-using \software{FastTree2} version 2.1.7 with the \gls{GTR} model. Transmission
-trees were estimated by rooting and time-scaling the phylogenies by root-to-tip
-regression, using a modified version of Path-O-Gen (distributed as part of
+using \software{FastTree2} version 2.1.7 \autocite{price2010fasttree} with the
+\gls{GTR} model~\autocite{tavare1986some}. Transmission trees were estimated by
+rooting and time-scaling the phylogenies by root-to-tip regression, using a
+modified version of Path-O-Gen (distributed as part of
 BEAST~\autocite{drummond2007beast}) as described
 previously~\autocite{poon2015phylodynamic}. 
 

@@ -177,16 +177,20 @@ Steps:
             d <- merge(d, m, by=c("tree", "m", "ntip", "alpha", "N"))
             d[,ntip := as.factor(ntip)]
 
-            d[,label := paste( "true I = ", true_I)]
-            d[,label := factor(label, levels=unique(label[order(true_I)]))]
+            setkey(d, m, ntip, true_I, replicate, I)
+            normconst <- function (x, y) integrate(splinefun(x, y), min(x), max(x), subdivisions=1000)$value
+            d[,score := score / normconst(I, score), by=c("m", "ntip", "true_I", "replicate")]
+
             g <- ggplot(d, aes(x=I, y=score, color=factor(ntip))) + stat_smooth() +
-                facet_wrap(~label) +
-                geom_vline(aes(xintercept=true_I)) + ylim(0.9, 1) +
+                facet_wrap(~true_I, labeller = label_bquote(I == .(true_I))) +
+                geom_vline(aes(xintercept=true_I), linetype="dashed") +
                 scale_color_discrete(name="number of tips") +
-                labs(x="simulated I", y="kernel score") +
+                labs(x="simulated I", y="normalized kernel score") +
+                scale_x_continuous(breaks=c(1000, 3000, 5000)) +
                 theme_bw() +
-                theme(text=element_text(size=18, family="Gillius ADF"))
-            ggsave("{kernel-plot}")
+                theme(text=element_text(size=14, family="Gillius ADF"),
+                      axis.text.y=element_blank(), axis.ticks.y=element_blank())
+            ggsave("{kernel-plot}", height=5, width=6)
 
     point-estimate:
         Extension: tsv
