@@ -13,7 +13,7 @@ check: paper.Rnw mbe_submission.tex abstract.tex
 mbe_submission.pdf: mbe_submission.tex abstract.tex
 	pdflatex --enable-write18 $^
 
-paper.pdf: paper.tex papers.bib MBE.cls figures abstract.tex
+paper.pdf: paper.tex papers.bib figures abstract.tex
 	pdflatex $(word 1, $^)
 	biber $(patsubst %.tex,%,$(word 1, $^))
 	pdflatex $(word 1, $^)

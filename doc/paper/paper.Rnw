@@ -39,13 +39,14 @@ of links between individuals along which transmission can occur is called the
 contact network~\autocite{klovdahl1985social, morris1993epidemiology}. The
 structure of the contact network underlying an epidemic can profoundly impact
 the speed and pattern of the epidemic's expansion. Network structure can
-influence the prevalence trajectory~\autocite{o2011contact} and epidemic
-threshold~\autocite{barthelemy2005dynamical}, in turn affecting the estimates of
-quantities such as effective population size~\autocite{goodreau2006assessing}.
-From a public health perspective, contact networks have been explored as tools
-for curtailing epidemic spread, by way of interventions targeted to
-well-connected nodes~\autocite{wang2015targeting}. True contact networks are a
-challenging type of data to collect, requiring extensive epidemiological
+influence the prevalence trajectory~\autocite{o2011contact, ma2013importance}
+and epidemic threshold~\autocite{barthelemy2005dynamical}, in turn affecting
+the estimates of quantities such as effective population
+size~\autocite{goodreau2006assessing}.  From a public health perspective,
+contact networks have been explored as tools for curtailing epidemic spread, by
+way of interventions targeted to well-connected
+nodes~\autocite{wang2015targeting}. True contact networks are a challenging
+type of data to collect, requiring extensive epidemiological
 investigation~\autocite{welch2011statistical}.
 
 Viral sequence data, on the other hand, has become relatively inexpensive and
@@ -61,23 +62,24 @@ number~\autocite{stadler2012estimating}, to the degree of
 clustering~\autocite{hughes2009molecular}, to the elevated transmission risk
 during acute infection~\autocite{volz2012simple}. On the other hand, although
 sophisticated methods have been developed for fitting complex population
-genetic models to phylogenies~\autocite{rasmussen2014phylodynamic}, inference
-of structural network parameters has to date been limited. However, it has been
-shown that network structure has a tangible impact on phylogeny
-shape~\autocite{leventhal2012inferring, colijn2014phylogenetic,
-goodreau2006assessing, robinson2013dynamics, villandre2016assessment},
-suggesting that such statistical inference might be
+genetic models to phylogenies~\autocite{volz2012complex,
+rasmussen2014phylodynamic}, inference of structural network parameters has to
+date been limited. However, it has been shown that network structure has a
+tangible impact on phylogeny shape~\autocite{leventhal2012inferring,
+colijn2014phylogenetic, goodreau2006assessing, robinson2013dynamics,
+villandre2016assessment}, suggesting that such statistical inference might be
 possible~\autocite{welch2011statistical}.
 
-Survey-based studies of sexual networks~\autocite{liljeros2001web,
-schneeberger2004scale, colgate1989risk} have found that these networks tend to
-have a degree distribution which follows a power law \autocite[although there has
-been some disagreement, see][]{handcock2004likelihood}. That is, the number of
-nodes of degree $k$ is proportional to $k^{-\gamma}$ for some constant
-$\gamma$. These networks are also creferred to as ``scale-free''. One process by
-which scale-free networks can be generated is pcreferential attachment, where
-nodes with a high number of contacts attract new connections at an elevated
-rate. The first contact network model incorporating pcreferential attachment was
+Survey-based studies of sexual networks~\autocite{colgate1989risk,
+liljeros2001web, schneeberger2004scale} have found that these networks tend to
+have a degree distribution which follows a power law \autocite[although there
+has been some disagreement, see][]{handcock2004likelihood}. That is, the number
+of nodes of degree $k$ is proportional to $k^{-\gamma}$ for some constant
+$\gamma$. These networks are also referred to as
+``scale-free''~\autocite{barabasi1999emergence}. One process by which
+scale-free networks can be generated is preferential attachment, where nodes
+with a high number of contacts attract new connections at an elevated rate. The
+first contact network model incorporating pcreferential attachment was
 introduced by \textcite{barabasi1999emergence}, and is now creferred to as the
 Barab\'asi-Albert (BA) model. Under this model, networks are formed by
 iteratively adding nodes with $m$ new edges each. In the most commonly studied
@@ -85,7 +87,7 @@ formulation, these new edges are joined to existing nodes of degree $k$ with
 probability proportional to $k$, so that nodes of high degree tend to attract
 more connections. \citeauthor{barabasi1999emergence} suggested an extension
 where the probability of attaching to a node of degree $k$ is $k^\alpha$ for
-some non-negative constant $\alpha$, and we use this extension here.
+some non-negative constant $\alpha$, and we use this extension in this work.
 
 Previous work offers precedent for the possibility of statistical inference of
 structural network parameters. \textcite{britton2002bayesian} develop a Bayesian
@@ -120,11 +122,12 @@ so, it would be necessary to integrate over all possible networks, and also
 over all possible labellings of the internal nodes of the transmission tree.
 While it is not known (to us) whether such integration is tractable, a simpler
 alternative is offered by likelihood-free methods, namely approximate Bayesian
-computation (ABC). ABC leverages the fact that, although calculating the
-likelihood may be impractical, generating simulated datasets according to a
-model is often straightforward. If our model fits the data well, the simulated
-data it produces should be similar to the observed data. More formally, if $D$
-is the observed data, the posterior distribution $f(\theta \mid D)$ on model
+computation (ABC)~\autocite{tavare1997inferring, beaumont2002approximate}. ABC
+leverages the fact that, although calculating the likelihood may be
+impractical, generating simulated datasets according to a model is often
+straightforward. If our model fits the data well, the simulated data it
+produces should be similar to the observed data. More formally, if $D$ is the
+observed data, the posterior distribution $f(\theta \mid D)$ on model
 parameters $\theta$ is replaced as the target of statistical inference by
 $f(\theta \mid \rho(\hat{D}, D) < \varepsilon)$, where $\rho$ is a distance
 function, $\hat{D}$ is a simulated dataset according to $\theta$, and
@@ -172,8 +175,7 @@ particle with a higher weight. As the algorithm progresses, the population
 converges to a Monte Carlo approximation of the ABC target distribution, which
 is assumed to approximate the desired posterior~\autocite{del2012adaptive,
 sunnaaker2013approximate}. A computer program implementing our method is freely
-available at \url{https://github.com/rmcclosk/netabc} (last accessed April 3,
-2016).
+available at \url{https://github.com/rmcclosk/netabc} (last accessed \today).
 
 To check that our implementation of Gillespie simulation was correct, we
 reproduced Figure 1A of \textcite{leventhal2012inferring} (our
@@ -207,7 +209,7 @@ following values: $N$ = 5000, $I$ = 1000, and $m$ = 2. A transmission tree with
 factor''), and $\sigma$ (the ``radial basis function
 variance'')~\autocite[see][]{poon2013mapping}, were set to 0.3 and 4 respectively.
 We constructed a kSVR classifier for $\alpha$ using the \textit{kernlab}
-package~\autocite{zeileis2004kernlab}, and evaluated its accuracy with 1000
+package~\autocite{karatzoglou2004kernlab}, and evaluated its accuracy with 1000
 two-fold cross-validations.
   
 Three similar experiments were performed for the other BA model parameters (one
@@ -277,8 +279,13 @@ datasets we investigated are given in \cref{tab:data}.
 \begin{table*}[!t]
   \centering
   \input{\tablepath/realdata}
-  \caption{Characteristics of published datasets investigated with kernel-ABC.
-  Acronyms: MSM, men who have sex with men; IDU, injection drug users.}
+  \caption{
+    Characteristics of published datasets investigated with kernel-ABC.
+    Acronyms: MSM, men who have sex with men; IDU, injection drug users; HET,
+    heterosexual. The \textcite{novitsky2013phylogenetic, novitsky2014impact}
+    data was sampled from a primarily heterosexual risk environment, but did
+    not explicitly exclude other risk groups.
+  }
   \label{tab:data}
 \end{table*}
 
@@ -291,10 +298,10 @@ regions were clipped out with \textit{BioPython} version
 manually inspected with \textit{Seaview} version 4.4.2
 \autocite{gouy2010seaview}. Phylogenies were constructed from the nucleotide
 alignments by approximate maximum likelihood using \textit{FastTree2} version
-2.1.7 with the generalized time-reversible model. Transmission trees were
-estimated by rooting and time-scaling the phylogenies by root-to-tip
-regression, using a modified version of Path-O-Gen (distributed as part of
-BEAST~\autocite{drummond2007beast}) as described
+2.1.7 \autocite{price2010fasttree} with the generalized time-reversible model.
+Transmission trees were estimated by rooting and time-scaling the phylogenies
+by root-to-tip regression, using a modified version of Path-O-Gen (distributed
+as part of BEAST~\autocite{drummond2007beast}) as described
 previously~\autocite{poon2015phylodynamic}. 
 
 Two of the datasets \autocite{li2015hiv,novitsky2014impact} were initially much
@@ -654,10 +661,12 @@ datasets (\cref{tab:abchpd}).
 
 We applied kernel-ABC to five published HIV datasets (\cref{tab:data}),
 and found substantial heterogeneity among the parameter estimates
-(\cref{fig:abchpd,fig:abchpdm2}). Two of the
-datasets~\autocite{niculescu2015recent, wang2015targeting} had estimated
-$\alpha$ values near unity for the prior allowing $m = 1$ (MAP estimates
-[95\% HPD] 
+(\cref{fig:abchpd,fig:abchpdm2}). Plots of the marginal posterior distributions
+for each dataset are shown in
+\cref{fig:cuevas,fig:li,fig:niculescu,fig:novitsky,fig:wang}.
+Two of the datasets~\autocite{niculescu2015recent, wang2015targeting} had
+estimated $\alpha$ values near unity for the prior allowing $m = 1$ (MAP
+estimates [95\% HPD] 
   \Sexpr{map1["niculescu2015", round(alpha, 2)]} 
   [\Sexpr{low1["niculescu2015", round(alpha, 2)]} - 
    \Sexpr{up1["niculescu2015", round(alpha, 2)]}]
@@ -707,7 +716,7 @@ intervals compared to the nonzero prior density region
    \citeauthor{niculescu2015recent}, \Sexpr{map1["niculescu2015", floor(I)]}
   [\Sexpr{low1["niculescu2015", floor(I)]} - 
    \Sexpr{up1["niculescu2015", floor(I)]}];
-  (\citeauthor{li2015hiv}, \Sexpr{map1["li2015", floor(I)]} 
+  \citeauthor{li2015hiv}, \Sexpr{map1["li2015", floor(I)]} 
   [\Sexpr{low1["li2015", floor(I)]} -
    \Sexpr{up1["li2015", floor(I)]}];
    \citeauthor{wang2015targeting}, \Sexpr{map1["wang2015", floor(I)]}
@@ -732,7 +741,7 @@ upper bound of the HPD interval was different for each dataset
 When $m = 1$ was disallowed, the MAP for all datasets was either 2 or 3, with
 HPD intervals spanning the entire prior region. The estimates for the total
 number of nodes $N$ were largely uninformative for all samples, with almost all
-MAP estimates greater than 5000 and HPD intervals spanning almost the entire
+MAP estimates greater than 7500 and HPD intervals spanning almost the entire
 nonzero prior density region. The only exception was the \citeauthor{li2015hiv}
 data, for which the MAP estimate was lower 
   (\Sexpr{map1["li2015", floor(N)]})
@@ -755,15 +764,16 @@ when $m = 1$ was allowed.
 Contact networks can have a strong influence on epidemic progression, and are
 potentially useful as a public health tool~\autocite{wang2015targeting,
 little2014using}. Despite this, few methods exist for investigating contact
-network parameters in a phylodynamic framework~\autocite{groendyke2011bayesian,
-volz2008sir, brown2011transmission, leventhal2012inferring}. Kernel-ABC is a
-model-agnostic method which can be used to investigate any quantity that
-affects tree shape~\autocite{poon2015phylodynamic}. In this work, we developed a
+network parameters in a phylodynamic framework \autocite[although see][for
+related work]{groendyke2011bayesian, volz2008sir, brown2011transmission,
+leventhal2012inferring}. Kernel-ABC is a model-agnostic method which can be
+used to investigate any quantity that affects tree
+shape~\autocite{poon2015phylodynamic}. In this work, we developed a
 kernel-ABC-based method to infer the parameters of a contact network model. The
 method is general, and could be applied to any model from which contact
-networks can be simulated. We demonstrated the method on the BA model,
-which is a simple pcreferential attachment model giving rise to the power law
-degree distributions commonly observed in real-world networks. 
+networks can be simulated. We demonstrated the method on the BA model, which is
+a simple pcreferential attachment model giving rise to the power law degree
+distributions commonly observed in real-world networks. 
 
 By training a kernel-SVR classifier, we found that the $\alpha$ and $I$
 parameters, representing pcreferential attachment power and number of infected
@@ -797,13 +807,13 @@ attachment power $\alpha$ and the power law exponent $\gamma$
 (\cref{fig:gamma}). Thecrefore, placing a uniform prior on $\alpha$ between 0
 and 2 is equivalent to placing an informative prior that $\gamma$ is close to
 2. Thecrefore, if we were primarily interested in $\gamma$ rather than
-$\alpha$, a more sensible choice of prior might have a shape similar to the
-inverse of \cref{fig:gamma} and be bounded above by approximately $\alpha$ =
-1.5. This would uniformly bound $\gamma$ in the region $2 \leq \gamma \leq 4$
-commonly reported in the network literature~\autocite{liljeros2001web,
+$\alpha$, a more sensible choice of prior might have a shape informed by
+\cref{fig:gamma} and be bounded above by approximately $\alpha$ = 1.5. This
+would uniformly bound $\gamma$ in the region $2 \leq \gamma \leq 4$ commonly
+reported in the network literature~\autocite{liljeros2001web,
 schneeberger2004scale, colgate1989risk, brown2011transmission}. We note however
 that \textcite{jones2003assessment} estimated $\gamma$ values greater than
-four, in one case as high as 17, for some datasets, indicating that a wider
+four for some datasets, in one case as high as 17, indicating that a wider
 range of permitted $\gamma$ values may be warranted.
 
 Our investigation of published HIV datasets indicated heterogeneity in the
