@@ -267,7 +267,7 @@ posterior.plot.pa <- function (trace, I_min=500, I_max=10000, N_min=500, N_max=1
     }
 
     plot.theme <- theme_bw() +
-                  theme(text=element_text(family="Gillius ADF", size=font.size),
+                  theme(text=element_text(size=font.size),
                         axis.ticks.y=element_blank(),
                         axis.text.y=element_blank(),
                         legend.position="none")
@@ -326,5 +326,5 @@ posterior.plot.pa <- function (trace, I_min=500, I_max=10000, N_min=500, N_max=1
 
     arrangeGrob(palpha, pI, pm, pN, ncol=2, 
                 left=textGrob("approximate posterior density", rot=90, 
-                              gp=gpar(fontsize=14, fontfamily="Gillius ADF")))
+                              gp=gpar(fontsize=14)))
 }
