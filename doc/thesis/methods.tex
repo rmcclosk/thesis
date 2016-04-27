@@ -29,7 +29,7 @@ graphical schematic of this algorithm is given in \cref{fig:abcsmc}.
 
 \begin{figure}
     \includegraphics{abc-smc.pdf}
-    \caption[Graphical schematic of \gls{ABC}-\gls{SMC} algorithm.]{
+    \caption[Graphical schematic of the ABC-SMC algorithm implemented in \software{netabc}.]{
       Graphical schematic of the \gls{ABC}-\gls{SMC} algorithm implemented in
       \software{netabc}. Particles are initially drawn from their prior
       distributions, making the initial population a Monte Carlo approximation
@@ -187,11 +187,14 @@ We implemented the adaptive \gls{SMC} algorithm for \gls{ABC} developed by
 the sequence of tolerances $\varepsilon_i$ is automatically determined rather
 than specified in advance. The tolerances are chosen such that the \gls{ESS} of
 the particle population, which indicates the quality of the Monte Carlo
-approximation (see \cref{subsec:sis}), decays at a controlled rate. This
-prevents the Monte Carlo approxmiation from collapsing by the variance in
-weights growing too large. A single parameter $\alpha$ (not to be confused with
-the \gls{BA} model parameter) controls the decay rate, with $\varepsilon_i$
-being chosen to satisfy
+approximation (see \cref{subsec:sis}), decays at a controlled rate. A
+sudden precipitous drop in \gls{ESS} would indicate that only a small number of
+particles had non-zero importance weights, which would result in a very poor
+Monte Carlo approximation to the target distribution. This situation is
+referred to as the ``collapse'' of the approximation, and is mitigated by the
+adaptive approach. A single parameter $\alpha$ (not to be confused with the
+\gls{BA} model parameter) controls the decay rate, with $\varepsilon_i$ being
+chosen to satisfy
 \[
   \ESS(w_i) = \alpha \ESS(w_{i-1}).
 \]
@@ -246,7 +249,7 @@ parameters. \gls{N} denotes the total number of nodes in the network, or
 equivalently, susceptible individuals in the population. When a node is added
 to the network, \gls{m} new undirected edges are added incident to it, and are
 attached to existing nodes of degree $k$ with probability proportional to
-$k^\alpha$ (\cref{subsec:pa}). To simulate transmission trees over a
+$k^\alpha + 1$ (\cref{subsec:pa}). To simulate transmission trees over a
 \gls{BA} network, we allowed an epidemic to spread until \gls{I} nodes were
 infected, and sampled a transmission tree at that time. We assumed that all
 contacts had symmetric transmission risk, which was implemented by replacing
@@ -347,9 +350,16 @@ the meta-parameters \gls{lambda} = \sett{0.2, 0.3, 0.4} and \gls{sigma} =
 \begin{figure}[ht]
   \centering
   \includegraphics{kernel-expt.pdf}
-  \caption[Schematic of kernel classifier experiment]{
-    Schematic of investigation of \gls{BA} model parameters using the tree
-    kernel.
+  \caption[Schematic of experiments investigating impact of BA model parameters
+           on tree shape.]{
+    Schematic of experiments designed to investigate the impact of variations
+    in BA model parameters on transmission tree shapes. The parameters of the
+    BA model were varied one at a time. Transmission trees were simulated under
+    three different values of each parameter, then compared pairwise using the
+    tree kernel. Classifiers were constructed for each parameter, and their
+    accuracy was evaluated by cross-validation. Kernel-PCA projections were
+    used to visually examine the separation of the trees in the feature space
+    defined by the tree kernel.
   }
   \label{fig:kernelexpt}
 \end{figure}
@@ -383,7 +393,7 @@ experiments is shown in \cref{fig:gridexpt}.
 \begin{figure}[ht]
   \centering
   \includegraphics[width=\textwidth]{gridsearch-expt}
-  \caption{
+  \caption[Schematic of grid search experiment.]{
     Graphical schematic of grid search experiments used to investigate \gls{BA}
     model parameters. Trees were simulated along a narrowly spaced grid of
     parameter values (``grid trees''). Separate trees were simulated for a
@@ -476,7 +486,7 @@ related. Therefore, we searched for published \gls{HIV} datasets which
 originated from existing clusters, either phylogenetically or geographically
 defined. In addition, we analysed an in-house dataset sampled from
 \gls{HIV}-positive individuals in British Columbia, Canada (the ``BC data'').
-The datasets are summarized in \cref{tab:realdata}.
+The datasets are summarized in \cref{tab:data}.
 
 We downloaded all sequences associated with each published study from GenBank.
 For the \textcite{novitsky2014impact} data, each \textit{env} sequence was
@@ -508,6 +518,13 @@ chosen arbitrarily.
 \begin{table}[ht]
   \centering
   \input{\tablepath/realdata-bc}
-  \caption{Characteristics of published HIV datasets analyzed with kernel-ABC.}
-  \label{tab:realdata}
+  \caption[Characteristics of published HIV datasets analyzed with \software{netabc}.]
+  {
+    Characteristics of published HIV datasets analyzed with \software{netabc}. 
+    Abbreviations: MSM, men who have sex with men; HET, heterosexual; IDU,
+    injection drug users. The \textcite{novitsky2013phylogenetic,novitsky2014impact} data
+    were sampled from a primarily heterosexual risk environment, but did not
+    explicitly exclude other risk factors.
+  }
+  \label{tab:data}
 \end{table}

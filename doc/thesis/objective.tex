@@ -1,21 +1,24 @@
 \glsreset{ABC}
+\glsreset{BA}
 
 The spread of a disease is most often modelled by assuming either a
 homogeneously mixed population~\autocite{hamer1906milroy,
 kermack1927contribution}, or a population divided into a small number of
 homogeneously mixed groups~\autocite{rushton1955deterministic}. This
-assumption, also called the ``law of mass action'' or \defn{panmixia}, implies
+assumption, also called \defn{mass
+action}~\autocite{heesterbeek2000mathematical}, or \defn{panmixia}, implies
 that any two individuals in the same compartment are equally likely to come
 into contact causing transmission. Although this provides a reasonable
 approximation in many cases~\autocite{anderson1992infectious}, the error
 introduced by assuming a panmictic population can be substantial when
-significant contact heterogeneity exists in the underlying population. Contact
-network models provide an alternative to compartmental models which do not
-require the assumption of panmixia. In addition to more accurate predictions,
-the parameters of the networks themselves may be of interest from a public
-health perspective. For example, certain vaccination strategies may be more or
-less effective in curtailing an epidemic depending on the underlying network's
-degree distribution~\autocite{peng2013vaccination, ma2013importance}.
+significant contact heterogeneity exists in the underlying
+population~\autocite{bansal2007individual,barthelemy2005dynamical,keeling2005networks}.
+Contact network models provide an alternative to compartmental models which do
+not require the assumption of panmixia. In addition to more accurate
+predictions, the parameters of the networks themselves may be of interest from
+a public health perspective. For example, certain vaccination strategies may be
+more or less effective in curtailing an epidemic depending on the underlying
+network's degree distribution~\autocite{peng2013vaccination, ma2013importance}.
 Phylodynamic methods have been used to fit many different types of model to
 phylogenetic data~\autocite{pybus2009evolutionary,volz2013viral}, but as far as
 we know, no methods have yet been developed to fit contact network models. The
@@ -47,24 +50,27 @@ of the internal nodes of $T$. We can write the likelihood as
 the last equality following from the fact that $T$ and $\nu$ depend only on
 $G$, not on $\theta$. Although $\Pr(T, \nu \mid G)$ and $\Pr(G \mid \theta)$
 may individually be straightforward to calculate, the number of possible
-directed graphs on $N$ nodes is $2^{N(N-1)}$, larger if the nodes and edges in
-the graph may have different labels or attributes. Hence, the number of terms
-in the sum is at least exponential in $n$, as there must be at least $n$ nodes
-in the network. In addition, \cref{eq:netlik} assumes that $T$ is complete,
-meaning that all infected individuals were sampled. This is rarely the case in
-practice - most often, we only have access to a subset of the infected
-individuals. In this case, the likelihood calculation becomes even more
-complex, because we must also sum over all possible complete trees.
+directed graphs on $N$ nodes is $2^{N(N-1)}$~\autocite{harary2014graphical},
+larger if the nodes and edges in the graph may have different labels or
+attributes. Hence, the number of terms in the sum is at least exponential in
+$n$, as there must be at least $n$ nodes in the network. In addition,
+\cref{eq:netlik} assumes that $T$ is complete, meaning that all infected
+individuals were sampled. This is rarely the case in practice - most often, we
+only have access to a subset of the infected individuals. In this case, the
+likelihood calculation becomes even more complex, because we must also sum over
+all possible complete trees.
 
 Depending on the network model studied, it is possible that \cref{eq:netlik}
 could be simplified into a tractable expression. However, a simpler alternative
 to likelihood-based methods, which would apply to any network model, is
-provided by \gls{ABC}. All of the ingredients required to apply \gls{ABC} to
-this problem are readily available. Simulating networks is straightforward
-under a variety of models. Epidemics on those networks, and the corresponding
-transmission trees, can also be easily simulated. As mentioned above, contact
-networks can profoundly affect transmission tree shape, and those shapes can be
-compared using a highly informative similarity measure called the ``tree
+provided by
+\gls{ABC}~\autocite{rubin1984bayesianly,tavare1997inferring,fu1997estimating,beaumont2002approximate}.
+All of the ingredients required to apply \gls{ABC} to this problem are readily
+available. Simulating networks is straightforward under a variety of models.
+Epidemics on those networks, and the corresponding transmission trees, can also
+be easily simulated. As mentioned above, contact networks can profoundly affect
+transmission tree shape, and those shapes can be compared using a highly
+informative similarity measure called the ``tree
 kernel''~\autocite{poon2013mapping}. \Gls{ABC} can be implemented with
 \gls{SMC}, which has several advantages over other
 algorithms~\autocite{mckinley2009inference}. A recently-developed adaptive
@@ -82,12 +88,12 @@ schneeberger2004scale}, meaning that their degree distributions follow a power
 law (although there has been some disagreement, see
 \autocite{handcock2004likelihood, bansal2007individual}). Preferential
 attachment has been postulated as a mechanism by which scale-free networks
-could be generated~\autocite{barabasi1999emergence}. This makes the \gls{BA}
-model, one of the simplest preferential attachment models, a natural choice to
-explore with our method. The second aim of this work is to use simulations to
-investigate the parameters of the \gls{BA} model, including whether they have a
-detectable impact on tree shape, and whether they can be accurately recovered
-using kernel-\gls{ABC}.
+could be generated~\autocite{barabasi1999emergence}. The \gls{BA}
+model~\autocite{barabasi1999emergence} is one of the simplest preferential
+attachment models, which makes it a natural choice to explore with our method.
+The second aim of this work is to use simulations to investigate the parameters
+of the \gls{BA} model, including whether they have a detectable impact on tree
+shape, and whether they can be accurately recovered using kernel-\gls{ABC}.
 
 Due to its high global prevalence and fast mutation rate, \gls{HIV} is one of
 the most commonly-studied viruses in a phylodynamic context. Consequently, a
@@ -103,19 +109,19 @@ progression of an epidemic have relied on preventing further transmissions
 through measures such as \gls{tasp} and education leading to behaviour change.
 The effectiveness of this type of intervention can vary significantly based on
 the underlying structure of the network and the particular nodes to whom the
-intervention is targeted. Due to this combination of data availability and
-potential public health impact, \gls{HIV} is an obvious context in which our
-method could be applied. Therefore, the third and final aim of this work is to
-apply kernel-\gls{ABC} to fit the \gls{BA} model to existing \gls{HIV}
-outbreaks.
+intervention is targeted~\autocite{little2014using,wang2015targeting}. Due to
+this combination of data availability and potential public health impact,
+\gls{HIV} is an obvious context in which our method could be applied.
+Therefore, the third and final aim of this work is to apply kernel-\gls{ABC} to
+fit the \gls{BA} model to existing \gls{HIV} outbreaks.
 
 To summarize, this work has three objectives. First, we will develop a method
 which uses kernel-\gls{ABC} to infer parameters of contact network models from
 observed transmission trees. Second, we will use simulations to characterize
 the parameters of the \gls{BA} network model in terms of their effect on tree
 shape and how accurately they can be recovered with kernel-\gls{ABC}. Finally,
-we will apply the method fit the \gls{BA} model to several real-world \gls{HIV}
-datasets.
+we will apply the method to fit the \gls{BA} model to several real-world
+\gls{HIV} datasets.
 
 \glsreset{ABC}
 \glsreset{BA}

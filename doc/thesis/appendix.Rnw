@@ -1,29 +1,42 @@
 \begin{figure}[H]
   \centering
-  \includegraphics{kernel-I-tree.pdf}
-  \caption{
-    Transmission trees simulated over \gls{BA} networks with varying values of
-    $I$, the number of infected nodes when the epidemic simulation was stopped.
+  \includegraphics[width=\textwidth]{kernel-I-tree.pdf}
+  \caption[Simulated transmission trees under three different values of BA parameter $I$]{
+    Simulated transmission trees under three different values of BA parameter
+    $I$. Epidemics were simulated on \gls{BA} networks with parameters $\alpha$
+    = 1.0, $m = 2$, and $N = 5000$. Epidemics were simulated until $I = 500$,
+    1000, or 2000 nodes were infected. Transmission trees were created by
+    sampling 500 infected nodes. For higher \gls{I} values, the network was
+    closer to saturation at the time of sampling, resulting in longer terminal
+    branches as the waiting time until the next transmission increased.
   }
   \label{fig:Itrees}
 \end{figure}
 
 \begin{figure}[H]
   \centering
-  \includegraphics{kernel-m-tree.pdf}
-  \caption{
-    Transmission trees simulated over \gls{BA} networks with varying values of
-    $m$, the number of edges added per vertex.
+  \includegraphics[width=\textwidth]{kernel-m-tree.pdf}
+  \caption[Simulated transmission trees under three different values of BA parameter $m$]{
+    Simulated transmission trees under three different values of BA parameter
+    $m$. Epidemics were simulated on \gls{BA} networks with parameters $\alpha$
+    = 1.0, $N = 5000$, and $m$ = 2, 3, or 4. Epidemics were simulated until $I
+    = 1000$ nodes were infected. Transmission trees were created by sampling
+    500 infected nodes.
   }
   \label{fig:mtrees}
 \end{figure}
 
 \begin{figure}[H]
   \centering
-  \includegraphics{kernel-N-tree.pdf}
-  \caption{
-    Transmission trees simulated over \gls{BA} networks with varying values of
-    $N$, the number of nodes in the network.
+  \includegraphics[width=\textwidth]{kernel-N-tree.pdf}
+  \caption[Simulated transmission trees under three different values of BA parameter $N$]{
+    Simulated transmission trees under three different values of BA parameter
+    $N$. Epidemics were simulated on \gls{BA} networks with parameters $\alpha$
+    = 1.0, $m = 2$, and $N$ = 3000, 5000, or 8000. Epidemics were simulated
+    until $I = 1000$ nodes were infected. Transmission trees were created by
+    sampling 500 infected nodes. For lower $N$ values, the network was closer
+    to saturation at the time of sampling, resulting in longer waiting times
+    until the next transmission and longer terminal branch lengths.
   }
   \label{fig:Ntrees}
 \end{figure}
@@ -33,7 +46,7 @@
   \includegraphics{kernel-alpha-crossv.pdf}
   \caption{
     Cross validation accuracy of classifiers for \gls{BA} model parameter
-    \gls{alpha} for eigH epidemic scenarios. Solid lines and points are
+    \gls{alpha} for eight epidemic scenarios. Solid lines and points are
     $R^2$ of tree kernel \gls{kSVR} under various kernel meta-parameters.
     Dashed and dotted lines are $R^2$ of linear regression against Sackin's
     index, and \gls{SVR} using \gls{nltt}.
@@ -46,7 +59,7 @@
   \includegraphics{kernel-I-crossv.pdf}
   \caption{
     Cross validation accuracy of classifiers for \gls{BA} model parameter
-    \gls{I} for eigH epidemic scenarios. Solid lines and points are $R^2$ of
+    \gls{I} for eight epidemic scenarios. Solid lines and points are $R^2$ of
     tree kernel \gls{kSVR} under various kernel meta-parameters. Dashed and
     dotted lines are $R^2$ of linear regression against Sackin's index, and
     \gls{SVR} using \gls{nltt}.
@@ -59,7 +72,7 @@
   \includegraphics{kernel-m-crossv.pdf}
   \caption{
     Cross validation accuracy of classifiers for \gls{BA} model parameter
-    \gls{m} for eigH epidemic scenarios. Solid lines and points are $R^2$ of
+    \gls{m} for eight epidemic scenarios. Solid lines and points are $R^2$ of
     tree kernel \gls{kSVR} under various kernel meta-parameters. Dashed and
     dotted lines are $R^2$ of linear regression against Sackin's index, and
     \gls{SVR} using \gls{nltt}.
@@ -72,7 +85,7 @@
   \includegraphics{kernel-N-crossv.pdf}
   \caption{
     Cross validation accuracy of classifiers for \gls{BA} model parameter
-    \gls{N} for eigH epidemic scenarios. Solid lines and points are $R^2$ of
+    \gls{N} for eight epidemic scenarios. Solid lines and points are $R^2$ of
     tree kernel \gls{kSVR} under various kernel meta-parameters. Dashed and
     dotted lines are $R^2$ of linear regression against Sackin's index, and
     \gls{SVR} using \gls{nltt}.
@@ -85,7 +98,7 @@
   \includegraphics{kernel-alpha-kpca.pdf}
   \caption{
     Kernel principal components projection of trees simulated under three
-    different values of \gls{BA} parameter \gls{alpha}, for eigH epidemic
+    different values of \gls{BA} parameter \gls{alpha}, for eight epidemic
     scenarios.
   }
   \label{fig:alphakpca}
@@ -96,7 +109,7 @@
   \includegraphics{kernel-I-kpca.pdf}
   \caption{
     Kernel principal components projection of trees simulated under three
-    different values of \gls{BA} parameter \gls{I}, for eigH epidemic
+    different values of \gls{BA} parameter \gls{I}, for eight epidemic
     scenarios.
   }
   \label{fig:Ikpca}
@@ -107,7 +120,7 @@
   \includegraphics{kernel-m-kpca.pdf}
   \caption{
     Kernel principal components projection of trees simulated under three
-    different values of \gls{BA} parameter \gls{m}, for eigH epidemic
+    different values of \gls{BA} parameter \gls{m}, for eight epidemic
     scenarios.
   }
   \label{fig:mkpca}
@@ -118,7 +131,7 @@
   \includegraphics{kernel-N-kpca.pdf}
   \caption{
     Kernel principal components projection of trees simulated under three
-    different values of \gls{BA} parameter \gls{N}, for eigH epidemic
+    different values of \gls{BA} parameter \gls{N}, for eight epidemic
     scenarios.
   }
   \label{fig:Nkpca}
@@ -163,9 +176,77 @@
   \caption{                                              
     Grid search kernel scores for testing trees simulated under various             
     \gls{N} values. The other \gls{BA} parameters were fixed at \gls{alpha} =
-    1.0, \gls{I} = 1000, and \gls{m} = 2. 
+    1.0, \gls{I} = 1000, and \gls{m} = 2.
   }        
   \label{fig:gridN}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics{gridsearch-alpha-point-estimate.pdf}
+  \caption{
+      Point estimates of preferential attachment power \gls{alpha} of
+      \acrlong{BA} network model, obtained on simulated trees with
+      kernel-score-based grid search. Test trees were simulated according to
+      several values of \gls{alpha} ($x$-axis) with other model parameters
+      fixed at \gls{m} = 2, \gls{N} = 5000, and \gls{I} = 1000. The test trees
+      were compared to trees simulated along a narrowly spaced grid of
+      \gls{alpha} values using the tree kernel, with the same values of the
+      other parameters. The grid value with the highest median kernel score was
+      taken as a point estimate for \gls{alpha} ($y$-axis).
+  }
+  \label{fig:gridptalpha}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics{gridsearch-I-point-estimate.pdf}
+  \caption{
+      Point estimates of prevalence at time of sampling \gls{I} of \acrlong{BA}
+      network model, obtained on simulated trees with kernel-score-based grid
+      search. Test trees were simulated according to several values of \gls{I}
+      ($x$-axis) with other model parameters fixed at \gls{alpha} = 1, \gls{m}
+      = 2, and \gls{N} = 5000. The test trees were compared to trees simulated
+      along a narrowly spaced grid of \gls{I} values using the tree kernel,
+      with the same values of the other parameters. The grid value with the
+      highest median kernel score was taken as a point estimate for \gls{I}
+      ($y$-axis).
+  }
+  \label{fig:gridptI}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics{gridsearch-m-point-estimate.pdf}
+  \caption{
+      Point estimates of number of edges per vertex \gls{m} of \acrlong{BA}
+      network model, obtained on simulated trees with kernel-score-based grid
+      search. Test trees were simulated according to several values of \gls{m}
+      ($x$-axis) with other model parameters fixed at \gls{alpha} = 1, \gls{I}
+      = 1000, and \gls{N} = 5000. The test trees were compared to trees
+      simulated along a narrowly spaced grid of \gls{m} values using the tree
+      kernel, with the same values of the other parameters. The grid value with
+      the highest median kernel score was taken as a point estimate for \gls{m}
+      ($y$-axis).
+  }
+  \label{fig:gridptm}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics{gridsearch-N-point-estimate.pdf}
+  \caption{
+      Point estimates of number of edges per vertex \gls{N} of \acrlong{BA}
+      network model, obtained on simulated trees with kernel-score-based grid
+      search. Test trees were simulated according to several values of \gls{N}
+      ($x$-axis) with other model parameters fixed at \gls{alpha} = 1, \gls{m}
+      = 2, and \gls{I} = 1000. The test trees were compared to trees simulated
+      along a narrowly spaced grid of \gls{N} values using the tree kernel,
+      with the same values of the other parameters. The grid value with the
+      highest median kernel score was taken as a point estimate for \gls{m}
+      ($y$-axis).
+  }
+  \label{fig:gridptN}
 \end{figure}
 
 \begin{figure}[H]
@@ -179,7 +260,7 @@
     against known values. (B) Estimates of \gls{m} and \gls{N} which were held
     fixed in these simulations at the values \gls{m} = 3 and \gls{N} = 5000.
   }        
-  \label{fig:abcm3}
+  \label{fig:abcptm3}
 \end{figure}
 
 \begin{figure}[H]
@@ -193,7 +274,79 @@
     against known values. (B) Estimates of \gls{m} and \gls{N} which were held
     fixed in these simulations at the values \gls{m} = 4 and \gls{N} = 5000.
   }        
-  \label{fig:abcm4}
+  \label{fig:abcptm4}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics{alpha-gamma.pdf}
+  \caption{
+      Relationship between preferential attachment power parameter $\alpha$
+      and power law exponent $\gamma$ for networks simulated under the BA
+      network model with $N$ = 5000 and $m$ = 2.
+  }
+  \label{fig:gamma}
+\end{figure}
+
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics{mixed-posterior}
+    \caption[Approximate marginal posterior distributions of BA model
+        parameters obtained using kernel-ABC for a network with heterogeneous
+        node behaviour.]
+    {
+        Approximate marginal posterior distributions of Barab\'asi-Albert
+        model parameters obtained using kernel-ABC for a network with
+        heterogeneous node behaviour. Half of the nodes were attached with
+        $\alpha = 0.5$, and the other half with $\alpha = 1.5$ (vertical
+        dashed lines, top left). Other parameter values were $m = 2$, $I =
+        1000$, and $N = 5000$ (vertical dashed lines, other than top left).
+        Shaded areas indicate 95\% highest posterior density intervals.
+    }
+    \label{fig:mixed}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics{peerdriven-posterior}
+    \caption[Approximate marginal posterior distributions of Barab\'asi-Albert
+        model parameters obtained using kernel-ABC for a network with
+        peer-driven sampling.]
+    {
+        Approximate marginal posterior distributions of Barab\'asi-Albert
+        model parameters obtained using kernel-ABC for a network with
+        peer-driven sampling. An epidemic was simulated in the usual fashion,
+        but rather than being sampled at random, infected nodes were sampled
+        with a probability two times higher if they had any sampled neighbours
+        in the contact network. Vertical dashed lines indicate true parameter
+        values, and shaded areas indicate 95\% highest posterior density
+        intervals.
+    }
+    \label{fig:peerdriven}
+\end{figure}
+
+\begin{figure}[ht]
+  \includegraphics{realdata-hpd-bc-m2}
+  \vspace{8pt}
+  \caption{
+      Maximum \textit{a posteriori} point estimates and 95\% HPD intervals for
+      parameters of the BA network model, fitted to five published HIV datasets
+      with kernel-ABC. $x$-axes indicate regions of nonzero prior density. In
+      particular, the prior on $m$ was DiscreteUniform(2, 5).
+  }
+  \label{fig:abchpdm2}
+\end{figure}
+
+\begin{figure}[H]
+  \includegraphics{bctree-posterior}
+  \caption{
+      Posterior distribution of BA model parameters for BC data. Vertical lines
+      indicate maximum \textit{a posteriori} estimates, and shaded areas are
+      95\% highest posterior density intervals. $x$-axis indicates regions of
+      nonzero prior density.
+  }
+  \label{fig:bctree}
 \end{figure}
 
 \begin{figure}[H]
@@ -261,15 +414,16 @@
     for (I in c(1000, 2000)) {
     for (alpha in c(0, 0.5, 1, 1.5)) {
         fn <- sprintf("{abc-posterior/%.1f_%d_%d_%d_%d}.pdf", alpha, I, m, N, replicate)
-        lab <- sprintf("{fig:%.1f-%d-%d-%d-%d}", alpha, I, m, N, replicate)
+        lab <- sprintf("fig:%.1f-%d-%d-%d-%d", alpha, I, m, N, replicate)
         cat("\\begin{figure}[H]\n")
         cat("\\centering\n")
         cat(paste0("\\includegraphics{", fn, "}\n"))
-        cat("\\caption{\n")
-        cat("Approximate marginal posterior distributions of Barab\\'asi-Albert model parameters obtained using kernel-ABC for one simulated dataset. Dashed lines indicate true values, and shaded areas shown 95\\% highest posterior density intervals.\n")
+        cat(sprintf("\\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\\alpha$ = %.1f, $I$ = %d, $m$ = %d, and $N$ = %d]{\n", alpha, I, m, N))
+        cat(sprintf("Approximate marginal posterior distributions of BA model parameters obtained by applying \textit{netabc} to a simulated transmission tree with BA parameter values $alpha$ = %.1f, $I$ = %d, $m$ = %d, and $N$ = %d. Vertical dashed lines indicate true values. Shaded areas are 95\\%% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.\n", alpha, I, m, N))
         cat("}\n")
-        cat("\\label{", lab, "}\n")
+        cat(paste0("\\label{", lab, "}\n"))
         cat("\\end{figure}\n")
+        cat("\\clearpage\n\n")
     }
     }
     }
