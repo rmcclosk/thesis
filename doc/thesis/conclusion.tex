@@ -20,6 +20,22 @@ of broad interest to the molecular evolution and epidemiology community, as it
 widens the field of epidemiological parameters which may be investigated
 through viral sequence data. In addition, the characterization of local contact
 networks could be valuable from a public health perspective, such as for
-investigating optimal vaccination strategies. This information could assist in
-curtailing current epimemics, as well as preventing future epidemics of
-different diseases over the same contact network.
+investigating optimal vaccination strategies~\autocite{keeling2005networks,
+peng2013vaccination, ma2013importance, rushmore2014network}. This information
+could assist in curtailing current epimemics, as well as preventing future
+epidemics of different diseases over the same contact network.
+
+The paricular model we have investigated uses a preferential attachment
+mechanism to generate scale-free networks resembling real-world social and
+sexual networks~\autocite{liljeros2001web, schneeberger2004scale,
+colgate1989risk}. Of the four parameters we considered, the pereferential
+attachment power $\alpha$ was the most readily estimable. Estimating $\alpha$
+with traditional epidemiological methods is challenging due to the requirement
+of sampling the high-degree nodes making up the tail of the power law
+distribution, although approaches such as respondent-driven
+sampling~\autocite{heckathorn1997respondent} may be effective. 
+
+In closing, \software{netabc} combines phylodynamics, contact network
+epidemiology, approximate Bayesian computation, and sequentiial Monte Carlo 
+to provide a source of insight into network structures complementary to
+traditional epidemiology.

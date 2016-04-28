@@ -257,12 +257,17 @@ contacts had symmetric transmission risk, which was implemented by replacing
 each undirected edge in the network with two directed edges (one in each
 direction).
 
-We did not consider the time scale of the transmission trees in these
-simulations, only their shape. Therefore, the transmission rate along each edge
-in the network was set to 1, and all transmission trees' branch lengths were
-scaled by their mean. The removal rate of each node was set to 0, implying no
-recovery or death in the population. These assumptions are similar to those
-made by \textcite{leventhal2012inferring}.
+Nodes in our networks followed simple \gls{SI} dynamics, meaning that they
+became infected at a rate proportional to their number of infected neighbours,
+and never recovered.  We did not consider the time scale of the transmission
+trees in these simulations, only their shape. Therefore, the transmission rate
+along each edge in the network was set to 1, the removal rate of each node was
+set to 0, and all transmission trees' branch lengths were scaled by their mean.
+For all analyses, the transmission trees' branch lengths were scaled by
+dividing by their mean. We used the \textit{igraph} library's implementation of
+the BA model~\autocite{csardi2006igraph} to generate the graphs. The analyses
+were run on Westgrid (\url{https://www.westgrid.ca/}) and a local computer
+cluster.
 
 \subsubsection*{Kernel classifiers}
 \label{subsec:kernel}
@@ -489,6 +494,20 @@ defined. In addition, we analysed an in-house dataset sampled from
 \gls{HIV}-positive individuals in British Columbia, Canada (the ``BC data'').
 The datasets are summarized in \cref{tab:data}.
 
+\begin{table}[ht]
+  \centering
+  \input{\tablepath/realdata-bc}
+  \caption[Characteristics of published HIV datasets analyzed with \software{netabc}.]
+  {
+    Characteristics of published HIV datasets analyzed with \software{netabc}. 
+    Abbreviations: MSM, men who have sex with men; HET, heterosexual; IDU,
+    injection drug users. The \textcite{novitsky2013phylogenetic,novitsky2014impact} data
+    were sampled from a primarily heterosexual risk environment, but did not
+    explicitly exclude other risk factors.
+  }
+  \label{tab:data}
+\end{table}
+
 We downloaded all sequences associated with each published study from GenBank.
 For the \textcite{novitsky2014impact} data, each \textit{env} sequence was
 aligned pairwise to the HXB2 reference sequence (GenBank accession number
@@ -516,16 +535,21 @@ carried forward. For the \textcite{novitsky2014impact} data, no large clusters
 were detected using the same cutoff, so we analysed a subtree of size 180
 chosen arbitrarily.
 
-\begin{table}[ht]
-  \centering
-  \input{\tablepath/realdata-bc}
-  \caption[Characteristics of published HIV datasets analyzed with \software{netabc}.]
-  {
-    Characteristics of published HIV datasets analyzed with \software{netabc}. 
-    Abbreviations: MSM, men who have sex with men; HET, heterosexual; IDU,
-    injection drug users. The \textcite{novitsky2013phylogenetic,novitsky2014impact} data
-    were sampled from a primarily heterosexual risk environment, but did not
-    explicitly exclude other risk factors.
-  }
-  \label{tab:data}
-\end{table}
+Empirical studies of contact networks often report the exponent $\gamma$ of the
+power law degree distribution. To compare our results to the literature, we
+simulated 100 networks each according to the \gls{MAP} parameter estimates
+obtained for each investigated dataset. The power-law exponent $\gamma$ was
+calculated for each network using the \software{fit\_power\_law} function in
+\software{igraph}, with the `R.mle' implementation. The median of the 100
+$\gamma$ values was taken as a point estimate for the associated dataset.
+
+For all datasets, we used the priors $\alpha$ $\sim$ Uniform(0, 2) and $N$ and
+$I$ jointly uniform on the region \{$n \leq N \leq 10000$, $n \leq I \leq
+10000$, $I \leq N$\}, where $n$ is the number of tips in the tree (see
+\cref{tab:data}). Since the value $m = 1$ produces networks with no cycles,
+which we considered fairly implausible, we ran one analysis with the prior $m
+\sim$ DiscreteUniform(1, 5), and one with the prior $m \sim$ DiscreteUniform(2,
+5). The other parameters to the SMC algorithm were the same as used for the
+simulation experiments, except that we used 10000 particles instead of 1000 to
+increase the accuracy of the estimated posterior. This was computationally
+feasible due to the small number of runs required for this analysis.

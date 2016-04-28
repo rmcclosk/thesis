@@ -129,8 +129,10 @@ small number of nodes to a network after the epidemic simulation has already
 been completed. It is possible that none of these new nodes attains a
 connection to any infected node. Thus, running the simulation again on the new,
 larger network could produce the exact same transmission tree as before. On the
-other hand, when \gls{I} is large, the coalescent dynamics discussed above for
-\gls{I} also apply, as evidenced by the relative accuracy of the \gls{nltt}.
+other hand, when \gls{I} is large relative to \gls{N}, the coalescent dynamics
+discussed above also apply. That is, the waiting times until the next infection
+increase, resulting in longer coalescence times toward the tips. The relative
+accuracy of the \gls{nltt} in these situations coroborates this hypothesis.
 The \gls{m} parameter, which controls the number of connections added to the
 network per vertex, did not have a measurable impact on tree shape and was not
 estimable with kernel-ABC. The exception to this was the value \gls{m} = 1,
@@ -148,8 +150,9 @@ capture particular details of tree shape. Two of these, Sackin's index and the
 ratio of internal to terminal branch lengths, were correlated with every
 \gls{BA} parameter. Classifiers based on Sackin's index and the \gls{nltt}
 similarity measure performed well in some cases, though poorly in others.
-\gls{ABC} is often applied using a vector of summary statistics, rather than a
-kernel-based similarity score as we have done here, and methods have been
+\gls{ABC} is often applied using a vector of summary
+statistics~\autocite{marin2012approximate, sunnaaker2013approximate}, rather
+than a kernel-based similarity score as we have done here. Methods have been
 developed to select an optimal combination of summary statistics for a given
 inference task~\autocite{fearnhead2012constructing}. Hence, an avenue for
 future improvement of our method may be the inclusion of additional summary
@@ -262,4 +265,6 @@ in a phylodynamic context. However, the Gillespie simulation algorithm built
 into \software{netabc} can handle arbitrary transmission and removal rates
 which need not be homogeneous across the network. Moreover, it is possible to
 use kernel-\gls{ABC} to fit a model which relaxes some or all of these
-assumptions, which may be a fruitful avenue for future investigation.
+assumptions, which may be a fruitful avenue for future investigation. Despite
+the possible misspecification, our estimates of the power law exponent $\gamma$
+were in line with those reported in the literature (\cref{tab:gamma}).

@@ -695,3 +695,27 @@ when $m = 1$ was allowed.
   }
   \label{fig:abchpd}
 \end{figure*}
+
+To make our analyses comparable to the existing network literature, we
+estimated values of the power law exponent $\gamma$ for each of the datasets 
+investigated. The results are summarized in \cref{tab:gamma}. All of the
+estimated exponents were in the range $2 \leq \gamma \leq 4$ commonly reported
+in the literature~\autocite{liljeros2001web, schneeberger2004scale,
+colgate1989risk, brown2011transmission}. Higher estimated values of $\alpha$
+translated into higher estimated values of $\gamma$, which is consistent with
+the observed relationship between these two quantities (\cref{fig:gamma}).
+
+\begin{table}
+    \caption[
+        Estimated power law exponents for six HIV datasets based on maximum
+        \textit{a priori} estimates of BA model parameters.
+    ]{
+        Estimated power law exponents for six HIV datasets based on maximum
+        \textit{a priori} estimates of BA model parameters. 100 networks were
+        simulated using \textit{MAP} parameter estimates obtained with
+        \software{netabc}. The power law exponent $\gamma$ was estimated for
+        each, and the median of those estimates was used as a point estimate
+        for the corresponding dataset.
+    }
+    \label{tab:gamma}
+\end{table}
