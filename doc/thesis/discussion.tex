@@ -91,7 +91,9 @@ sampling strategies have been developed~\autocite{douc2005comparison}, and it
 is possible that the use of a more sophisticated technique might increase the
 algorithm's accuracy. Finally, the \gls{ABC}-\gls{SMC} algorithm is
 computationally intensive, taking about a day when run on 20 cores in parallel
-with the settings described in the methods section.
+with the settings described in the methods section. Implementing parallization
+using MPI, rather than POSIX threads as we have done here, would allow the
+program to be run over a larger number of cores on multiple CPUs in parallel.
 
 \subsection{Analysis of \acrlong{BA} model}
 
@@ -99,21 +101,23 @@ The preferential attachment power \gls{alpha} had a very strong influence on
 tree shape in the range of values we considered. Although the tree kernel was
 the most effective classifier for \gls{alpha}, a tree balance statistic
 performed nearly as well. This result was intuitive: high \gls{alpha} values
-produce networks with few well-connected superspreader nodes which are involved
-in a large number of transmissions, resulting in a highly unbalanced
-ladder-like tree structure. The \gls{I} parameter, representing the prevalence
-at the time of sampling, was also generally estimable. The dynamics of the
-\gls{SI} model, and the coalescent process, offer a potential explanation for
-this result. In the initial phase of the epidemic, when \gls{I} is small, each
-new transmission results in potentially many new discordant edges, thus
-decreasing the waiting time until the next transmission. Hence, there is an
+produce networks with few well-connected ``superspreader'' nodes which are
+involved in a large number of transmissions, resulting in a highly unbalanced
+ladder-like tree structure (\cref{fig:alphatrees}). The \gls{I} parameter,
+representing the prevalence at the time of sampling, was also generally
+estimable. The dynamics of the \gls{SI} model, and the coalescent
+process~\autocite{kingman1982coalescent}, offer a potential explanation for
+this result. \Cref{fig:sir} shows simulated trajectories of the \gls{SIR}
+model. In the initial phase of the epidemic, when \gls{I} is small, each new
+transmission results in potentially many new discordant edges, thus decreasing
+the waiting time until the next transmission. Hence, there is an
 early exponential growth phase, producing many short branches near the root of
 the tree. As the epidemic gets closer to saturating the network, the number of
 discordant edges decays, causing longer waiting times. The distribution of
-coalescent times in the tree should therefore be informative about \gls{I}.
-This information is captured by the tree kernel, and also by the \gls{nltt}
-statistic, which both performed quite will in classifying \gls{I}
-(\cref{fig:rsquared}).
+coalescence times in the tree should therefore be informative about
+\gls{I}~\autocite{volz2009phylodynamics}. This information is captured by the
+tree kernel, and also by the \gls{nltt} statistic, which both performed quite
+will in classifying \gls{I} (\cref{fig:rsquared}).
 
 The number of nodes in the network, \gls{N}, exhibited the most variation in
 terms of being estimable. There was almost no difference between trees
@@ -172,9 +176,9 @@ As noted by \textcite{lintusaari2016identifiability}, uniform priors on model
 parameters may translate to highly informative priors on quantities of
 interest. We observed a non-linear relationship between the preferential
 attachment power $\alpha$ and the power law exponent $\gamma$
-(\cref{fig:gamma}). Thecrefore, placing a uniform prior on $\alpha$ between 0
+(\cref{fig:gamma}). Therefore, placing a uniform prior on $\alpha$ between 0
 and 2 is equivalent to placing an informative prior that $\gamma$ is close to
-2. Thecrefore, if we were primarily interested in $\gamma$ rather than
+2. Therefore, if we were primarily interested in $\gamma$ rather than
 $\alpha$, a more sensible choice of prior might have a shape informed by
 \cref{fig:gamma} and be bounded above by approximately $\alpha$ = 1.5. This
 would uniformly bound $\gamma$ in the region $2 \leq \gamma \leq 4$ commonly
@@ -190,9 +194,9 @@ Our investigation of published HIV datasets indicated heterogeneity in the
 contact network structures underlying several distinct local epidemics. When
 interpreting these results, we caution that the BA model is quite simple and
 most likely misspecified for these data. In particular, the average degree of a
-node in the network is equal to $2m$, and thecrefore is constrained to be a
+node in the network is equal to $2m$, and therefore is constrained to be a
 multiple of 2. Furthermore, we considered the case $m = 1$, where the network
-has no cycles, to be implausible and thecrefore assigned it zero prior
+has no cycles, to be implausible and therefore assigned it zero prior
 probability in one set of analyses. This forced the average degree to be at
 least four, which may be unrealistically high for sexual networks. The fact
 that the estimated values of $\alpha$ differed substatially for three datasets
@@ -204,19 +208,19 @@ studied. More sophisticated models, for example models incorporating
 heterogeneity in node behaviour, are likely to provide a better fit to these
 data.
 
-With respect to the preferential attachment power $\alpha$, the five datasets
-analysed fell into three categories (\cref{fig:abchpd}). First, we
-estimated a preferential attachment power close to 1, indicating linear
-preferential attachment, for the outbreaks studied by
+With respect to the preferential attachment power $\alpha$, the six datasets
+analysed fell into two categories (\cref{fig:abchpd}). First, we estimated a
+preferential attachment power close to 1, indicating linear preferential
+attachment, for the BC data and the outbreaks studied by
 \textcite{niculescu2015recent} and \textcite{wang2015targeting}. These values
-were robust to specifying different priors for $m$. Both studies were of
-populations in which we would expect a high degree of epidemiological
-relatedness: \textcite{niculescu2015recent} studied a recent outbreak among
-Romanian injection drug users (IDU), while \citeauthor{wang2015targeting}
-sampled acutely infected MSM in Beijing, China. Both these are contexts in
-which we would expect some of the assumptions of the BA model, such as a
-connected network, relatively high mean degree, and preferential attachment
-dynamics, to hold.
+were robust to specifying different priors for $m$. All three datasets were
+sampled from populations in which we would expect a high degree of
+epidemiological relatedness: \textcite{niculescu2015recent} studied a recent
+outbreak among Romanian \gls{IDU}, \citeauthor{wang2015targeting} sampled
+acutely infected MSM in Beijing, China, and the BC data constituted a
+phylogenetic \gls{IDU} cluster. These are all contexts in which we would expect
+some of the assumptions of the BA model, such as a connected network,
+relatively high mean degree, and preferential attachment dynamics, to hold.
 
 The remaining three datasets (\textcite{cuevas2009hiv, novitsky2014impact,
 li2015hiv}) had estimated values of $\alpha$ below 0.5 when $m = 1$ was
@@ -241,7 +245,7 @@ contact network underlying the subtree we investigated includes a much larger
 group based in the capital city, which would explain the high estimate of $I$.
 There is no clear explanation for the discrepancy between the two priors for
 the \textcite{li2015hiv} data, as the subset we analyzed formed a phylogenetic
-cluster and thecrefore was a good candidate for the BA model. However, nearly
+cluster and therefore was a good candidate for the BA model. However, nearly
 all the posterior density was assigned to $m = 1$ when this value was allowed,
 indicating that the network was more likely to have an acyclic tree structure.
 

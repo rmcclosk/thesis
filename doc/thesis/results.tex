@@ -177,7 +177,7 @@ estimates having an average deviation of
 from the true value, on a grid from 0 to 2. The error was negatively correlated
 with the true value of \gls{alpha} 
     (Spearman's $\rho$ = \ensuremath{-0.26},
-     $p = 1\!\times\!10^{-5}$),
+     $p = 10^{-5}$),
 although the relationship was clearly nonlinear (\cref{fig:gridest,fig:gridalpha}).
 The accuracy was highest for the test value \gls{alpha} = 1.25
     (mean error 0.02)
@@ -264,12 +264,10 @@ and for $I$ = 2000
 but not for any values of $m$ (one-way ANOVA). The $m$ parameter was estimated
 correctly in only
     27 \%
-of simulations. The true values of $m$ and $I$ did not significantly affect the
-error (one-way ANOVA), but the accuracy was significantly lower for integral
-than non-integral values of \gls{alpha}
-    (Wilcoxon rank-sum test, $p = 0.3$).
-Finally, the total number of nodes \gls{N} was consistently over-estimated by
-about a factor of two
+of simulations, little better than random guessing. The true values of $m$ and
+$I$ did not significantly affect the error (one-way ANOVA). Finally, the total
+number of nodes \gls{N} was consistently over-estimated by about a factor of
+two
     (error 5987 
     [2060 - 
      7999]).
@@ -305,11 +303,11 @@ estimates and 95\% \gls{HPD} intervals averaged over all simulations.
   \includegraphics{{abc-posterior/1.0_1000_2_5000_0}.pdf}
   \caption[Approximate marginal posterior distributions of BA model parameters
       obtained by applying \textit{netabc} to a simulated transmission tree
-      with values $alpha$ = 1.0, $I$ = 1000, $m$ = 2, and $N$ = 5000.]
+      with values $\alpha$ = 1.0, $I$ = 1000, $m$ = 2, and $N$ = 5000.]
     {
         Approximate marginal posterior distributions of BA model parameters
         obtained by applying \textit{netabc} to a simulated transmission tree
-        with BA parameter values $alpha$ = 1.0, $I$ = 1000, $m$ = 2, and $N$ =
+        with BA parameter values $\alpha$ = 1.0, $I$ = 1000, $m$ = 2, and $N$ =
         5000. Vertical dashed lines indicate true values. Shaded areas are 95\%
         highest posterior density intervals. $x$-axes indicate regions of
         nonzero prior density.
@@ -321,8 +319,16 @@ estimates and 95\% \gls{HPD} intervals averaged over all simulations.
 \begin{table}
     \centering
     \input{\tablepath/abc-hpd}
-    \caption{Average widths of 95\% confidence intervals for \gls{BA} model
-    parameters estimated with kernel-\gls{ABC}.}
+    \caption[
+        Maximum \textit{a priori} estimates and 95\% highest posterior density
+        (HPD) interval boundaries for \gls{BA} model parameters estimated with
+        \software{netabc}, averaged over simulated transmission trees.
+    ]
+    {
+        Maximum \textit{a priori} estimates and 95\% highest posterior density
+        (HPD) interval boundaries for \gls{BA} model parameters estimated with
+        \software{netabc}, averaged over simulated transmission trees.
+    }
     \label{tab:abchpd}
 \end{table}
 
@@ -333,21 +339,21 @@ the nodes exhibited heterogeneous preferential attachment power (half 0.5, the
 other half 1.5), with $m$ = 2, $N$ = 5000, and $I$ = 1000. The MAP [95\%
 HPD] estimates for each parameter were: 
 $\alpha$, 
-  1.09 
+  1.1 
   [0.6 -
    1.16];
 $I$,
-  1103 
+  1091 
   [662 -
    4455];
 $m$,
   3 
-  [2 -
+  [1 -
    5];
 $N$,
-  12582 
-  [3590-
-   14977].
+  12566 
+  [3733 -
+   14945].
 The approximate posterior distributions for this simulation are shown in
 \cref{fig:mixed}. To test the effect of sampling bias, we sampled one
 transmission tree in a peer-driven fashion, where the probability to sample a
@@ -355,39 +361,39 @@ node was twice as high if one of its peers had already been sampled. The
 parameters for this experiment were $N$ = 5000, $m$ = 2, $\alpha$ = 0.5, and
 $I$ = 2000. The estimated values were
 $\alpha$, 
-  0.39 
+  0.37 
   [0 -
    0.62];
 $I$,
-  2360 
-  [1379 -
+  2407 
+  [1423 -
    3811];
 $m$,
-  2 
+  3 
   [2 -
    5];
 $N$,
-  13537 
-  [2855 -
-   14649].
+  13811 
+  [2624 -
+   14647].
 The approximate posterior distributions are shown in \cref{fig:peerdriven}. Both
 of these results were in line with estimates obtained on other simulated
 datasets (\cref{tab:abchpd}), although the estimate of peer-driven sampling for
 $\alpha$ was somewhat lower than typical.
 
-\subsubsection*{Effect of parameters on power-law exponent}
-
-\Cref{tab:glm} shows the estimated parameters for a log-link \gls{GLM} fitted
-to the observed distribution of \gls{gamma} values. The coefficients are
-interpretable as multiplicative effects.
-
-\begin{table}
-    \centering
-    \input{\tablepath/pa-gamma-glm}
-    \caption{Estimated \gls{GLM} parameters for relationship between power-law
-    exponent \gls{gamma} and \gls{BA} model parameters.}
-    \label{tab:glm}
-\end{table}
+%\subsubsection*{Effect of parameters on power-law exponent}
+%
+%\Cref{tab:glm} shows the estimated parameters for a log-link \gls{GLM} fitted
+%to the observed distribution of \gls{gamma} values. The coefficients are
+%interpretable as multiplicative effects.
+%
+%\begin{table}
+%    \centering
+%    \input{\tablepath/pa-gamma-glm}
+%    \caption{Estimated \gls{GLM} parameters for relationship between power-law
+%    exponent \gls{gamma} and \gls{BA} model parameters.}
+%    \label{tab:glm}
+%\end{table}
 
 \subsection{Application to HIV data}
 
@@ -398,9 +404,9 @@ and found substantial heterogeneity among the parameter estimates
 (\cref{fig:abchpd,fig:abchpdm2}). Plots of the marginal posterior distributions
 for each dataset are shown in
 \cref{fig:cuevas,fig:li,fig:niculescu,fig:novitsky,fig:wang}.
-Two of the datasets~\autocite{niculescu2015recent, wang2015targeting} had
-estimated $\alpha$ values near unity for the prior allowing $m = 1$ (MAP
-estimates [95\% HPD] 
+Two of the datasets (\textcite{niculescu2015recent, wang2015targeting}) had
+estimated $\alpha$ values near unity for the prior allowing $m = 1$ (\gls{MAP}
+estimates [95\% \gls{HPD}] 
   1.05 
   [0.04 - 
    1.27]
@@ -438,8 +444,8 @@ for both priors on $m$
 However, the confidence interval was much wider when $m = 1$ was allowed
   ([0.04 -
     1.62] for $m \geq 1$ vs.
-    0 -
-    0.73 for $m \geq 2$).
+   [0 -
+    0.73] for $m \geq 2$).
 
 For all the datasets except \citeauthor{novitsky2014impact}, estimated values
 of $I$ were below 2000 when $m = 1$ was allowed, with relatively narrow HPD
@@ -484,10 +490,16 @@ when $m = 1$ was allowed.
 \begin{figure*}[ht]
   \centering
   \includegraphics{realdata-hpd-bc}
-  \caption{
+  \caption[
       Maximum \textit{a posteriori} point estimates and 95\% HPD intervals for
-      parameters of the BA network model, fitted to five published HIV datasets
-      with kernel-ABC.
+      parameters of the BA network model, fitted to six HIV datasets
+      with \software{netabc}.]
+  {
+      Maximum \textit{a posteriori} point estimates and 95\% HPD intervals for
+      parameters of the BA network model, fitted to six HIV datasets with
+      \software{netabc}. Legend labels indicate risk group and country of
+      origin. Abbreviations: IDU, injection drug users; MSM, men who have sex
+      with men; HET, heterosexual.
   }
   \label{fig:abchpd}
 \end{figure*}

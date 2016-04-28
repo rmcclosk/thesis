@@ -14,8 +14,6 @@
 \defcounter {refsection}{0}\relax 
 \contentsline {table}{\numberline {2.5}{\ignorespaces Characteristics of published HIV datasets analyzed with \textit {netabc}.}}{34}{table.2.5}
 \defcounter {refsection}{0}\relax 
-\contentsline {table}{\numberline {2.6}{\ignorespaces Average widths of 95\% confidence intervals for \gls {BA} model parameters estimated with kernel-\gls {ABC}.}}{40}{table.2.6}
-\defcounter {refsection}{0}\relax 
-\contentsline {table}{\numberline {2.7}{\ignorespaces Estimated \gls {GLM} parameters for relationship between power-law exponent \gls {gamma} and \gls {BA} model parameters.}}{41}{table.2.7}
+\contentsline {table}{\numberline {2.6}{\ignorespaces Maximum \textit {a priori} estimates and 95\% highest posterior density (HPD) interval boundaries for \gls {BA} model parameters estimated with \textit {netabc}, averaged over simulated transmission trees. }}{40}{table.2.6}
 \defcounter {refsection}{0}\relax 
 \addvspace {10\p@ }

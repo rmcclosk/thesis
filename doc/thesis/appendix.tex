@@ -44,7 +44,9 @@
 \begin{figure}[H]
   \centering
   \includegraphics{kernel-alpha-crossv.pdf}
-  \caption{
+  \caption[Cross validation accuracy of classifiers for \gls{BA} model parameter
+    \gls{alpha} for eight epidemic scenarios.]
+  {
     Cross validation accuracy of classifiers for \gls{BA} model parameter
     \gls{alpha} for eight epidemic scenarios. Solid lines and points are
     $R^2$ of tree kernel \gls{kSVR} under various kernel meta-parameters.
@@ -57,7 +59,9 @@
 \begin{figure}[H]
   \centering
   \includegraphics{kernel-I-crossv.pdf}
-  \caption{
+  \caption[Cross validation accuracy of classifiers for \gls{BA} model parameter
+    \gls{I} for eight epidemic scenarios.]
+  {
     Cross validation accuracy of classifiers for \gls{BA} model parameter
     \gls{I} for eight epidemic scenarios. Solid lines and points are $R^2$ of
     tree kernel \gls{kSVR} under various kernel meta-parameters. Dashed and
@@ -70,7 +74,9 @@
 \begin{figure}[H]
   \centering
   \includegraphics{kernel-m-crossv.pdf}
-  \caption{
+  \caption[Cross validation accuracy of classifiers for \gls{BA} model parameter
+    \gls{m} for eight epidemic scenarios.]
+  {
     Cross validation accuracy of classifiers for \gls{BA} model parameter
     \gls{m} for eight epidemic scenarios. Solid lines and points are $R^2$ of
     tree kernel \gls{kSVR} under various kernel meta-parameters. Dashed and
@@ -83,7 +89,9 @@
 \begin{figure}[H]
   \centering
   \includegraphics{kernel-N-crossv.pdf}
-  \caption{
+  \caption[Cross validation accuracy of classifiers for \gls{BA} model parameter
+    \gls{N} for eight epidemic scenarios.]
+  {
     Cross validation accuracy of classifiers for \gls{BA} model parameter
     \gls{N} for eight epidemic scenarios. Solid lines and points are $R^2$ of
     tree kernel \gls{kSVR} under various kernel meta-parameters. Dashed and
@@ -184,7 +192,11 @@
 \begin{figure}[H]
   \centering
   \includegraphics{gridsearch-alpha-point-estimate.pdf}
-  \caption{
+  \caption[
+      Point estimates of preferential attachment power \gls{alpha} of
+      \acrlong{BA} network model, obtained on simulated trees with
+      kernel-score-based grid search.]
+  {
       Point estimates of preferential attachment power \gls{alpha} of
       \acrlong{BA} network model, obtained on simulated trees with
       kernel-score-based grid search. Test trees were simulated according to
@@ -201,7 +213,10 @@
 \begin{figure}[H]
   \centering
   \includegraphics{gridsearch-I-point-estimate.pdf}
-  \caption{
+  \caption[ Point estimates of prevalence at time of sampling \gls{I} of
+      \acrlong{BA} network model, obtained on simulated trees with
+      kernel-score-based grid search. ]
+  {
       Point estimates of prevalence at time of sampling \gls{I} of \acrlong{BA}
       network model, obtained on simulated trees with kernel-score-based grid
       search. Test trees were simulated according to several values of \gls{I}
@@ -218,7 +233,12 @@
 \begin{figure}[H]
   \centering
   \includegraphics{gridsearch-m-point-estimate.pdf}
-  \caption{
+  \caption[
+      Point estimates of number of edges per vertex \gls{m} of \acrlong{BA}
+      network model, obtained on simulated trees with kernel-score-based grid
+      search.
+  ]
+  {
       Point estimates of number of edges per vertex \gls{m} of \acrlong{BA}
       network model, obtained on simulated trees with kernel-score-based grid
       search. Test trees were simulated according to several values of \gls{m}
@@ -235,7 +255,11 @@
 \begin{figure}[H]
   \centering
   \includegraphics{gridsearch-N-point-estimate.pdf}
-  \caption{
+  \caption[
+      Point estimates of number of edges per vertex \gls{N} of \acrlong{BA}
+      network model, obtained on simulated trees with kernel-score-based grid
+      search.
+  ]{
       Point estimates of number of edges per vertex \gls{N} of \acrlong{BA}
       network model, obtained on simulated trees with kernel-score-based grid
       search. Test trees were simulated according to several values of \gls{N}
@@ -252,13 +276,16 @@
 \begin{figure}[H]
   \centering
   \includegraphics{abc-point-estimate-m3.pdf}
-  \caption{                                              
+  \caption[
     \Acrlong{MAP} point estimates for \gls{BA} model parameters obtained by
-    running \software{netabc} on simulated data. Values shown are for
-    simulations with \gls{m} = 3. Dashed lines indicate true values. (A)
-    Estimates of \gls{alpha} and \gls{I} which were varied in these simulations
-    against known values. (B) Estimates of \gls{m} and \gls{N} which were held
-    fixed in these simulations at the values \gls{m} = 3 and \gls{N} = 5000.
+    running \software{netabc} on simulated data, for simulations with \gls{m} = 3.
+  ]{
+    \Acrlong{MAP} point estimates for \gls{BA} model parameters obtained by
+    running \software{netabc} on simulated data, for simulations with \gls{m} = 3.
+    Dashed lines indicate true values. (A) Estimates of \gls{alpha} and \gls{I}
+    which were varied in these simulations against known values. (B) Estimates
+    of \gls{m} and \gls{N} which were held fixed in these simulations at the
+    values \gls{m} = 3 and \gls{N} = 5000.
   }        
   \label{fig:abcptm3}
 \end{figure}
@@ -266,13 +293,16 @@
 \begin{figure}[H]
   \centering
   \includegraphics{abc-point-estimate-m4.pdf}
-  \caption{                                              
+  \caption[
     \Acrlong{MAP} point estimates for \gls{BA} model parameters obtained by
-    running \software{netabc} on simulated data. Values shown are for
-    simulations with \gls{m} = 4. Dashed lines indicate true values. (A)
-    Estimates of \gls{alpha} and \gls{I} which were varied in these simulations
-    against known values. (B) Estimates of \gls{m} and \gls{N} which were held
-    fixed in these simulations at the values \gls{m} = 4 and \gls{N} = 5000.
+    running \software{netabc} on simulated data, for simulations with \gls{m} = 3.
+  ]{
+    \Acrlong{MAP} point estimates for \gls{BA} model parameters obtained by
+    running \software{netabc} on simulated data, for simulations with \gls{m} = 4.
+    Dashed lines indicate true values. (A) Estimates of \gls{alpha} and \gls{I}
+    which were varied in these simulations against known values. (B) Estimates
+    of \gls{m} and \gls{N} which were held fixed in these simulations at the
+    values \gls{m} = 4 and \gls{N} = 5000.
   }        
   \label{fig:abcptm4}
 \end{figure}
@@ -288,6 +318,23 @@
   \label{fig:gamma}
 \end{figure}
 
+\begin{figure}[ht]
+  \centering
+  \includegraphics{sir-trajectories.pdf}
+  \caption[Average trajectories of epidemics simulated according to the
+  \gls{SIR} model over full and \gls{BA} networks.]
+  {
+      Average trajectories of epidemics simulated according to the \gls{SIR}
+      model over full and \gls{BA} networks. 100 epidemics each were simulated
+      over completely connected networks and networks generated from the
+      \gls{BA} model. The network parameters were $\alpha = 1$ and $m = 2$.
+      The transmission rate along each edge of a network $G$ was taken as
+      $2/|E(G)|$, and the removal rate of each vertex was taken as $1/|V(G)|$.
+      These choices ensured that both networks had the same waiting time until
+      the next transmission at the beginning of the epidemic.
+  }
+  \label{fig:sir}
+\end{figure}
 
 \begin{figure}[ht]
     \centering
@@ -329,30 +376,42 @@
 \begin{figure}[ht]
   \includegraphics{realdata-hpd-bc-m2}
   \vspace{8pt}
-  \caption{
+  \caption[
       Maximum \textit{a posteriori} point estimates and 95\% HPD intervals for
       parameters of the BA network model, fitted to five published HIV datasets
-      with kernel-ABC. $x$-axes indicate regions of nonzero prior density. In
-      particular, the prior on $m$ was DiscreteUniform(2, 5).
+      with \software{netabc} using the prior $m \sim DiscreteUniform(2, 5)$.
+  ]{
+      Maximum \textit{a posteriori} point estimates and 95\% HPD intervals for
+      parameters of the BA network model, fitted to five published HIV datasets
+      with \software{netabc} using the prior $m \sim$ DiscreteUniform(2, 5).
+      $x$-axes indicate regions of nonzero prior density. In particular, the
+      prior on $m$ was DiscreteUniform(2, 5).
   }
   \label{fig:abchpdm2}
 \end{figure}
 
 \begin{figure}[H]
   \includegraphics{bctree-posterior}
-  \caption{
-      Posterior distribution of BA model parameters for BC data. Vertical lines
-      indicate maximum \textit{a posteriori} estimates, and shaded areas are
-      95\% highest posterior density intervals. $x$-axis indicates regions of
-      nonzero prior density.
+  \caption[
+      Approximate marginal posterior distributions of BA model parameters for
+      BC data.
+  ]
+  {
+      Approximate marginal posterior distributions of BA model parameters for
+      BC data. Vertical lines indicate maximum \textit{a posteriori} estimates,
+      and shaded areas are 95\% highest posterior density intervals. $x$-axis
+      indicates regions of nonzero prior density.
   }
   \label{fig:bctree}
 \end{figure}
 
 \begin{figure}[H]
   \includegraphics{cuevas2009-posterior}
-  \caption{
-      Posterior distribution of BA model parameters for
+  \caption[
+      Approximate marginal poosterior distributions of BA model parameters for
+      \textcite{cuevas2009hiv} data. 
+  ]{
+      Approximate marginal poosterior distributions of BA model parameters for
       \textcite{cuevas2009hiv} data. Vertical lines indicate maximum \textit{a
       posteriori} estimates, and shaded areas are 95\% highest posterior
       density intervals. $x$-axis indicates regions of nonzero prior density.
@@ -362,19 +421,25 @@
 
 \begin{figure}[H]
   \includegraphics{li2015-posterior}
-  \caption{
-      Posterior distribution of BA model parameters for \textcite{li2015hiv}
-      data. Vertical lines indicate maximum \textit{a posteriori} estimates,
-      and shaded areas are 95\% highest posterior density intervals. $x$-axis
-      indicates regions of nonzero prior density.
+  \caption[
+      Approximate marginal posterior distributions of BA model parameters for
+      \textcite{li2015hiv} data. 
+  ]{
+      Approximate marginal posterior distributions of BA model parameters for
+      \textcite{li2015hiv} data. Vertical lines indicate maximum \textit{a
+      posteriori} estimates, and shaded areas are 95\% highest posterior
+      density intervals. $x$-axis indicates regions of nonzero prior density.
   }
   \label{fig:li}
 \end{figure}
 
 \begin{figure}[H]
   \includegraphics{niculescu2015-posterior}
-  \caption{
-      Posterior distribution of BA model parameters for
+  \caption[
+      Approximate marginal posterior distributions of BA model parameters for
+      \textcite{niculescu2015recent} data.
+  ]{
+      Approximate marginal posterior distributions of BA model parameters for
       \textcite{niculescu2015recent} data. Vertical lines indicate maximum
       \textit{a posteriori} estimates, and shaded areas are 95\% highest
       posterior density intervals. $x$-axis indicates regions of nonzero prior
@@ -385,8 +450,11 @@
 
 \begin{figure}[H]
   \includegraphics{novitsky2014-posterior}
-  \caption{
-      Posterior distribution of BA model parameters for
+  \caption[
+      Approximate marginal posterior distributions of BA model parameters for
+      \textcite{novitsky2013phylogenetic, novitsky2014impact} data.
+  ]{
+      Approximate marginal posterior distributions of BA model parameters for
       \textcite{novitsky2013phylogenetic, novitsky2014impact} data. Vertical
       lines indicate maximum \textit{a posteriori} estimates, and shaded areas
       are 95\% highest posterior density intervals. $x$-axis indicates regions
@@ -397,8 +465,11 @@
 
 \begin{figure}[H]
   \includegraphics{wang2015-posterior}
-  \caption{
-      Posterior distribution of BA model parameters for
+  \caption[
+      Approximate marginal posterior distributions of BA model parameters for
+      \textcite{wang2015targeting} data.
+  ]{
+      Approximate marginal posterior distributions of BA model parameters for
       \textcite{wang2015targeting} data. Vertical lines indicate maximum
       \textit{a posteriori} estimates, and shaded areas are 95\% highest
       posterior density intervals. $x$-axis indicates regions of nonzero prior
@@ -410,7 +481,7 @@
 \begin{figure}[H]
 \centering
 \includegraphics{{abc-posterior/0.0_1000_2_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.0, $I$ = 1000, $m$ = 2, and $N$ = 5000]{
+\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.0, $I$ = 1000, $m$ = 2, and $N$ = 5000.]{
 Approximate marginal posterior distributions of BA model parameters obtained by applying 	extit{netabc} to a simulated transmission tree with BA parameter values $alpha$ = 0.0, $I$ = 1000, $m$ = 2, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
 }
 \label{fig:0.0-1000-2-5000-0}
@@ -420,7 +491,7 @@ Approximate marginal posterior distributions of BA model parameters obtained by 
 \begin{figure}[H]
 \centering
 \includegraphics{{abc-posterior/0.5_1000_2_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.5, $I$ = 1000, $m$ = 2, and $N$ = 5000]{
+\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.5, $I$ = 1000, $m$ = 2, and $N$ = 5000.]{
 Approximate marginal posterior distributions of BA model parameters obtained by applying 	extit{netabc} to a simulated transmission tree with BA parameter values $alpha$ = 0.5, $I$ = 1000, $m$ = 2, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
 }
 \label{fig:0.5-1000-2-5000-0}
@@ -430,7 +501,7 @@ Approximate marginal posterior distributions of BA model parameters obtained by 
 \begin{figure}[H]
 \centering
 \includegraphics{{abc-posterior/1.0_1000_2_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.0, $I$ = 1000, $m$ = 2, and $N$ = 5000]{
+\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.0, $I$ = 1000, $m$ = 2, and $N$ = 5000.]{
 Approximate marginal posterior distributions of BA model parameters obtained by applying 	extit{netabc} to a simulated transmission tree with BA parameter values $alpha$ = 1.0, $I$ = 1000, $m$ = 2, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
 }
 \label{fig:1.0-1000-2-5000-0}
@@ -440,7 +511,7 @@ Approximate marginal posterior distributions of BA model parameters obtained by 
 \begin{figure}[H]
 \centering
 \includegraphics{{abc-posterior/1.5_1000_2_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.5, $I$ = 1000, $m$ = 2, and $N$ = 5000]{
+\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.5, $I$ = 1000, $m$ = 2, and $N$ = 5000.]{
 Approximate marginal posterior distributions of BA model parameters obtained by applying 	extit{netabc} to a simulated transmission tree with BA parameter values $alpha$ = 1.5, $I$ = 1000, $m$ = 2, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
 }
 \label{fig:1.5-1000-2-5000-0}
@@ -450,7 +521,7 @@ Approximate marginal posterior distributions of BA model parameters obtained by 
 \begin{figure}[H]
 \centering
 \includegraphics{{abc-posterior/0.0_2000_2_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.0, $I$ = 2000, $m$ = 2, and $N$ = 5000]{
+\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.0, $I$ = 2000, $m$ = 2, and $N$ = 5000.]{
 Approximate marginal posterior distributions of BA model parameters obtained by applying 	extit{netabc} to a simulated transmission tree with BA parameter values $alpha$ = 0.0, $I$ = 2000, $m$ = 2, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
 }
 \label{fig:0.0-2000-2-5000-0}
@@ -460,7 +531,7 @@ Approximate marginal posterior distributions of BA model parameters obtained by 
 \begin{figure}[H]
 \centering
 \includegraphics{{abc-posterior/0.5_2000_2_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.5, $I$ = 2000, $m$ = 2, and $N$ = 5000]{
+\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.5, $I$ = 2000, $m$ = 2, and $N$ = 5000.]{
 Approximate marginal posterior distributions of BA model parameters obtained by applying 	extit{netabc} to a simulated transmission tree with BA parameter values $alpha$ = 0.5, $I$ = 2000, $m$ = 2, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
 }
 \label{fig:0.5-2000-2-5000-0}
@@ -470,7 +541,7 @@ Approximate marginal posterior distributions of BA model parameters obtained by 
 \begin{figure}[H]
 \centering
 \includegraphics{{abc-posterior/1.0_2000_2_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.0, $I$ = 2000, $m$ = 2, and $N$ = 5000]{
+\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.0, $I$ = 2000, $m$ = 2, and $N$ = 5000.]{
 Approximate marginal posterior distributions of BA model parameters obtained by applying 	extit{netabc} to a simulated transmission tree with BA parameter values $alpha$ = 1.0, $I$ = 2000, $m$ = 2, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
 }
 \label{fig:1.0-2000-2-5000-0}
@@ -480,7 +551,7 @@ Approximate marginal posterior distributions of BA model parameters obtained by 
 \begin{figure}[H]
 \centering
 \includegraphics{{abc-posterior/1.5_2000_2_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.5, $I$ = 2000, $m$ = 2, and $N$ = 5000]{
+\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.5, $I$ = 2000, $m$ = 2, and $N$ = 5000.]{
 Approximate marginal posterior distributions of BA model parameters obtained by applying 	extit{netabc} to a simulated transmission tree with BA parameter values $alpha$ = 1.5, $I$ = 2000, $m$ = 2, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
 }
 \label{fig:1.5-2000-2-5000-0}
@@ -490,7 +561,7 @@ Approximate marginal posterior distributions of BA model parameters obtained by 
 \begin{figure}[H]
 \centering
 \includegraphics{{abc-posterior/0.0_1000_3_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.0, $I$ = 1000, $m$ = 3, and $N$ = 5000]{
+\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.0, $I$ = 1000, $m$ = 3, and $N$ = 5000.]{
 Approximate marginal posterior distributions of BA model parameters obtained by applying 	extit{netabc} to a simulated transmission tree with BA parameter values $alpha$ = 0.0, $I$ = 1000, $m$ = 3, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
 }
 \label{fig:0.0-1000-3-5000-0}
@@ -500,7 +571,7 @@ Approximate marginal posterior distributions of BA model parameters obtained by 
 \begin{figure}[H]
 \centering
 \includegraphics{{abc-posterior/0.5_1000_3_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.5, $I$ = 1000, $m$ = 3, and $N$ = 5000]{
+\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.5, $I$ = 1000, $m$ = 3, and $N$ = 5000.]{
 Approximate marginal posterior distributions of BA model parameters obtained by applying 	extit{netabc} to a simulated transmission tree with BA parameter values $alpha$ = 0.5, $I$ = 1000, $m$ = 3, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
 }
 \label{fig:0.5-1000-3-5000-0}
@@ -510,7 +581,7 @@ Approximate marginal posterior distributions of BA model parameters obtained by 
 \begin{figure}[H]
 \centering
 \includegraphics{{abc-posterior/1.0_1000_3_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.0, $I$ = 1000, $m$ = 3, and $N$ = 5000]{
+\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.0, $I$ = 1000, $m$ = 3, and $N$ = 5000.]{
 Approximate marginal posterior distributions of BA model parameters obtained by applying 	extit{netabc} to a simulated transmission tree with BA parameter values $alpha$ = 1.0, $I$ = 1000, $m$ = 3, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
 }
 \label{fig:1.0-1000-3-5000-0}
@@ -520,7 +591,7 @@ Approximate marginal posterior distributions of BA model parameters obtained by 
 \begin{figure}[H]
 \centering
 \includegraphics{{abc-posterior/1.5_1000_3_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.5, $I$ = 1000, $m$ = 3, and $N$ = 5000]{
+\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.5, $I$ = 1000, $m$ = 3, and $N$ = 5000.]{
 Approximate marginal posterior distributions of BA model parameters obtained by applying 	extit{netabc} to a simulated transmission tree with BA parameter values $alpha$ = 1.5, $I$ = 1000, $m$ = 3, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
 }
 \label{fig:1.5-1000-3-5000-0}
@@ -530,7 +601,7 @@ Approximate marginal posterior distributions of BA model parameters obtained by 
 \begin{figure}[H]
 \centering
 \includegraphics{{abc-posterior/0.0_2000_3_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.0, $I$ = 2000, $m$ = 3, and $N$ = 5000]{
+\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.0, $I$ = 2000, $m$ = 3, and $N$ = 5000.]{
 Approximate marginal posterior distributions of BA model parameters obtained by applying 	extit{netabc} to a simulated transmission tree with BA parameter values $alpha$ = 0.0, $I$ = 2000, $m$ = 3, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
 }
 \label{fig:0.0-2000-3-5000-0}
@@ -540,7 +611,7 @@ Approximate marginal posterior distributions of BA model parameters obtained by 
 \begin{figure}[H]
 \centering
 \includegraphics{{abc-posterior/0.5_2000_3_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.5, $I$ = 2000, $m$ = 3, and $N$ = 5000]{
+\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.5, $I$ = 2000, $m$ = 3, and $N$ = 5000.]{
 Approximate marginal posterior distributions of BA model parameters obtained by applying 	extit{netabc} to a simulated transmission tree with BA parameter values $alpha$ = 0.5, $I$ = 2000, $m$ = 3, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
 }
 \label{fig:0.5-2000-3-5000-0}
@@ -550,7 +621,7 @@ Approximate marginal posterior distributions of BA model parameters obtained by 
 \begin{figure}[H]
 \centering
 \includegraphics{{abc-posterior/1.0_2000_3_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.0, $I$ = 2000, $m$ = 3, and $N$ = 5000]{
+\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.0, $I$ = 2000, $m$ = 3, and $N$ = 5000.]{
 Approximate marginal posterior distributions of BA model parameters obtained by applying 	extit{netabc} to a simulated transmission tree with BA parameter values $alpha$ = 1.0, $I$ = 2000, $m$ = 3, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
 }
 \label{fig:1.0-2000-3-5000-0}
@@ -560,7 +631,7 @@ Approximate marginal posterior distributions of BA model parameters obtained by 
 \begin{figure}[H]
 \centering
 \includegraphics{{abc-posterior/1.5_2000_3_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.5, $I$ = 2000, $m$ = 3, and $N$ = 5000]{
+\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.5, $I$ = 2000, $m$ = 3, and $N$ = 5000.]{
 Approximate marginal posterior distributions of BA model parameters obtained by applying 	extit{netabc} to a simulated transmission tree with BA parameter values $alpha$ = 1.5, $I$ = 2000, $m$ = 3, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
 }
 \label{fig:1.5-2000-3-5000-0}
@@ -570,7 +641,7 @@ Approximate marginal posterior distributions of BA model parameters obtained by 
 \begin{figure}[H]
 \centering
 \includegraphics{{abc-posterior/0.0_1000_4_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.0, $I$ = 1000, $m$ = 4, and $N$ = 5000]{
+\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.0, $I$ = 1000, $m$ = 4, and $N$ = 5000.]{
 Approximate marginal posterior distributions of BA model parameters obtained by applying 	extit{netabc} to a simulated transmission tree with BA parameter values $alpha$ = 0.0, $I$ = 1000, $m$ = 4, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
 }
 \label{fig:0.0-1000-4-5000-0}
@@ -580,7 +651,7 @@ Approximate marginal posterior distributions of BA model parameters obtained by 
 \begin{figure}[H]
 \centering
 \includegraphics{{abc-posterior/0.5_1000_4_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.5, $I$ = 1000, $m$ = 4, and $N$ = 5000]{
+\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.5, $I$ = 1000, $m$ = 4, and $N$ = 5000.]{
 Approximate marginal posterior distributions of BA model parameters obtained by applying 	extit{netabc} to a simulated transmission tree with BA parameter values $alpha$ = 0.5, $I$ = 1000, $m$ = 4, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
 }
 \label{fig:0.5-1000-4-5000-0}
@@ -590,7 +661,7 @@ Approximate marginal posterior distributions of BA model parameters obtained by 
 \begin{figure}[H]
 \centering
 \includegraphics{{abc-posterior/1.0_1000_4_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.0, $I$ = 1000, $m$ = 4, and $N$ = 5000]{
+\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.0, $I$ = 1000, $m$ = 4, and $N$ = 5000.]{
 Approximate marginal posterior distributions of BA model parameters obtained by applying 	extit{netabc} to a simulated transmission tree with BA parameter values $alpha$ = 1.0, $I$ = 1000, $m$ = 4, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
 }
 \label{fig:1.0-1000-4-5000-0}
@@ -600,7 +671,7 @@ Approximate marginal posterior distributions of BA model parameters obtained by 
 \begin{figure}[H]
 \centering
 \includegraphics{{abc-posterior/1.5_1000_4_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.5, $I$ = 1000, $m$ = 4, and $N$ = 5000]{
+\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.5, $I$ = 1000, $m$ = 4, and $N$ = 5000.]{
 Approximate marginal posterior distributions of BA model parameters obtained by applying 	extit{netabc} to a simulated transmission tree with BA parameter values $alpha$ = 1.5, $I$ = 1000, $m$ = 4, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
 }
 \label{fig:1.5-1000-4-5000-0}
@@ -610,7 +681,7 @@ Approximate marginal posterior distributions of BA model parameters obtained by 
 \begin{figure}[H]
 \centering
 \includegraphics{{abc-posterior/0.0_2000_4_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.0, $I$ = 2000, $m$ = 4, and $N$ = 5000]{
+\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.0, $I$ = 2000, $m$ = 4, and $N$ = 5000.]{
 Approximate marginal posterior distributions of BA model parameters obtained by applying 	extit{netabc} to a simulated transmission tree with BA parameter values $alpha$ = 0.0, $I$ = 2000, $m$ = 4, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
 }
 \label{fig:0.0-2000-4-5000-0}
@@ -620,7 +691,7 @@ Approximate marginal posterior distributions of BA model parameters obtained by 
 \begin{figure}[H]
 \centering
 \includegraphics{{abc-posterior/0.5_2000_4_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.5, $I$ = 2000, $m$ = 4, and $N$ = 5000]{
+\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.5, $I$ = 2000, $m$ = 4, and $N$ = 5000.]{
 Approximate marginal posterior distributions of BA model parameters obtained by applying 	extit{netabc} to a simulated transmission tree with BA parameter values $alpha$ = 0.5, $I$ = 2000, $m$ = 4, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
 }
 \label{fig:0.5-2000-4-5000-0}
@@ -630,7 +701,7 @@ Approximate marginal posterior distributions of BA model parameters obtained by 
 \begin{figure}[H]
 \centering
 \includegraphics{{abc-posterior/1.0_2000_4_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.0, $I$ = 2000, $m$ = 4, and $N$ = 5000]{
+\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.0, $I$ = 2000, $m$ = 4, and $N$ = 5000.]{
 Approximate marginal posterior distributions of BA model parameters obtained by applying 	extit{netabc} to a simulated transmission tree with BA parameter values $alpha$ = 1.0, $I$ = 2000, $m$ = 4, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
 }
 \label{fig:1.0-2000-4-5000-0}
@@ -640,7 +711,7 @@ Approximate marginal posterior distributions of BA model parameters obtained by 
 \begin{figure}[H]
 \centering
 \includegraphics{{abc-posterior/1.5_2000_4_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.5, $I$ = 2000, $m$ = 4, and $N$ = 5000]{
+\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.5, $I$ = 2000, $m$ = 4, and $N$ = 5000.]{
 Approximate marginal posterior distributions of BA model parameters obtained by applying 	extit{netabc} to a simulated transmission tree with BA parameter values $alpha$ = 1.5, $I$ = 2000, $m$ = 4, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
 }
 \label{fig:1.5-2000-4-5000-0}
