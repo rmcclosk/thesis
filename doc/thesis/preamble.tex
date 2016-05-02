@@ -1,11 +1,11 @@
 \documentclass[11pt]{report}
-\usepackage[osf]{garamondx}
-\usepackage[garamondx,cmbraces]{newtxmath}
+\usepackage{mathptmx}
+\usepackage{graphicx}
 \usepackage[top=1in, bottom=1in, inner=1.25in, outer=1in]{geometry}
 \usepackage{setspace}
 \usepackage[backend=biber, style=numeric-comp, sorting=none]{biblatex}
 \usepackage{nicefrac}
-\usepackage{amsmath}
+\usepackage{amsmath, amssymb}
 \usepackage{algorithm}
 \usepackage{algorithmicx}
 \usepackage{algpseudocode}
@@ -97,6 +97,7 @@
 \newacronym{ESS}{ESS}{expected sample size}
 \newacronym{MSM}{MSM}{men who have sex with men}
 \newacronym{ERGM}{ERGM}{exponential random graph model}
+\newacronym{IDU}{IDU}{injection drug users}
 
 \newglossaryentry{alpha}{
   name=$\alpha$,
@@ -108,11 +109,12 @@
 }
 \newglossaryentry{N}{
   name=$N$,
-  description=number of nodes in the network
+  description=total number of nodes in a contact network
 }
 \newglossaryentry{I}{
   name=$I$,
-  description=number of nodes which are eventually infected
+  description=number of infected nodes in a contact network at the time of
+  transmission tree sampling
 }
 \newglossaryentry{gamma}{
   name=$\gamma$,

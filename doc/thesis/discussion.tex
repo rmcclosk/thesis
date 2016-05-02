@@ -1,9 +1,18 @@
 \subsection{\software{Netabc}: uses, limitations, and possible extensions}
 
-The method behind \software{netabc} is model-agnostic, meaning that it can be
-used to infer parameters of any network model, as long as it allows simulated
-networks can be easily generated. We have included generators for the \gls{BA}
-model discussed here, as well as the \gls{ER} and \gls{WS} network models.
+Contact networks can have a strong influence on epidemic progression, and are
+potentially useful as a public health tool~\autocite{wang2015targeting,
+little2014using}. Despite this, few methods exist for investigating contact
+network parameters in a phylodynamic framework \autocite[although see][for
+related work]{groendyke2011bayesian, volz2008sir, brown2011transmission,
+leventhal2012inferring, greenbaum2016inference}. Kernel-ABC is a model-agnostic
+method which can be used to investigate any quantity that affects tree
+shape~\autocite{poon2015phylodynamic}. In this work, we developed
+\software{netabc}, a method based on kernel-ABC to infer the parameters of a
+contact network model. The method is general, meaning that it can be used to
+infer parameters of any network model, as long as it allows simulated networks
+can be easily generated. We have included generators for the \gls{BA} model
+discussed here, as well as the \gls{ER} and \gls{WS} network models.
 Instructions for adding additional models are available in the project's online
 documentation. We have made \software{netabc} publicly available at
 \url{github.com/rmcclosk/netabc} under a permissive open source license, to
@@ -18,7 +27,7 @@ be formed non-prefentially. These models were used by
 the United Kingdom. \Glspl{ERGM}~\autocite{robins2007introduction} are a
 flexible and expressive parameterization of contact networks in terms of
 statistics of network features such as pairs and triads.
-\textcite{goodreau2007assessing} evaluated the effect of several different
+\textcite{goodreau2006assessing} evaluated the effect of several different
 \gls{ERGM} parameterizations on transmission tree shape and effective
 population size. The author suggested the use of \glspl{ERGM} as a general
 framework for estimation of epidemiological quantities related to \gls{HIV}
@@ -29,7 +38,7 @@ intensive to integrate into \software{netabc} as it currently stands. To fit
 network itself as a parameter to be modified by the \gls{MCMC} kernel.
 Other network modelling frameworks include the partnership-centric formulation
 developed by~\textcite{eames2002modeling} and the log-linear adjacency matrix
-parameterization developed by~\textcite{morriz1993epidemiology}.
+parameterization applied by~\textcite{morris1993epidemiology}.
 
 %\Textcite{morris1993epidemiology} proposes to apply the standard compartmental
 %modelling framework to contact networks by assigning each individual their own
@@ -56,24 +65,35 @@ such as that developed by \textcite{robinson2012dynamics} to simulate such a
 network, while concurrently simulating the spread of an epidemic.
 
 It is important to note that \software{netabc} takes a transmission tree as
-input, rather than a viral phylogeny. Thus, we have left the estimation of a
-transmission tree up to the user. In theory, it is possible to incorporate the
-process by which a viral phylogeny is generated along with a transmission tree
-into our method, for example by simulating within-host dynamics. Although this
-may be an avenue for future extension, we felt that it would obscure the
-primary purpose of this work, which is to study contact network parameters.
-In addition, there are a number of different methods available for inferring
-transmission trees~\autocite{didelot2014bayesian, ypma2012unravelling,
-jombart2011reconstructing, cottam2008integrating, poon2015phylodynamic}, some
-of which incorporate geographic and/or epidemiological data not accommodated by
-our method. We therefore felt it would be best to allow researchers to use
-their own preferred tree building method.
+input, rather than a viral phylogeny. In reality, true transmission trees are
+not available and must be approximated, often by way of a viral phylogeny.
+Although this has been demonstrated to be a fair
+approximation~\autocite[e.g.][]{leitner1996accurate}, and is frequently used in
+practice~\autocite[e.g.][]{stadler2013uncovering}, the topologies of a viral
+phylogeny and transmission tree can differ
+significantly~\autocite{ypma2013relating} due to within-host evolution and the
+sampling process. We have left the estimation of a transmission tree up to the
+user. In theory, it is possible to incorporate the process by which a viral
+phylogeny is generated along with a transmission tree into our method, for
+example by simulating within-host dynamics. Although this may be an avenue for
+future extension, we felt that it would obscure the primary purpose of this
+work, which is to study contact network parameters. In addition, there are a
+number of different methods available for inferring transmission
+trees~\autocite{didelot2014bayesian, ypma2012unravelling,
+jombart2011reconstructing, cottam2008integrating}, some of which incorporate
+geographic and/or epidemiological data not accommodated by our method. We
+therefore felt it would be best to allow researchers to use their own preferred
+method of constructing a transmission tree.
 
 Our implementation of \gls{SMC} uses a simple multinomial scheme to sample
 particles from the population according to their weights. Several other
 sampling strategies have been developed~\autocite{douc2005comparison}, and it
 is possible that the use of a more sophisticated technique might increase the
-algorithm's accuracy. 
+algorithm's accuracy. Finally, the \gls{ABC}-\gls{SMC} algorithm is
+computationally intensive, taking about a day when run on 20 cores in parallel
+with the settings described in the methods section. Implementing parallization
+using MPI, rather than POSIX threads as we have done here, would allow the
+program to be run over a larger number of cores on multiple CPUs in parallel.
 
 \subsection{Analysis of \acrlong{BA} model}
 
@@ -81,21 +101,23 @@ The preferential attachment power \gls{alpha} had a very strong influence on
 tree shape in the range of values we considered. Although the tree kernel was
 the most effective classifier for \gls{alpha}, a tree balance statistic
 performed nearly as well. This result was intuitive: high \gls{alpha} values
-produce networks with few well-connected superspreader nodes which are involved
-in a large number of transmissions, resulting in a highly unbalanced
-ladder-like tree structure. The \gls{I} parameter, representing the prevalence
-at the time of sampling, was also generally estimable. The dynamics of the
-\gls{SI} model, and the coalescent process, offer a potential explanation for
-this result. In the initial phase of the epidemic, when \gls{I} is small, each
-new transmission results in potentially many new discordant edges, thus
-decreasing the waiting time until the next transmission. Hence, there is an
+produce networks with few well-connected ``superspreader'' nodes which are
+involved in a large number of transmissions, resulting in a highly unbalanced
+ladder-like tree structure (\cref{fig:alphatrees}). The \gls{I} parameter,
+representing the prevalence at the time of sampling, was also generally
+estimable. The dynamics of the \gls{SI} model, and the coalescent
+process~\autocite{kingman1982coalescent}, offer a potential explanation for
+this result. \Cref{fig:sir} shows simulated trajectories of the \gls{SIR}
+model. In the initial phase of the epidemic, when \gls{I} is small, each new
+transmission results in potentially many new discordant edges, thus decreasing
+the waiting time until the next transmission. Hence, there is an
 early exponential growth phase, producing many short branches near the root of
 the tree. As the epidemic gets closer to saturating the network, the number of
 discordant edges decays, causing longer waiting times. The distribution of
-coalescent times in the tree should therefore be informative about \gls{I}.
-This information is captured by the tree kernel, and also by the \gls{nltt}
-statistic, which both performed quite will in classifying \gls{I}
-(\cref{fig:rsquared}).
+coalescence times in the tree should therefore be informative about
+\gls{I}~\autocite{volz2009phylodynamics}. This information is captured by the
+tree kernel, and also by the \gls{nltt} statistic, which both performed quite
+will in classifying \gls{I} (\cref{fig:rsquared}).
 
 The number of nodes in the network, \gls{N}, exhibited the most variation in
 terms of being estimable. There was almost no difference between trees
@@ -107,8 +129,10 @@ small number of nodes to a network after the epidemic simulation has already
 been completed. It is possible that none of these new nodes attains a
 connection to any infected node. Thus, running the simulation again on the new,
 larger network could produce the exact same transmission tree as before. On the
-other hand, when \gls{I} is large, the coalescent dynamics discussed above for
-\gls{I} also apply, as evidenced by the relative accuracy of the \gls{nltt}.
+other hand, when \gls{I} is large relative to \gls{N}, the coalescent dynamics
+discussed above also apply. That is, the waiting times until the next infection
+increase, resulting in longer coalescence times toward the tips. The relative
+accuracy of the \gls{nltt} in these situations coroborates this hypothesis.
 The \gls{m} parameter, which controls the number of connections added to the
 network per vertex, did not have a measurable impact on tree shape and was not
 estimable with kernel-ABC. The exception to this was the value \gls{m} = 1,
@@ -126,8 +150,9 @@ capture particular details of tree shape. Two of these, Sackin's index and the
 ratio of internal to terminal branch lengths, were correlated with every
 \gls{BA} parameter. Classifiers based on Sackin's index and the \gls{nltt}
 similarity measure performed well in some cases, though poorly in others.
-\gls{ABC} is often applied using a vector of summary statistics, rather than a
-kernel-based similarity score as we have done here, and methods have been
+\gls{ABC} is often applied using a vector of summary
+statistics~\autocite{marin2012approximate, sunnaaker2013approximate}, rather
+than a kernel-based similarity score as we have done here. Methods have been
 developed to select an optimal combination of summary statistics for a given
 inference task~\autocite{fearnhead2012constructing}. Hence, an avenue for
 future improvement of our method may be the inclusion of additional summary
@@ -152,11 +177,11 @@ parameters of interest.
 
 As noted by \textcite{lintusaari2016identifiability}, uniform priors on model
 parameters may translate to highly informative priors on quantities of
-interest. We observed a non-linear relationship between the pcreferential
+interest. We observed a non-linear relationship between the preferential
 attachment power $\alpha$ and the power law exponent $\gamma$
-(\cref{fig:gamma}). Thecrefore, placing a uniform prior on $\alpha$ between 0
+(\cref{fig:gamma}). Therefore, placing a uniform prior on $\alpha$ between 0
 and 2 is equivalent to placing an informative prior that $\gamma$ is close to
-2. Thecrefore, if we were primarily interested in $\gamma$ rather than
+2. Therefore, if we were primarily interested in $\gamma$ rather than
 $\alpha$, a more sensible choice of prior might have a shape informed by
 \cref{fig:gamma} and be bounded above by approximately $\alpha$ = 1.5. This
 would uniformly bound $\gamma$ in the region $2 \leq \gamma \leq 4$ commonly
@@ -172,9 +197,9 @@ Our investigation of published HIV datasets indicated heterogeneity in the
 contact network structures underlying several distinct local epidemics. When
 interpreting these results, we caution that the BA model is quite simple and
 most likely misspecified for these data. In particular, the average degree of a
-node in the network is equal to $2m$, and thecrefore is constrained to be a
+node in the network is equal to $2m$, and therefore is constrained to be a
 multiple of 2. Furthermore, we considered the case $m = 1$, where the network
-has no cycles, to be implausible and thecrefore assigned it zero prior
+has no cycles, to be implausible and therefore assigned it zero prior
 probability in one set of analyses. This forced the average degree to be at
 least four, which may be unrealistically high for sexual networks. The fact
 that the estimated values of $\alpha$ differed substatially for three datasets
@@ -186,19 +211,19 @@ studied. More sophisticated models, for example models incorporating
 heterogeneity in node behaviour, are likely to provide a better fit to these
 data.
 
-With respect to the pcreferential attachment power $\alpha$, the five datasets
-analysed fell into three categories (\cref{fig:abchpd}). First, we
-estimated a pcreferential attachment power close to 1, indicating linear
-pcreferential attachment, for the outbreaks studied by
+With respect to the preferential attachment power $\alpha$, the six datasets
+analysed fell into two categories (\cref{fig:abchpd}). First, we estimated a
+preferential attachment power close to 1, indicating linear preferential
+attachment, for the BC data and the outbreaks studied by
 \textcite{niculescu2015recent} and \textcite{wang2015targeting}. These values
-were robust to specifying different priors for $m$. Both studies were of
-populations in which we would expect a high degree of epidemiological
-relatedness: \textcite{niculescu2015recent} studied a recent outbreak among
-Romanian injection drug users (IDU), while \citeauthor{wang2015targeting}
-sampled acutely infected MSM in Beijing, China. Both these are contexts in
-which we would expect some of the assumptions of the BA model, such as a
-connected network, relatively high mean degree, and pcreferential attachment
-dynamics, to hold.
+were robust to specifying different priors for $m$. All three datasets were
+sampled from populations in which we would expect a high degree of
+epidemiological relatedness: \textcite{niculescu2015recent} studied a recent
+outbreak among Romanian \gls{IDU}, \citeauthor{wang2015targeting} sampled
+acutely infected MSM in Beijing, China, and the BC data constituted a
+phylogenetic \gls{IDU} cluster. These are all contexts in which we would expect
+some of the assumptions of the BA model, such as a connected network,
+relatively high mean degree, and preferential attachment dynamics, to hold.
 
 The remaining three datasets (\textcite{cuevas2009hiv, novitsky2014impact,
 li2015hiv}) had estimated values of $\alpha$ below 0.5 when $m = 1$ was
@@ -209,7 +234,7 @@ a large proportion of the samples were epidemiologically linked, these were
 mainly in small local clusters rather than the single large component
 postulated by the BA model. In addition, the mixed risk groups in the dataset
 would be unlikely to significantly interact, further weakening any global
-pcreferential attachment dynamics. The dataset studied by
+preferential attachment dynamics. The dataset studied by
 \textcite{novitsky2014impact} originated from a densely sampled population
 where the predominant risk factor was believed to be heterosexual exposure.
 Although the MAP estimate of $\alpha$ was almost unchanged when the value $m =
@@ -223,7 +248,7 @@ contact network underlying the subtree we investigated includes a much larger
 group based in the capital city, which would explain the high estimate of $I$.
 There is no clear explanation for the discrepancy between the two priors for
 the \textcite{li2015hiv} data, as the subset we analyzed formed a phylogenetic
-cluster and thecrefore was a good candidate for the BA model. However, nearly
+cluster and therefore was a good candidate for the BA model. However, nearly
 all the posterior density was assigned to $m = 1$ when this value was allowed,
 indicating that the network was more likely to have an acyclic tree structure.
 
@@ -240,4 +265,6 @@ in a phylodynamic context. However, the Gillespie simulation algorithm built
 into \software{netabc} can handle arbitrary transmission and removal rates
 which need not be homogeneous across the network. Moreover, it is possible to
 use kernel-\gls{ABC} to fit a model which relaxes some or all of these
-assumptions, which may be a fruitful avenue for future investigation.
+assumptions, which may be a fruitful avenue for future investigation. Despite
+the possible misspecification, our estimates of the power law exponent $\gamma$
+were in line with those reported in the literature (\cref{tab:gamma}).

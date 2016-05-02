@@ -7,13 +7,14 @@ Steps:
         Extension: tsv
         Parameters:
             m_min: [1, 2]
+            nparticle: 1000
             dataset: ["bctree", "cuevas2009", "wang2015", "novitsky2014",
                       "niculescu2015", "li2015"]
         Interpreter: R --silent --vanilla
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
             m <- collect.metadata("{dataset}/abc/*")
-            trace <- rownames(m)[m$m_min == {m_min}]
+            trace <- rownames(m)[m$m_min == {m_min} & m$nparticle == {nparticle}]
             d <- fread(trace)[iter == max(iter),]
             d <- d[sample(1:nrow(d), prob=weight, replace=TRUE)]
             m <- c(as.list(collect.metadata(trace)), dataset="{dataset}")
@@ -150,6 +151,40 @@ Steps:
             layout <- rbind(c(1,1,2,2), c(3,3,4,4), c(5,5,5,5))
             g <- arrangeGrob(palpha, pI, pm + theme(legend.position="none"), pN, g_legend(pm), layout_matrix=layout)
             ggsave(g, file="{hpd-plot}", width=6, height=5)
+
+    gamma:
+        Extension: tsv
+        Parameters:
+            m_min: [1, 2]
+            nparticle: 1000
+            dataset: ["bctree", "cuevas2009", "wang2015", "novitsky2014",
+                      "niculescu2015", "li2015"]
+        Interpreter: R --silent --vanilla
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            m <- collect.metadata("{dataset}/abc/*")
+            file <- rownames(m)[m$m_min == {m_min} & m$nparticle == {nparticle}]
+            d <- fread(file)
+            cat(paste0("#", yaml, "\n"), file="{gamma}")
+            write.tsv(d, file="{gamma}", append=TRUE)
+
+    gamma-table:
+        Extension: tsv
+        Parameters:
+            m_min: [1, 2]
+            nparticle: 1000
+        Interpreter: R --silent --vanilla
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(xtable))
+        Rule: |
+            d <- setDT(collect.data(strsplit("{gamma}", " ")[[1]]))
+            d <- d[,list(gamma = median(gamma)), by=dataset]
+            setnames(d, c("Dataset", "Estimated $\\gamma$"))
+            options(digits=2)
+            xtab <- xtable(tbl, align=c("l", "r"))
+            print(xtab, floating=FALSE, file="{gamma-table}",
+                  sanitize.text.function=identity, include.rownames=FALSE)
 
     classifier:
         Extension: tsv
