@@ -8,7 +8,7 @@ Steps:
         Walltime: 00:00:30
         Parameters:
             true_N: 5000
-            true_m: [2, 3, 4]
+            true_m: [1, 2, 3, 4]
             true_alpha: [0.0, 0.5, 1.0, 1.5]
             replicate: "range(3)"
         Interpreter: R --vanilla --silent
@@ -23,10 +23,10 @@ Steps:
         Extension: nwk
         Walltime: 00:00:30
         Parameters:
-            true_m: [2, 3, 4]
+            true_m: [1, 2, 3, 4]
             true_alpha: [0.0, 0.5, 1.0, 1.5]
             replicate: "range(3)"
-            true_I: [1000, 2000]
+            true_I: [1000, 2000, 3000]
             ntip: 500
         Depends: network
         Interpreter: bash
@@ -64,10 +64,10 @@ Steps:
         Sleep: 600
         Parameters:
             true_N: 5000
-            true_m: [2, 3, 4]
+            true_m: [1, 2, 3, 4]
             true_alpha: [0.0, 0.5, 1.0, 1.5]
             replicate: "range(3)"
-            true_I: [1000, 2000]
+            true_I: [1000, 2000, 3000]
             ntip: 500
             N_min: 500
             N_max: 15000
@@ -155,7 +155,7 @@ Steps:
             rbf_variance: 4
             nltt: 0
             nparticle: 1000
-            true_m: [2, 3, 4]
+            true_m: [1, 2, 3, 4]
         Depends: point-estimate
         Interpreter: R --vanilla --silent
         Startup: |
@@ -188,7 +188,7 @@ Steps:
                     geom_abline(intercept=0, slope=1000, linetype=2) +
                     theme(text=element_text(size=font.size),
                           plot.margin=unit(c(2, 0, 0, 0), "lines"))
-            pm <- ggplot(d, aes(x=factor(true_alpha), y=m,
+            pm <- ggplot(d, aes(x=factor(true_alpha), y=m+0.5,
                                 color=factor(true_I), shape=factor(true_I), 
                                 group=grp)) + 
                     geom_point(position=position_dodge(width=0.6), size=point.size) + 
@@ -235,10 +235,10 @@ Steps:
             nltt: 0
             nparticle: 1000
             true_N: 5000
-            true_m: [2, 3, 4]
+            true_m: [1, 2, 3, 4]
             true_alpha: [0.0, 0.5, 1.0, 1.5]
-            true_I: [1000, 2000]
-            replicate: 0
+            true_I: [1000, 2000, 3000]
+            replicate: "range(3)"
         Depends: abc
         Interpreter: R --vanilla --silent
         Startup: |
@@ -250,7 +250,7 @@ Steps:
                     N_min=500, N_max=15000, m_min=1, m_max=5, show.map=FALSE,
                     true_alpha={true_alpha}, true_I={true_I}, true_m={true_m}, 
                     true_N={true_N})
-            ggsave(p, file="{posterior-plot}", height=5)
+            ggsave(p, file="{posterior-plot}", height=5, width=6)
 
     hpd-table:
         Extension: txt

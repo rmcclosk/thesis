@@ -16,6 +16,9 @@ all: bctree novitsky2014 cuevas2009 li2015 wang2015 niculescu2015 \
 	gridsearch-alpha gridsearch-I gridsearch-m gridsearch-n \
 	aggregates
 
+clean:
+	rm -f *.[eo][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]
+
 # kernel classifier experiments
 
 kernel-%: local
@@ -28,7 +31,7 @@ gridsearch-%: local
 
 # ABC simulation experiments
 
-abc-pa-free-m: breezy.westgrid.ca
+abc-pa-free-m: jasper.westgrid.ca
 	$(call FETCH,$^,$@)
 	$(call RUN,$@)
 

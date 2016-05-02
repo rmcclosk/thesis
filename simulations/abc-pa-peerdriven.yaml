@@ -116,34 +116,14 @@ Steps:
             final_accept: 0.015
         Depends: abc
         Interpreter: R --vanilla --silent
-        Startup: suppressPackageStartupMessages(library(netabc))
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(grid))
         Rule: |
-            d <- fread("bzcat {abc} | head -n -1")[iter == max(iter)]
-            d <- d[sample(1:nrow(d), prob=weight, replace=TRUE)]
-            vars <- c("N", "I", "m", "alpha")
-            priors <- data.table(variable=vars, 
-                                 min=c({N_min}, {I_min}, {m_min}, {alpha_min}),
-                                 max=c({N_max}, {I_max}, {m_max}-1, {alpha_max}))
-            truth <- data.table(variable=vars,
-                                value=c({N}, {I}, {m}, {alpha}))
-            d <- melt(d[,vars,with=FALSE], measure.vars=vars)
-            d <- merge(d, priors, by="variable")
-
-            d[,label := "N"]
-            d[variable == "I", label := "I"]
-            d[variable == "m", label := "m"]
-            d[variable == "alpha", label := "alpha"]
-            plots <- by(d, d[,variable], function (by.d) {{
-                p <- ggplot(by.d, aes(x=value)) + geom_density() + theme_bw() +
-                    by.d[1,xlim(min, max)] +
-                    geom_vline(xintercept=truth[variable==by.d[1,variable], value], linetype=2) +
-                    theme(axis.text.y=element_blank(),
-                          axis.ticks.y=element_blank())
-                if (by.d[1,label] == "alpha")
-                    p + labs(x=expression(alpha), y="")
-                else
-                    p + labs(x=by.d[1, label], y="")
-            }})
-            pdf("{posterior-plot}")
-            do.call(grid.arrange, c(plots, ncol=2))
-            dev.off()
+            d <- fread("bzcat {abc} | head -n -1")
+            p <- posterior.plot.pa(d, alpha_min={alpha_min}, alpha_max={alpha_max},
+                                   I_min={I_min}, I_max={I_max}, N_min={N_min},
+                                   N_max={N_max}, m_min={m_min}, m_max={m_max},
+                                   true_alpha={alpha}, true_I={I}, true_m={m},
+                                   true_N={N}, show.map=FALSE)
+            ggsave(p, file="{posterior-plot}", width=6, height=5)
