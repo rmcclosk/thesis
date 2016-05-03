@@ -4,9 +4,7 @@
 \usepackage{array}
 \usepackage{nicefrac}
 \usepackage{fullpage}
-\usepackage[T1]{fontenc}
-\usepackage[sfmath]{kpfonts}
-\usepackage[default]{gillius}
+\usepackage{mathptmx}
 \usepackage[normalem]{ulem}
 
 \usetikzlibrary{positioning}
@@ -61,32 +59,28 @@
     \end{tabular}
   };
 
-  \node (rect5) [right=of rect1, box] { };
+  \node (rect5) [right=of rect2, box] { };
   \node at (rect5.north) [anchor=north, text width=\boxw, align=center] {
-    \uline{42 kernel matrices ($300 \times 300$)} \\ \vspace{4pt}
-    $\lambda$ = \{ \nicefrac18, \nicefrac14, \nicefrac12, 1, 2, 4, 8 \} \\
-    $\sigma$ = \{ 0.2, 0.3, 0.4 \} \\
-    nLTT = \{ yes, no \} \\
+    \uline{3 tree shape statistics} \\ \vspace{4pt}
+    300 $\times$ 300 kernel matrix \\
+    300 $\times$ 300 nLTT matrix \\
+    300 Sackin's index values
   };
 
-  \node (rect6) [below=of rect5, box] { };
+  \node (rect6) [right=of rect1, box] { };
   \node at (rect6.north) [anchor=north, text width=\boxw, align=center] {
-    \uline{42 cross validations} \\ \hfill \\
-    R$^2$ $\times$ 42
+    \uline{3 cross-validations} \\ \hfill \\
+    \includegraphics[height=1cm]{tinyksvr}
+    $\qquad$
+    \includegraphics[height=1cm]{tinysvr}
+    $\qquad$
+    \includegraphics[height=1cm]{tinyreg}
   };
 
-  \node (rect7) [below=of rect6, box] { };
+  \node (rect7) [right=of rect3, box] { };
   \node at (rect7.north) [anchor=north, text width=\boxw, align=center] {
-    \uline{optimal kernel meta-parameters} \\ \hfill \\
-    $\lambda$ = 4,\; $\sigma$ = 0.3,\; nLTT = no
-  };
-
-  \node (rect8) [below=of rect7, minimum width=\boxw, minimum height=\boxh,
-                 align=center, text width=\boxw] {
-    repeat 8 times \\
-    \vspace{4pt}
-    infected nodes = \{ 500, 1000, 2000 \} \\
-    sampled nodes = \{ 100, 500, 1000 \}
+    \uline{kernel-PCA projection} \\ \hfill \\
+    \includegraphics[height=1cm]{tinypca}
   };
 
   \coordinate [left=0.5 of rect5.west] (r5w);
@@ -124,7 +118,7 @@
   \draw [thick] (r4ene) -- ++ (0.5cm, -0.5cm);
   \draw [thick] (r4ese) -- ++ (0.5cm, 0.5cm);
   \draw [next] (rect5) -- (rect6);
-  \draw [next] (rect6) -- (rect7);
+  \draw [next] (rect5) -- (rect7);
 \end{tikzpicture}
 
 \end{document}

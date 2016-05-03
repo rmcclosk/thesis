@@ -34,3 +34,43 @@ for (i in 1:3) {
     plot(t, direction="down", edge.width=5, edge.color=col[i], show.tip.label=FALSE)
     dev.off()
 }
+
+npt <- 5
+x <- c(rnorm(npt, sd=0.2), rnorm(npt, mean=2, sd=0.2), rnorm(npt, mean=4, sd=0.2))
+y <- rnorm(npt*3)
+png("tinypca.png", bg="transparent", width=500, height=100)
+par(mar=c(0, 0, 0, 0) + 0.1)
+plot(x, y, pch=16, cex=3, col=rep(col, each=npt))
+box(lwd=4)
+dev.off()
+
+x <- c(rnorm(npt, sd=0.2), rnorm(npt, mean=2, sd=0.2), rnorm(npt, mean=4, sd=0.2))
+y <- c(rnorm(npt, mean=1, sd=0.2), rnorm(npt, mean=0, sd=0.2), rnorm(npt, mean=1, sd=0.2))
+png("tinyksvr.png", bg="transparent", width=100, height=100, type="cairo")
+par(mar=c(0, 0, 0, 0) + 0.1)
+plot(splinefun(x=c(0, 2, 4), y=c(1, 0, 1)), lwd=4, xlim=c(-0.5, 4.5))
+plot(splinefun(x=c(0, 2, 4), y=c(1, 0, 1)), lwd=32, add=TRUE, xlim=c(-0.5, 4.5), 
+     col=rgb(0, 0, 0, alpha=0.5))
+points(x, y, pch=16, cex=2, col=rep(col, each=npt))
+box(lwd=4)
+dev.off()
+
+x <- c(rnorm(npt, sd=0.2), rnorm(npt, mean=2, sd=0.2), rnorm(npt, mean=4, sd=0.2))
+y <- c(rnorm(npt, mean=0, sd=0.2), rnorm(npt, mean=0.33, sd=0.2), rnorm(npt, mean=1, sd=0.2))
+png("tinysvr.png", bg="transparent", width=100, height=100, type="cairo")
+par(mar=c(0, 0, 0, 0) + 0.1)
+plot(x, y, pch=16, cex=2, col=rep(col, each=npt), type="n")
+abline(a=0, b=0.2, lwd=4)
+abline(a=0, b=0.2, lwd=32, col=rgb(0, 0, 0, alpha=0.5))
+points(x, y, pch=16, cex=2, col=rep(col, each=npt))
+box(lwd=4)
+dev.off()
+
+x <- c(rnorm(npt, sd=0.2), rnorm(npt, mean=2, sd=0.2), rnorm(npt, mean=4, sd=0.2))
+y <- c(rnorm(npt, mean=0, sd=0.2), rnorm(npt, mean=0.5, sd=0.2), rnorm(npt, mean=1, sd=0.2))
+png("tinyreg.png", bg="transparent", width=100, height=100)
+par(mar=c(0, 0, 0, 0) + 0.1)
+plot(x, y, pch=16, cex=2, col=rep(col, each=npt))
+abline(a=0, b=0.25, lwd=4)
+box(lwd=4)
+dev.off()

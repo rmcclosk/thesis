@@ -5,8 +5,7 @@
 \usepackage{nicefrac}
 \usepackage{fullpage}
 \usepackage[T1]{fontenc}
-\usepackage[sfmath]{kpfonts}
-\usepackage[default]{gillius}
+\usepackage{mathptmx}
 \usepackage[normalem]{ulem}
 
 \usetikzlibrary{positioning}
@@ -26,7 +25,7 @@
   \tikzstyle{next}=[->, >=stealth, thick]
 
   \node (rect1) [box] { };
-  \node at (rect1.north) [anchor=north] {\uline{$k$ testing values}};
+  \node at (rect1.north) [anchor=north] {\uline{$k$ test values}};
   \node (t3) [above=0.5cm of rect1.south, inner sep=6pt, circle, draw, fill=blue!60!white] { };
   \node (t2) [left=0.5cm of t3, circle, inner sep=6pt, draw, fill=blue!80!white] { };
   \node (t4) [right=0.5cm of t3, circle, inner sep=6pt, draw, fill=blue!40!white] { };
@@ -34,7 +33,7 @@
   \node (t5) [right=0.5cm of t4, circle, inner sep=6pt, draw, fill=blue!20!white] { };
 
   \node (rect2) [box, right=of rect1] { };
-  \node at (rect2.north) [anchor=north] {\uline{$n$ training values}};
+  \node at (rect2.north) [anchor=north] {\uline{$n$ grid values}};
   \node (bar) [above=0.5cm of rect2.south, minimum width=6cm, minimum height=0.5cm, 
          rectangle, draw, left color=blue, right color=white] { };
   \foreach \x in {0.2, 0.4, ..., 6}{
@@ -42,7 +41,7 @@
   }
 
   \node (rect3) [box, below=of rect1] { };
-  \node at (rect3.north) [anchor=north] {\uline{$10 \times k$ testing trees}};
+  \node at (rect3.north) [anchor=north] {\uline{$10 \times k$ test trees}};
   \node [above=4pt of rect3.south] {
     \begin{tabular}{m{0.8cm} m{1cm} m{1cm} m{0.8cm} m{1cm}}
       \includegraphics[width=1cm]{testtree1} & $\times$ 10 &
@@ -52,7 +51,7 @@
   };
 
   \node (rect4) [box, below=of rect2] { };
-  \node at (rect4.north) [anchor=north] {\uline{$15 \times n$ training trees}};
+  \node at (rect4.north) [anchor=north] {\uline{$15 \times n$ grid trees}};
   \node [above=4pt of rect4.south] {
     \begin{tabular}{m{0.8cm} m{1cm} m{1cm} m{0.8cm} m{1cm}}
       \includegraphics[width=1cm]{testtree1} & $\times$ 15 &
@@ -71,7 +70,7 @@
   \node (rect6) [box, below=of rect5] { };
   \node at (rect6.north) [anchor=north] {\uline{$10 \times k$ parameter estimates}};
   \node [above=6pt of rect6.south, minimum width=\boxw, text width=\boxw, align=center] {
-    point estimate = training value with highest median kernel score
+    point estimate = grid value with highest median kernel score
   };
 
   \coordinate [above=0.5 of rect5.north] (r5n);

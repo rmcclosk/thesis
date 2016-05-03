@@ -4,7 +4,7 @@ library(data.table)
 library(extrafont)
 
 trace.file <- system2(c("locate", "check_smc_trace.tsv"), stdout=TRUE)
-trace <- fread(trace.file)
+trace <- fread(trace.file[1])
 
 trace <- trace[iter == max(iter)]
 trace <- trace[sample(1:nrow(trace), prob=weight, replace=TRUE)]

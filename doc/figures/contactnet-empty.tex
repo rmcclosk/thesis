@@ -1,0 +1,43 @@
+\documentclass[landscape]{article}
+\usepackage{tikz}
+\usepackage[T1]{fontenc}
+\usepackage{mathptmx}
+\usepackage{fullpage}
+
+\usetikzlibrary{positioning}
+\usetikzlibrary{calc}
+\usetikzlibrary{arrows}
+\usetikzlibrary{automata}
+
+\graphicspath{{stock/}}
+
+\begin{document}
+\pagestyle{empty}
+
+\begin{tikzpicture}
+  [every node/.style = {inner sep=0pt},
+   every path/.style = {->, >=stealth, very thick},
+   label/.style = {anchor=south, color=white, inner sep=6pt},
+   time/.style = {anchor=north west, inner sep=2pt}]
+  \def\pht{1.5cm}
+
+  \node at (-6, 5.5) (a) {\includegraphics[height=\pht]{person}};
+  \node at (a.south) [label] {\huge a};
+  \node [below left=of a] (b) {\includegraphics[height=\pht]{person}};
+  \node at (b.south) [label] {\huge b};
+  \node [below=of b] (e) {\includegraphics[height=\pht]{person}};
+  \node at (e.south) [label] {\huge e};
+  \node [below right=of a] (c) {\includegraphics[height=\pht]{person}};
+  \node at (c.south) [label] {\huge c};
+  \node [below=of c] (d) {\includegraphics[height=\pht]{person}};
+  \node at (d.south) [label] {\huge d};
+
+  \fill [shade, opacity=0.2] (a.east) -- (c.north) -- (c.north west) -- (a.south east) -- cycle;
+  \fill [shade, opacity=0.2] (a.west) -- (b.north) -- (b.north east) -- (a.south west) -- cycle;
+  \fill [shade, opacity=0.2] (a.south) -- (a.south west) -- (e.north) -- (e.north east) -- cycle;
+  \fill [shade, opacity=0.2] (b.south west) -- (b.south) -- (e.north) -- (e.north west) -- cycle;
+  \fill [shade, opacity=0.2] ($(c.south) + (-8pt, 0)$) -- ++(16pt, 0) -- ($(d.north) + (8pt, 0)$) -- ++(-16pt, 0) -- cycle;
+  \fill [shade, opacity=0.2] (b.east) -- (b.south east) -- (d.west) -- (d.north west) -- cycle;
+\end{tikzpicture}
+
+\end{document}
