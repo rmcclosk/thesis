@@ -6,6 +6,11 @@ clean:
 	rm -f *.acn *.acr *.alg *.aux *.bbl *.bcf *.blg *.glg *.glo *.gls *.ist \
 		  *.lof *.log *.out *.pdf *.xml *.toc results.tex
 
+check: main.tex preamble.tex preface.tex intro.tex objective.tex methods.tex results.tex appendix.tex discussion.tex
+	for FILE in $^; do \
+		aspell check $$FILE --add-tex-command="autocite op" --add-tex-command="textcite op" \
+	done
+
 outline.pdf: outline.md outline.sty
 	pandoc -V geometry:margin=2cm --number-sections -H $(word 2, $^) $(word 1, $^) -o $@
 

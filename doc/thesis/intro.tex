@@ -307,7 +307,7 @@ and their branch lengths in a single similarity score.
 
 The kernel score of a pair of trees, denoted $K(T_1, T_2)$, is defined as a sum
 over all pairs of nodes $(n_1, n_2)$, where $n_1$ is a node in $T_1$ and $n_2$
-is a node in $T_2$. Folloting \textcite{poon2013mapping}, let $N(T)$ denote the
+is a node in $T_2$. Following \textcite{poon2013mapping}, let $N(T)$ denote the
 set of all nodes in $T$, $\nc(n)$ be the number of children of node $n$,
 $c_n^{j}$ be the $j$th child of node $n$, and $l_n$ be the vector of branch
 lengths connecting node $n$ to its descendants. The \defn{production rule} of
@@ -1066,13 +1066,13 @@ distance~\autocite{sisson2007sequential}. For more complex data,
 \label{subsec:abcalg}
 
 Algorithms for performing \gls{ABC} fall into one of three categories:
-rejection, \gls{MCMC}, and \gls{SMC}. To simplify the math, we shall restrict
-the descriptions of these algorithms to the case of one simulated dataset per
-parameter particle (the meaning of this will become clear shortly). The
-extension to multiple datasets per particle is straightforward and will be
-given at the end of the section. We use the variable $x$ to refer to the pair
-$(\theta, z)$, so that the \gls{ABC} target distribution can be written
-$\pi_\varepsilon(x \mid y)$.
+rejection, \gls{MCMC}, and \gls{SMC}~\autocite{marin2012approximate}. To
+simplify the math, we shall restrict the descriptions of these algorithms to
+the case of one simulated dataset per parameter particle (the meaning of this
+will become clear shortly). The extension to multiple datasets per particle is
+straightforward and will be given at the end of the section. We use the
+variable $x$ to refer to the pair $(\theta, z)$, so that the \gls{ABC} target
+distribution can be written $\pi_\varepsilon(x \mid y)$.
 
 Rejection ABC is the simplest method, and also the one which was first
 proposed~\autocite{rubin1984bayesianly, tavare1997inferring}. The algorithm,

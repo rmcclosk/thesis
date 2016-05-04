@@ -252,24 +252,27 @@ to the network, \gls{m} new undirected edges are added incident to it, and are
 attached to existing nodes of degree $k$ with probability proportional to
 $k^\alpha + 1$ (\cref{subsec:pa}). To simulate transmission trees over a
 \gls{BA} network, we allowed an epidemic to spread until \gls{I} nodes were
-infected, and sampled a transmission tree at that time. We assumed that all
-contacts had symmetric transmission risk, which was implemented by replacing
-each undirected edge in the network with two directed edges (one in each
-direction).
+infected, and sampled a transmission tree at that time. The \gls{alpha}
+parameter is unitless, while \gls{m} has units of edges or connections per
+vertex, and \gls{N} and \gls{I} both have units of nodes or individuals.
 
-Nodes in our networks followed simple \gls{SI} dynamics, meaning that they
-became infected at a rate proportional to their number of infected neighbours,
-and never recovered.  We did not consider the time scale of the transmission
-trees in these simulations, only their shape. Therefore, the transmission rate
-along each edge in the network was set to 1, the removal rate of each node was
-set to 0, and all transmission trees' branch lengths were scaled by their mean.
-For all analyses, the transmission trees' branch lengths were scaled by
-dividing by their mean. We used the \textit{igraph} library's implementation of
-the BA model~\autocite{csardi2006igraph} to generate the graphs. The analyses
-were run on Westgrid (\url{https://www.westgrid.ca/}) and a local computer
-cluster.
+We assumed that all contacts had symmetric transmission risk, which was
+implemented by replacing each undirected edge in the network with two directed
+edges (one in each direction). Nodes in our networks followed simple \gls{SI}
+dynamics, meaning that they became infected at a rate proportional to their
+number of infected neighbours, and never recovered. We did not consider the
+time scale of the transmission trees in these simulations, only their shape.
+Therefore, the transmission rate along each edge in the network was set to 1,
+the removal rate of each node was set to 0, and all transmission trees' branch
+lengths were scaled by their mean. For all analyses, the transmission trees'
+branch lengths were scaled by dividing by their mean. We used the
+\textit{igraph} library's implementation of the BA
+model~\autocite{csardi2006igraph} to generate the graphs. The analyses were run
+on Westgrid (\url{https://www.westgrid.ca/}) and a local computer cluster. With
+the exception of our own programs, all analyses were done in \software{R}, and
+all packages listed below are \software{R} packages.
 
-\subsubsection*{Kernel classifiers}
+\subsubsection*{Classifiers for BA model parameters based on tree shape}
 \label{subsec:kernel}
 
 The experiments presented here involved a large number of variables which were
@@ -278,8 +281,7 @@ experiment first, then enumerate the values of all variables for which the
 experiment was repeated. The parameters of the tree kernel, $\lambda$ and
 $\sigma$ (\cref{subsec:treeshape}) will be referred to as
 \defn{meta-parameters} to distinguish them from the parameters of the \gls{BA}
-model. With the exception of our own programs, all analyses were done in
-\software{R}, and all packages listed below are \software{R} packages.
+model. 
 
 The attachment power parameter \gls{alpha} was varied among three values: 0.5,
 1.0, and 1.5. For each value, the \software{sample\_pa} function in the
@@ -388,13 +390,21 @@ each grid value, and the scores were normalized such that the area under the
 curve was equal to 1. The grid value with the highest median kernel score was
 taken as the point estimate for the test value, and a 95\% credible interval
 was obtained using the \software{hpd} function in the \software{TeachingDemos}
-package.
+package~\autocite{snow2013teachingdemos}.
 
 Each experiment of the type just described was repeated ten times with the same
 test value. Similar experiments were performed for each of the four \gls{BA}
 parameters, with several test values and trees of varying sizes. The variables
 are listed in \cref{tab:gridexpt}. A graphical schematic of the grid search
-experiments is shown in \cref{fig:gridexpt}.
+experiments is shown in \cref{fig:gridexpt}. 
+%Spearman's correlation was used to test whether the number of tips in the tree
+%was correlated with the acccuracy of the point estimates. One-way \gls{ANOVA}
+%was used to test whether the accuracy of the point estimates were significantly
+%higher for any parameter values. If so, the distribution of errors was examined
+%to choose a suitable post hoc test. If there appeared to be a correlation
+%between the parameter value and the accuracy of the estimate, Spearman's
+%correlation was calculated. If there were one or more particular values which
+%appeared to have lower error, we used the Wilcoxon rank-sum test.
 
 \begin{figure}[ht]
   \centering
@@ -457,20 +467,40 @@ package~\autocite{plummer2006coda}.
 %\gls{GLM} with Gamma-distributed errors and a log link function to the observed
 %distribution of \gls{gamma} values, with \gls{alpha}, \gls{m}, \gls{N}, and all
 %possible interaction terms as predictors.
+%
+%\begin{table}
+%  \centering
+%  \input{\tablepath/gamma-expt}
+%  \caption[\gls{BA} parameters used as input \gls{GLM} predicting $\gamma$]
+%  {
+%    \gls{BA} model parameters used as input to \gls{GLM} predicting power law
+%    exponent $\gamma$. One network was simulated with each combination of
+%    parameters, and $\gamma$ was calculated for each network. A \gls{GLM} with
+%    Gamma-distributed errors and a log link function was fit to the $\gamma$
+%    values with all parameters and interaction terms as predictors.
+%  }
+%  \label{tab:gammaexpt}
+%\end{table}
 
-\begin{table}
-  \centering
-  \input{\tablepath/gamma-expt}
-  \caption[\gls{BA} parameters used as input \gls{GLM} predicting $\gamma$]
-  {
-    \gls{BA} model parameters used as input to \gls{GLM} predicting power law
-    exponent $\gamma$. One network was simulated with each combination of
-    parameters, and $\gamma$ was calculated for each network. A \gls{GLM} with
-    Gamma-distributed errors and a log link function was fit to the $\gamma$
-    values with all parameters and interaction terms as predictors.
-  }
-  \label{tab:gammaexpt}
-\end{table}
+%To evaluate the effects of the true parameter values on the accuracy of the
+%\gls{MAP} estimates, we analysed each parameter individually using a \gls{GLM}
+%(four \glspl{GLM} total). The response variable was the error of the point
+%estimate, and the predictor variables were the true values of \gls{alpha},
+%\gls{I}, and \gls{m}. We did not test for differences across true values of
+%\gls{N}, because \gls{N} was not varied in these simulations. The distribution
+%family and link function for each \gls{GLM} were chosen by examination of
+%residual plots and \gls{AIC} of the model fits. For \gls{alpha}, \gls{I}, and
+%\gls{N}, we used the Gamma distribution with the inverse link function. For
+%\gls{m}, we used the Poisson distribution with the log link function. To
+%allow for the possibility that the relationships between parameters and error
+%rates were nonlinear, the true parameter values were treated as discrete rather
+%than continuous predictors. When significant associations were found by the
+%\glspl{GLM}, additional post hoc tests were performed based on the observed
+%relationship between the error rate and true parameter value in question. If
+%the relationship appeared to be monotonic, Spearman's correlation was
+%calculated. Otherwise, if there were particular values which appeared to have a
+%higher error rate than the others, the Wilcoxon rank-sum test was used to check
+%for a significant difference between the two groups.
 
 Two further experiments were performed to address potential sources of error.
 To evaluate the effect of model misspecification in the case of heterogeneity

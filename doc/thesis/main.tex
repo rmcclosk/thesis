@@ -85,6 +85,8 @@
 \section{Results}
 \input{results}
 
+\clearpage
+
 \section{Discussion}
 \input{discussion}
 
@@ -97,15 +99,14 @@
 \addcontentsline{toc}{chapter}{Bibliography}
 \onehalfspacing
 
-\chapter*{Appendix: Supplemental Figures}
 
-\addcontentsline{toc}{chapter}{Appendix: Supplemental Figures}
-\setcounter{table}{0}
-\renewcommand{\thetable}{S\arabic{table}}
+\begin{appendices}
+
 \setcounter{figure}{0}
-\renewcommand{\thefigure}{S\arabic{figure}}
-\setcounter{data}{0}
-\renewcommand{\thedata}{S\arabic{data}}
+\renewcommand{\thefigure}{A.\arabic{figure}}
+\setcounter{table}{0}
+\renewcommand{\thetable}{B.\arabic{table}}
 \input{appendix}
+\end{appendices}
 
 \end{document}

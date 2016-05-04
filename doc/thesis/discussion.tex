@@ -98,41 +98,85 @@ program to be run over a larger number of cores on multiple CPUs in parallel.
 \subsection{Analysis of \acrlong{BA} model}
 
 The preferential attachment power \gls{alpha} had a very strong influence on
-tree shape in the range of values we considered. Although the tree kernel was
-the most effective classifier for \gls{alpha}, a tree balance statistic
-performed nearly as well. This result was intuitive: high \gls{alpha} values
-produce networks with few well-connected ``superspreader'' nodes which are
-involved in a large number of transmissions, resulting in a highly unbalanced
-ladder-like tree structure (\cref{fig:alphatrees}). The \gls{I} parameter,
-representing the prevalence at the time of sampling, was also generally
-estimable. The dynamics of the \gls{SI} model, and the coalescent
-process~\autocite{kingman1982coalescent}, offer a potential explanation for
-this result. \Cref{fig:sir} shows simulated trajectories of the \gls{SIR}
-model. In the initial phase of the epidemic, when \gls{I} is small, each new
-transmission results in potentially many new discordant edges, thus decreasing
-the waiting time until the next transmission. Hence, there is an
-early exponential growth phase, producing many short branches near the root of
-the tree. As the epidemic gets closer to saturating the network, the number of
-discordant edges decays, causing longer waiting times. The distribution of
-coalescence times in the tree should therefore be informative about
-\gls{I}~\autocite{volz2009phylodynamics}. This information is captured by the
-tree kernel, and also by the \gls{nltt} statistic, which both performed quite
-will in classifying \gls{I} (\cref{fig:rsquared}).
+tree shape in the range of values we considered
+(\cref{fig:alphatrees,fig:kpca}). Although the tree kernel was the most
+effective classifier for \gls{alpha}, a Sackin's index of tree imbalance
+performed nearly as well (\cref{fig:rsquared}). This result was intuitive: high
+\gls{alpha} values produce networks with few well-connected ``superspreader''
+nodes which are involved in a large number of transmissions, resulting in a
+highly unbalanced ladder-like tree structure (\cref{fig:alphatrees}). There was
+no observeable bias in the estimates of \gls{alpha} obtained with
+\software{netabc}, however the variation in these estimates was higher for
+$\alpha < 1$ than for $\alpha \geq 1$ (\cref{fig:abcptm2,tab:abchpd}). The
+relationship between \gls{alpha} and the power law exponent \gls{gamma} may
+explain this result (\cref{fig:gamma}). The \gls{gamma} values associated with
+\gls{alpha} = 0 and \gls{alpha} = 0.5 are nearly identical (about 2.28 for
+\gls{alpha} = 0 and 2.33 for \gls{alpha} = 0.5 with \gls{N} = 5000 and \gls{m}
+= 2). In other words, the degree distributions of networks with \gls{alpha} $<
+1$ are similar to each other, which may result in similarity of corresponding
+transmission trees as well. 
+%The accuracy of \gls{alpha} estimates also increased when the value of the
+%\gls{m} parameter was higher (compare
+%\cref{fig:abcptm2,fig:abcptm3,fig:abcptm4}). 
+
+\textbf{ART: THIS SECTION IS IN PROGRESS PLEASE DO NOT READ IT YET}
+
+The \gls{I} parameter, representing the prevalence at the time of sampling, was
+accurately classified by the tree kernel and the \gls{nltt}, but not by
+Sackin's index (\cref{fig:rsquared}). When \gls{N} was held fixed, \gls{I} was
+estimated accurately and without bias by grid search
+\cref{fig:gridest,fig:gridI}. When the \gls{BA} model was fit with
+\software{netabc}, the 95\% \gls{HPD} intervals for \gls{I} usually contained
+the true value, but the \gls{MAP} estimates were biased slightly upward
+(\cref{tab:abchpd}). 
+
+also generally estimable, although it was slightly over-estimated for both
+cases we considered with kernel-\gls{ABC}. 
+
+The dynamics of the \gls{SI} model,
+and the coalescent process~\autocite{kingman1982coalescent}, offer a potential
+explanation for this result. In our simulations, we assumed that all discordant
+edges shared the same transmission rate, so that the waiting time until the
+next transmission in the entire network was always inversely proportional to
+the number of discordant edges. Therefore, when there are a high number of
+discordant edges, 
+
+In the initial phase of the epidemic, when \gls{I}
+is small, each new transmission results in many new discordant edges. 
+
+thus
+decreasing the waiting time until the next transmission. Hence,
+there is an early exponential growth phase, producing many short branches near
+the root of the tree. As the epidemic gets closer to saturating the network,
+the number of discordant edges decays, causing longer waiting times. The
+distribution of coalescence times in the tree should therefore be informative
+about \gls{I}~\autocite{volz2009phylodynamics}. This information is captured by
+the tree kernel, and also by the \gls{nltt} statistic, which both performed
+quite well in classifying \gls{I} (\cref{fig:rsquared}). 
+
+\textbf{END OF IN PROGRESS}
 
 The number of nodes in the network, \gls{N}, exhibited the most variation in
-terms of being estimable. There was almost no difference between trees
+terms of its effect on tree shape. There was almost no difference between trees
 simulated under different \gls{N} values when the number of infected nodes
-\gls{I} was very small. There is an intuitive explanation for this result,
-namely that adding additional nodes does not change the edge density or overall
-shape of a \gls{BA} network. This can be illustrated by imagining that we add a
-small number of nodes to a network after the epidemic simulation has already
-been completed. It is possible that none of these new nodes attains a
-connection to any infected node. Thus, running the simulation again on the new,
-larger network could produce the exact same transmission tree as before. On the
-other hand, when \gls{I} is large relative to \gls{N}, the coalescent dynamics
+\gls{I} was small. There is an intuitive explanation for this result, namely
+that adding additional nodes does not change the edge density or overall shape
+of a \gls{BA} network. This can be illustrated by imagining that we add a small
+number of nodes to a network after the epidemic simulation has already been
+completed. It is possible that none of these new nodes attains a connection to
+any infected node. Thus, running the simulation again on the new, larger
+network could produce the exact same transmission tree as before. On the other
+hand, when \gls{I} is large relative to \gls{N}, the coalescent dynamics
 discussed above also apply. That is, the waiting times until the next infection
 increase, resulting in longer coalescence times toward the tips. The relative
 accuracy of the \gls{nltt} in these situations coroborates this hypothesis.
+
+%As mentioned above, \gls{I} and \gls{N} were both systematically over-estimated
+%by our method, although the bias was more severe for \gls{N} than for \gls{I}.
+%
+%When \gls{N} was held fixed and \gls{I} was varied, grid search was able to
+%recover \gls{I} without bias (\cref{fig:est}). 
+
 The \gls{m} parameter, which controls the number of connections added to the
 network per vertex, did not have a measurable impact on tree shape and was not
 estimable with kernel-ABC. The exception to this was the value \gls{m} = 1,
@@ -190,6 +234,18 @@ schneeberger2004scale, colgate1989risk, brown2011transmission}. We note however
 that \textcite{jones2003assessment} estimated $\gamma$ values greater than
 four for some datasets, in one case as high as 17, indicating that a wider
 range of permitted $\gamma$ values may be warranted.
+
+The combination of method, model, and priors we employed did not produce
+perfect estimates of any of the parameters. The estimates of \gls{alpha} were
+the most accurate, although the variance of the estimates was high and the
+confidence intervals were wide for \gls{alpha} $< 1$
+(\cref{tab:abchpd,fig:abcptm2,fig:abcptm3,fig:abcptm4}). The estimates of
+\gls{N} and \gls{I} were both biased, and the estimates of \gls{m} were largely
+uninformative. Despite these issues, a major result of our our investigation is
+that some contact network parameters have a measurable impact on tree shape
+which can be used to perform statistical inference. Further refinements to
+\software{netabc}, as well as the use of more sophisticated network models, may
+improve the accuracy and precision of these estimates.
 
 \subsection{Application to HIV data}
 

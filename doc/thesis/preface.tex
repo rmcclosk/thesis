@@ -1,21 +1,27 @@
 The initial idea to use kernel approximate Bayesian computation to infer
 contact network model parameters was Dr. Poon's. The tree kernel was originally
 developed by Dr. Poon, but the version used here was implemented by me to
-improve computational efficiency. The idea to apply sequential Monte Carlo is
-credited to Dr. Alexandre Bouchard-C\^ot\'e. Dr. Sarah Otto suggested the
-experiments involving a network with a heterogeneous $\alpha$ parameter and
-peer-driven sampling. Dr. Richard H. Liang provided guidance in the development
-of the Gillespie simulation algorithm. The \software{netabc} program, and all
+improve computational efficiency. The idea to apply sequential Monte Carlo was
+mine, but Dr. Alexandre Bouchard-C\^ot\'e made me aware of the adaptive version
+used in this work. Dr. Sarah Otto suggested the experiments involving a network
+with a heterogeneous $\alpha$ parameter and peer-driven sampling. Dr. Richard
+H. Liang provided guidance in the development of the Gillespie simulation
+algorithm and statistical advice. The \software{netabc} program, and all
 supplementary analysis programs, were written by me.
 
 A version of chapter 2 has been submitted for publication in Virus Evolution
 with the title ``Reconstructing network parameters from viral phylogenies.'' An
 oral presentation entitled ``Phylodynamic inference of contact network
-parameters with kernel-ABC'' was given based on chapter 2 at the 23rd HIV
-Dynamics and Evolution meeting on April 25, in Woods Hole, Massachussets, USA.
-A poster based on chapter 2 entitled ``Likelihood-free estimation of contact
-network parameters from viral phylogenies'' was presented at the Intelligent
-Systems for Molecular Biology meeting in Orlando, Florida, USA.
+parameters with kernel-ABC'' was given based on chapter 2 to the 23rd HIV
+Dynamics and Evolution meeting on April 25, in Woods Hole, Massachussets, USA
+(the presentation was delivered remotely). A poster based on chapter 2 entitled
+``Likelihood-free estimation of contact network parameters from viral
+phylogenies'' was presented at the Intelligent Systems for Molecular Biology
+meeting in Orlando, Florida, USA.
+
+Use of the BC data is in accordance with an ethics application that was
+reviewed and approved by the UBC/Providence Health Care Research Ethics Board
+(H07-02559).
 
 Throughout this work, the pronouns \textit{we} and \textit{our} refer to
 Rosemary M. McCloskey unless otherwise stated.
