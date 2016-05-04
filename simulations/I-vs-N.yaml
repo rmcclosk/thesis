@@ -1,0 +1,103 @@
+Name: I-vs-N
+Description: Interaction between I and N
+Processes: 1
+Sleep: 5
+Steps:
+    network:
+        Extension: gml
+        Walltime: 00:00:30
+        Parameters:
+            net_N: "[i*500 for i in range(1,31)]"
+            replicate: 0
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: | 
+            set.seed({seed})
+            g <- SIR.net(sample_pa({net_N}, m=2, directed=FALSE))
+            graph_attr(g, "comment") <- "{yaml}"
+            write.graph(g, "{network}", format="gml")
+
+    tree:
+        Extension: nwk
+        Walltime: 00:00:30
+        Parameters:
+            net_N: "[i*500 for i in range(1, 31)]"
+            net_I: "[i*250 for i in range(2, 21)]"
+            replicate: 0
+        Depends: network
+        Interpreter: bash
+        Rule: |
+            echo "#{yaml}" > {tree}
+            if [[ {net_I} -lt {net_N} ]]; then
+                nettree {network} --seed {seed} --sim-nodes {net_I} >> {tree}
+            fi
+
+    trajectory:
+        Extension: tsv
+        Parameters:
+            net_N: "[i*500 for i in range(1,31)]"
+            net_I: "[i*250 for i in range(2, 21)]"
+            replicate: 0
+        Depends: network tree
+        Interpreter: R --silent --vanilla
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            if ({net_N} < {net_I}) {{
+                cat("#{yaml}\n", file="{trajectory}")
+                exit()
+            }}
+            N <- vcount(read.graph("{network}", "gml"))
+            t <- read.tree("{tree}")
+            times <- node.depth.edgelength(t)
+            time.order <- order(times)
+            times <- times[time.order]
+
+            S <- N-2
+            I <- 2
+
+            for (i in tail(time.order, -1)) {{
+                if (i > Ntip(t)) {{
+                    S <- c(S, tail(S, 1)-1)
+                    I <- c(I, tail(I, 1)+1)
+                }}
+            }}
+
+            df <- data.frame(t=times[time.order > Ntip(t)], S=S, I=I)
+            cat("#{yaml}\n", file="{trajectory}")
+            write.tsv(df, "{trajectory}", append=TRUE)
+
+    derivatives:
+        Extension: tsv
+        Parameters:
+            placeholder: 0
+        Depends: trajectory
+        Interpreter: R --silent --vanilla
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            m <- collect.metadata(strsplit("{trajectory}", " ")[[1]])
+            
+
+            d <- setDT(collect.data(strsplit("{trajectory}", " ")[[1]]))
+            logis <- expression(Asym/(1+exp((xmid-input)/scal)))
+            d.logis <- D(logis, "input")
+
+            get.deriv <- function (sd) {{
+                print(sd)
+                coefs <- coef(nls(I~SSlogis(t, Asym, xmid, scal), sd))
+                coefs <- as.list(c(coefs, input=sd[,max(t)]))
+                eval(d.logis, coefs)
+            }}
+            d <- d[,list(deriv=get.deriv(.SD)), by=c("net_N", "net_I", "replicate")]
+            cat("#{yaml}\n", file="{derivatives}")
+            write.tsv(d, "{derivatives}", append=TRUE)
+
+    derivative-plot:
+        Extension: pdf
+        Parameters:
+            placeholder: 0
+        Depends: derivatives
+        Interpreter: R --silent --vanilla
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            d <- fread("{derivatives}")
+            ggplot(d, aes(x=net_N, y=net_I, z=deriv)) + geom_contour()
