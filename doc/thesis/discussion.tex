@@ -107,7 +107,7 @@ nodes which are involved in a large number of transmissions, resulting in a
 highly unbalanced ladder-like tree structure (\cref{fig:alphatrees}). There was
 no observeable bias in the estimates of \gls{alpha} obtained with
 \software{netabc}, however the variation in these estimates was higher for
-$\alpha < 1$ than for $\alpha \geq 1$ (\cref{fig:abcptm2,tab:abchpd}). The
+$\alpha < 1$ than for $\alpha \geq 1$ (\cref{fig:abcpt,tab:abchpd}). The
 relationship between \gls{alpha} and the power law exponent \gls{gamma} may
 explain this result (\cref{fig:gamma}). The \gls{gamma} values associated with
 \gls{alpha} = 0 and \gls{alpha} = 0.5 are nearly identical (about 2.28 for
@@ -119,42 +119,23 @@ transmission trees as well.
 %\gls{m} parameter was higher (compare
 %\cref{fig:abcptm2,fig:abcptm3,fig:abcptm4}). 
 
-\textbf{ART: THIS SECTION IS IN PROGRESS PLEASE DO NOT READ IT YET}
-
 The \gls{I} parameter, representing the prevalence at the time of sampling, was
-accurately classified by the tree kernel and the \gls{nltt}, but not by
-Sackin's index (\cref{fig:rsquared}). When \gls{N} was held fixed, \gls{I} was
-estimated accurately and without bias by grid search
-\cref{fig:gridest,fig:gridI}. When the \gls{BA} model was fit with
-\software{netabc}, the 95\% \gls{HPD} intervals for \gls{I} usually contained
-the true value, but the \gls{MAP} estimates were biased slightly upward
-(\cref{tab:abchpd}). 
-
 also generally estimable, although it was slightly over-estimated for both
-cases we considered with kernel-\gls{ABC}. 
-
-The dynamics of the \gls{SI} model,
+cases we considered with kernel-\gls{ABC}. The dynamics of the \gls{SI} model,
 and the coalescent process~\autocite{kingman1982coalescent}, offer a potential
-explanation for this result. In our simulations, we assumed that all discordant
-edges shared the same transmission rate, so that the waiting time until the
-next transmission in the entire network was always inversely proportional to
-the number of discordant edges. Therefore, when there are a high number of
-discordant edges, 
-
-In the initial phase of the epidemic, when \gls{I}
-is small, each new transmission results in many new discordant edges. 
-
-thus
-decreasing the waiting time until the next transmission. Hence,
-there is an early exponential growth phase, producing many short branches near
-the root of the tree. As the epidemic gets closer to saturating the network,
-the number of discordant edges decays, causing longer waiting times. The
-distribution of coalescence times in the tree should therefore be informative
-about \gls{I}~\autocite{volz2009phylodynamics}. This information is captured by
-the tree kernel, and also by the \gls{nltt} statistic, which both performed
-quite well in classifying \gls{I} (\cref{fig:rsquared}). 
-
-\textbf{END OF IN PROGRESS}
+explanation for the identifiability of \gls{I}. In our simulations, we assumed
+that all discordant edges shared the same transmission rate, so that the
+waiting time until the next transmission in the entire network was always
+inversely proportional to the number of discordant edges. In the initial phase
+of the epidemic, when \gls{I} is small, each new transmission results in many
+new discordant edges. Hence, there is an early exponential growth phase,
+producing many short branches near the root of the tree. As the epidemic gets
+closer to saturating the network, the number of discordant edges decays,
+causing longer waiting times. The distribution of coalescence times in the tree
+should therefore be informative about \gls{I}~\autocite{volz2009phylodynamics}.
+This information is captured by the tree kernel, and also by the \gls{nltt}
+statistic, which both performed quite well in classifying \gls{I}
+(\cref{fig:rsquared}). 
 
 The number of nodes in the network, \gls{N}, exhibited the most variation in
 terms of its effect on tree shape. There was almost no difference between trees
@@ -169,13 +150,62 @@ network could produce the exact same transmission tree as before. On the other
 hand, when \gls{I} is large relative to \gls{N}, the coalescent dynamics
 discussed above also apply. That is, the waiting times until the next infection
 increase, resulting in longer coalescence times toward the tips. The relative
-accuracy of the \gls{nltt} in these situations coroborates this hypothesis.
+accuracy of the \gls{nltt} in these situations
+(\cref{fig:rsquared,fig:Ncrossv}) coroborates this hypothesis, as the
+\gls{nltt} uses only information about the coalescence times. When all \gls{BA}
+parameters were simultaneously estimated with kernel-\gls{ABC}, \gls{N} was
+nearly always over-estimated by approximately a factor of two
+(\cref{fig:abcpt,tab:abchpd}). One factor which may have contributed to this
+bias was our choice of prior distribution. Since the prior for \gls{I} and
+\gls{N} was jointly uniform on a region where $I \leq N$, more prior weight was
+assigned to higher \gls{N} values. Another contributing factor relates to the
+dynamics of the \gls{SI} model and the coalescent process.
 
-%As mentioned above, \gls{I} and \gls{N} were both systematically over-estimated
-%by our method, although the bias was more severe for \gls{N} than for \gls{I}.
-%
-%When \gls{N} was held fixed and \gls{I} was varied, grid search was able to
-%recover \gls{I} without bias (\cref{fig:est}). 
+\gls{I} and \gls{N} were both systematically over-estimated by
+\software{netabc}, although the bias was more severe for \gls{N} than for
+\gls{I}. The number of infected individuals follows a logistic growth curve
+under the \gls{SI} model. This kind of growth curve has three qualitative
+phases: a slow ramp-up, an exponential growth phase, and a slow final phase
+when the susceptible population is almost depleted. The waiting times until the
+next transmission, which determine the coalescence times in the tree, are
+dependent on the growth phase of the epidemic. Therefore, we hypothesize that
+it is the growth phase at the time of sampling which most affects tree shape,
+rather than the specific values of \gls{I} or \gls{N}. To investigate this
+hypothesis, we simulated transmission trees over networks on a grid of \gls{I}
+and \gls{N} values in the region of uniform prior density. We fit logistic
+growth curves to the proportion of infected individuals over time, and
+calculated the first and second derivatives of these curves at the time of
+transmission tree sampling. These derivatives give us an indication of the
+growth rates of the epidemics at the time of sampling. As shown in
+\cref{fig:derivs}, there are bands along which both derivatives are similar
+which contain the values we tested. These bands span mostly higher values of
+\gls{N} and \gls{I} than the true values. Therefore, if \gls{N} and \gls{I} are
+free to vary (as is the case in kernel-\gls{ABC}), and our hypothesis is true,
+both parameters will tend to be overestimated due to being less identifiable
+within their own band. However, when \gls{N} is fixed at 5000, the derivatives
+vary substantially along the \gls{I}-axis, which explains why the grid search
+estimates of \gls{I} were accurate and unbiased (\cref{fig:gridptI}).
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics{derivatives.pdf}
+  \caption[
+    First and second derivatives of epidemic growth curves at time of sampling
+    for various values of $I$ and $N$.
+  ]{
+    First and second derivatives of epidemic growth curves at time of sampling
+    for various values of \gls{I} and \gls{N}. Networks were simulated under
+    the \gls{BA} model with \gls{alpha} = 1.0, \gls{m} = 2, and \gls{N} varied 
+    along the values shown on the $x$-axis. Transmission trees were sampled at
+    the time when \gls{I} nodes were infected ($y$-axis). Logistic growth
+    curves were fit to epidemic trajectories derived from the transmission
+    trees, and their first and second derivatives were calculated at the time
+    of sampling. Contours show first derivatives, while colours indicate second
+    derivatives. Values of \gls{I} and \gls{N} used in simulation experiments
+    with kernel-\gls{ABC} are indicated by diamonds.
+  }
+  \label{fig:derivs}
+\end{figure}
 
 The \gls{m} parameter, which controls the number of connections added to the
 network per vertex, did not have a measurable impact on tree shape and was not

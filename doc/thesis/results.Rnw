@@ -420,7 +420,7 @@ the distributions were flat for $N > 3000$.
     alpha.m.cor <- cor.test(d[,alpha_error], d[,true_m], method="spearman")
 @
 
-\Cref{fig:abcpt} shows \gls{MAP} point estimates of the BA model parameters
+\Cref{fig:abcptm2} shows \gls{MAP} point estimates of the BA model parameters
 obtained with kernel-ABC on simulated data. The estimates shown correspond only
 to the simulations where the $m$ parameter was set to 2, however the results
 for $m = 3$ and $m = 4$ were similar (\cref{fig:abcptm3,fig:abcptm4}). Average
@@ -473,7 +473,7 @@ No parameters influenced the accuracy of the $N$ estimates (all one-way ANOVA).
     true values in simulations. (B) Estimates for $m$ and $N$, which were held
     fixed in these simulations, against true values of $\alpha$.
   }
-  \label{fig:abcpt}
+  \label{fig:abcptm2}
 \end{figure}
 
 \begin{table*}[ht]
