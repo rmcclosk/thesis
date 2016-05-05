@@ -84,9 +84,9 @@ the term ``kernel-\gls{ABC}'' to refer to our method specifically.
 
 Empirical studies of sexual contact networks have found that these networks
 tend to be scale-free~\autocite{colgate1989risk, liljeros2001web,
-schneeberger2004scale}, meaning that their degree distributions follow a power
-law (although there has been some disagreement, see
-\autocite{handcock2004likelihood, bansal2007individual}). Preferential
+schneeberger2004scale, clemencon2015statistical}, meaning that their degree
+distributions follow a power law (although there has been some disagreement,
+see \autocite{handcock2004likelihood, bansal2007individual}). Preferential
 attachment has been postulated as a mechanism by which scale-free networks
 could be generated~\autocite{barabasi1999emergence}. The \gls{BA}
 model~\autocite{barabasi1999emergence} is one of the simplest preferential
@@ -104,16 +104,17 @@ sequences publicly available in GenBank, annotated with 172 distinct countries
 of origin. Since \gls{HIV} is almost always spread through either sexual
 contact or sharing of injection drug supplies, the contact networks underlying
 \gls{HIV} epidemics are driven by social dynamics and are therefore likely to
-be highly nonrandom. Moreover, since no cure yet exists, efforts to curtail the
-progression of an epidemic have relied on preventing further transmissions
-through measures such as \gls{tasp} and education leading to behaviour change.
-The effectiveness of this type of intervention can vary significantly based on
-the underlying structure of the network and the particular nodes to whom the
-intervention is targeted~\autocite{little2014using,wang2015targeting}. Due to
-this combination of data availability and potential public health impact,
-\gls{HIV} is an obvious context in which our method could be applied.
-Therefore, the third and final aim of this work is to apply kernel-\gls{ABC} to
-fit the \gls{BA} model to existing \gls{HIV} outbreaks.
+be highly nonrandom~\autocite{clemencon2015statistical}. Moreover, since no
+cure yet exists, efforts to curtail the progression of an epidemic have relied
+on preventing further transmissions through measures such as \gls{tasp} and
+education leading to behaviour change. The effectiveness of this type of
+intervention can vary significantly based on the underlying structure of the
+network and the particular nodes to whom the intervention is
+targeted~\autocite{little2014using,wang2015targeting}. Due to this combination
+of data availability and potential public health impact, \gls{HIV} is an
+obvious context in which our method could be applied. Therefore, the third and
+final aim of this work is to apply kernel-\gls{ABC} to fit the \gls{BA} model
+to existing \gls{HIV} outbreaks.
 
 To summarize, this work has three objectives. First, we will develop a method
 which uses kernel-\gls{ABC} to infer parameters of contact network models from

@@ -1054,9 +1054,7 @@ when $m = 1$ was allowed.
 To make our analyses comparable to the existing network literature, we
 estimated values of the power law exponent $\gamma$ for each of the datasets 
 investigated. The results are summarized in \cref{tab:gamma}. All of the
-estimated exponents were in the range $2 \leq \gamma \leq 4$ commonly reported
-in the literature~\autocite{liljeros2001web, schneeberger2004scale,
-colgate1989risk, brown2011transmission}. 
+estimated exponents were in the range $2 \leq \gamma \leq 2.5$. 
 
 \begin{table}
     \centering
