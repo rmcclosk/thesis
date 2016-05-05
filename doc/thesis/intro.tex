@@ -49,39 +49,39 @@ trees~\autocite{buneman1974note}. These concepts are illustrated in
 \subsection{Transmission trees}
 
 In epidemiology, a \defn{transmission tree} is a graphical representation of an
-epidemic's progress through a population. Like phylogenies, transmission trees
-have tips, nodes, edges, and branch lengths. However, rather than recording an
-evolutionary process (speciation), they record an epidemiological process
-(transmission). The tips of a transmission tree represent the removal of
-infected hosts, while internal nodes correspond to transmissions from one host
-to another. Transmission trees generally have branch lengths in units of
-calendar time, with branching times indicating times of transmission. The root
-of a transmission tree corresponds to the initially infected patient who
-introduced the epidemic into the network, also known as the \defn{index case}.
-The internal nodes may be labelled with the donor of the transmission pair, if
-this is known. The tips of the tree, rather than being fixed at the present
-day, are placed at the time at which the individual was removed from the
-epidemic, such as by death, recovery, isolation, behaviour change, or
-migration. Consequently, the transmission tree may not be ultrametric, but may
-have tips located at varying distances from the root. Such trees are said to
-have \defn{heterochronous} taxa~\autocite{drummond2003measurably}, in contrast
-to the \defn{isochronous} taxa found in most phylogenies of macro-organisms. A
-transmission tree is illustrated in \cref{fig:contactnet} (right). 
+epidemic's progress through a population~\autocite{ypma2013relating}. Like
+phylogenies, transmission trees have tips, nodes, edges, and branch lengths.
+However, rather than recording an evolutionary process (speciation), they
+record an epidemiological process (transmission). The tips of a transmission
+tree represent the removal of infected hosts, while internal nodes correspond
+to transmissions from one host to another. Transmission trees generally have
+branch lengths in units of calendar time, with branching times indicating times
+of transmission. The root of a transmission tree corresponds to the initially
+infected patient who introduced the epidemic into the network, also known as
+the \defn{index case}. The internal nodes may be labelled with the donor of the
+transmission pair, if this is known. The tips of the tree, rather than being
+fixed at the present day, are placed at the time at which the individual was
+removed from the epidemic, such as by death, recovery, isolation, behaviour
+change, or migration~\autocite{stadler2013uncovering}. Consequently, the
+transmission tree may not be ultrametric, but may have tips located at varying
+distances from the root. Such trees are said to have \defn{heterochronous}
+taxa~\autocite{drummond2003measurably}, in contrast to the \defn{isochronous}
+taxa found in most phylogenies of macro-organisms. A transmission tree is
+illustrated in \cref{fig:contactnet} (right). 
 
 Each infected individual in an epidemic may appear in the transmission tree
 more than once. This is different from the transmission \emph{network}, in
 which each infected individual appears exactly once, and edges are in
 one-to-one correspondence with transmissions~\autocite{welch2011statistical,
-keeling2005networks}. Transmission networks are discussed further in
-\cref{sec:contactnet}, and the distinction between the two objects is
-illustrated in \cref{fig:contactnet}. However, since transmission networks
-generally have no cycles (unless re-infection occurs), they are trees in the
-graph theoretical sense, and hence are sometimes also referred to as
-transmission trees~\autocite[\eg][]{kenah2015algorithms}. In this work, we
-reserve the term ``transmission tree'' for the objects depicted on the right
-side of \cref{fig:contactnet}, following \eg~\autocite{stadler2013uncovering}.
-The term ``transmission network'' is taken to mean the subgraph of the contact
-network along which transmissions occurred, following
+keeling2005networks}. The distinction between the two objects is illustrated in
+\cref{fig:contactnet}. However, since transmission networks generally have no
+cycles (unless re-infection occurs), they are trees in the graph theoretical
+sense, and hence are sometimes also referred to as transmission
+trees~\autocite[\eg][]{kenah2015algorithms}. In this work, we reserve the term
+``transmission tree'' for the objects depicted on the right side of
+\cref{fig:contactnet}, following \eg~\autocite{stadler2013uncovering}. The term
+``transmission network'' is taken to mean the subgraph of the contact network
+along which transmissions occurred, following
 \eg~\autocite{welch2011statistical, keeling2005networks}.
 
 \begin{figure}
@@ -110,10 +110,10 @@ not possible to assemble through traditional epidemiological
 methods~\autocite{welch2011statistical}. The time and effort to conduct
 detailed interviews and contact tracing of a sufficient number of infected
 individuals is usually prohibitive, and may be additionally be confounded by
-misreporting~\autocite{eames2015six}. However, it turns out that for viral
-epidemics, some of the epidemiological information contained in the
-transmission tree leaves a mark on the viral genetic material circulating in
-the population. A family of methods called
+misreporting and other challenges~\autocite{eames2015six}. However, it turns
+out that for viral epidemics, some of the epidemiological information contained
+in the transmission tree leaves a mark on the viral genetic material
+circulating in the population. A family of methods called
 \defn{phylodynamics}~\autocite{grenfell2004unifying} addresses the challenge of
 estimating epidemiological parameters from viral sequence
 data~\autocite{volz2013viral}.
@@ -147,9 +147,9 @@ phylogeny can be calculated. Most often, this is some variation of the
 birth-death~\autocite{kendall1948generalized, stadler2012estimating} or
 coalescent~\autocite{kingman1982coalescent, volz2012complex} models. These
 methods either assume the viral phylogeny is known, as we do in this work, or
-(more commonly) integrate over phylogenetic uncertainty using Bayesian methods.
-Phylogenetic inference is a complex topic which we shall not discuss here; see
-\eg \autocite{nei2000molecular} for a full review.
+(more commonly) integrate over phylogenetic uncertainty in a Bayesian
+framework. Phylogenetic inference is a complex topic which we shall not discuss
+here; see \eg~\autocite{nei2000molecular} for a full review.
 
 Due to the relationship between the aforementioned processes, there is a degree
 of correspondence between viral phylogenies and transmission
@@ -183,14 +183,13 @@ intra-host diversity, the viral strain which is transmitted may have split from
 another lineage within the donor long before the transmission event occurred.
 Hence, the branching point in the viral phylogeny may be much earlier than that
 in the transmission tree. Another possibility is that one host transmitted to
-two or more recipients, but the lineages they each received originated within
-the donor host in a different order than that in which the transmissions
-occurred.  In this case, the topology of the transmission tree and the viral
-phylogeny will be mismatched. In practice, this discordance has not proven an
-insurmountable problem: for example, \textcite{leitner1996accurate,
-paraskevis2004phylogenetic} were able to accurately recover a known
-transmission tree using a viral phylogeny. The problem of accurately estimating
-transmission trees is an ongoing area of
+two or more recipients in one order, but the transmitted lineages originated
+within the donor in a different order. In this case, the topology of the
+transmission tree and the viral phylogeny will be mismatched. In practice, this
+discordance has not proven an insurmountable problem: for example,
+\textcite{leitner1996accurate, paraskevis2004phylogenetic} were able to
+accurately recover a known transmission tree using a viral phylogeny. The
+problem of accurately estimating transmission trees is an ongoing area of
 research~\autocite{cottam2008integrating, jombart2011reconstructing,
 ypma2012unravelling, morelli2012bayesian, didelot2014bayesian}.
 
@@ -278,7 +277,7 @@ sizes. An example of a pairwise measure is the
 1)$, and the absolute difference between the two plots is integrated between 0
 and 1. In the context of infectious diseases, the \gls{ltt} is related to the
 prevalence~\autocite{holmes1995revealing}, so large values may indicate that
-the trees being compared are the products of different epidemic
+the trees being compared were produced by different epidemic
 trajectories~\autocite{janzen2015approximate}.
 
 \textcite{poon2013mapping} developed an alternative pairwise measure which
@@ -400,16 +399,15 @@ into groups with different contact rates between and among each
 group~\autocite{jacquez1988modeling}. However, these models still assume that
 every possible contact between a member of group $i$ and a member of group $j$
 is equally likely. This assumption is clearly unrealistic for the majority of
-human communities, and can lead to significant errors in predicted epidemic
-trajectories when there is substantial heterogeneity
-present~\autocite{bansal2007individual, volz2007susceptible,
-rolls2015simulation}. Contact networks provide a way to relax this assumption
-by representing individuals and their contacts explicitly. It is important to
-note that, although panmixia is an unrealistic modelling assumption, it has not
-proven a substantial hurdle to epidemic modelling in
-practice~\autocite{anderson1992infectious}. Using this assumption, researchers
-have been able to derive estimates of the transmission rate and the basic
-reproductive number of various outbreaks, which have agreed with values
+human communities, and can lead to errors in predicted epidemic trajectories
+when there is substantial heterogeneity present~\autocite{bansal2007individual,
+volz2007susceptible, rolls2015simulation}. Contact networks provide a way to
+relax this assumption by representing individuals and their contacts
+explicitly. It is important to note that, although panmixia is an unrealistic
+modelling assumption, it has not proven a substantial hurdle to epidemic
+modelling in practice~\autocite{anderson1992infectious}. Using this assumption,
+researchers have been able to derive estimates of the transmission rate and the
+basic reproductive number of various outbreaks, which have agreed with values
 obtained by on-the-ground data collection~\autocite{stadler2014insights}.
 Therefore, if one is interested only in these population-level variables, the
 additional complexity of contact network models may not be warranted. Rather,
@@ -445,13 +443,13 @@ population structure. For instance, it is possible to obtain limited
 information about the contact network by individual interviews without contact
 tracing. Variables which can be estimated in this fashion are referred to as
 \defn{node-level} measures~\autocite{wasserman1994social}. One of the most
-well-studied of these is the degree distribution mentioned above, which can 
+well-studied of these is the degree distribution mentioned above, which can
 theoretically be estimated by simply asking each person how many contacts they
 had in some interval of time. However, the degree distributions often observed
 in real-world sexual networks are heavy-tailed~\autocite{liljeros2001web,
-schneeberger2004scale, colgate1989risk}, so dense or peer-driven sampling would
-be needed to capture the high-degree nodes characterizing the tail of the
-distribution.
+schneeberger2004scale, colgate1989risk}, so dense or respondent-driven
+sampling~\autocite{heckathorn1997respondent} would be needed to capture the
+high-degree nodes characterizing the tail of the distribution.
 
 An alternative approach has been the analysis of other types of network, which
 can be directly estimated with phylogenetic methods from viral sequence data.
@@ -507,9 +505,10 @@ $\gamma$~\autocite{barabasi1999emergence}. Scale-free networks are
 characterized by a large number of nodes of low degree, with relatively few
 ``hub'' nodes of very high degree. Epidemiological surveys have indicated that
 human sexual networks tend to be scale-free~\autocite{liljeros2001web,
-schneeberger2004scale, colgate1989risk}. Interestingly, many other types of
-network, including computer networks~\autocite{pastor2001epidemic}, biological
-metabolic networks~\autocite{jeong2000large}, and academic co-author
+schneeberger2004scale, colgate1989risk, clemenccon2015statistical}.
+Interestingly, many other types of network, including computer
+networks~\autocite{pastor2001epidemic}, biological metabolic
+networks~\autocite{jeong2000large}, and academic co-author
 networks~\autocite{barabasi2002evolution}, also have the scale-free property.
 
 Several properties of scale-free networks are relevant in epidemiology.  The
@@ -629,7 +628,7 @@ will be suitable for our purposes. A more rigorous definition can be found in
 nothing to do with the kernel functions defined in \cref{subsec:treeshape},
 other than sharing a name (the word ``kernel'' is ubiquitous in mathematics).
 
-\subsection{Sequential importance sampling for sequential Monte Carlo}
+\subsection{Sequential importance sampling}
 \label{subsec:sis}
 
 \Gls{SIS} is one type of \gls{SMC} method, whose aim is to sample from a
@@ -646,7 +645,7 @@ where the integral is over the space on which $\pi$ is defined, $\gamma(x)$ is
 known pointwise, and $Z = \int \gamma(x) \d x$ is the unknown normalizing
 constant. Suppose we have at hand another distribution $\eta$, called the
 \defn{importance distribution}, from which we are able to sample. Define the
-\defn{importance weight} as the ratio ratio $w(x) = \gamma(x)/\eta(x)$. We can
+\defn{importance weight} as the ratio $w(x) = \gamma(x)/\eta(x)$. We can
 express the normalizing constant $Z$ in terms of the importance weight and
 distribution, $Z = \int w(x) \eta(x) \d x$, and in turn write the expectation
 of interest as
@@ -700,12 +699,12 @@ problem-specific basis, taking any available information about $\pi(x_i \mid
 \autocite{smith2013sequential,liu2008monte} for many examples).  One potential
 choice for $\eta(x_i \mid \vec{x_{i-1}})$ is simply $\pi(x_i \mid
 \vec{x_{i-1}})$, if it is possible to compute. In a Bayesian setting, the
-prior distribution may be used. The exact form of $\eta(x_i, \vec{x_{i-1}})$
-which minimizes the variance of the weights is called the \defn{optimal
-kernel}~\autocite{cappe2007overview}, the name deriving from the fact that
-$k(x_i, \vec{x_{i-1}}) = \eta(x_i, \vec{x_{i-1}})$ is a Markov kernel. In some
-applications, it is possible to approximate the optimal kernel or even compute
-it explicitly.
+prior distribution may be used. The exact form of $\eta(x_i \mid
+\vec{x_{i-1}})$ which minimizes the variance of the weights is called the
+\defn{optimal kernel}~\autocite{cappe2007overview}, the name deriving from the
+fact that $k(x_i, \vec{x_{i-1}}) = \eta(x_i \mid \vec{x_{i-1}})$ is a Markov
+kernel. In some applications, it is possible to approximate the optimal kernel
+or even compute it explicitly.
 
 The recursive definition \cref{eq:sisw} suggests an algorithm for obtaining a
 sample from $\pi$ (\cref{alg:sis}).  We begin with $n$ ``particles'' which have
@@ -741,21 +740,18 @@ one depending on the application. Try as we might to keep the variances of the
 weights low, the cumulative errors at each sequential step tend to push many of
 the weights to very low values. This results in a poor approximation to $\pi$,
 since only a few particles retain high importance weights after all $d$
-sequential steps. To mitigate this problem, we periodically apply a resampling
-step when the variance in the importance weights becomes too high. Several
+sequential steps. To mitigate this problem, a resampling step is periodically
+applied when the variance in the importance weights becomes too high. Several
 different criteria have been proposed for when to resample, but we focus here
 on the one described by \textcite{liu2008monte}, namely the decay of the
 \gls{ESS} below a prescribed threshold, conventionally $n/2$. The \gls{ESS} of
-the population of particles is defined as
-\[
-  \ESS(w) = \frac{n}{1 + \Var(w)},
-\]
-where $n$ is the number of particles~\autocite{liu2008monte}. When the
-\gls{ESS} drops below the threshold, we resample the particles according to
-their weights. This results in the removal of low-weight particles from the
+the population of particles is defined as \[ \ESS(w) = \frac{n}{1 + \Var(w)},
+\] where $n$ is the number of particles~\autocite{liu2008monte}. When the
+\gls{ESS} drops below the threshold, particles are resampled according to their
+weights. This results in the removal of low-weight particles from the
 population, and also equalizes all the weights. Various resampling strategies
-beyond the basic sampling with replacement have been proposed, but we will not
-discuss those here. 
+beyond the basic sampling with replacement have been
+proposed~\autocite{douc2005comparison}, but we will not discuss those here. 
 
 \subsection{The sequential Monte Carlo sampler}
 \label{subsec:smcsamp}
@@ -798,8 +794,8 @@ That is,
 \[
   K_i(x, x') = \max\left(1, \frac{q(x', x)\pi_i(x)}{q(x, x')\pi_i(x')}\right),
 \]
-where $q(\xi, x)$ is a proposal function such as a Gaussian distribution
-centered at $\xi$ (see \cref{subsec:mfit}). 
+where $q(x, x')$ is a proposal function such as a Gaussian distribution
+centered at $x$ (see \cref{subsec:mfit}). 
 
 Although this method of building up $\eta$ appears straightforward, the
 drawback is that the importance distribution itself becomes intractible. In
@@ -873,6 +869,7 @@ section.
       \EndFor
       \State Normalize the weights so that $\sum w = 1$
       \If {$\ESS(w) < T$}
+        \Comment{$T$ is a user-defined threshold}
         \State Resample the particles according to $w$
         \For {$k = 1$ to $n$}
           \State $w^{(k)} \gets 1/n$
@@ -898,10 +895,10 @@ relationship between some observed data, $x$ and outcomes $y$. A
 and outcomes, indexed by one or more numeric parameters $\theta$. A
 \defn{statistical} model describes the relationship between data and outcomes
 in terms of probabilities. Statistical models define, either explicitly or
-implicitly, the probability of observing $y$ given $\vec{x}$ and, if the
-model is parametric, $\theta$. Note that it is entirely possible to have no
-data $\vec{x}$, only observed outcomes $y$. In this case, a model would
-describe the process by which $y$ is generated.
+implicitly, the probability of observing $y$ given $x$ and, if the model is
+parametric, $\theta$. Note that it is entirely possible to have no data $x$,
+only observed outcomes $y$. In this case, a model would describe the process by
+which $y$ is generated.
 
 To illustrate these concepts, consider the well-known linear model. For
 clarity, we will restrict our attention to the case of one-dimensional data and
@@ -925,7 +922,7 @@ density $\pi$ of observing outcome $y_i$ given the parameters,
 where $f_{\N(0, \sigma^2)}$ is the probability density of the normal
 distribution with mean zero and variance $\sigma^2$. Note that we are treating
 the $x_i$ as fixed quantities, and therefore have not conditioned the
-probability density on $\vec{x}$. Also, we have assumed that all the $y_i$ are
+probability density on $x$. Also, we have assumed that all the $y_i$ are
 independent.
 
 For a general model, the probability density of $y$ given the parameters
@@ -992,7 +989,7 @@ enough random walk is performed on the chain, the distribution of states
 visited will be a Monte Carlo approximation of $f(\theta \mid y)$, from
 which we can calculate statistics of interest. Actually performing this random
 walk is straightforward and can be accomplished via the Metropolis-Hastings
-algorithm (\cref{alg:mh}).
+algorithm~\autocite{metropolis1953equation,hastings1970monte} (\cref{alg:mh}).
 
 \begin{algorithm}
   \caption{Metropolis-Hastings algorithm for Markov chain Monte Carlo.}
