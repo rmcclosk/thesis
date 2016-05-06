@@ -119,6 +119,7 @@ estimating epidemiological parameters from viral sequence
 data~\autocite{volz2013viral}.
 
 \subsection{Phylodynamics: linking evolution and epidemiology}
+\label{subsec:phylodynamics}
 
 %Most modern analyses use model-based methods, which simultaneously
 %estimate the phylogeny with branch lengths and the parameters of a model of
@@ -527,18 +528,17 @@ pathogen~\autocite{anderson1992infectious}.
 One mechanism which has been shown to lead to scale-free networks is
 \defn{preferential attachment}~\autocite{simon1955class,
 barabasi1999emergence}. The simplest preferential attachment model is known as
-the \acrlong{BA} (BA) model after its
-inventors~\autocite{barabasi1999emergence}. Under this model, networks are
-formed by starting with a small number $m_0$ of nodes. New nodes are added one
-at a time until there are a total of $N$ in the network. Each time a new node
-is added, $m \geq 1$ edges are added from it to other nodes in the graph. In
-the original formulation, the partners of the new node are chosen with
-probability linearly proportional to their degree. However,
-\citeauthor{barabasi1999emergence} suggest extending the model such that the
-probability of choosing a partner of degree $d$ is proportional to $d^\alpha +
-1$ for some constant $\alpha$, and we use this extension here. When $m = 1$,
-the network takes on the distinctive shape of a tree, that is, it does not
-contain any cycles. Cycles are present in the network for all all other $m$
+the \gls{BA} model after its inventors~\autocite{barabasi1999emergence}. Under
+this model, networks are formed by starting with a small number $m_0$ of nodes.
+New nodes are added one at a time until there are a total of $N$ in the
+network. Each time a new node is added, $m \geq 1$ edges are added from it to
+other nodes in the graph. In the original formulation, the partners of the new
+node are chosen with probability linearly proportional to their degree.
+However, \citeauthor{barabasi1999emergence} suggest extending the model such
+that the probability of choosing a partner of degree $d$ is proportional to
+$d^\alpha + 1$ for some constant $\alpha$, and we use this extension here. When
+$m = 1$, the network takes on the distinctive shape of a tree, that is, it does
+not contain any cycles. Cycles are present in the network for all all other $m$
 values.
 
 There has been some contention of the idea that contact networks are
@@ -1048,16 +1048,22 @@ interest~\autocite{marin2012approximate}. That is,
 \[
   \int \pi_\varepsilon(\theta, z \mid y) \d z \approx f(\theta \mid y).
 \]
-This distribution is variously referred to as the  \textit{\gls{ABC} target
-distribution} or the \gls{ABC} approximation to the posterior. Note that in
-many formulations, the distance function $\rho$ is defined as $\rho(S(\cdot),
-S(\cdot))$ where $S$ is a function which maps data points into a vector of
-summary statistics. This can be useful if the data are high-dimensional or of a
-complex type, but it is not strictly necessary. For instance, if the data are
-numeric and of low dimension, the distance function may simply be the Euclidian
-distance~\autocite{sisson2007sequential}. For more complex data,
-\textcite{nakagome2013kernel} proposed the use of a kernel function (defined in
-\cref{subsec:treeshape}), an approach they dubbed \defn{kernel-\gls{ABC}}.
+The intuition for why this approximation might hold comes from the fact that, 
+when $\varepsilon = 0$, the intergral on the left is exactly equal to the
+posterior. Thus, by taking $\varepsilon$ small, we should attain something
+close to the posterior.
+
+The distribution $\pi_\varepsilon(\theta, z \mid y)$ is variously referred to
+as the  \textit{\gls{ABC} target distribution} or the \gls{ABC} approximation
+to the posterior. Note that in many formulations, the distance function $\rho$
+is defined as $\rho(S(\cdot), S(\cdot))$ where $S$ is a function which maps
+data points into a vector of summary statistics. This can be useful if the data
+are high-dimensional or of a complex type, but it is not strictly necessary.
+For instance, if the data are numeric and of low dimension, the distance
+function may simply be the Euclidian distance~\autocite{sisson2007sequential}.
+For more complex data, \textcite{nakagome2013kernel} proposed the use of a
+kernel function (defined in \cref{subsec:treeshape}), an approach they dubbed
+\defn{kernel-\gls{ABC}}.
 
 \subsection{Algorithms for ABC}
 \label{subsec:abcalg}
@@ -1175,3 +1181,18 @@ $q(\theta, \theta') f(z \mid \theta')$ is replaced by
 \[
   q_i(\theta, \theta') \prod_{k=1}^M f(z_i \mid \theta').
 \]
+%\subsection{Convergence properties}
+%
+%The convergence of \gls{ABC} to the true posterior distribution of interest
+%depends on two components: the convergence of the underlying algorithm to the
+%\gls{ABC} target distribution, and the resemblance of this target distribution
+%to the true posterior~\autocite{marin2012approximate}. We shall address these 
+%components one at a time. Rejection \gls{ABC} and \gls{ABC}-\gls{MCMC} use,
+%respectively, rejection sampling and \gls{MCMC} to sample from the target
+%distributions. Both of these methods are well-established and their convergence
+%properties have been extensively studied. Since we do not apply rejection or
+%\gls{MCMC} in this work, we shall restrict our attention to the convergence
+%properties of \gls{SMC}. 
+
+%Many results about the rate of convergence of \gls{MCMC} are available, as well
+%as convergence diagnostics. \Gls{SMC} is a much newer method than \gls{MCMC}\ldots

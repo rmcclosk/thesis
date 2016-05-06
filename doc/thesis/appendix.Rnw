@@ -6,6 +6,56 @@
 
 \begin{figure}[ht]
   \centering
+  \includegraphics{leventhal2012fig1.pdf}
+  \caption[
+    Reproduction of Figure 1A from Leventhal \textit{et al.} (2012) used to
+    check the accuracy of our implementation of Gillespie simulation.
+  ]{
+    Reproduction of Figure 1A from Leventhal \textit{et al.} (2012) used to
+    check the accuracy of our implementation of Gillespie simulation.
+    Transmission trees were simulated over three types of network, with
+    pathogen transmissibility varying from 0 to 1. Sackin's index was
+    calculated for each simulated transmission tree.
+  }
+  \label{fig:leventhal}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics{smc-test.pdf}
+  \caption[
+      Approximation of mixture of Gaussians used by Del Moral \textit{et al.}
+      (2012) and Sisson \textit{et al.} (2009) to test adaptive
+      \gls{ABC}-\gls{SMC}.
+    ]{
+      Approximation of mixture of Gaussians used by Del Moral \textit{et al.}
+      (2012) and Sisson \textit{et al.} (2009) to test SMC. Solid black line
+      indicates true distribution. Grey shaded area shows \gls{ABC}
+      approximation obtained with our implementation of adaptive
+      \gls{ABC}-\gls{SMC}, using 10000 particles with one simulated data point
+      per particle.
+    }
+  \label{fig:smctest}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics{smc-test-bimodal.pdf}
+  \caption[
+    Approximation of mixture of two Gaussians used to test convergence of
+    adaptive \gls{ABC}-\gls{SMC} algorithm to a bimodal distribution.
+  ]{
+    Approximation of mixture of two Gaussians used to test convergence of SMC
+    algorithm to a bimodal distribution. Solid black line indicates true
+    distribution. Grey shaded area shows \gls{ABC}-\gls{SMC} approximation
+    obtained with our implementation, using 10000 particles with one simulated
+    data point per particle.
+  }
+  \label{fig:smctest2}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
   \includegraphics[width=\textwidth]{kernel-I-tree.pdf}
   \caption[Simulated transmission trees under three different values of BA parameter $I$]{
     Simulated transmission trees under three different values of BA parameter
@@ -299,7 +349,7 @@
 %    of \gls{m} and \gls{N} which were held fixed in these simulations at the
 %    values \gls{m} = 1 and \gls{N} = 5000.
 %  }        
-%  \label{fig:abcptm3}
+%  \label{fig:abcptm1}
 %\end{figure}
 
 \begin{figure}[ht]
@@ -345,24 +395,6 @@
       network model with $N$ = 5000 and $m$ = 2.
   }
   \label{fig:gamma}
-\end{figure}
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics[width=\textwidth]{sir-trajectories.pdf}
-  \caption[Average trajectories of epidemics simulated according to the
-  \gls{SIR} model over full and \gls{BA} networks.]
-  {
-      Average trajectories of epidemics simulated according to the \gls{SIR}
-      model over full and \gls{BA} networks. 100 epidemics each were simulated
-      over completely connected networks and networks generated from the
-      \gls{BA} model. The network parameters were $\alpha = 1$ and $m = 2$.
-      The transmission rate along each edge of a network $G$ was taken as
-      $2/|E(G)|$, and the removal rate of each vertex was taken as $1/|V(G)|$.
-      These choices ensured that both networks had the same waiting time until
-      the next transmission at the beginning of the epidemic.
-  }
-  \label{fig:sir}
 \end{figure}
 
 \begin{figure}[ht]

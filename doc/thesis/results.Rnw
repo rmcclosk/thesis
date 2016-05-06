@@ -32,7 +32,10 @@
     I.sackin.cor <- I.stats[,cor.test(I, sackin, method="spearman")]
     m.sackin.cor <- m.stats[,cor.test(m, sackin, method="spearman")]
     N.sackin.cor <- N.stats[,cor.test(N, sackin, method="spearman")]
-    stopifnot(alpha.sackin.cor$p.value < 1e-5)
+    stopifnot(alpha.sackin.cor$p.value < 0.05)
+    stopifnot(I.sackin.cor$p.value < 0.05)
+    stopifnot(m.sackin.cor$p.value < 0.05)
+    stopifnot(N.sackin.cor$p.value < 0.05)
 
     alpha.ratio.cor <- alpha.stats[,cor.test(int.tip.ratio, alpha)]
     I.ratio.cor <- I.stats[,cor.test(int.tip.ratio, I)]
@@ -62,9 +65,9 @@ measures tree imbalance, was significantly correlated with all four parameters
      $\Sexpr{pp(alpha.sackin.cor$p.value)}$,
      $\Sexpr{pp(I.sackin.cor$p.value)}$,
      $\Sexpr{pp(m.sackin.cor$p.value)}$,
-     $\Sexpr{pp(N.sackin.cor$p.value)}$)
+     $\Sexpr{pp(N.sackin.cor$p.value)}$).
 The ratio of internal to terminal branch lengths was negatively correlated with
-\gls{alpha} and \gls{I}, and positively corelated with \gls{N} and \gls{m}
+\gls{alpha} and \gls{I}, and positively corelated with \gls{m} and \gls{N}
   (Spearman's rho
     \Sexpr{round(alpha.ratio.cor$estimate, 2)},
     \Sexpr{round(I.ratio.cor$estimate, 2)},
@@ -292,7 +295,7 @@ estimates having an average deviation of
     \Sexpr{d["alpha", round(mean(error), 2)]}
 from the true value, on a grid from 0 to 2. The error of point estimates varied
 significantly between true values of \gls{alpha}
-    (one-way \gls{ANOVA}, $p \Sexpr{pp(av["alpha", p], eq=TRUE)}$). In
+    (one-way \gls{ANOVA}, $p$ $\Sexpr{pp(av["alpha", p], eq=TRUE)}$). In
 particular, errors were lower for the values \gls{alpha} = 1.0 and 1.25 than
 for the other values
     (average errors 
@@ -465,14 +468,18 @@ No parameters influenced the accuracy of the $N$ estimates (all one-way ANOVA).
   \centering
   \includegraphics[width=\textwidth]{abc-point-estimate-m2}
   \vspace{6pt}
-  \caption{
-    Point estimates of BA model parameters obtained by running kernel-ABC
-    on simulated phylogenies without training, for simulations with $m = 2$.
-    Dotted lines indicate true values, and limits of the $y$-axes are regions
-    of uniform prior density. (A) Estimates for $\alpha$ and $I$ against their
-    true values in simulations. (B) Estimates for $m$ and $N$, which were held
-    fixed in these simulations, against true values of $\alpha$.
-  }
+  \caption[
+    \Acrlong{MAP} point estimates for \gls{BA} model parameters obtained by
+    running \software{netabc} on simulated data, for simulations with \gls{m} =
+    2.
+  ]{
+    \Acrlong{MAP} point estimates for \gls{BA} model parameters obtained by
+    running \software{netabc} on simulated data, for simulations with \gls{m} =
+    2. Dashed lines indicate true values. (A) Estimates of \gls{alpha} and
+    \gls{I} which were varied in these simulations against known values. (B)
+    Estimates of \gls{m} and \gls{N} which were held fixed in these simulations
+    at the values \gls{m} = 2 and \gls{N} = 5000.
+  }        
   \label{fig:abcptm2}
 \end{figure}
 

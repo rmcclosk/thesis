@@ -5,10 +5,16 @@ network parameters with kernel-ABC}
 contact network parameters from an estimated transmission tree using
 kernel-\gls{ABC}. The program combines three major components: Gillespie
 simulation, to simulate transmission trees on contact networks; the tree
-kernel, to compare simulated to observed transmission trees; and adaptive
-\gls{ABC}-\gls{SMC}, to maintain a population of particles and advance it
-toward the \gls{ABC} target distribution. We give a high-level overview of the
-program here, before describing these three components in detail.
+kernel, to compare transmission trees; and adaptive \gls{ABC}-\gls{SMC}, to
+maintain a population of particles and advance it toward the \gls{ABC} target
+distribution. We give a high-level overview of the program here, before
+describing these three components in detail. \software{Netabc} takes as input
+an estimated transmission tree, which can be derived from a viral phylogeny by
+rooting and time-scaling as described in \cref{subsec:phylodynamics} or
+estimated by other methods~\autocite{cottam2008integrating,
+jombart2011reconstructing, ypma2012unravelling, morelli2012bayesian,
+didelot2014bayesian}. We variously refer to this estimated transmission tree as
+the observed tree, input tree, or true tree.
 
 As described in \cref{sec:smc}, \software{netabc} keeps track of a population
 of particles $x^{(k)}$, each of which contains particular parameter values
@@ -17,7 +23,7 @@ networks $z^{(k)}$ are generated for each particle, in accordance with that
 particle's parameters. An epidemic is simulated over each of these networks
 using Gillespie simulation, and by keeping track of its progress, a
 transmission tree is obtained. Thus, each particle becomes associated with
-several simulated transmission trees. These trees are compared to the observed
+several simulated transmission trees. These trees are compared to the input
 tree using the tree kernel. Particles are weighted according to the similarity
 of their associated simulated trees with the true tree, with more similar trees
 receiving higher weights. The particles are iteratively perturbed to explore
@@ -57,6 +63,20 @@ to perform kernel-\gls{ABC}, we provide three additional stand-alone utilities:
 simulate a transmission tree over a contact network; and \software{treestat},
 to compute various summary statistics of phylogenies. The programs are freely
 available at \url{https://github.com/rmcclosk/netabc}.
+
+To check that our implementation of Gillespie simulation was correct, we
+reproduced Figure 1A of \textcite{leventhal2012inferring} (our
+\cref{fig:leventhal}), which plots the unbalancedness of transmission trees
+simulated over four network models at various levels of pathogen
+transmissibility. Our implementation of adaptive ABC-SMC was tested by applying
+it to the same mixture of Gaussians used by \citeauthor{del2012adaptive} to
+demonstrate their method (originally used by~\textcite{sisson2007sequential}).
+We were able to obtain a close approximation to the function (see
+\cref{fig:smctest}), and attained the stopping condition used by the authors in
+a comparable number of steps. To check that the algorithm would converge to a
+bimodal distribution, we also applied it to a mixture of two Gaussians with
+means $\pm$4 and variances 1. The algorithm was able to recover both peaks
+(\cref{fig:smctest2}).
 
 \subsubsection*{Epidemic simulation}
 \label{subsubsec:nettree}
@@ -264,13 +284,11 @@ number of infected neighbours, and never recovered. We did not consider the
 time scale of the transmission trees in these simulations, only their shape.
 Therefore, the transmission rate along each edge in the network was set to 1,
 the removal rate of each node was set to 0, and all transmission trees' branch
-lengths were scaled by their mean. For all analyses, the transmission trees'
-branch lengths were scaled by dividing by their mean. We used the
-\textit{igraph} library's implementation of the BA
-model~\autocite{csardi2006igraph} to generate the graphs. The analyses were run
-on Westgrid (\url{https://www.westgrid.ca/}) and a local computer cluster. With
-the exception of our own programs, all analyses were done in \software{R}, and
-all packages listed below are \software{R} packages.
+lengths were scaled by their mean. \textit{igraph} library's implementation of
+the BA model~\autocite{csardi2006igraph} to generate the graphs. The analyses
+were run on Westgrid (\url{https://www.westgrid.ca/}) and a local computer
+cluster. With the exception of our own programs, all analyses were done in
+\software{R}, and all packages listed below are \software{R} packages.
 
 \subsubsection*{Classifiers for BA model parameters based on tree shape}
 \label{subsec:kernel}
@@ -379,18 +397,17 @@ and then list the variables for which similar experiments were performed. We
 varied \gls{alpha} along a narrowly spaced grid of values: 0, 0.01, \ldots, 2.
 For each value, fifteen networks were generated with \software{igraph}, and
 transmission trees were simulated over each using \software{nettree}. These
-trees will be referred to as ``grid trees'', and their associated values ``grid
-values''. Next, one further test tree was simulated with the test value
-\gls{alpha} = 0. Both the grid trees and the test tree had 500 tips, and were
-simulated with the other \gls{BA} parameters set to $N$ = 5000, $m$ = 2, and
-$I$ = 1000. The test tree was compared to each of the grid trees using the tree
-kernel, with the meta-parameters set to $\lambda = 0.3$ and $\sigma = 4$, using
-the \software{treekernel} binary. The median kernel score was calculated for
-each grid value, and the scores were normalized such that the area under the
-curve was equal to 1. The grid value with the highest median kernel score was
-taken as the point estimate for the test value, and a 95\% credible interval
-was obtained using the \software{hpd} function in the \software{TeachingDemos}
-package~\autocite{snow2013teachingdemos}.
+trees will be referred to as ``grid trees''. Next, one further test tree was
+simulated with the test value \gls{alpha} = 0. Both the grid trees and the test
+tree had 500 tips, and were simulated with the other \gls{BA} parameters set to
+$N$ = 5000, $m$ = 2, and $I$ = 1000. The test tree was compared to each of the
+grid trees using the tree kernel, with the meta-parameters set to $\lambda =
+0.3$ and $\sigma = 4$, using the \software{treekernel} binary. The median
+kernel score was calculated for each grid value, and the scores were normalized
+such that the area under the curve was equal to 1. The grid value with the
+highest median kernel score was taken as the point estimate for the test value,
+and a 95\% credible interval was obtained using the \software{hpd} function in
+the \software{TeachingDemos} package~\autocite{snow2013teachingdemos}.
 
 Each experiment of the type just described was repeated ten times with the same
 test value. Similar experiments were performed for each of the four \gls{BA}

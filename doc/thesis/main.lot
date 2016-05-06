@@ -10,7 +10,7 @@
 \defcounter {refsection}{0}\relax 
 \contentsline {table}{\numberline {2.3}{\ignorespaces Variables used in grid search experiments}}{32}{table.2.3}
 \defcounter {refsection}{0}\relax 
-\contentsline {table}{\numberline {2.4}{\ignorespaces Characteristics of published HIV datasets analyzed with \textit {netabc}.}}{33}{table.2.4}
+\contentsline {table}{\numberline {2.4}{\ignorespaces Characteristics of published HIV datasets analyzed with \textit {netabc}.}}{32}{table.2.4}
 \defcounter {refsection}{0}\relax 
 \contentsline {table}{\numberline {2.5}{\ignorespaces Average maximum \textit {a posteriori} point estimates and 95\% highest posterior density (HPD) interval widths for BA model parameter estimates obtained with kernel-ABC. Three transmission trees were simulated under each combination of the listed parameter values, and the parameters were estimated with kernel-ABC without training. }}{38}{table.2.5}
 \defcounter {refsection}{0}\relax 

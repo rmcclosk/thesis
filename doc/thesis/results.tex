@@ -24,9 +24,9 @@ measures tree imbalance, was significantly correlated with all four parameters
      ${<}10^{-5}$,
      $0.003$,
      ${<}10^{-5}$,
-     ${<}10^{-5}$)
+     ${<}10^{-5}$).
 The ratio of internal to terminal branch lengths was negatively correlated with
-\gls{alpha} and \gls{I}, and positively corelated with \gls{N} and \gls{m}
+\gls{alpha} and \gls{I}, and positively corelated with \gls{m} and \gls{N}
   (Spearman's rho
     \ensuremath{-0.84},
     \ensuremath{-0.69},
@@ -176,7 +176,7 @@ estimates having an average deviation of
     0.14
 from the true value, on a grid from 0 to 2. The error of point estimates varied
 significantly between true values of \gls{alpha}
-    (one-way \gls{ANOVA}, $p {<}10^{-5}$). In
+    (one-way \gls{ANOVA}, $p$ ${<}10^{-5}$). In
 particular, errors were lower for the values \gls{alpha} = 1.0 and 1.25 than
 for the other values
     (average errors 
@@ -316,14 +316,18 @@ No parameters influenced the accuracy of the $N$ estimates (all one-way ANOVA).
   \centering
   \includegraphics[width=\textwidth]{abc-point-estimate-m2}
   \vspace{6pt}
-  \caption{
-    Point estimates of BA model parameters obtained by running kernel-ABC
-    on simulated phylogenies without training, for simulations with $m = 2$.
-    Dotted lines indicate true values, and limits of the $y$-axes are regions
-    of uniform prior density. (A) Estimates for $\alpha$ and $I$ against their
-    true values in simulations. (B) Estimates for $m$ and $N$, which were held
-    fixed in these simulations, against true values of $\alpha$.
-  }
+  \caption[
+    \Acrlong{MAP} point estimates for \gls{BA} model parameters obtained by
+    running \software{netabc} on simulated data, for simulations with \gls{m} =
+    2.
+  ]{
+    \Acrlong{MAP} point estimates for \gls{BA} model parameters obtained by
+    running \software{netabc} on simulated data, for simulations with \gls{m} =
+    2. Dashed lines indicate true values. (A) Estimates of \gls{alpha} and
+    \gls{I} which were varied in these simulations against known values. (B)
+    Estimates of \gls{m} and \gls{N} which were held fixed in these simulations
+    at the values \gls{m} = 2 and \gls{N} = 5000.
+  }        
   \label{fig:abcptm2}
 \end{figure}
 
@@ -374,17 +378,17 @@ $\alpha$,
   [0.6 -
    1.16];
 $I$,
-  1137 
+  1119 
   [662 -
    4455];
 $m$,
   3 
-  [2 -
+  [1 -
    5];
 $N$,
-  12785 
-  [3861-
-   14945].
+  12644 
+  [3258-
+   14967].
 The approximate posterior distributions for this simulation are shown in
 \cref{fig:mixed}. To test the effect of sampling bias, we sampled one
 transmission tree in a peer-driven fashion, where the probability to sample a
@@ -392,21 +396,21 @@ node was twice as high if one of its peers had already been sampled. The
 parameters for this experiment were $N$ = 5000, $m$ = 2, $\alpha$ = 0.5, and
 $I$ = 2000. The estimated values were
 $\alpha$, 
-  0.37 
-  [0.02 -
+  0.21 
+  [0 -
    0.63];
 $I$,
-  2352 
-  [1423 -
+  2390 
+  [1419 -
    3811];
 $m$,
   3 
   [2 -
    5];
 $N$,
-  8508 
-  [2636 -
-   14615].
+  8944 
+  [2836 -
+   14647].
 The approximate posterior distributions are shown in \cref{fig:peerdriven}. Both
 of these results were in line with estimates obtained on other simulated
 datasets (\cref{tab:abchpd}), although the estimate of peer-driven sampling for
