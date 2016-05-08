@@ -18,11 +18,11 @@ documentation. We have made \software{netabc} publicly available at
 \url{github.com/rmcclosk/netabc} under a permissive open source license, to
 encourage other researchers to apply and extend our method.
 
-Several alternative network models and modeling frameworks have been developed
+Several alternative network models and modelling frameworks have been developed
 which may provide useful future targets for kernel-\gls{ABC}. Waring
 models~\autocite{irwin1963place,handcock2004likelihood} are a more flexible
 type of preferential attachment model which permit a subset of attachments to
-be formed non-prefentially. These models were used by
+be formed non-preferentially. These models were used by
 \textcite{brown2011transmission} to characterize the transmission network in
 the United Kingdom. \Glspl{ERGM}~\autocite{robins2007introduction} are a
 flexible and expressive parameterization of contact networks in terms of
@@ -104,8 +104,9 @@ effective classifier for \gls{alpha}, a Sackin's index of tree imbalance
 performed nearly as well (\cref{fig:rsquared}). This result was intuitive: high
 \gls{alpha} values produce networks with few well-connected ``superspreader''
 nodes which are involved in a large number of transmissions, resulting in a
-highly unbalanced ladder-like tree structure (\cref{fig:alphatrees}). There was
-no observeable bias in the estimates of \gls{alpha} obtained with
+highly unbalanced ladder-like tree structure (\cref{fig:alphatrees}). 
+{\color{blue}
+There was no observable bias in the estimates of \gls{alpha} obtained with
 \software{netabc}, however the variation in these estimates was higher for
 $\alpha < 1$ than for $\alpha \geq 1$ (\cref{fig:abcptm2,tab:abchpd}). The
 relationship between \gls{alpha} and the power law exponent \gls{gamma} may
@@ -115,6 +116,7 @@ explain this result (\cref{fig:gamma}). The \gls{gamma} values associated with
 = 2). In other words, the degree distributions of networks with \gls{alpha} $<
 1$ are similar to each other, which may result in similarity of corresponding
 transmission trees as well. 
+}
 %The accuracy of \gls{alpha} estimates also increased when the value of the
 %\gls{m} parameter was higher (compare
 %\cref{fig:abcptm2,fig:abcptm3,fig:abcptm4}). 
@@ -151,8 +153,9 @@ hand, when \gls{I} is large relative to \gls{N}, the coalescent dynamics
 discussed above also apply. That is, the waiting times until the next infection
 increase, resulting in longer coalescence times toward the tips. The relative
 accuracy of the \gls{nltt} in these situations
-(\cref{fig:rsquared,fig:Ncrossv}) coroborates this hypothesis, as the
-\gls{nltt} uses only information about the coalescence times. When all \gls{BA}
+(\cref{fig:rsquared,fig:Ncrossv}) corroborates this hypothesis, as the
+\gls{nltt} uses only information about the coalescence times. 
+{\color{blue}When all \gls{BA}
 parameters were simultaneously estimated with kernel-\gls{ABC}, \gls{N} was
 nearly always over-estimated by approximately a factor of two
 (\cref{fig:abcptm2,tab:abchpd}). One factor which may have contributed to this
@@ -185,6 +188,7 @@ both parameters will tend to be overestimated due to being less identifiable
 within their own band. However, when \gls{N} is fixed at 5000, the derivatives
 vary substantially along the \gls{I}-axis, which explains why the grid search
 estimates of \gls{I} were accurate and unbiased (\cref{fig:gridptI}).
+}
 
 \begin{figure}[ht]
   \centering
@@ -288,8 +292,8 @@ multiple of 2. Furthermore, we considered the case $m = 1$, where the network
 has no cycles, to be implausible and therefore assigned it zero prior
 probability in one set of analyses. This forced the average degree to be at
 least four, which may be unrealistically high for sexual networks. The fact
-that the estimated values of $\alpha$ differed substatially for three datasets
-depending on whether or not $m = 1$ was allowed by the prior is futher evidence
+that the estimated values of $\alpha$ differed substantially for three datasets
+depending on whether or not $m = 1$ was allowed by the prior is further evidence
 of this potential misspecification. However, we note that for two of the
 datasets, the estimated values of $\alpha$ did not change much between priors,
 and the estimates of $I$ were robust to the choice of prior for all datasets

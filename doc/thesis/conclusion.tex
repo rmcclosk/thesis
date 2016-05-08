@@ -10,25 +10,27 @@ phylogenetic data. \software{Netabc} brings together the areas of viral
 phylodynamics and network epidemiology, which have only intersected in a very
 limited fashion thus far~\autocite{welch2011statistical}. The use of
 kernel-\gls{ABC}, a likelihood-free method, makes it possible to fit network
-models to phylogenies without calculating intractible likelihoods.
+models to phylogenies without calculating intractable likelihoods.
 
 Although phylodynamic methods have been developed to fit a wide variety of
-epidemiological models to phylogenetic data~\autocite{volz2012complex,
-rasmussen2014phylodynamic}, our method is the first (to our knowledge) which
-can fit models that do not assume panmixia. We believe this capability will be
-of broad interest to the molecular evolution and epidemiology community, as it
-widens the field of epidemiological parameters which may be investigated
-through viral sequence data. In addition, the characterization of local contact
-networks could be valuable from a public health perspective, such as for
-investigating optimal vaccination strategies~\autocite{keeling2005networks,
-peng2013vaccination, ma2013importance, rushmore2014network}. This information
-could assist in curtailing current epimemics, as well as preventing future
-epidemics of different diseases over the same contact network.
+epidemiological models to phylogenetic data assuming homogeneous
+mixing~\autocite{volz2012complex, rasmussen2014phylodynamic}, our method is
+able to fit models not requiring this assumption. We believe this capability
+will be of broad interest to the molecular evolution and epidemiology
+community, as it widens the field of epidemiological parameters which may be
+investigated through viral sequence data. In addition, the characterization of
+local contact networks could be valuable from a public health perspective, such
+as for investigating optimal vaccination
+strategies~\autocite{keeling2005networks, peng2013vaccination,
+ma2013importance, rushmore2014network}. This information could assist in
+curtailing current epidemics, as well as preventing future epidemics of
+different diseases over the same contact network.
 
-The paricular model we have investigated uses a preferential attachment
+{\color{blue}
+The particular model we have investigated uses a preferential attachment
 mechanism to generate scale-free networks resembling real-world social and
 sexual networks~\autocite{liljeros2001web, schneeberger2004scale,
-colgate1989risk}. Of the four parameters we considered, the pereferential
+colgate1989risk}. Of the four parameters we considered, the preferential
 attachment power $\alpha$ was the most readily estimable. Estimating $\alpha$
 with traditional epidemiological methods is challenging due to the requirement
 of sampling the high-degree nodes making up the tail of the power law
@@ -36,6 +38,7 @@ distribution, although approaches such as respondent-driven
 sampling~\autocite{heckathorn1997respondent} may be effective. 
 
 In closing, \software{netabc} combines phylodynamics, contact network
-epidemiology, approximate Bayesian computation, and sequentiial Monte Carlo 
+epidemiology, approximate Bayesian computation, and sequential Monte Carlo 
 to provide a source of insight into network structures complementary to
 traditional epidemiology.
+}

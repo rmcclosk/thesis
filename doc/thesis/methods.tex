@@ -81,7 +81,7 @@ means $\pm$4 and variances 1. The algorithm was able to recover both peaks
 \subsubsection*{Epidemic simulation}
 \label{subsubsec:nettree}
 
-The simulation of epidemics, and the corresponding transmission, trees over
+The simulation of epidemics, and the corresponding transmission trees, over
 contact networks is performed in \software{netabc} using the Gillespie
 simulation algorithm~\autocite{gillespie1976general}. This method has been
 independently implemented and applied by several
@@ -119,7 +119,7 @@ rate of all infected nodes,
 \]
 The variables $S$, $I$, $R$, $D$, $\beta$, and $\gamma$ are all updated as the
 simulation progresses. When a node $v$ becomes infected, it is deleted from $S$
-and added to $I$. Any formerly discordant edges in $\in(v)$ are deleted from
+and added to $I$. Any formerly discordant edges in $\inc(v)$ are deleted from
 $D$, and edges in $\out(v)$ to nodes in $S$ are added to $D$. If $v$ is later
 removed, it is deleted from $I$ and added to $R$, and any discordant edges in
 $\out(v)$ are deleted from $D$. At the time of either infection or removal, the

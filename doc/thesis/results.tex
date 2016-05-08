@@ -26,7 +26,7 @@ measures tree imbalance, was significantly correlated with all four parameters
      ${<}10^{-5}$,
      ${<}10^{-5}$).
 The ratio of internal to terminal branch lengths was negatively correlated with
-\gls{alpha} and \gls{I}, and positively corelated with \gls{m} and \gls{N}
+\gls{alpha} and \gls{I}, and positively correlated with \gls{m} and \gls{N}
   (Spearman's rho
     \ensuremath{-0.84},
     \ensuremath{-0.69},
@@ -169,7 +169,7 @@ $p$-values
     ${<}10^{-5}$,
     $0.01$).
 The highest density intervals obtained for all parameters were extremely wide,
-occcupying $>$75\% of the grid in all cases (\cref{fig:gridest}).
+occupying $>$75\% of the grid in all cases (\cref{fig:gridest}).
 
 The \gls{alpha} parameter was the most accurately estimated, with point
 estimates having an average deviation of 
@@ -243,7 +243,7 @@ The errors were lower for $N \leq 3000$
      for $N \leq 3000$ vs.
      2979
      for $N > 3000$),
-and this diffrence was significant
+and this difference was significant
     (Wilcoxon rank-sum test, $p {<}10^{-5}$,
      \cref{fig:gridptN}).
 The kernel score distribution had a peak at $N = 1000$ when this was the true
@@ -289,9 +289,10 @@ than those for the other values
     (Wilcoxon rank-sum test, $p$ = $0.0078$).
 Errors in estimating $\alpha$ also varied with the true value of $m$ just at
 the threshold of statistical significance
-    ($p 0.05$),
-but did not vary across the true values of $N$ or $I$ (both one-way ANOVA).
-Estimates for $I$ were relatively accurate, with point estimate errors of
+    (one-way ANOVA, $p 
+    =0.05$),
+but did not vary across the true value of $I$ (one-way ANOVA). Estimates for
+$I$ were relatively accurate, with point estimate errors of
     395 
     [207 - 
     683] individuals.
@@ -327,14 +328,18 @@ No parameters influenced the accuracy of the $N$ estimates (all one-way ANOVA).
     \gls{I} which were varied in these simulations against known values. (B)
     Estimates of \gls{m} and \gls{N} which were held fixed in these simulations
     at the values \gls{m} = 2 and \gls{N} = 5000.
-  }        
+  }
   \label{fig:abcptm2}
 \end{figure}
 
 \begin{table*}[ht]
   \centering
   \input{\tablepath/abc-hpd.tex}
-  \caption{
+  \caption[
+      Average maximum \textit{a posteriori} point estimates and 95\% highest
+      posterior density (HPD) interval widths for BA model parameter estimates
+      obtained with kernel-ABC.
+  ]{
       Average maximum \textit{a posteriori} point estimates and 95\% highest
       posterior density (HPD) interval widths for BA model parameter estimates
       obtained with kernel-ABC. Three transmission trees were simulated under
@@ -378,7 +383,7 @@ $\alpha$,
   [0.6 -
    1.16];
 $I$,
-  1119 
+  1115 
   [662 -
    4455];
 $m$,
@@ -386,9 +391,9 @@ $m$,
   [1 -
    5];
 $N$,
-  12644 
-  [3258-
-   14967].
+  12680 
+  [3377-
+   14933].
 The approximate posterior distributions for this simulation are shown in
 \cref{fig:mixed}. To test the effect of sampling bias, we sampled one
 transmission tree in a peer-driven fashion, where the probability to sample a
@@ -396,21 +401,21 @@ node was twice as high if one of its peers had already been sampled. The
 parameters for this experiment were $N$ = 5000, $m$ = 2, $\alpha$ = 0.5, and
 $I$ = 2000. The estimated values were
 $\alpha$, 
-  0.21 
+  0.08 
   [0 -
-   0.63];
+   0.62];
 $I$,
-  2390 
-  [1419 -
-   3811];
+  2391 
+  [1379 -
+   3860];
 $m$,
   3 
   [2 -
    5];
 $N$,
-  8944 
-  [2836 -
-   14647].
+  10675 
+  [2881 -
+   14788].
 The approximate posterior distributions are shown in \cref{fig:peerdriven}. Both
 of these results were in line with estimates obtained on other simulated
 datasets (\cref{tab:abchpd}), although the estimate of peer-driven sampling for

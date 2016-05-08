@@ -15,7 +15,8 @@
     check the accuracy of our implementation of Gillespie simulation.
     Transmission trees were simulated over three types of network, with
     pathogen transmissibility varying from 0 to 1. Sackin's index was
-    calculated for each simulated transmission tree.
+    calculated for each simulated transmission tree. Lines indicate median
+    Sackin's index values, and shaded areas are interquartile ranges.
   }
   \label{fig:leventhal}
 \end{figure}
@@ -471,10 +472,10 @@
 \begin{figure}[ht]
   \includegraphics{cuevas2009-posterior}
   \caption[
-      Approximate marginal poosterior distributions of BA model parameters for
+      Approximate marginal posterior distributions of BA model parameters for
       \textcite{cuevas2009hiv} data. 
   ]{
-      Approximate marginal poosterior distributions of BA model parameters for
+      Approximate marginal posterior distributions of BA model parameters for
       \textcite{cuevas2009hiv} data. Vertical lines indicate maximum \textit{a
       posteriori} estimates, and shaded areas are 95\% highest posterior
       density intervals. $x$-axis indicates regions of nonzero prior density.

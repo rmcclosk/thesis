@@ -67,7 +67,7 @@ measures tree imbalance, was significantly correlated with all four parameters
      $\Sexpr{pp(m.sackin.cor$p.value)}$,
      $\Sexpr{pp(N.sackin.cor$p.value)}$).
 The ratio of internal to terminal branch lengths was negatively correlated with
-\gls{alpha} and \gls{I}, and positively corelated with \gls{m} and \gls{N}
+\gls{alpha} and \gls{I}, and positively correlated with \gls{m} and \gls{N}
   (Spearman's rho
     \Sexpr{round(alpha.ratio.cor$estimate, 2)},
     \Sexpr{round(I.ratio.cor$estimate, 2)},
@@ -288,7 +288,7 @@ $p$-values
     $\Sexpr{tip.cor["I", pp(p.value)]}$,
     $\Sexpr{tip.cor["N", pp(p.value)]}$).
 The highest density intervals obtained for all parameters were extremely wide,
-occcupying $>$75\% of the grid in all cases (\cref{fig:gridest}).
+occupying $>$75\% of the grid in all cases (\cref{fig:gridest}).
 
 The \gls{alpha} parameter was the most accurately estimated, with point
 estimates having an average deviation of 
@@ -362,7 +362,7 @@ The errors were lower for $N \leq 3000$
      for $N \leq 3000$ vs.
      \Sexpr{d["N", .SD[true_value > 3000, round(mean(error))]]}
      for $N > 3000$),
-and this diffrence was significant
+and this difference was significant
     (Wilcoxon rank-sum test, $p \Sexpr{pp(N.test$p.value, eq=TRUE)}$,
      \cref{fig:gridptN}).
 The kernel score distribution had a peak at $N = 1000$ when this was the true
@@ -420,6 +420,17 @@ the distributions were flat for $N > 3000$.
     stopifnot(m.av["factor(true_alpha)", "Pr(>F)"] > 0.05)
     stopifnot(min(N.av[1:3,"Pr(>F)"]) > 0.05)
 
+    # one-way ANOVAs
+    stopifnot(anova(lm(alpha_error~true_m, d))[1, "Pr(>F)"] < 0.06)
+    stopifnot(anova(lm(alpha_error~factor(true_I), d))[1, "Pr(>F)"] > 0.05)
+    stopifnot(anova(lm(I_error~true_m, d))[1, "Pr(>F)"] > 0.05)
+    stopifnot(anova(lm(m_error~factor(true_alpha), d))[1, "Pr(>F)"] > 0.05)
+    stopifnot(anova(lm(m_error~factor(true_I), d))[1, "Pr(>F)"] > 0.05)
+
+    stopifnot(anova(lm(N_error~factor(true_alpha), d))[1, "Pr(>F)"] > 0.05)
+    stopifnot(anova(lm(N_error~factor(true_I), d))[1, "Pr(>F)"] > 0.05)
+    stopifnot(anova(lm(N_error~true_m, d))[1, "Pr(>F)"] > 0.05)
+
     alpha.m.cor <- cor.test(d[,alpha_error], d[,true_m], method="spearman")
 @
 
@@ -441,9 +452,10 @@ than those for the other values
     (Wilcoxon rank-sum test, $p$ = $\Sexpr{latexSN(round(zero.alpha.test$p.value, 4))}$).
 Errors in estimating $\alpha$ also varied with the true value of $m$ just at
 the threshold of statistical significance
-    ($p \Sexpr{pp(alpha.av["factor(true_m)", "Pr(>F)"])}$),
-but did not vary across the true values of $N$ or $I$ (both one-way ANOVA).
-Estimates for $I$ were relatively accurate, with point estimate errors of
+    (one-way ANOVA, $p 
+    \Sexpr{pp(anova(lm(alpha_error~true_m, d))[1, "Pr(>F)"], eq=TRUE)}$),
+but did not vary across the true value of $I$ (one-way ANOVA). Estimates for
+$I$ were relatively accurate, with point estimate errors of
     \Sexpr{d[,round(median(I_error))]} 
     [\Sexpr{d[,round(quantile(I_error, 0.25))]} - 
     \Sexpr{d[,round(quantile(I_error, 0.75))]}] individuals.
@@ -479,14 +491,18 @@ No parameters influenced the accuracy of the $N$ estimates (all one-way ANOVA).
     \gls{I} which were varied in these simulations against known values. (B)
     Estimates of \gls{m} and \gls{N} which were held fixed in these simulations
     at the values \gls{m} = 2 and \gls{N} = 5000.
-  }        
+  }
   \label{fig:abcptm2}
 \end{figure}
 
 \begin{table*}[ht]
   \centering
   \input{\tablepath/abc-hpd.tex}
-  \caption{
+  \caption[
+      Average maximum \textit{a posteriori} point estimates and 95\% highest
+      posterior density (HPD) interval widths for BA model parameter estimates
+      obtained with kernel-ABC.
+  ]{
       Average maximum \textit{a posteriori} point estimates and 95\% highest
       posterior density (HPD) interval widths for BA model parameter estimates
       obtained with kernel-ABC. Three transmission trees were simulated under

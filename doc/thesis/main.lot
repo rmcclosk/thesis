@@ -4,17 +4,17 @@
 \defcounter {refsection}{0}\relax 
 \addvspace {10\p@ }
 \defcounter {refsection}{0}\relax 
-\contentsline {table}{\numberline {2.1}{\ignorespaces Variables used in tree kernel simulation experiments}}{29}{table.2.1}
+\contentsline {table}{\numberline {2.1}{\ignorespaces Variables used in tree kernel simulation experiments}}{30}{table.2.1}
 \defcounter {refsection}{0}\relax 
-\contentsline {table}{\numberline {2.2}{\ignorespaces Variables used in grid search experiments}}{29}{table.2.2}
+\contentsline {table}{\numberline {2.2}{\ignorespaces Variables used in grid search experiments}}{30}{table.2.2}
 \defcounter {refsection}{0}\relax 
-\contentsline {table}{\numberline {2.3}{\ignorespaces Variables used in grid search experiments}}{32}{table.2.3}
+\contentsline {table}{\numberline {2.3}{\ignorespaces Variables used in grid search experiments}}{33}{table.2.3}
 \defcounter {refsection}{0}\relax 
-\contentsline {table}{\numberline {2.4}{\ignorespaces Characteristics of published HIV datasets analyzed with \textit {netabc}.}}{32}{table.2.4}
+\contentsline {table}{\numberline {2.4}{\ignorespaces Characteristics of published HIV datasets analyzed with \textit {netabc}.}}{33}{table.2.4}
 \defcounter {refsection}{0}\relax 
-\contentsline {table}{\numberline {2.5}{\ignorespaces Average maximum \textit {a posteriori} point estimates and 95\% highest posterior density (HPD) interval widths for BA model parameter estimates obtained with kernel-ABC. Three transmission trees were simulated under each combination of the listed parameter values, and the parameters were estimated with kernel-ABC without training. }}{38}{table.2.5}
+\contentsline {table}{\numberline {2.5}{\ignorespaces Average maximum \textit {a posteriori} point estimates and 95\% highest posterior density (HPD) interval widths for BA model parameter estimates obtained with kernel-ABC. }}{39}{table.2.5}
 \defcounter {refsection}{0}\relax 
-\contentsline {table}{\numberline {2.6}{\ignorespaces Estimated power law exponents for six HIV datasets based on maximum \textit {a priori} estimates of BA model parameters. }}{41}{table.2.6}
+\contentsline {table}{\numberline {2.6}{\ignorespaces Estimated power law exponents for six HIV datasets based on maximum \textit {a priori} estimates of BA model parameters. }}{42}{table.2.6}
 \defcounter {refsection}{0}\relax 
 \addvspace {10\p@ }
 \defcounter {refsection}{0}\relax 
