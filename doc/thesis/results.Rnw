@@ -1074,11 +1074,13 @@ when $m = 1$ was allowed.
   \label{fig:abchpd}
 \end{figure*}
 
-{\color{blue}
+\uline{
 To make our analyses comparable to the existing network literature, we
 estimated values of the power law exponent $\gamma$ for each of the datasets 
-investigated. The results are summarized in \cref{tab:gamma}. All of the
-estimated exponents were in the range $2 \leq \gamma \leq 2.5$. 
+investigated. The results are summarized in} \cref{tab:gamma}. \uline{All of the
+estimated exponents were in the range $2 \leq \gamma \leq 2.5$, which is on the
+lower end of the range $2 \leq \gamma \leq 4$ reported in the literature.
+}
 
 \begin{table}
     \centering
@@ -1096,4 +1098,3 @@ estimated exponents were in the range $2 \leq \gamma \leq 2.5$.
     }
     \label{tab:gamma}
 \end{table}
-}

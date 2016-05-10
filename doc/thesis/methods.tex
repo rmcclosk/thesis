@@ -582,7 +582,7 @@ carried forward. For the \textcite{novitsky2014impact} data, no large clusters
 were detected using the same cutoff, so we analysed a subtree of size 180
 chosen arbitrarily.
 
-{\color{blue}
+\uline{
 Empirical studies of contact networks often report the exponent $\gamma$ of the
 power law degree distribution. To compare our results to the literature, we
 simulated 100 networks each according to the \gls{MAP} parameter estimates
@@ -590,15 +590,16 @@ obtained for each investigated dataset. The power-law exponent $\gamma$ was
 calculated for each network using the \software{fit\_power\_law} function in
 \software{igraph}, with the `R.mle' implementation. The median of the 100
 $\gamma$ values was taken as a point estimate for the associated dataset.
+}
 
+\uline{
 For all datasets, we used the priors $\alpha$ $\sim$ Uniform(0, 2) and $N$ and
 $I$ jointly uniform on the region \{$n \leq N \leq 10000$, $n \leq I \leq
-10000$, $I \leq N$\}, where $n$ is the number of tips in the tree (see
-\cref{tab:data}). Since the value $m = 1$ produces networks with no cycles,
+10000$, $I \leq N$\}, where $n$ is the number of tips in the tree} (see
+\cref{tab:data}). \uline{Since the value $m = 1$ produces networks with no cycles,
 which we considered fairly implausible, we ran one analysis with the prior $m
 \sim$ DiscreteUniform(1, 5), and one with the prior $m \sim$ DiscreteUniform(2,
 5). The other parameters to the SMC algorithm were the same as used for the
 simulation experiments, except that we used 10000 particles instead of 1000 to
 increase the accuracy of the estimated posterior. This was computationally
-feasible due to the small number of runs required for this analysis.
-}
+feasible due to the small number of runs required for this analysis.}

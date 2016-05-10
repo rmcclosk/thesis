@@ -66,24 +66,24 @@ network, while concurrently simulating the spread of an epidemic.
 
 It is important to note that \software{netabc} takes a transmission tree as
 input, rather than a viral phylogeny. In reality, true transmission trees are
-not available and must be approximated, often by way of a viral phylogeny.
-Although this has been demonstrated to be a fair
+not available and must be estimated; these estimates are often based on the
+viral phylogeny. Although this has been demonstrated to be a fair
 approximation~\autocite[e.g.][]{leitner1996accurate}, and is frequently used in
 practice~\autocite[e.g.][]{stadler2013uncovering}, the topologies of a viral
 phylogeny and transmission tree can differ
-significantly~\autocite{ypma2013relating} due to within-host evolution and the
-sampling process. We have left the estimation of a transmission tree up to the
-user. In theory, it is possible to incorporate the process by which a viral
-phylogeny is generated along with a transmission tree into our method, for
-example by simulating within-host dynamics. Although this may be an avenue for
-future extension, we felt that it would obscure the primary purpose of this
-work, which is to study contact network parameters. In addition, there are a
-number of different methods available for inferring transmission
-trees~\autocite{didelot2014bayesian, ypma2012unravelling,
-jombart2011reconstructing, cottam2008integrating}, some of which incorporate
-geographic and/or epidemiological data not accommodated by our method. We
-therefore felt it would be best to allow researchers to use their own preferred
-method of constructing a transmission tree.
+significantly~\autocite{ypma2013relating, hall2015epidemic} due to within-host
+evolution and the sampling process. We have left the estimation of a
+transmission tree up to the user. In theory, it is possible to incorporate the
+process by which a viral phylogeny is generated along with a transmission tree
+into our method, for example by simulating within-host dynamics. Although this
+may be an avenue for future extension, we felt that it would obscure the
+primary purpose of this work, which is to study contact network parameters. In
+addition, there are a number of different methods available for inferring
+transmission trees~\autocite{didelot2014bayesian, ypma2012unravelling,
+jombart2011reconstructing, cottam2008integrating, hall2015epidemic}, some of
+which incorporate geographic and/or epidemiological data not accommodated by
+our method. We therefore felt it would be best to allow researchers to use
+their own preferred method of constructing a transmission tree.
 
 Our implementation of \gls{SMC} uses a simple multinomial scheme to sample
 particles from the population according to their weights. Several other
@@ -105,12 +105,12 @@ performed nearly as well (\cref{fig:rsquared}). This result was intuitive: high
 \gls{alpha} values produce networks with few well-connected ``superspreader''
 nodes which are involved in a large number of transmissions, resulting in a
 highly unbalanced ladder-like tree structure (\cref{fig:alphatrees}). 
-{\color{blue}
+\uline{
 There was no observable bias in the estimates of \gls{alpha} obtained with
 \software{netabc}, however the variation in these estimates was higher for
-$\alpha < 1$ than for $\alpha \geq 1$ (\cref{fig:abcptm2,tab:abchpd}). The
+$\alpha < 1$ than for $\alpha \geq 1$} (\cref{fig:abcptm2,tab:abchpd}). \uline{The
 relationship between \gls{alpha} and the power law exponent \gls{gamma} may
-explain this result (\cref{fig:gamma}). The \gls{gamma} values associated with
+explain this result} (\cref{fig:gamma}).\uline{ The \gls{gamma} values associated with
 \gls{alpha} = 0 and \gls{alpha} = 0.5 are nearly identical (about 2.28 for
 \gls{alpha} = 0 and 2.33 for \gls{alpha} = 0.5 with \gls{N} = 5000 and \gls{m}
 = 2). In other words, the degree distributions of networks with \gls{alpha} $<
@@ -155,15 +155,17 @@ increase, resulting in longer coalescence times toward the tips. The relative
 accuracy of the \gls{nltt} in these situations
 (\cref{fig:rsquared,fig:Ncrossv}) corroborates this hypothesis, as the
 \gls{nltt} uses only information about the coalescence times. 
-{\color{blue}When all \gls{BA}
+\uline{When all \gls{BA}
 parameters were simultaneously estimated with kernel-\gls{ABC}, \gls{N} was
 nearly always over-estimated by approximately a factor of two
-(\cref{fig:abcptm2,tab:abchpd}). One factor which may have contributed to this
+}(\cref{fig:abcptm2,tab:abchpd}). \uline{One factor which may have contributed to this
 bias was our choice of prior distribution. Since the prior for \gls{I} and
 \gls{N} was jointly uniform on a region where $I \leq N$, more prior weight was
 assigned to higher \gls{N} values. Another contributing factor relates to the
 dynamics of the \gls{SI} model and the coalescent process.
+}
 
+\uline{
 \gls{I} and \gls{N} were both systematically over-estimated by
 \software{netabc}, although the bias was more severe for \gls{N} than for
 \gls{I}. The number of infected individuals follows a logistic growth curve
@@ -180,15 +182,14 @@ growth curves to the proportion of infected individuals over time, and
 calculated the first and second derivatives of these curves at the time of
 transmission tree sampling. These derivatives give us an indication of the
 growth rates of the epidemics at the time of sampling. As shown in
-\cref{fig:derivs}, there are bands along which both derivatives are similar
+}\cref{fig:derivs},\uline{there are bands along which both derivatives are similar
 which contain the values we tested. These bands span mostly higher values of
 \gls{N} and \gls{I} than the true values. Therefore, if \gls{N} and \gls{I} are
 free to vary (as is the case in kernel-\gls{ABC}), and our hypothesis is true,
 both parameters will tend to be overestimated due to being less identifiable
 within their own band. However, when \gls{N} is fixed at 5000, the derivatives
 vary substantially along the \gls{I}-axis, which explains why the grid search
-estimates of \gls{I} were accurate and unbiased (\cref{fig:gridptI}).
-}
+estimates of \gls{I} were accurate and unbiased} (\cref{fig:gridptI}).
 
 \begin{figure}[ht]
   \centering
@@ -356,6 +357,6 @@ into \software{netabc} can handle arbitrary transmission and removal rates
 which need not be homogeneous across the network. Moreover, it is possible to
 use kernel-\gls{ABC} to fit a model which relaxes some or all of these
 assumptions, which may be a fruitful avenue for future investigation. 
-{\color{blue}Despite the possible misspecification, our estimates of the power
+\uline{Despite the possible misspecification, our estimates of the power
 law exponent $\gamma$ were within the range of values reported in the
-literature (\cref{tab:gamma}).}
+literature} (\cref{tab:gamma}).

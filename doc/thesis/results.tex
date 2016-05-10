@@ -381,19 +381,19 @@ HPD] estimates for each parameter were:
 $\alpha$, 
   1.1 
   [0.6 -
-   1.16];
+   1.14];
 $I$,
-  1142 
-  [662 -
+  1120 
+  [666 -
    4455];
 $m$,
   3 
   [1 -
    5];
 $N$,
-  12602 
-  [3861-
-   14977].
+  12768 
+  [4021-
+   14967].
 The approximate posterior distributions for this simulation are shown in
 \cref{fig:mixed}. To test the effect of sampling bias, we sampled one
 transmission tree in a peer-driven fashion, where the probability to sample a
@@ -401,21 +401,21 @@ node was twice as high if one of its peers had already been sampled. The
 parameters for this experiment were $N$ = 5000, $m$ = 2, $\alpha$ = 0.5, and
 $I$ = 2000. The estimated values were
 $\alpha$, 
-  0.22 
+  0.21 
   [0 -
-   0.61];
+   0.63];
 $I$,
-  2391 
+  2399 
   [1464 -
-   3838];
+   3811];
 $m$,
   3 
   [2 -
    5];
 $N$,
-  8725 
-  [2881 -
-   14780].
+  13817 
+  [3080 -
+   14970].
 The approximate posterior distributions are shown in \cref{fig:peerdriven}. Both
 of these results were in line with estimates obtained on other simulated
 datasets (\cref{tab:abchpd}), although the estimate of peer-driven sampling for
@@ -850,11 +850,13 @@ when $m = 1$ was allowed.
   \label{fig:abchpd}
 \end{figure*}
 
-{\color{blue}
+\uline{
 To make our analyses comparable to the existing network literature, we
 estimated values of the power law exponent $\gamma$ for each of the datasets 
-investigated. The results are summarized in \cref{tab:gamma}. All of the
-estimated exponents were in the range $2 \leq \gamma \leq 2.5$. 
+investigated. The results are summarized in} \cref{tab:gamma}. \uline{All of the
+estimated exponents were in the range $2 \leq \gamma \leq 2.5$, which is on the
+lower end of the range $2 \leq \gamma \leq 4$ reported in the literature.
+}
 
 \begin{table}
     \centering
@@ -872,4 +874,3 @@ estimated exponents were in the range $2 \leq \gamma \leq 2.5$.
     }
     \label{tab:gamma}
 \end{table}
-}
