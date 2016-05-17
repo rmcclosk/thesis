@@ -65,25 +65,32 @@ all possible complete trees.
 Depending on the network model studied, it is possible that \cref{eq:netlik}
 could be simplified into a tractable expression. However, a simpler alternative
 to likelihood-based methods, which would apply to any network model, is
-provided by
-\gls{ABC}~\autocite{rubin1984bayesianly,tavare1997inferring,fu1997estimating,beaumont2002approximate}.
-All of the ingredients required to apply \gls{ABC} to this problem are readily
-available. Simulating networks is straightforward under a variety of models.
-Epidemics on those networks, and the corresponding transmission trees, can also
-be easily simulated. As mentioned above, contact networks can profoundly affect
-transmission tree shape, and those shapes can be compared using a highly
-informative similarity measure called the ``tree
-kernel''~\autocite{poon2013mapping}. \Gls{ABC} can be implemented with
-\gls{SMC}, which has several advantages over other
+provided by \gls{ABC}~\autocite{rubin1984bayesianly, tavare1997inferring,
+fu1997estimating, beaumont2002approximate}. All of the ingredients required to
+apply \gls{ABC} to this problem are readily available. Simulating networks is
+straightforward under a variety of models. Epidemics on those networks, and the
+corresponding transmission trees, can also be easily simulated. As mentioned
+above, contact networks can profoundly affect transmission tree shape, and
+those shapes can be compared using a highly informative similarity measure
+called the ``tree kernel''~\autocite{poon2013mapping}. \Gls{ABC} can be
+implemented with \gls{SMC}, which has several advantages over other
 algorithms~\autocite{mckinley2009inference}. A recently-developed adaptive
 algorithm requiring minimal tuning on the part of the user makes \gls{SMC} an
 even more attractive approach~\autocite{del2012adaptive}. In summary, our
 method to infer contact network parameters will combine the following:
 stochastic simulation of epidemics on networks, the tree kernel, and adaptive
-\gls{ABC}-\gls{SMC}. Since our distance measure is a kernel function, our
-method is a type of kernel-\gls{ABC}~\autocite{nakagome2013kernel}. For ease of
-exposition, we will often use the term ``kernel-\gls{ABC}'' to refer to our
-method specifically.
+\gls{ABC}-\gls{SMC}. 
+
+Our method will expand on the framework developed
+by~\autocite{poon2015phylodynamic}, who combined \gls{ABC}-\gls{MCMC} with the
+tree kernel to infer parameters of population genetic models from viral
+phylogenies. The term ``kernel-assisted \gls{ABC}'' refers to any application
+of \gls{ABC} using a kernel function as a distance metric, including that
+developed by \citeauthor{poon2015phylodynamic}. However, for ease of
+exposition, we will often use the term ``kernel-assisted \gls{ABC}'' to refer
+to our method specifically. Note that this is distinct from the version of
+\gls{ABC} based on kernel Bayes rule introduced by
+\textcite{fukumizu2011kernel}.
 
 Empirical studies of sexual contact networks have found that these networks
 tend to be scale-free~\autocite{colgate1989risk, liljeros2001web,
@@ -96,7 +103,8 @@ model~\autocite{barabasi1999emergence} is one of the simplest preferential
 attachment models, which makes it a natural choice to explore with our method.
 The second aim of this work is to use simulations to investigate the parameters
 of the \gls{BA} model, including whether they have a detectable impact on tree
-shape, and whether they can be accurately recovered using kernel-\gls{ABC}.
+shape, and whether they can be accurately recovered using kernel-assisted
+\gls{ABC}.
 
 Due to its high global prevalence and fast mutation rate, \gls{HIV} is one of
 the most commonly-studied viruses in a phylodynamic context. Consequently, a
@@ -116,16 +124,16 @@ network and the particular nodes to whom the intervention is
 targeted~\autocite{little2014using,wang2015targeting}. Due to this combination
 of data availability and potential public health impact, \gls{HIV} is an
 obvious context in which our method could be applied. Therefore, the third and
-final aim of this work is to apply kernel-\gls{ABC} to fit the \gls{BA} model
-to existing \gls{HIV} outbreaks.
+final aim of this work is to apply kernel-assisted \gls{ABC} to fit the
+\gls{BA} model to existing \gls{HIV} outbreaks.
 
 To summarize, this work has three objectives. First, we will develop a method
-which uses kernel-\gls{ABC} to infer parameters of contact network models from
-observed transmission trees. Second, we will use simulations to characterize
-the parameters of the \gls{BA} network model in terms of their effect on tree
-shape and how accurately they can be recovered with kernel-\gls{ABC}. Finally,
-we will apply the method to fit the \gls{BA} model to several real-world
-\gls{HIV} datasets.
+which uses kernel-assisted \gls{ABC} to infer parameters of contact network
+models from observed transmission trees. Second, we will use simulations to
+characterize the parameters of the \gls{BA} network model in terms of their
+effect on tree shape and how accurately they can be recovered with
+kernel-assisted \gls{ABC}. Finally, we will apply the method to fit the
+\gls{BA} model to several real-world \gls{HIV} datasets.
 
 \glsreset{ABC}
 \glsreset{BA}

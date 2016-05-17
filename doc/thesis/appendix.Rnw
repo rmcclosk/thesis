@@ -402,11 +402,11 @@
     \centering
     \includegraphics{mixed-posterior}
     \caption[Approximate marginal posterior distributions of BA model
-        parameters obtained using kernel-ABC for a network with heterogeneous
+        parameters obtained using kernel-assisted ABC for a network with heterogeneous
         node behaviour.]
     {
         Approximate marginal posterior distributions of Barab\'asi-Albert
-        model parameters obtained using kernel-ABC for a network with
+        model parameters obtained using kernel-assisted ABC for a network with
         heterogeneous node behaviour. Half of the nodes were attached with
         $\alpha = 0.5$, and the other half with $\alpha = 1.5$ (vertical
         dashed lines, top left). Other parameter values were $m = 2$, $I =
@@ -420,11 +420,11 @@
     \centering
     \includegraphics{peerdriven-posterior}
     \caption[Approximate marginal posterior distributions of Barab\'asi-Albert
-        model parameters obtained using kernel-ABC for a network with
+        model parameters obtained using kernel-assisted ABC for a network with
         peer-driven sampling.]
     {
         Approximate marginal posterior distributions of Barab\'asi-Albert
-        model parameters obtained using kernel-ABC for a network with
+        model parameters obtained using kernel-assisted ABC for a network with
         peer-driven sampling. An epidemic was simulated in the usual fashion,
         but rather than being sampled at random, infected nodes were sampled
         with a probability two times higher if they had any sampled neighbours

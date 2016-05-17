@@ -386,7 +386,7 @@ the distributions were flat for $N > 3000$.
   \label{fig:gridest}
 \end{figure}
 
-\subsubsection*{Joint parameter estimates with kernel-ABC}
+\subsubsection*{Joint parameter estimates with kernel-assisted ABC}
 
 <<point_est, include=FALSE>>=
     f <- Sys.glob("../../simulations/abc-pa-free-m/point-estimate/*")
@@ -435,12 +435,12 @@ the distributions were flat for $N > 3000$.
 @
 
 \Cref{fig:abcptm2} shows \gls{MAP} point estimates of the BA model parameters
-obtained with kernel-ABC on simulated data. The estimates shown correspond only
+obtained with kernel-assisted ABC on simulated data. The estimates shown correspond only
 to the simulations where the $m$ parameter was set to 2, however the results
 for $m = 3$ and $m = 4$ were similar (\cref{fig:abcptm3,fig:abcptm4}). Average
 boundaries of 95\% HPD intervals are given in \cref{tab:abchpd}.
 
-The accuracy of the parameter estimates obtained with kernel-ABC
+The accuracy of the parameter estimates obtained with kernel-assisted ABC
 paralleled the results from the \gls{kSVR} classifier. Of the four parameters,
 $\alpha$ was the most accurately estimated, with point estimates having a
 median [IQR] absolute error of 
@@ -501,13 +501,13 @@ No parameters influenced the accuracy of the $N$ estimates (all one-way ANOVA).
   \caption[
       Average maximum \textit{a posteriori} point estimates and 95\% highest
       posterior density (HPD) interval widths for BA model parameter estimates
-      obtained with kernel-ABC.
+      obtained with kernel-assisted ABC.
   ]{
       Average maximum \textit{a posteriori} point estimates and 95\% highest
       posterior density (HPD) interval widths for BA model parameter estimates
-      obtained with kernel-ABC. Three transmission trees were simulated under
+      obtained with kernel-assisted ABC. Three transmission trees were simulated under
       each combination of the listed parameter values, and the parameters were
-      estimated with kernel-ABC without training.
+      estimated with kernel-assisted ABC without training.
   }
   \label{tab:abchpd}
 \end{table*}
@@ -541,7 +541,7 @@ and $N$ were more widely dispersed.
   \vspace{6pt}
   \caption{
     Marginal posterior distributions of BA model parameters estimated
-    with kernel-ABC for a single simulated transmission tree. Dotted
+    with kernel-assisted ABC for a single simulated transmission tree. Dotted
     lines and shaded polygon indicate true values.
   }
   \label{fig:abcex}
@@ -969,7 +969,7 @@ $\alpha$ was somewhat lower than typical.
   setkey(low2, dataset)
 @
 
-We applied kernel-ABC to five published HIV datasets (\cref{tab:data}),
+We applied kernel-assisted ABC to five published HIV datasets (\cref{tab:data}),
 and found substantial heterogeneity among the parameter estimates
 (\cref{fig:abchpd,fig:abchpdm2}). Plots of the marginal posterior distributions
 for each dataset are shown in
@@ -1074,13 +1074,11 @@ when $m = 1$ was allowed.
   \label{fig:abchpd}
 \end{figure*}
 
-\uline{
 To make our analyses comparable to the existing network literature, we
 estimated values of the power law exponent $\gamma$ for each of the datasets 
-investigated. The results are summarized in} \cref{tab:gamma}. \uline{All of the
+investigated. The results are summarized in \cref{tab:gamma}. All of the
 estimated exponents were in the range $2 \leq \gamma \leq 2.5$, which is on the
 lower end of the range $2 \leq \gamma \leq 4$ reported in the literature.
-}
 
 \begin{table}
     \centering

@@ -1,9 +1,9 @@
 \subsection{\software{Netabc}: a computer program for estimation of contact
-network parameters with kernel-ABC}
+network parameters with kernel-assisted ABC}
 
 \software{Netabc} is a computer program to perform statistical inference of
 contact network parameters from an estimated transmission tree using
-kernel-\gls{ABC}. The program combines three major components: Gillespie
+kernel-assisted \gls{ABC}. The program combines three major components: Gillespie
 simulation, to simulate transmission trees on contact networks; the tree
 kernel, to compare transmission trees; and adaptive \gls{ABC}-\gls{SMC}, to
 maintain a population of particles and advance it toward the \gls{ABC} target
@@ -58,11 +58,11 @@ are used for hash tables and dynamic programming matrices. The
 probability distributions, and to perform the bisection step in the adaptive
 \gls{ABC}-\gls{SMC} algorithm. Parallelization is implemented with POSIX
 threads~\autocite{barney2009posix}. In addition to the \software{netabc} binary
-to perform kernel-\gls{ABC}, we provide three additional stand-alone utilities:
-\software{treekernel}, to calculate the tree kernel; \software{nettree}, to
-simulate a transmission tree over a contact network; and \software{treestat},
-to compute various summary statistics of phylogenies. The programs are freely
-available at \url{https://github.com/rmcclosk/netabc}.
+to perform kernel-assisted \gls{ABC}, we provide three additional stand-alone
+utilities: \software{treekernel}, to calculate the tree kernel;
+\software{nettree}, to simulate a transmission tree over a contact network; and
+\software{treestat}, to compute various summary statistics of phylogenies. The
+programs are freely available at \url{https://github.com/rmcclosk/netabc}.
 
 To check that our implementation of Gillespie simulation was correct, we
 reproduced Figure 1A of \textcite{leventhal2012inferring} (our
@@ -440,7 +440,7 @@ experiments is shown in \cref{fig:gridexpt}.
 
 \subsubsection*{Approximate Bayesian computation}
 
-To test the full kernel-\gls{ABC} algorithm, we simulated three trees each under
+To test the full kernel-assisted \gls{ABC} algorithm, we simulated three trees each under
 a variety of parameter values, and ran the \software{netabc} program to
 estimate posterior distributions for the parameters. The parameter values and
 priors used are listed in \cref{tab:abcexpt}. The tree kernel meta-parameters
@@ -463,7 +463,7 @@ package~\autocite{plummer2006coda}.
   {
     Variables and \gls{BA} parameter values used for \gls{ABC} validation
     experiments. Trees were simulated under the test values, and
-    kernel-\gls{ABC} was used to re-estimate posterior distributions for the
+    kernel-assisted \gls{ABC} was used to re-estimate posterior distributions for the
     \gls{BA} parameters without training.
   }
   \label{tab:abcexpt}
@@ -582,7 +582,6 @@ carried forward. For the \textcite{novitsky2014impact} data, no large clusters
 were detected using the same cutoff, so we analysed a subtree of size 180
 chosen arbitrarily.
 
-\uline{
 Empirical studies of contact networks often report the exponent $\gamma$ of the
 power law degree distribution. To compare our results to the literature, we
 simulated 100 networks each according to the \gls{MAP} parameter estimates
@@ -590,16 +589,14 @@ obtained for each investigated dataset. The power-law exponent $\gamma$ was
 calculated for each network using the \software{fit\_power\_law} function in
 \software{igraph}, with the `R.mle' implementation. The median of the 100
 $\gamma$ values was taken as a point estimate for the associated dataset.
-}
 
-\uline{
 For all datasets, we used the priors $\alpha$ $\sim$ Uniform(0, 2) and $N$ and
 $I$ jointly uniform on the region \{$n \leq N \leq 10000$, $n \leq I \leq
-10000$, $I \leq N$\}, where $n$ is the number of tips in the tree} (see
-\cref{tab:data}). \uline{Since the value $m = 1$ produces networks with no cycles,
+10000$, $I \leq N$\}, where $n$ is the number of tips in the tree (see
+\cref{tab:data}). Since the value $m = 1$ produces networks with no cycles,
 which we considered fairly implausible, we ran one analysis with the prior $m
 \sim$ DiscreteUniform(1, 5), and one with the prior $m \sim$ DiscreteUniform(2,
 5). The other parameters to the SMC algorithm were the same as used for the
 simulation experiments, except that we used 10000 particles instead of 1000 to
 increase the accuracy of the estimated posterior. This was computationally
-feasible due to the small number of runs required for this analysis.}
+feasible due to the small number of runs required for this analysis.

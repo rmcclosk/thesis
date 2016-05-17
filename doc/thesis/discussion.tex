@@ -19,7 +19,7 @@ documentation. We have made \software{netabc} publicly available at
 encourage other researchers to apply and extend our method.
 
 Several alternative network models and modelling frameworks have been developed
-which may provide useful future targets for kernel-\gls{ABC}. Waring
+which may provide useful future targets for kernel-assisted \gls{ABC}. Waring
 models~\autocite{irwin1963place,handcock2004likelihood} are a more flexible
 type of preferential attachment model which permit a subset of attachments to
 be formed non-preferentially. These models were used by
@@ -34,7 +34,7 @@ framework for estimation of epidemiological quantities related to \gls{HIV}
 transmission. Except for a few special cases, simulating a network according to
 an \gls{ERGM} generally requires \gls{MCMC}, which would be too computationally
 intensive to integrate into \software{netabc} as it currently stands. To fit
-\gls{ERGM} with kernel-\gls{ABC}, one possibility would be to consider the
+\gls{ERGM} with kernel-assisted \gls{ABC}, one possibility would be to consider the
 network itself as a parameter to be modified by the \gls{MCMC} kernel.
 Other network modelling frameworks include the partnership-centric formulation
 developed by~\textcite{eames2002modeling} and the log-linear adjacency matrix
@@ -50,7 +50,7 @@ parameterization applied by~\textcite{morris1993epidemiology}.
 %straightforward incorporation of time-dependent dynamics. 
 %However, simulating a transmission tree would require the numerical solution of
 %a very large system of \glspl{ODE}, which may be computationally prohibitive
-%given the number of simulations required for kernel-\gls{ABC}.
+%given the number of simulations required for kernel-assisted \gls{ABC}.
 
 The two-step process of simulating a contact network and subsequently allowing
 an epidemic to spread over that network carries with it the assumption that the
@@ -60,7 +60,7 @@ basis. Addressing the impact of this simplifying assumption is outside the
 scope of this work. However, the same assumption is made by most studies using
 contact network models in an epidemiological
 context~\autocite{welch2011statistical, bansal2007individual}. In principle,
-kernel-\gls{ABC} could be adapted to dynamic contact networks by using a method
+kernel-assisted \gls{ABC} could be adapted to dynamic contact networks by using a method
 such as that developed by \textcite{robinson2012dynamics} to simulate such a
 network, while concurrently simulating the spread of an epidemic.
 
@@ -105,25 +105,23 @@ performed nearly as well (\cref{fig:rsquared}). This result was intuitive: high
 \gls{alpha} values produce networks with few well-connected ``superspreader''
 nodes which are involved in a large number of transmissions, resulting in a
 highly unbalanced ladder-like tree structure (\cref{fig:alphatrees}). 
-\uline{
 There was no observable bias in the estimates of \gls{alpha} obtained with
 \software{netabc}, however the variation in these estimates was higher for
-$\alpha < 1$ than for $\alpha \geq 1$} (\cref{fig:abcptm2,tab:abchpd}). \uline{The
+$\alpha < 1$ than for $\alpha \geq 1$ (\cref{fig:abcptm2,tab:abchpd}). The
 relationship between \gls{alpha} and the power law exponent \gls{gamma} may
-explain this result} (\cref{fig:gamma}).\uline{ The \gls{gamma} values associated with
+explain this result (\cref{fig:gamma}). The \gls{gamma} values associated with
 \gls{alpha} = 0 and \gls{alpha} = 0.5 are nearly identical (about 2.28 for
 \gls{alpha} = 0 and 2.33 for \gls{alpha} = 0.5 with \gls{N} = 5000 and \gls{m}
 = 2). In other words, the degree distributions of networks with \gls{alpha} $<
 1$ are similar to each other, which may result in similarity of corresponding
 transmission trees as well. 
-}
 %The accuracy of \gls{alpha} estimates also increased when the value of the
 %\gls{m} parameter was higher (compare
 %\cref{fig:abcptm2,fig:abcptm3,fig:abcptm4}). 
 
 The \gls{I} parameter, representing the prevalence at the time of sampling, was
-also generally estimable, although it was slightly over-estimated for both
-cases we considered with kernel-\gls{ABC}. The dynamics of the \gls{SI} model,
+also generally identifiable, although it was slightly over-estimated for both
+cases we considered with kernel-assisted \gls{ABC}. The dynamics of the \gls{SI} model,
 and the coalescent process~\autocite{kingman1982coalescent}, offer a potential
 explanation for the identifiability of \gls{I}. In our simulations, we assumed
 that all discordant edges shared the same transmission rate, so that the
@@ -154,18 +152,15 @@ discussed above also apply. That is, the waiting times until the next infection
 increase, resulting in longer coalescence times toward the tips. The relative
 accuracy of the \gls{nltt} in these situations
 (\cref{fig:rsquared,fig:Ncrossv}) corroborates this hypothesis, as the
-\gls{nltt} uses only information about the coalescence times. 
-\uline{When all \gls{BA}
-parameters were simultaneously estimated with kernel-\gls{ABC}, \gls{N} was
+\gls{nltt} uses only information about the coalescence times. When all \gls{BA}
+parameters were simultaneously estimated with kernel-assisted \gls{ABC}, \gls{N} was
 nearly always over-estimated by approximately a factor of two
-}(\cref{fig:abcptm2,tab:abchpd}). \uline{One factor which may have contributed to this
+(\cref{fig:abcptm2,tab:abchpd}). One factor which may have contributed to this
 bias was our choice of prior distribution. Since the prior for \gls{I} and
 \gls{N} was jointly uniform on a region where $I \leq N$, more prior weight was
 assigned to higher \gls{N} values. Another contributing factor relates to the
 dynamics of the \gls{SI} model and the coalescent process.
-}
 
-\uline{
 \gls{I} and \gls{N} were both systematically over-estimated by
 \software{netabc}, although the bias was more severe for \gls{N} than for
 \gls{I}. The number of infected individuals follows a logistic growth curve
@@ -182,14 +177,14 @@ growth curves to the proportion of infected individuals over time, and
 calculated the first and second derivatives of these curves at the time of
 transmission tree sampling. These derivatives give us an indication of the
 growth rates of the epidemics at the time of sampling. As shown in
-}\cref{fig:derivs},\uline{there are bands along which both derivatives are similar
+\cref{fig:derivs}, there are bands along which both derivatives are similar
 which contain the values we tested. These bands span mostly higher values of
 \gls{N} and \gls{I} than the true values. Therefore, if \gls{N} and \gls{I} are
-free to vary (as is the case in kernel-\gls{ABC}), and our hypothesis is true,
+free to vary (as is the case in kernel-assisted \gls{ABC}), and our hypothesis is true,
 both parameters will tend to be overestimated due to being less identifiable
 within their own band. However, when \gls{N} is fixed at 5000, the derivatives
 vary substantially along the \gls{I}-axis, which explains why the grid search
-estimates of \gls{I} were accurate and unbiased} (\cref{fig:gridptI}).
+estimates of \gls{I} were accurate and unbiased (\cref{fig:gridptI}).
 
 \begin{figure}[ht]
   \centering
@@ -207,14 +202,14 @@ estimates of \gls{I} were accurate and unbiased} (\cref{fig:gridptI}).
     trees, and their first and second derivatives were calculated at the time
     of sampling. Contours show first derivatives, while colours indicate second
     derivatives. Values of \gls{I} and \gls{N} used in simulation experiments
-    with kernel-\gls{ABC} are indicated by diamonds.
+    with kernel-assisted \gls{ABC} are indicated by diamonds.
   }
   \label{fig:derivs}
 \end{figure}
 
 The \gls{m} parameter, which controls the number of connections added to the
 network per vertex, did not have a measurable impact on tree shape and was not
-estimable with kernel-ABC. The exception to this was the value \gls{m} = 1,
+identifiable with kernel-ABC. The exception to this was the value \gls{m} = 1,
 which produces networks without cycles whose associated trees were more easily
 distinguished. However, all the analyses presented here did not take the
 absolute size of the transmission trees into account, as the branch lengths
@@ -240,7 +235,7 @@ more accurately classified when the number of tips in the transmission trees
 was larger, underscoring the importance of adequate sampling for accurate
 phylodynamic inference.
 
-For the more estimable parameters, the credible intervals attained from the
+For the more identifiable parameters, the credible intervals attained from the
 marginal \gls{ABC} target distributions were much narrower than those obtained
 through grid search, while point estimates were of comparable accuracy. This
 was likely due to the fact that \gls{SMC} employs importance sampling to
@@ -355,8 +350,8 @@ possible, since this is the very first attempt to fit a contact network model
 in a phylodynamic context. However, the Gillespie simulation algorithm built
 into \software{netabc} can handle arbitrary transmission and removal rates
 which need not be homogeneous across the network. Moreover, it is possible to
-use kernel-\gls{ABC} to fit a model which relaxes some or all of these
+use kernel-assisted \gls{ABC} to fit a model which relaxes some or all of these
 assumptions, which may be a fruitful avenue for future investigation. 
-\uline{Despite the possible misspecification, our estimates of the power
+Despite the possible misspecification, our estimates of the power
 law exponent $\gamma$ were within the range of values reported in the
-literature} (\cref{tab:gamma}).
+literature (\cref{tab:gamma}).
