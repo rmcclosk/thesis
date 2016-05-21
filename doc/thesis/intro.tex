@@ -8,10 +8,12 @@ graphical representation of the the evolutionary relationships among a group of
 organisms or species (generally, \defn{taxa})~\autocite{haeckel1866generelle}.
 The \defn{tips} of a phylogeny, that is, the nodes without any descendants,
 correspond to \defn{extant}, or observed, taxa. The \defn{internal nodes}
-correspond to their (usually extinct) common ancestors. The edges or
-\defn{branches} of the phylogeny connect ancestors to their descendants.
-Phylogenies may have a \defn{root}, which is a node with no descendants
-distinguished as the most recent common ancestor of all the extant
+correspond to their common ancestors, {\color{blue}\uline{usually extinct
+(although occasionally the internal nodes may be observed as well, eg.
+\autocite{jombart2011reconstructing}).}} The edges or \defn{branches} of the
+phylogeny connect ancestors to their descendants. Phylogenies may have a
+\defn{root}, which is a node with no descendants distinguished as the most
+recent common ancestor of all the extant
 taxa~\autocite{harding1971probabilities}. When such a root exists, the tree is
 referred to as being \defn{rooted}; otherwise, it is \defn{unrooted}. The
 structural arrangement of nodes and edges in the tree is referred to as its
@@ -329,9 +331,10 @@ Gaussian radial basis function of the vectors $x$ and $y$,
 \]
 where $\norm{\cdot}_2$ is the Euclidean norm and $\sigma$ is a variance
 parameter. The tree kernel is defined as 
-\[
-  K(T_1, T_2) = \sum_{n_1 \in N(T_1)} \sum{n_2 \in N(T_2)} \Delta (n_1, n_2),
-\]
+\begin{align}
+  K(T_1, T_2) = \sum_{n_1 \in N(T_1)} \sum_{n_2 \in N(T_2)} \Delta (n_1, n_2),
+  \label{eq:kernel}
+\end{align}
 where
 \[
   \Delta(n_1, n_2) =
@@ -340,21 +343,34 @@ where
     \lambda k_G(l_{n_1}, l_{n_2}) \displaystyle\prod_{j=1}^{\nc(n_1)} \left(1 +
     \Delta(c_{n_1}^j, c_{n_2}^j) \right) & \begin{aligned} n_1 \text{ and } n_2 \text{ have the same} \\ \text{production rule} \end{aligned} \\
     0 & \text{otherwise}.
-
   \end{cases}
 \]
-Here $\lambda$ is a decay factor parameter, which penalizes large matches that
-tend to dominate the kernel score. In this work, we refer to the parameters
-$\lambda$ and $\sigma$ as \defn{meta-parameters}, to avoid confusing them with
-model parameters we are trying to estimate.
+{\color{blue}\uline{
+The parameter $\lambda$ in the above expression, is called the \emph{decay
+factor}~\autocite{moschitti2006making}, and takes a value between 0 and 1.
+Without this parameter, terms in the sum} \ref{eq:kernel} \uline{corresponding
+to large subset trees with the same topology would be similarly large and tend
+to dominate the kernel score. $\lambda$ penalizes $\Delta$ more strongly as the
+number of recursive calls increases, which downweights the largest matching
+substructures and allows smaller matches to contribute more to the kernel
+score. }} In this work, we refer to the parameters $\lambda$ and $\sigma$ as
+\defn{meta-parameters}, to avoid confusing them with model parameters we are
+trying to estimate. {\color{blue}\uline{ When evaluating the tree kernel, it is
+helpful to reorder the children of each internal node such that the larger of
+the two subtrees is on the right-hand side. If the two subtrees have equal
+sizes, then the child with the longer branch length can be put on the
+right-hand side. This operation is referred to as \defn{ladderizing}. Since the
+ordering of children is arbitrary in phylogenies, this operation ensures that a
+maximal number of matching subset trees are counted by the tree kernel without 
+making meaningful changes to the trees. }}
 
-%The tree kernel was later shown to be highly effective in differentiating trees
-%simulated under a compartmental model with two risk groups of varying contact
-%rates~\autocite{poon2015phylodynamic}. In that paper,
-%\citeauthor{poon2015phylodynamic} used the tree kernel as the distance function
-%in \gls{ABC} (see \cref{sec:abc}), to fit epidemiological models to observed
-%trees. This is an example of kernel-ABC~\autocite{nakagome2013kernel}, which
-%will be discussed further in \cref{sec:abc}.
+{\color{blue}\uline{
+The tree kernel was later shown to be highly effective in differentiating trees
+simulated under a compartmental model with two risk groups of varying contact
+rates~\autocite{poon2015phylodynamic}. In that paper,
+\citeauthor{poon2015phylodynamic} used the tree kernel as the distance function
+in \gls{ABC}} (see \cref{sec:abc}), \uline{to fit epidemiological models to
+observed trees. }}
 
 \section{Contact networks}
 \label{sec:contactnet}
@@ -636,13 +652,14 @@ equal-risk groups.
 \Gls{SMC} is the name for a family of statistical inference methods which rely
 on approximating probability distributions of interest with large collections
 of \defn{particles}, here denoted
-$\set{x^{(k)}}$~\autocite{doucet2001introduction, liu2008monte}. These
-collections or \defn{populations} are constructed to form a \defn{Monte Carlo
-approximation} to some distribution of interest $\pi$, meaning that the
-empirical distribution of the particles converges in distribution to $\pi$ as
-the population size gets large~\autocite{liu2001theoretical}. The word
-\defn{sequential} is used because the particle populations are modified in an
-iterative fashion over time, for example, to incorporate new evidence. 
+$\set{x^{(k)}}$~\autocite{doucet2000sequential, doucet2001introduction,
+liu2008monte}. These collections or \defn{populations} are constructed to form
+a \defn{Monte Carlo approximation} to some distribution of interest $\pi$,
+meaning that the empirical distribution of the particles converges in
+distribution to $\pi$ as the population size gets
+large~\autocite{liu2001theoretical}. The word \defn{sequential} is used because
+the particle populations are modified in an iterative fashion over time, for
+example, to incorporate new evidence. 
 
 To fully describe \gls{SMC}, we will introduce some notation and terminology.
 The definitions of these terms will become clearer as they are used. For a
@@ -664,16 +681,30 @@ will be suitable for our purposes. A more rigorous definition can be found in
 nothing to do with the kernel functions defined in \cref{subsec:treeshape},
 other than sharing a name (the word ``kernel'' is ubiquitous in mathematics).
 
+{\color{blue}\uline{
+The goal of this section of the introduction is to describe an algorithm called
+the \gls{SMC} sampler~\autocite{del2006sequential}, which forms the basis of
+the adaptive \gls{ABC}-\gls{SMC} algorithm we apply toward the main objective
+of this work. We begin by describing \gls{SIS}, which is a precursor to
+\gls{SMC} that samples from a sequence of distributions defined on spaces of
+increasing dimension. We then describe \gls{SMC} itself, which extends
+\gls{SIS} with a resampling step to fight particle degeneracy. Finally, we
+outline the \gls{SMC} sampler, which allows \gls{SMC} to be applied to
+sequences of distributions all defined on the same space. This terminology will
+become clear as the methods are described.
+}}
+
 \subsection{Sequential importance sampling}
 \label{subsec:sis}
+\glsreset{SIS}
 
-\Gls{SIS}~\autocite{gordon1993novel} is one type of \gls{SMC} method, whose aim
-is to sample from a distribution $\pi$ on an high-dimensional space, say
-$\pi(\vec{x}) = \pi(x_1, \ldots, x_d)$. The basis of \gls{SIS} is \gls{IS},
-which is a method of estimating summary statistics of distributions which are
-known only up to a normalizing constant, and therefore cannot be sampled from
-directly. That is, if $\pi$ is such a distribution and $f$ is any real-valued
-function, \gls{IS} is concerned with estimating
+\Gls{SIS}~\autocite{gordon1993novel} {\color{blue}\uline{is a particle-based
+method}} whose aim is to sample from a distribution $\pi$ on an
+high-dimensional space, say $\pi(\vec{x}) = \pi(x_1, \ldots, x_d)$. The basis
+of \gls{SIS} is \gls{IS}, which is a method of estimating summary statistics of
+distributions which are known only up to a normalizing constant, and therefore
+cannot be sampled from directly. That is, if $\pi$ is such a distribution and
+$f$ is any real-valued function, \gls{IS} is concerned with estimating
 \[
   \pi(f) = \int f(x)\pi(x)\d x = \int f(x) \frac{\gamma(x)}{Z} \d x,
 \]
@@ -681,24 +712,27 @@ where the integral is over the space on which $\pi$ is defined, $\gamma(x)$ is
 known pointwise, and $Z = \int \gamma(x) \d x$ is the unknown normalizing
 constant. Suppose we have at hand another distribution $\eta$, called the
 \defn{importance distribution}, from which we are able to sample. Define the
-\defn{importance weight} as the ratio $w(x) = \gamma(x)/\eta(x)$. We can
-express the normalizing constant $Z$ in terms of the importance weight and
-distribution, $Z = \int w(x) \eta(x) \d x$, and in turn write the expectation
-of interest as
-\[
-  \int f(x) \pi(x) \d x = \frac{\int f(x) \gamma(x) \d x}
-                               {\int w(x) \eta(x) \d x}.
-\]
-If we sample a large number of points from $\eta$, then $\eta(x)$ can be
-approximated by a Monte Carlo estimate. Since the remaining quantities $f$,
-$\gamma$, and $w$ can all be evaluated pointwise, these are all the ingredients
-we need to obtain an estimate of $\pi(f)$. Although this is a simple and
-elegant approach, the drawback is that the variance of the estimate is
-proportional to the variance of the importance weights~\autocite{liu2008monte},
-which may be quite large if $\eta$ and $\gamma$ are very different. Therefore,
-the practical use of \gls{IS} on its own is limited, since it depends on
-finding an importance distribution similar to $\pi$, which we usually know very
-little about \textit{a priori}.
+\defn{importance weight} as the ratio $w(x) = \gamma(x)/\eta(x)$. We can write
+the expectation of interest as
+{\color{blue}
+\begin{align}
+  \int f(x) \pi(x) \d x = \frac{1}{Z} \int w(x) f(x) \d x.
+  \label{eq:is}
+\end{align}
+}
+{\color{blue}\uline{
+Since $\eta$ can be sampled from exactly, and $\gamma$ and $f$ can both be
+evaluated pointwise, the integral $\int w(x) f(x) \d x$ can be approximated by
+a Monte Carlo estimate. Moreover, the normalizing constant $Z$ can be expressed
+in terms of the importance weight and distribution, $Z = \int w(x) \eta(x) \d
+x$. Therefore, we have all the ingredients we need to obtain an estimate of
+$\pi(f)$ using} \cref{eq:is}.} Although this is a simple and elegant approach,
+the drawback is that the variance of the estimate is proportional to the
+variance of the importance weights~\autocite{liu2008monte}, which may be quite
+large if $\eta$ and $\gamma$ are very different. Therefore, the practical use
+of \gls{IS} on its own is limited, since it depends on finding an importance
+distribution similar to $\pi$, which we usually know very little about
+\textit{a priori}.
 
 The objective of \gls{SIS} is to build up an importance distribution $\eta$ for
 $\pi$ sequentially. By the general product rule, $\pi(\vec{x})$ can be
@@ -742,13 +776,15 @@ fact that $k(x_i, \vec{x_{i-1}}) = \eta(x_i \mid \vec{x_{i-1}})$ is a Markov
 kernel. In some applications, it is possible to approximate the optimal kernel
 or even compute it explicitly.
 
-The recursive definition \cref{eq:sisw} suggests an algorithm for obtaining a
-sample from $\pi$ (\cref{alg:sis}).  We begin with $n$ ``particles'' which have
-been sampled from the importance distribution $\eta(x_0)$ for $\pi(x_0)$. The
-particles are updated and reweighted $d$ times, corresponding to the $d$
-elements of the decomposition of $\pi$. At the $i$th step, each particle is
-extended to include $x_i$ drawn according to the chosen $\eta(x_i \mid
-\vec{x_{i-1}})$, and the importance weights are recalculated and normalized. 
+The recursive definition \ref{eq:sisw} suggests an algorithm for obtaining a
+sample from {\color{blue}\uline{$\eta$ and using it to obtain an approximate
+sample from $\pi$ by \gls{IS}}} (\cref{alg:sis}).  We begin with $n$
+``particles'' which have been sampled from the importance distribution
+$\eta(x_0)$ for $\pi(x_0)$. The particles are updated and reweighted $d$ times,
+corresponding to the $d$ elements of the decomposition of $\pi$. At the $i$th
+step, each particle is extended to include $x_i$ drawn according to the chosen
+$\eta(x_i \mid \vec{x_{i-1}})$, and the importance weights are recalculated and
+normalized. 
 
 \begin{algorithm}
   \caption{Sequential importance sampling.}
@@ -756,52 +792,97 @@ extended to include $x_i$ drawn according to the chosen $\eta(x_i \mid
     \For {$k = 1$ to $n$}
       \State Sample $x_1^{(k)}$ from $\eta(x_1)$
       \Comment{Initialize the $k$th particle}
-      \State $w^{(k)} \gets \dfrac{\pi\left(x_1^{(k)}\right)}{\eta\left(x_1^{(k)}\right)}$
+      %\State $w^{(k)} \gets \dfrac{\pi\left(x_1^{(k)}\right)}{\eta\left(x_1^{(k)}\right)}$
+      \State $w^{(k)} \gets \pi(x_1^{(k)}) / \eta(x_1^{(k)})$
     \EndFor
     \For {$i = 2$ to $d$}
       \For {$k = 1$ to $n$}
-        \State Sample $x_i^{(k)}$ from $\eta\left(x_i \mid \vec{x_{i-1}^{(k)}}\right)$
+        \State Sample $x_i^{(k)}$ from $\eta(x_i \mid \vec{x_{i-1}^{(k)}})$
         \Comment Extend the $k$th particle
-        \State $w(\vec{x_i}^{(k)}) \gets \dfrac{\pi\left(x_i^{(k)} \mid \vec{x_{i-1}^{(k)}}\right)}{\eta\left(x_i^{(k)} \mid \vec{x_{i-1}^{(k)}}\right)} \cdot w(\vec{x_{i-1}}^{(k)})$
+        \State $w(\vec{x_i}^{(k)}) \gets [\pi(x_i^{(k)} \mid \vec{x_{i-1}^{(k)}}) \,/\, \eta(x_i^{(k)} \mid \vec{x_{i-1}^{(k)}})] \cdot w(\vec{x_{i-1}}^{(k)})$
       \EndFor
       \State Normalize the weights so that $\sum w = 1$
     \EndFor
-    \State Sample $n$ particles with probabilities $w$
   \end{algorithmic}
   \label{alg:sis}
 \end{algorithm}
 
-Of course, $\eta$ is merely an approximation to $\pi$, and may be a fairly poor
-one depending on the application. Try as we might to keep the variances of the
-weights low, the cumulative errors at each sequential step tend to push many of
-the weights to very low values. This results in a poor approximation to $\pi$,
-since only a few particles retain high importance weights after all $d$
-sequential steps. To mitigate this problem, a resampling step is periodically
-applied when the variance in the importance weights becomes too high. Several
-different criteria have been proposed for when to resample, but we focus here
-on the one described by \textcite{liu2008monte}, namely the decay of the
-\gls{ESS} below a prescribed threshold, conventionally $n/2$. The \gls{ESS} of
-the population of particles is defined as \[ \ESS(w) = \frac{n}{1 + \Var(w)},
-\] where $n$ is the number of particles~\autocite{liu2008monte}. When the
-\gls{ESS} drops below the threshold, particles are resampled according to their
-weights. This results in the removal of low-weight particles from the
-population, and also equalizes all the weights. Various resampling strategies
-beyond the basic sampling with replacement have been
-proposed~\autocite{douc2005comparison}, but we will not discuss those here. 
+\subsection{Sequential Monte Carlo}
+
+The importance distribution $\eta$ constructed with \gls{SIS} is merely an
+approximation to $\pi$, and may be a fairly poor one in practice depending on
+the application. Try as we might to keep the variances of the weights low, the
+cumulative errors at each sequential step tend to push many of the weights to
+very low values~\autocite{doucet2000sequential}. This results in a poor
+approximation to $\pi$, since only a few particles retain high importance
+weights after all $d$ sequential steps, 
+{\color{blue}\uline{ a problem known as \defn{particle degeneracy}. To mitigate
+this problem, \textcite{gordon1993novel} introduced technique they called the
+\defn{bootstrap filter}, which involves a resampling of the population of
+particles after each sequential step in accordance with their importance
+weights. A similar idea, termed \defn{particle rejuvination}, was proposed by
+\textcite{liu1995blind}. These approaches cause particles with high importance
+weights to be replicated in the population, while particles with low weights
+may be removed. After each resampling step, the importance weights for all
+particles are set equal.}}
+
+\begin{algorithm}
+  \caption{Sequential Monte Carlo \autocite{doucet2000sequential}.}
+  \begin{algorithmic}
+    \For {$k = 1$ to $n$}
+      \State Sample $x_1^{(k)}$ from $\eta(x_1)$
+      \Comment{Initialize the $k$th particle}
+      \State $w^{(k)} \gets \pi(x_1^{(k)}) / \eta(x_1^{(k)})$
+    \EndFor
+    \For {$i = 2$ to $d$}
+      \For {$k = 1$ to $n$}
+        \State Sample $x_i^{(k)}$ from $\eta(x_i \mid \vec{x_{i-1}^{(k)}})$
+        \Comment Extend the $k$th particle
+        \State $w(\vec{x_i}^{(k)}) \gets [\pi(x_i^{(k)} \mid \vec{x_{i-1}^{(k)}}) \,/\, \eta(x_i^{(k)} \mid \vec{x_{i-1}^{(k)}})] \cdot w(\vec{x_{i-1}}^{(k)})$
+      \EndFor
+      \If {$\ESS(w) < T$}
+        \Comment{$T$ is a user-defined threshold}
+        \State Resample the particles according to $w$
+        \For {$k = 1$ to $n$}
+          \State $w^{(k)} \gets 1/n$
+        \EndFor
+      \EndIf
+    \EndFor
+  \end{algorithmic}
+  \label{alg:smc}
+\end{algorithm}
+
+{\color{blue}\uline{The resampling step was formally integrated with
+\gls{SIS} by \citeauthor{doucet2000sequential} to form the first \gls{SMC}
+algorithm }(\cref{alg:smc}). \uline{Rather than resample at every step as the
+bootstrap filter proposed, the authors use a criterion based on the \gls{ESS}
+the particle population to determine when resampling is necessary. }} The
+\gls{ESS} of the population of particles is defined as 
+\[ 
+  \ESS(w) = \frac{n}{1 + \Var(w)}, 
+\]
+where $n$ is the number of particles in the population.
+When the \gls{ESS} drops below the threshold
+{\color{blue}\uline{(conventionally $n/2$~\autocite{liu2008monte})}}, particles
+are resampled according to their importance weights. This results in the
+removal of low-weight particles from the population, and also equalizes all the
+weights. Various resampling strategies beyond the basic sampling with
+replacement have been proposed~\autocite{douc2005comparison}, but we will not
+discuss those here. 
 
 \subsection{The sequential Monte Carlo sampler}
 \label{subsec:smcsamp}
 
-The \gls{SIS} algorithm described above aims to sample from a high-dimensional
-distribution $\pi(x)$, by sequentially sampling from $d$ distributions of lower
-but increasing dimension. \textcite{del2006sequential} developed an
-\defn{\gls{SMC} sampler} with an alternative objective: to sample sequentially
-from $d$ distributions $\pi_1, \ldots, \pi_d$, all of the same dimension and
-defined on the same space. The $\pi_i$ are assumed to form a related sequence,
-such as posterior distributions attained by sequentially considering new
-evidence. As with \gls{SIS}, we assume that $\pi_i(x) = \gamma_i(x) / Z_i$,
-where $\gamma_i$ is known pointwise and the normalizing constant $Z_i$ is
-unknown.
+The \gls{SIS} and \gls{SMC} algorithms described above aim to sample from a
+high-dimensional distribution $\pi(x)$, by sequentially sampling from $d$
+distributions of lower but increasing dimension. \textcite{del2006sequential}
+developed an \defn{\gls{SMC} sampler} with an alternative objective: to sample
+sequentially from $d$ distributions $\pi_1, \ldots, \pi_d$, all of the same
+dimension and defined on the same space. The $\pi_i$ are assumed to form a
+related sequence, such as posterior distributions attained by sequentially
+considering new evidence. As with \gls{SIS}, we assume that $\pi_i(x) =
+\gamma_i(x) / Z_i$, where $\gamma_i$ is known pointwise and the normalizing
+constant $Z_i$ is unknown.
 
 Both algorithms involve progression through a sequence of related
 distributions. For \gls{SIS}, these distributions are lower-dimensional
@@ -894,7 +975,7 @@ section.
     \For {$k = 1$ to $n$}
       \State Sample $x_1^{(k)}$ from $\eta_1(x_1)$
       \Comment{Initialize the $k$th particle}
-      \State $w^{(k)} \gets \dfrac{\gamma_1\left(x_1^{(k)}\right)}{\eta_1\left(x_1^{(k)}\right)}$
+      \State $w^{(k)} \gets \gamma_1(x_1^{(k)}) / \eta_1(x_1^{(k)})$
       \State Normalize the weights so that $\sum w = 1$
     \EndFor
     \For {$i = 2$ to $d$}
@@ -911,7 +992,6 @@ section.
           \State $w^{(k)} \gets 1/n$
         \EndFor
       \EndIf
-      \State Sample the $i$th component of $n$ particles with probabilities $w$
     \EndFor
   \end{algorithmic}
   \label{alg:smcsamp}
@@ -978,7 +1058,7 @@ simplest terms, many possible values for $\theta$ are examined, $\L(\theta \mid
 y)$ is calculated for each, and the parameters which produce the highest value
 are accepted. Many sophisticated numerical optimization methods exist, although
 they may not be guaranteed to find the true \gls{ML} estimates if the
-likelihood function is complex. 
+likelihood function is multi-modal. 
 
 \Gls{ML} estimation makes use only of the data and outcomes to estimate the
 model parameters $\theta$. However, it is frequently the case that the
@@ -1084,34 +1164,49 @@ interest~\autocite{marin2012approximate}. That is,
 \[
   \int \pi_\varepsilon(\theta, z \mid y) \d z \approx f(\theta \mid y).
 \]
-The intuition for why this approximation might hold comes from the fact that, 
-when $\varepsilon = 0$, the integral on the left is exactly equal to the
-posterior. Thus, by taking $\varepsilon$ small, we should attain something
-close to the posterior.
-
 The distribution $\pi_\varepsilon(\theta, z \mid y)$ is variously referred to
-as the  \textit{\gls{ABC} target distribution} or the \gls{ABC} approximation
-to the posterior. Note that in many formulations, the distance function $\rho$
-is defined as $\rho(S(\cdot), S(\cdot))$ where $S$ is a function which maps
-data points into a vector of summary statistics. This can be useful if the data
-are high-dimensional or of a complex type, but it is not strictly necessary.
-For instance, if the data are numeric and of low dimension, the distance
-function may simply be the Euclidean distance~\autocite{sisson2007sequential}.
-For more complex data, \textcite{nakagome2013kernel} proposed the use of a
-kernel function (defined in \cref{subsec:treeshape}), an approach they dubbed
-\defn{kernel-\gls{ABC}}.
+as the \textit{\gls{ABC} target distribution} or the \gls{ABC} approximation
+to the posterior. The intuition for why this approximation might be reasonable
+comes from the fact that, when $\varepsilon = 0$ and $\rho$ satisfies $\rho(z,
+y) = 0 \Rightarrow x = y$, the integral on the left is exactly equal to the
+posterior. Thus, by taking $\varepsilon$ small, we should attain something
+close to the posterior {\color{blue}\uline{if $\rho$ captures the similarity
+between datasets reasonably well. However, the accuracy of the \gls{ABC}
+approximation depends heavily on the choice of distance function. }}
+
+In many applications {\color{purple}\uline{(eg. \autocite{fu1997estimating,
+tanaka2006using})}}, $\rho$ is defined as $\rho(S(\cdot), S(\cdot))$ where $S$
+is a function which maps data points into a vector of summary statistics.
+{\color{blue}\uline{In the context of \gls{ABC}, a summary statistic $S$ is
+called \defn{sufficient} if} 
+\[
+  f(\theta \mid y) = f(\theta \mid S(y)).
+\]
+\uline{That is, sufficiency implies that the data can be replaced with the
+summary statistic without losing any information about the posterior
+distribution~\autocite{marjoram2006modern}. For most problems, it is not
+possible to find sufficient summary statistics~\autocite{marjoram2006modern}.
+TODO
+}}
+
+This can be useful if the data are high-dimensional or of a complex type, but
+it is not strictly necessary. For instance, if the data are numeric and of low
+dimension, the distance function may simply be the Euclidean
+distance~\autocite{sisson2007sequential}. \textcite{poon2015phylodynamic}
+proposed the use of a kernel function (defined in \cref{subsec:treeshape}),
+which allows 
 
 \subsection{Algorithms for ABC}
 \label{subsec:abcalg}
 
 Algorithms for performing \gls{ABC} fall into one of three categories:
 rejection, \gls{MCMC}, and \gls{SMC}~\autocite{marin2012approximate}. To
-simplify the math, we shall restrict the descriptions of these algorithms to
-the case of one simulated dataset per parameter particle (the meaning of this
-will become clear shortly). The extension to multiple datasets per particle is
-straightforward and will be given at the end of the section. We use the
-variable $x$ to refer to the pair $(\theta, z)$, so that the \gls{ABC} target
-distribution can be written $\pi_\varepsilon(x \mid y)$.
+simplify the notation, we shall restrict the descriptions of these algorithms
+to the case of one simulated dataset per parameter particle (the meaning of
+this will become clear shortly). The extension to multiple datasets per
+particle is straightforward and will be given at the end of the section. We use
+the variable $x$ to refer to the pair $(\theta, z)$, so that the \gls{ABC}
+target distribution can be written $\pi_\varepsilon(x \mid y)$.
 
 Rejection ABC is the simplest method, and also the one which was first
 proposed~\autocite{rubin1984bayesianly, tavare1997inferring}. The algorithm,

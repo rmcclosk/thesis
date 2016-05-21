@@ -354,7 +354,7 @@ No parameters influenced the accuracy of the $N$ estimates (all one-way ANOVA).
 The dispersion of the ABC approximation to the posterior also varied between
 the parameters, with narrower HPD intervals for the parameters with more
 accurate point estimates (\cref{tab:abchpd}). \Cref{fig:abcex} shows
-the distributions for for one simulation. Equivalent plots for one replicate
+the distributions for one simulation. Equivalent plots for one replicate
 simulation with each studied parameter combination can be found in
 \cref{fig:0.0-1000-2-5000-0,fig:0.5-1000-2-5000-0,fig:1.0-1000-2-5000-0,fig:1.5-1000-2-5000-0,fig:0.0-2000-2-5000-0,fig:0.5-2000-2-5000-0,fig:1.0-2000-2-5000-0,fig:1.5-2000-2-5000-0,fig:0.0-1000-3-5000-0,fig:0.5-1000-3-5000-0,fig:1.0-1000-3-5000-0,fig:1.5-1000-3-5000-0,fig:0.0-2000-3-5000-0,fig:0.5-2000-3-5000-0,fig:1.0-2000-3-5000-0,fig:1.5-2000-3-5000-0,fig:0.0-1000-4-5000-0,fig:0.5-1000-4-5000-0,fig:1.0-1000-4-5000-0,fig:1.5-1000-4-5000-0,fig:0.0-2000-4-5000-0,fig:0.5-2000-4-5000-0,fig:1.0-2000-4-5000-0,fig:1.5-2000-4-5000-0}. HPD intervals around $\alpha$ and $I$ were often narrow
 relative to the region of nonzero prior density, whereas the intervals for $m$
@@ -381,9 +381,9 @@ HPD] estimates for each parameter were:
 $\alpha$, 
   1.1 
   [0.6 -
-   1.16];
+   1.15];
 $I$,
-  1119 
+  1133 
   [662 -
    4455];
 $m$,
@@ -391,9 +391,9 @@ $m$,
   [1 -
    5];
 $N$,
-  12678 
-  [3367-
-   14977].
+  12655 
+  [3733-
+   14933].
 The approximate posterior distributions for this simulation are shown in
 \cref{fig:mixed}. To test the effect of sampling bias, we sampled one
 transmission tree in a peer-driven fashion, where the probability to sample a
@@ -401,20 +401,20 @@ node was twice as high if one of its peers had already been sampled. The
 parameters for this experiment were $N$ = 5000, $m$ = 2, $\alpha$ = 0.5, and
 $I$ = 2000. The estimated values were
 $\alpha$, 
-  0.23 
+  0.37 
   [0.01 -
    0.63];
 $I$,
-  2398 
+  2415 
   [1419 -
-   3767];
+   3811];
 $m$,
   3 
   [2 -
    5];
 $N$,
-  9761 
-  [2836 -
+  8973 
+  [2881 -
    14788].
 The approximate posterior distributions are shown in \cref{fig:peerdriven}. Both
 of these results were in line with estimates obtained on other simulated

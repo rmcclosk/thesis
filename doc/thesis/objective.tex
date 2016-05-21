@@ -1,5 +1,6 @@
 \glsreset{ABC}
 \glsreset{BA}
+\glsreset{SMC}
 
 The spread of a disease is most often modelled by assuming either a
 homogeneously mixed population~\autocite{hamer1906milroy,
@@ -23,23 +24,28 @@ network's degree distribution~\autocite{peng2013vaccination, ma2013importance}.
 Phylodynamic methods have been used to fit many different types of models to
 phylogenetic data~\autocite{pybus2009evolutionary,volz2013viral}, but these
 models generally assume a panmictic population. The primary objective of this
-work is to develop a method to fit contact network models in a phylodynamic
-framework.
+work is \emph{to develop a method to fit contact network models in a
+phylodynamic framework.}
 
 \newcommand{\G}{\mathcal{G}}
 \newcommand{\Nu}{\mathcal{N}}
 
 Calculating the likelihood of the parameters of a contact network models seems
-likely to be an intractable problem, which would imply that these models are
-amenable to neither \gls{ML} nor Bayesian inference. We have not proven this is
-the case, but some intuition can be provided by examining the process involved
-in the likelihood calculation. Consider a contact network model with parameters
-$\theta$, and an estimated transmission tree $T$ with $n$ tips. In general, we
-do not know the labels of the internal nodes of $T$, only the labels of its
-tips. To fit this model using likelihood-based methods, we must calculate the
-likelihood of $\theta$, that is, $\Pr(T \mid \theta)$. Let $\G$ be the set of
-all possible contact networks, and $\Nu$ be the set of all possible labellings
-of the internal nodes of $T$. We can write the likelihood as
+likely to be an intractable problem. We have not proven this is the case, but
+some intuition can be provided by examining the process involved in the
+likelihood calculation. Consider a contact network model with parameters
+$\theta$, and an estimated transmission tree $T$ with $n$ tips.
+{\color{blue}\uline{The transmission tree is a record of an epidemic's progress
+through a network. Tips of the transmission tree correspond to sampled
+individuals, while internal nodes correspond to transmissions and may be
+labelled with the transmitting individual. Transmission trees will be described
+in more detail in the sequel, but for now they can be thought of as
+representing the exact path an epidemic has taken. }} In general, we do not
+know the labels of the internal nodes of $T$, only the labels of its tips. To
+fit this model using likelihood-based methods, we must calculate the likelihood
+of $\theta$, that is, $\Pr(T \mid \theta)$. Let $\G$ be the set of all possible
+contact networks, and $\Nu$ be the set of all possible labellings of the
+internal nodes of $T$. We can write the likelihood as
 \begin{align}
 \begin{split}
   \label{eq:netlik}
@@ -62,6 +68,25 @@ only have access to a subset of the infected individuals. In this case, the
 likelihood calculation becomes even more complex, because we must also sum over
 all possible complete trees.
 
+{\color{blue}\uline{
+In a Bayesian setting, our goal is to estimate the posterior distribution on
+model parameters given our data, $\Pr(\theta \mid T)$. Bayes' theorem relates
+the posterior distribution to the likelihood,}
+\[
+  \Pr(\theta \mid T) = \frac{\Pr(T \mid \theta) \Pr(\theta)}{\Pr(T)}.
+\]
+\uline{For all but the simplest mathematical models, the calculation of the
+normalizing constant $\Pr(T)$ is an intractable problem. What we have argued in
+the previous paragraph is that calculating $\Pr(T \mid \theta)$ for a single
+parameter candidate $\theta$ also seems likely to be computationally hard.
+Therefore, the problem of fitting contact network models to phylogenies seems
+to be of the \emph{doubly-intractible} type~\autocite{murray2012mcmc}, which
+would imply that these models are not amenable to neither \gls{ML} nor Bayesian
+inference techniques. Although both methods are able to cope with an
+intractible normalizing constant (for example, by local search for \gls{ML} or
+Bayesian \gls{MCMC}), neither can avoid the intractable likelihood
+calculations. }}
+
 Depending on the network model studied, it is possible that \cref{eq:netlik}
 could be simplified into a tractable expression. However, a simpler alternative
 to likelihood-based methods, which would apply to any network model, is
@@ -81,16 +106,18 @@ method to infer contact network parameters will combine the following:
 stochastic simulation of epidemics on networks, the tree kernel, and adaptive
 \gls{ABC}-\gls{SMC}. 
 
+{\color{blue}\uline{
 Our method will expand on the framework developed
-by~\autocite{poon2015phylodynamic}, who combined \gls{ABC}-\gls{MCMC} with the
-tree kernel to infer parameters of population genetic models from viral
-phylogenies. The term ``kernel-assisted \gls{ABC}'' refers to any application
-of \gls{ABC} using a kernel function as a distance metric, including that
+by~\autocite{poon2015phylodynamic}, who combined \gls{ABC} with the tree kernel
+to infer parameters of population genetic models from viral phylogenies using
+\gls{MCMC}. The term ``kernel-assisted \gls{ABC}'' refers to any application of
+\gls{ABC} using a kernel function as a distance metric, including that
 developed by \citeauthor{poon2015phylodynamic}. However, for ease of
 exposition, we will often use the term ``kernel-assisted \gls{ABC}'' to refer
 to our method specifically. Note that this is distinct from the version of
 \gls{ABC} based on kernel Bayes rule introduced by
 \textcite{fukumizu2011kernel}.
+}}
 
 Empirical studies of sexual contact networks have found that these networks
 tend to be scale-free~\autocite{colgate1989risk, liljeros2001web,
@@ -101,21 +128,21 @@ attachment has been postulated as a mechanism by which scale-free networks
 could be generated~\autocite{barabasi1999emergence}. The \gls{BA}
 model~\autocite{barabasi1999emergence} is one of the simplest preferential
 attachment models, which makes it a natural choice to explore with our method.
-The second aim of this work is to use simulations to investigate the parameters
-of the \gls{BA} model, including whether they have a detectable impact on tree
-shape, and whether they can be accurately recovered using kernel-assisted
-\gls{ABC}.
+The second aim of this work is \emph{to use simulations to investigate the
+parameters of the \gls{BA} model, including whether they have a detectable
+impact on tree shape, and whether they can be accurately recovered using
+kernel-assisted \gls{ABC}.}
 
 Due to its high global prevalence and fast mutation rate, \gls{HIV} is one of
 the most commonly-studied viruses in a phylodynamic context. Consequently, a
 large volume of \gls{HIV} sequence data is publicly available, more than for
 any other pathogen, and including sequences sampled from diverse geographic and
-demographic contexts. At the time of this writing, there were $635400$ HIV
+demographic contexts. At the time of this writing, there were $635,400$ HIV
 sequences publicly available in GenBank, annotated with 172 distinct countries
 of origin. Since \gls{HIV} is almost always spread through either sexual
 contact or sharing of injection drug supplies, the contact networks underlying
 \gls{HIV} epidemics are driven by social dynamics and are therefore likely to
-be highly nonrandom~\autocite{clemenccon2015statistical}. Moreover, since no
+be highly structured~\autocite{clemenccon2015statistical}. Moreover, since no
 cure yet exists, efforts to curtail the progression of an epidemic have relied
 on preventing further transmissions through measures such as \gls{tasp} and
 education leading to behaviour change. The effectiveness of this type of
@@ -124,8 +151,8 @@ network and the particular nodes to whom the intervention is
 targeted~\autocite{little2014using,wang2015targeting}. Due to this combination
 of data availability and potential public health impact, \gls{HIV} is an
 obvious context in which our method could be applied. Therefore, the third and
-final aim of this work is to apply kernel-assisted \gls{ABC} to fit the
-\gls{BA} model to existing \gls{HIV} outbreaks.
+final aim of this work is \emph{to apply kernel-assisted \gls{ABC} to fit the
+\gls{BA} model to existing \gls{HIV} outbreaks}.
 
 To summarize, this work has three objectives. First, we will develop a method
 which uses kernel-assisted \gls{ABC} to infer parameters of contact network

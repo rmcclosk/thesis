@@ -91,11 +91,12 @@ sampling strategies have been developed~\autocite{douc2005comparison}, and it
 is possible that the use of a more sophisticated technique might increase the
 algorithm's accuracy. Finally, the \gls{ABC}-\gls{SMC} algorithm is
 computationally intensive, taking about a day when run on 20 cores in parallel
-with the settings described in the methods section. Implementing parallization
-using MPI, rather than POSIX threads as we have done here, would allow the
-program to be run over a larger number of cores on multiple CPUs in parallel.
+with the settings described in the methods section. Implementing
+parallelization using MPI, rather than POSIX threads as we have done here,
+would allow the program to be run over a larger number of cores on multiple
+CPUs in parallel.
 
-\subsection{Analysis of \acrlong{BA} model}
+\subsection{Analysis of \acrlong{BA} model with synthetic data}
 
 The preferential attachment power \gls{alpha} had a very strong influence on
 tree shape in the range of values we considered
@@ -277,7 +278,7 @@ which can be used to perform statistical inference. Further refinements to
 \software{netabc}, as well as the use of more sophisticated network models, may
 improve the accuracy and precision of these estimates.
 
-\subsection{Application to HIV data}
+\subsection{Application to real world HIV data}
 
 Our investigation of published HIV datasets indicated heterogeneity in the
 contact network structures underlying several distinct local epidemics. When
