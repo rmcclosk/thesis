@@ -144,7 +144,7 @@ Steps:
             #d <- d[,m := density(m)$x[which.max(density(m)$y)], by=by.cols]
 
             for (p in params) {{
-                d[,paste0(p, c(".lower", ".upper")) := as.list(wtd.quantile(.SD[[p]], weight, probs=c(0.05, 0.95), normwt=TRUE)), by=by.cols]
+                d[,paste0(p, c(".lower", ".upper")) := as.list(wtd.hpd(.SD[[p]], weight, conf=0.95)), by=by.cols]
                 d[,p := wtd.mean(.SD[[p]], weight), by=by.cols, with=FALSE]
             }}
 
