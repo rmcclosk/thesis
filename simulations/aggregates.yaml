@@ -14,9 +14,13 @@ Steps:
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
             m <- collect.metadata("{dataset}/abc/*")
-            trace <- rownames(m)[m$m_min == {m_min} & m$nparticle == {nparticle}]
+            if ("{dataset}" == "bctree") {{
+                trace <- rownames(m)[m$m_min == {m_min} & m$nparticle == {nparticle} & m$cluster == 0]
+            }} else {{
+                trace <- rownames(m)[m$m_min == {m_min} & m$nparticle == {nparticle}]
+            }}
             d <- fread(trace)[iter == max(iter),]
-            d <- d[sample(1:nrow(d), prob=weight, replace=TRUE)]
+            #d <- d[sample(1:nrow(d), prob=weight, replace=TRUE)]
             m <- c(as.list(collect.metadata(trace)), dataset="{dataset}")
             yaml <- sub("^", "{{", sub(", $", "}}", gsub("\n", ", ", as.yaml(m))))
             cat(paste0("#", yaml, "\n"), file="{abc}")
@@ -55,6 +59,8 @@ Steps:
         Startup: |
             suppressPackageStartupMessages(library(netabc))
             suppressPackageStartupMessages(library(coda))
+            suppressPackageStartupMessages(library(TeachingDemos))
+            suppressPackageStartupMessages(library(Hmisc))
         Rule: |
             m <- collect.metadata(strsplit( "{tree}", " ")[[1]])
             m$ntip <- sapply(lapply(rownames(m), read.tree), Ntip)
@@ -64,9 +70,17 @@ Steps:
             d <- subset(d, m_min == {m_min})
 
             d <- melt(d, measure.vars=c("alpha", "I", "N", "m"), variable.name="parameter")
-            d[,map := density(value)$x[which.max(density(value)$y)], by=list(parameter, dataset)]
-            d[,hpd.min := HPDinterval(mcmc(value))[,"lower"], by=list(parameter, dataset)]
-            d[,hpd.max := HPDinterval(mcmc(value))[,"upper"], by=list(parameter, dataset)]
+            get.hpd <- function (x, wt) {{
+                cdf <- setDT(wtd.Ecdf(x, wt))
+                setkey(cdf, x)
+                cdf <- unique(cdf)
+                icdf <- cdf[,splinefun(ecdf, x)]
+                hpd(icdf)
+            }}
+            #d[,map := density(value)$x[which.max(density(value)$y)], by=list(parameter, dataset)]
+            d[,mean := wtd.mean(value, weight), by=list(parameter, dataset)]
+            d[,hpd.min := get.hpd(value, weight)[1], by=list(parameter, dataset)]
+            d[,hpd.max := get.hpd(value, weight)[2], by=list(parameter, dataset)]
             setkey(d, parameter, dataset)
             cat("#{yaml}\n", file="{hpd}")
             write.tsv(unique(d), "{hpd}", append=TRUE)
@@ -110,7 +124,7 @@ Steps:
             ds <- factor(d[,dataset], levels=names(ds.names), ordered=TRUE)
             levels(ds) <- unlist(ds.names[levels(ds)])
             d[,dataset := ds]
-            d[parameter == "m", map := round(map)]
+            d[parameter == "m", mean := round(mean)]
 
             # https://github.com/hadley/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
             g_legend <- function(a.gplot) {{
@@ -118,7 +132,7 @@ Steps:
                 leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
                 tmp$grobs[[leg]]
             }}
-            plot.aes <- aes(x=map, xmax=hpd.max, xmin=hpd.min, y=dataset,
+            plot.aes <- aes(x=mean, xmax=hpd.max, xmin=hpd.min, y=dataset,
                             color=dataset, shape=dataset)
             plot.theme <- theme(legend.position="none",
                                 axis.text.y=element_blank(), 
@@ -149,30 +163,32 @@ Steps:
                     labs(y="N", x="") + xlim(d[,min(ntip)], {N_max}) +
                     plot.theme
             layout <- rbind(c(1,1,2,2), c(3,3,4,4), c(5,5,5,5))
-            g <- arrangeGrob(palpha, pI, pm + theme(legend.position="none"), pN, g_legend(pm), layout_matrix=layout)
+            g <- arrangeGrob(palpha, pI, pm + theme(legend.position="none"),
+                 pN, g_legend(pm), layout_matrix=layout)
             ggsave(g, file="{hpd-plot}", width=6, height=5)
 
     gamma:
         Extension: tsv
         Parameters:
-            m_min: [1, 2]
+            m_min: 1
             nparticle: 1000
             dataset: ["bctree", "cuevas2009", "wang2015", "novitsky2014",
                       "niculescu2015", "li2015"]
         Interpreter: R --silent --vanilla
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
-            m <- collect.metadata("{dataset}/abc/*")
+            m <- collect.metadata("{dataset}/gamma/*")
             file <- rownames(m)[m$m_min == {m_min} & m$nparticle == {nparticle}]
-            d <- fread(file)
-            cat(paste0("#", yaml, "\n"), file="{gamma}")
+            d <- setDT(read.table(file, header=TRUE))
+            cat(paste0("#", "{yaml}", "\n"), file="{gamma}")
             write.tsv(d, file="{gamma}", append=TRUE)
 
     gamma-table:
         Extension: tsv
         Parameters:
-            m_min: [1, 2]
+            m_min: 1
             nparticle: 1000
+        Depends: gamma
         Interpreter: R --silent --vanilla
         Startup: |
             suppressPackageStartupMessages(library(netabc))
@@ -180,9 +196,18 @@ Steps:
         Rule: |
             d <- setDT(collect.data(strsplit("{gamma}", " ")[[1]]))
             d <- d[,list(gamma = median(gamma)), by=dataset]
+            ds.names <- list(
+                novitsky2014="HET/Botswana (Novitsky et al. 2013 \\& 2014)",
+                cuevas2009="mixed/Spain (Cuevas et al. 2009)",
+                li2015="MSM/China (Li et al. 2015)",
+                wang2015="MSM/China (Wang et al. 2015)",
+                niculescu2015="IDU/Romania (Niculescu et al. 2015)",
+                bctree="IDU/Canada (unpublished)"
+            )
+            d[,dataset := ds.names[dataset]]
             setnames(d, c("Dataset", "Estimated $\\gamma$"))
             options(digits=2)
-            xtab <- xtable(tbl, align=c("l", "r"))
+            xtab <- xtable(d, align=c("l", "l", "r"))
             print(xtab, floating=FALSE, file="{gamma-table}",
                   sanitize.text.function=identity, include.rownames=FALSE)
 
@@ -320,7 +345,7 @@ Steps:
             ylab <- textGrob("second principal component", gp=gp, rot=90)
             g <- arrangeGrob(palpha, pI, pm, pN, ncol=2, 
                              bottom=xlab, left=ylab)
-            ggsave(g, file="{kpca-plot}", height=5)
+            ggsave(g, file="{kpca-plot}", width=6, height=5)
 
     gridsearch:
         Extension: tsv
@@ -347,22 +372,27 @@ Steps:
             d <- setDT(collect.data(strsplit("{gridsearch}", " ")[[1]]))
             d <- subset(d, tips == {plot_ntip} & test_replicate == {replicate})
             plot.aes <- aes(x=true_value, y=point.est, ymin=lower, ymax=upper) 
+            plot.theme <- theme(text=element_text(size=14))
             palpha <- ggplot(d[parameter == "alpha"], plot.aes) + 
                 geom_pointrange() + theme_bw() + 
                 labs(y=expression(paste("estimated ", alpha)),
                      x=expression(paste("true ", alpha))) +
-                geom_abline(slope=1, intercept=0, linetype="dashed")
+                geom_abline(slope=1, intercept=0, linetype="dashed") +
+                plot.theme
             pI <- ggplot(d[parameter == "I"], plot.aes) + 
                 geom_pointrange() + theme_bw() +
                 labs(y="estimated I", x="true I") +
-                geom_abline(slope=1, intercept=0, linetype="dashed")
+                geom_abline(slope=1, intercept=0, linetype="dashed") +
+                plot.theme
             pm <- ggplot(d[parameter == "m"], plot.aes) + 
                 geom_pointrange() + theme_bw() +
                 labs(y="estimated m", x="true m") +
-                geom_abline(slope=1, intercept=0, linetype="dashed")
+                geom_abline(slope=1, intercept=0, linetype="dashed") +
+                plot.theme
             pN <- ggplot(d[parameter == "N"], plot.aes) + 
                 geom_pointrange() + theme_bw() +
                 labs(y="estimated N", x="true N") +
-                geom_abline(slope=1, intercept=0, linetype="dashed")
+                geom_abline(slope=1, intercept=0, linetype="dashed") +
+                plot.theme
             g <- arrangeGrob(palpha, pI, pm, pN, ncol=2)
             ggsave(g, file="{gridsearch-plot}", height=5)
