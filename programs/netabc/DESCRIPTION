@@ -21,5 +21,8 @@ Depends:
     gridExtra,
     png,
     extrafont,
-    e1071
+    e1071,
+    grid,
+    Hmisc,
+    TeachingDemos
 RoxygenNote: 5.0.1
