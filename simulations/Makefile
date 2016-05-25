@@ -31,7 +31,7 @@ gridsearch-%: local
 
 # ABC simulation experiments
 
-abc-pa-free-m: jasper.westgrid.ca
+abc-pa-free-m: breezy.westgrid.ca
 	$(call FETCH,$^,$@)
 	$(call RUN,$@)
 
