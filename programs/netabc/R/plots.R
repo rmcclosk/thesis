@@ -248,22 +248,26 @@ polar2rect <- function (r, theta) {
 #' @export
 posterior.plot.pa <- function (trace, I_min=500, I_max=10000, N_min=500, N_max=10000,
                                alpha_min=0, alpha_max=2, m_min=1, m_max=5,
-                               show.map=TRUE, true_alpha=NA, true_m=NA, true_I=NA, true_N=NA) {
+                               show.map=TRUE, true_alpha=NA, true_m=NA, true_I=NA, true_N=NA,
+                               show.mean=FALSE) {
     setDT(trace)
     d <- trace[iter == max(iter)]
-    d <- d[sample(1:nrow(d), prob=weight, replace=TRUE)]
     font.size <- 14
     options(scipen=-1)
 
-    denspoly <- function (x, q=0.95) {
-        dens <- density(x)
+    denspoly <- function (x, wt, q=0.95) {
+        dens <- density(x, weights=wt/sum(wt))
         dens <- data.frame(x=dens$x, y=dens$y)
-        dens <- dens[dens$x >= quantile(x, 1-q) & dens$x <= quantile(x, q),]
+        hpd <- wtd.hpd(x, wt/sum(wt), conf=q)
+        dens <- dens[dens$x >= hpd[1] & dens$x <= hpd[2],]
         rbind(c(dens[1, "x"], 0), dens, c(dens[nrow(dens), "x"], 0))
     }
-    map <- function (x) {
-        dens <- density(x)
+    map <- function (x, wt) {
+        dens <- density(x, weights=wt/sum(wt))
         dens$x[which.max(dens$y)]
+    }
+    pmean <- function (x, wt) {
+        wtd.mean(x, weights=wt, normwt=TRUE)
     }
 
     plot.theme <- theme_bw() +
@@ -272,44 +276,54 @@ posterior.plot.pa <- function (trace, I_min=500, I_max=10000, N_min=500, N_max=1
                         axis.text.y=element_blank(),
                         legend.position="none")
     palpha <- ggplot(d, aes(x=alpha)) + 
-            geom_density() +
+            geom_density(aes(weight=weight/sum(weight))) +
             labs(x=expression(alpha), y="") + 
             xlim(alpha_min, alpha_max) +
-            geom_polygon(data=denspoly(d[,alpha]), aes(x=x, y=y), fill="black", alpha=0.3) +
+            geom_polygon(data=d[,denspoly(alpha, weight)], aes(x=x, y=y), fill="black", alpha=0.3) +
             plot.theme
     if (show.map) {
-        palpha <- palpha + geom_vline(xintercept=d[,map(alpha)])
+        palpha <- palpha + geom_vline(xintercept=d[,map(alpha, weight)])
+    }
+    if (show.mean) {
+        palpha <- palpha + geom_vline(xintercept=d[,pmean(alpha, weight)])
     }
     if (!is.na(true_alpha)) {
         palpha <- palpha + geom_vline(xintercept=true_alpha, linetype="dashed")
     }
 
     pI <- ggplot(d, aes(x=I)) + 
-            geom_density() +
-            geom_polygon(data=denspoly(d[,I]), aes(x=x, y=y), fill="black", alpha=0.3) +
+            geom_density(aes(weight=weight/sum(weight))) +
+            geom_polygon(data=d[,denspoly(I, weight)], aes(x=x, y=y), fill="black", alpha=0.3) +
             labs(x="I", y="") + 
             xlim(I_min, I_max) +
             plot.theme
     if (show.map) {
-        pI <- pI + geom_vline(xintercept=d[,map(I)])
+        pI <- pI + geom_vline(xintercept=d[,map(I, weight)])
+    }
+    if (show.mean) {
+        pI <- pI + geom_vline(xintercept=d[,pmean(I, weight)])
     }
     if (!is.na(true_I)) {
         pI <- pI + geom_vline(xintercept=true_I, linetype="dashed")
     }
 
     pN <- ggplot(d, aes(x=N)) + 
-            geom_density() + 
+            geom_density(aes(weight=weight/sum(weight))) +
             labs(x="N", y="") +
-            geom_polygon(data=denspoly(d[,N]), aes(x=x, y=y), fill="black", alpha=0.3) +
+            geom_polygon(data=d[,denspoly(N, weight)], aes(x=x, y=y), fill="black", alpha=0.3) +
             xlim(N_min, N_max) +
             plot.theme
     if (show.map) {
-        pN <- pN + geom_vline(xintercept=d[,map(N)])
+        pN <- pN + geom_vline(xintercept=d[,map(N, weight)])
+    }
+    if (show.mean) {
+        pN <- pN + geom_vline(xintercept=d[,pmean(N, weight)])
     }
     if (!is.na(true_N)) {
         pN <- pN + geom_vline(xintercept=true_N, linetype="dashed")
     }
 
+    hpd <- d[,wtd.hpd(m, weight)]
     d[,shade := m >= quantile(m, 0.05) & m <= quantile(m, 0.95)]
     pm <- ggplot(d, aes(x=floor(m))) +
             geom_histogram(aes(alpha=shade), fill="black", col="black", binwidth=1) +
@@ -318,7 +332,10 @@ posterior.plot.pa <- function (trace, I_min=500, I_max=10000, N_min=500, N_max=1
             scale_alpha_manual(values=c("TRUE"=0.3, "FALSE"=0)) +
             plot.theme
     if (show.map) {
-        pm <- pm + geom_vline(xintercept=d[,map(m)])
+        pm <- pm + geom_vline(xintercept=d[,map(m, weight)])
+    }
+    if (show.mean) {
+        pm <- pm + geom_vline(xintercept=d[,pmean(m, weight)])
     }
     if (!is.na(true_m)) {
         pm <- pm + geom_vline(xintercept=true_m, linetype="dashed")

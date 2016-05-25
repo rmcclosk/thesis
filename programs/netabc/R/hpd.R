@@ -9,6 +9,6 @@ wtd.hpd <- function (x, wt, conf=0.95) {
     cdf <- setDT(wtd.Ecdf(x, wt))
     setkey(cdf, x)
     cdf <- unique(cdf)
-    icdf <- cdf[,splinefun(ecdf, x)]
+    icdf <- cdf[,approxfun(ecdf, x)]
     hpd(icdf)
 }
