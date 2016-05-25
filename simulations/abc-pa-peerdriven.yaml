@@ -125,5 +125,6 @@ Steps:
                                    I_min={I_min}, I_max={I_max}, N_min={N_min},
                                    N_max={N_max}, m_min={m_min}, m_max={m_max},
                                    true_alpha={alpha}, true_I={I}, true_m={m},
-                                   true_N={N}, show.map=FALSE)
+                                   true_N={N}, show.map=FALSE,
+                                   show.mean=TRUE)
             ggsave(p, file="{posterior-plot}", width=6, height=5)
