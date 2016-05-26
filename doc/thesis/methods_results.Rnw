@@ -2,41 +2,60 @@
     source("global.R")
 @
 
+{\color{blue}\uline{
+The chapter is organized as follows. One section is devoted to each of our
+three research aims: the development of a method for inference of contact
+network parameters from transmission trees} (\cref{sec:netabc}), \uline{the
+investigation of the \acrlong{BA} network model using simulated data
+}(\cref{sec:ba}), \uline{ and the application of the method to real-world
+\gls{HIV} epidemics }(\cref{sec:hiv}). \uline{Each of these sections contains a
+description of the methods used and, in the case of the latter two objectives,
+the results of the experiments. The fourth and final section of the chapter
+}(\cref{sec:disc}) \uline{contains a unified discussion of all three
+objectives. }}
+
 \section{\software{Netabc}: a computer program for estimation of contact
 network parameters with kernel-assisted ABC}
+\label{sec:netabc}
 
 \software{Netabc} is a computer program to perform statistical inference of
 contact network parameters from an estimated transmission tree using
-kernel-assisted \gls{ABC}. The program combines three major components: Gillespie
-simulation, to simulate transmission trees on contact networks; the tree
-kernel, to compare transmission trees; and adaptive \gls{ABC}-\gls{SMC}, to
-maintain a population of particles and advance it toward the \gls{ABC} target
-distribution. We give a high-level overview of the program here, before
-describing these three components in detail. \software{Netabc} takes as input
-an estimated transmission tree, which can be derived from a viral phylogeny by
+\gls{ABC}. {\color{blue}\uline{As discussed in }\cref{sec:obj}, \uline{the principal
+statistical algorithm used by \software{netabc} is adaptive
+\gls{ABC}-\gls{SMC}~\autocite{del2012adaptive}. In addition, there are two
+supplementary components which are specific to the domain of phylogenetics and
+contact networks: Gillespie simulation~\autocite{gillespie1976general}, to
+simulate transmission trees on contact networks; and the tree
+kernel~\autocite{poon2013mapping}, which is used as the distance function in
+\gls{ABC} to compare transmission trees~\autocite{poon2015phylodynamic}} (see
+\cref{sec:abc}).} We give a high-level overview of the program here, before
+describing these components in detail. \software{Netabc} takes as input an
+estimated transmission tree, which can be derived from a viral phylogeny by
 rooting and time-scaling as described in \cref{subsec:phylodynamics} or
 estimated by other methods~\autocite{cottam2008integrating,
 jombart2011reconstructing, ypma2012unravelling, morelli2012bayesian,
-didelot2014bayesian}. We variously refer to this estimated transmission tree as
-the observed tree, input tree, or true tree.
+didelot2014bayesian, hall2015epidemic}. We variously refer to this estimated
+transmission tree as the observed tree, input tree, or true tree.
 
 As described in \cref{sec:smc}, \software{netabc} keeps track of a population
 of particles $x^{(k)}$, each of which contains particular parameter values
-$\theta^{(k)}$ for the model we are trying to fit. A small number of contact
-networks $z^{(k)}$ are generated for each particle, in accordance with that
-particle's parameters. An epidemic is simulated over each of these networks
-using Gillespie simulation, and by keeping track of its progress, a
-transmission tree is obtained. Thus, each particle becomes associated with
-several simulated transmission trees. These trees are compared to the input
-tree using the tree kernel. Particles are weighted according to the similarity
-of their associated simulated trees with the true tree, with more similar trees
-receiving higher weights. The particles are iteratively perturbed to explore
-the parameter space, and particles with simulated trees too distant from the
-true tree are periodically dropped and resampled. Once a convergence criterion
-is attained, the final set of particles is used as a Monte Carlo approximation
-to the target distribution of \gls{ABC}, which is assumed to resemble the
-posterior distribution on model parameters (see \cref{sec:abc}). A graphical
-schematic of this algorithm is given in \cref{fig:abcsmc}.
+$\theta^{(k)}$ for the {\color{blue}\uline{contact network}} model we are
+trying to fit {\color{blue}\uline{to the input tree}}. A small number of
+contact networks $z^{(k)}$ are generated under the model for each particle, in
+accordance with that particle's parameters. An epidemic is simulated over each
+of these networks using Gillespie simulation, and by keeping track of its
+progress, a transmission tree is obtained. Thus, each particle becomes
+associated with several simulated transmission trees. These trees are compared
+to the input tree using the tree kernel. Particles are weighted according to
+the similarity of their associated simulated trees with the true tree, with
+more similar trees receiving higher weights. The particles are iteratively
+perturbed to explore the parameter space, and particles with simulated trees
+too distant from the true tree are periodically dropped and resampled. Once a
+convergence criterion is attained, the final set of particles is used as a
+Monte Carlo approximation to the target distribution of \gls{ABC}, which is
+assumed to resemble the posterior distribution on model parameters (see
+\cref{sec:abc}). A graphical schematic of this algorithm is given in
+\cref{fig:abcsmc}.
 
 \begin{figure}
     \includegraphics{abc-smc.pdf}
@@ -60,7 +79,7 @@ store contact networks and phylogenies. Judy arrays~\autocite{baskins2004judy}
 are used for hash tables and dynamic programming matrices. The
 \gls{GSL}~\autocite{gough2009gnu} is used to generate random draws from
 probability distributions, and to perform the bisection step in the adaptive
-\gls{ABC}-\gls{SMC} algorithm. Parallelization is implemented with POSIX
+\gls{ABC}-\gls{SMC} algorithm. Parallelization is implemented with \gls{POSIX}
 threads~\autocite{barney2009posix}. In addition to the \software{netabc} binary
 to perform kernel-assisted \gls{ABC}, we provide three additional stand-alone
 utilities: \software{treekernel}, to calculate the tree kernel;
@@ -72,17 +91,17 @@ To check that our implementation of Gillespie simulation was correct, we
 reproduced Figure 1A of \textcite{leventhal2012inferring} (our
 \cref{fig:leventhal}), which plots the unbalancedness of transmission trees
 simulated over four network models at various levels of pathogen
-transmissibility. Our implementation of adaptive ABC-SMC was tested by applying
-it to the same mixture of Gaussians used by \citeauthor{del2012adaptive} to
-demonstrate their method (originally used by~\textcite{sisson2007sequential}).
-We were able to obtain a close approximation to the function (see
-\cref{fig:smctest}), and attained the stopping condition used by the authors in
-a comparable number of steps. To check that the algorithm would converge to a
-bimodal distribution, we also applied it to a mixture of two Gaussians with
-means $\pm$4 and variances 1. The algorithm was able to recover both peaks
-(\cref{fig:smctest2}).
+transmissibility. Our implementation of adaptive \gls{ABC}-\gls{SMC} was tested
+by applying it to the same mixture of Gaussians used by
+\textcite{del2012adaptive} to demonstrate their method (originally used
+by~\textcite{sisson2007sequential}). We were able to obtain a close
+approximation to the function (see \cref{fig:smctest}), and attained the
+stopping condition used by the authors in a comparable number of steps. To
+check that the algorithm would converge to a bimodal distribution, we also
+applied it to a mixture of two Gaussians with means $\pm$4 and variances 1. The
+algorithm was able to recover both peaks (\cref{fig:smctest2}).
 
-\subsection{Epidemic simulation}
+\subsection{Simulation of transmission trees over contact networks}
 \label{subsec:nettree}
 
 The simulation of epidemics, and the corresponding transmission trees, over
@@ -265,6 +284,7 @@ are not moving around very much, implying little change in the estimated
 target.
 
 \section{Analysis of \acrlong{BA} model with synthetic data}
+\label{sec:ba}
 
 \subsection{Methods}
 \glsreset{BA}
@@ -287,14 +307,15 @@ vertex, and \gls{N} and \gls{I} both have units of nodes or individuals.
 {\color{blue}\uline{Our investigation comprised three sets of computational
 experiments aimed at determining which of these parameters could be estimated
 from phylogenetic data, and with what degree of accuracy. First, we performed
-an exploratory analysis using kernel-\gls{PCA} to determine which of the four
-\gls{BA} parameters might be identifiable from tree shapes. This analysis was
-also used to validate our choice of the tree kernel as a distance function for
-\gls{ABC}. Second, we used grid search to investigate the accuracy and
-precision of marginal parameter estimates when all but one parameters of the
-model were held fixed. Finally, we applied the full \gls{ABC}-\gls{SMC}
-algorithm to jointly estimate the four parameters of the \gls{BA} model
-simultaneously.}}
+an exploratory analysis using a tree kernel-based classifier to determine which
+of the four \gls{BA} parameters might be identifiable from tree shapes when all
+others were held fixed. This analysis was also used to validate our choice of
+the tree kernel as a distance function for \gls{ABC}, by evaluating two further
+classifiers based on other tree summary statistics from the literature. Second,
+we used grid search to investigate the accuracy and precision of marginal
+parameter estimates, again holding all but one parameters of the model fixed.
+Finally, we applied the full \gls{ABC}-\gls{SMC} algorithm to jointly estimate
+the four parameters of the \gls{BA} model simultaneously.}}
 
 We assumed that all contacts had symmetric transmission risk, which was
 implemented by replacing each undirected edge in the network with two directed
@@ -309,17 +330,54 @@ the BA model~\autocite{csardi2006igraph} was used to generate the graphs. The
 analyses were run on Westgrid (\url{https://www.westgrid.ca/}) and a local
 computer cluster. With the exception of our own programs, all analyses were
 done in \software{R}, and all packages listed below are \software{R} packages.
+{\color{blue}\uline{Code to run all simulation-based experiments is freely
+available at \url{https://github.com/rmcclosk/thesis}.}}
 
 \subsubsection*{Classifiers for BA model parameters based on tree shape}
 \label{subsec:kernel}
 
-The experiments presented here involved a large number of variables which were
-varied combinatorially. For ease of exposition, we will describe a single
-experiment first, then enumerate the values of all variables for which the
-experiment was repeated. The parameters of the tree kernel, $\lambda$ and
-$\sigma$ (\cref{subsec:treeshape}) will be referred to as
-\defn{meta-parameters} to distinguish them from the parameters of the \gls{BA}
-model. 
+\glsreset{nltt}
+
+{\color{blue}\uline{
+Our first computational experiment was designed as an exploratory analysis of
+the four \gls{BA} model parameters defined above: \gls{alpha}, \gls{I},
+\gls{m}, and \gls{N}. The objective of this experiment was to determine whether
+any of the four parameters might be identifiable from the shape of the
+transmission tree. TODO }
+
+\uline{In addition, a secondary objective of this section was to validate the
+use of the tree kernel as a distance measure for \gls{ABC} in our context. As
+discussed in} \cref{sec:abc}, \uline{the choice of distance function is
+extremely important for the accuracy of the \gls{ABC} approximation to the
+posterior. Therefore, we evaluated two additional tree statistics in the same
+manner as we evaluated the tree kernel (that is, by constructing and testing a
+classifier). First, we considered Sackin's index~\autocite{shao1990tree}, which
+measures the degree of unbalancedeness or asymmetry in a phylogeny} (see
+\cref{subsec:treeshape}). \uline{Sackin's index is widely used for
+characterizing phylogenies~\autocite{frost2013modelling} and has been
+demonstrated to vary between transmission trees simulated under different
+contact network types~\autocite{leventhal2012inferring}. Sackin's index does
+not take branch lengths into account, considering only the tree's topology. The
+other statistic we considered was the
+\gls{nltt}~\autocite{janzen2015approximate}, which compares two trees based on
+normalized distributions of their branching times} (see \cref{sec:treeshape}).
+\uline{In contrast with Sackin's index, the \gls{nltt} does not explicity
+consider the trees' topologies, but it does use their normalized branch
+lengths. While the \gls{nltt} is a newly developed statistic not yet in
+widespread use, the unnormalized \gls{ltt}~\autocite{nee1992tempo} was the
+basis of seminal early work extracting epidemiological information from
+phylodynamics~\autocite{holmes1995revealing}.}
+
+\uline{We expect the tree kernel to classify the \gls{BA} parameters more
+accurately than either Sackin's index or the \gls{nltt}, since the tree kernel
+takes both topology and branch lengths into account. }}
+
+This experiment involved a large number of variables which were varied
+combinatorially. For ease of exposition, we will describe a single experiment
+first, then enumerate the values of all variables for which the experiment was
+repeated. The parameters of the tree kernel, $\lambda$ and $\sigma$
+(\cref{subsec:treeshape}) will be referred to as \defn{meta-parameters} to
+distinguish them from the parameters of the \gls{BA} model. 
 
 The attachment power parameter \gls{alpha} was varied among three values: 0.5,
 1.0, and 1.5. For each value, the \software{sample\_pa} function in the
@@ -342,18 +400,18 @@ Similarly, we computed the \gls{nltt} statistic between each pair of trees
 using our \software{treestat} binary, and stored them in a second $300 \times
 300$ matrix.
 
-To investigate the effect of \gls{alpha} on tree shape, we constructed
-classifiers for \gls{alpha} based on three statistics. First, we used the
-\software{kernlab} package~\autocite{zeileis2004kernlab} to create a \gls{kSVR}
-classifier using the computed kernel matrix. Second, we used the
-\software{e1071} package~\autocite{meyer2015e1071} to create an ordinary
-\gls{SVR} classifier using the pairwise \gls{nltt} matrix. Finally, we
-performed an ordinary linear regression of \gls{alpha} against Sackin's index.
-Each of these classifiers was evaluated with 1000 two-fold cross-validations.
-We also performed a \gls{kPCA} projection of the kernel matrix, and used it to
-visualize the separation of the different \gls{alpha} values in the tree
-kernel's feature space. A schematic of this experiment is presented in
-\cref{fig:kernelexpt}.
+To investigate the identifiability of \gls{alpha} from tree shape, we
+constructed classifiers for \gls{alpha} based on the three tree shape
+statistics discussed above. First, we used the \software{kernlab}
+package~\autocite{zeileis2004kernlab} to create a \gls{kSVR} classifier using
+the computed kernel matrix. Second, we used the \software{e1071}
+package~\autocite{meyer2015e1071} to create an ordinary \gls{SVR} classifier
+using the pairwise \gls{nltt} matrix. Finally, we performed an ordinary linear
+regression of \gls{alpha} against Sackin's index. Each of these classifiers was
+evaluated with 1000 two-fold cross-validations. We also performed a \gls{kPCA}
+projection of the kernel matrix, and used it to visualize the separation of the
+different \gls{alpha} values in the tree kernel's feature space. A schematic of
+this experiment is presented in \cref{fig:kernelexpt}.
 
 Similar experiments were performed with the values shown in
 \cref{tab:kernelexpt}. The other three \gls{BA} parameters, namely \gls{N},
@@ -400,17 +458,31 @@ the meta-parameters \gls{lambda} = \sett{0.2, 0.3, 0.4} and \gls{sigma} =
            on tree shape.]{
     Schematic of experiments designed to investigate the impact of variations
     in BA model parameters on transmission tree shapes. The parameters of the
-    BA model were varied one at a time. Transmission trees were simulated under
-    three different values of each parameter, then compared pairwise using the
-    tree kernel. Classifiers were constructed for each parameter, and their
-    accuracy was evaluated by cross-validation. Kernel-PCA projections were
-    used to visually examine the separation of the trees in the feature space
-    defined by the tree kernel.
+    BA model were varied one at a time {\color{blue}\uline{while holding all
+    others fixed}}. Transmission trees were simulated under three different
+    values of each parameter, then compared pairwise using the tree kernel.
+    Classifiers were constructed for each parameter, and their accuracy was
+    evaluated by cross-validation. Kernel-PCA projections were used to visually
+    examine the separation of the trees in the feature space defined by the
+    tree kernel.
   }
   \label{fig:kernelexpt}
 \end{figure}
 
 \subsubsection*{Grid search}
+
+{\color{blue}\uline{The previous experiment was an exploratory analysis
+intended to determine which of the \gls{BA} parameters were identifiable, and
+whether the tree kernel could potentially be used to distinguish different
+parameter values when all others were held fixed. In this experiment, which was
+still of an exploratory nature, we continued to consider one parameter at a
+time while fixing the other three. However, rather than checking for
+identifiability, we were now interested in quantifying the accuracy and
+precision of kernel score-based estimates. This was done by examining the
+distribution of kernel scores on a grid of parameter values, when trees
+simulated according to those values were compared with a single simulated test
+tree. This experiment did not involve the full \gls{ABC}-\gls{SMC} algorithm,
+nor did we continue to use Sackin's index or the \gls{nltt}.}}
 
 As in the previous section, we will begin by describing a single experiment,
 and then list the variables for which similar experiments were performed. We
@@ -420,20 +492,25 @@ transmission trees were simulated over each using \software{nettree}. These
 trees will be referred to as ``grid trees''. Next, one further test tree was
 simulated with the test value \gls{alpha} = 0. Both the grid trees and the test
 tree had 500 tips, and were simulated with the other \gls{BA} parameters set to
-$N$ = 5000, $m$ = 2, and $I$ = 1000. The test tree was compared to each of the
-grid trees using the tree kernel, with the meta-parameters set to $\lambda =
-0.3$ and $\sigma = 4$, using the \software{treekernel} binary. The median
-kernel score was calculated for each grid value, and the scores were normalized
-such that the area under the curve was equal to 1. The grid value with the
-highest median kernel score was taken as the point estimate for the test value,
-and a 95\% credible interval was obtained using the \software{hpd} function in
-the \software{TeachingDemos} package~\autocite{snow2013teachingdemos}.
+{\color{blue}\uline{the known values}} $N$ = 5000, $m$ = 2, and $I$ = 1000. The
+test tree was compared to each of the grid trees using the tree kernel, with
+the meta-parameters set to $\lambda = 0.3$ and $\sigma = 4$, using the
+\software{treekernel} binary. The median kernel score was calculated for each
+grid value, and the scores were normalized such that the area under the curve
+was equal to 1. The grid value with the highest median kernel score was taken
+as the point estimate for the test value, and a 95\% credible interval was
+obtained using the \software{hpd} function in the \software{TeachingDemos}
+package~\autocite{snow2013teachingdemos}.
 
 Each experiment of the type just described was repeated ten times with the same
 test value. Similar experiments were performed for each of the four \gls{BA}
 parameters, with several test values and trees of varying sizes. The variables
 are listed in \cref{tab:gridexpt}. A graphical schematic of the grid search
-experiments is shown in \cref{fig:gridexpt}. 
+experiments is shown in \cref{fig:gridexpt}. {\color{blue}\uline{We emphasize
+that these experiments were marginal in nature; that is, the each parameter was
+varied and estimated individually while holding the others at known, fixed
+values.}}
+
 %Spearman's correlation was used to test whether the number of tips in the tree
 %was correlated with the acccuracy of the point estimates. One-way \gls{ANOVA}
 %was used to test whether the accuracy of the point estimates were significantly
@@ -449,8 +526,10 @@ experiments is shown in \cref{fig:gridexpt}.
   \caption[Schematic of grid search experiment.]{
     Graphical schematic of grid search experiments used to investigate \gls{BA}
     model parameters. Trees were simulated along a narrowly spaced grid of
-    parameter values (``grid trees''). Separate trees were simulated for a
-    small subset of the grid values (``test trees''). Each test tree was
+    values of one parameter (``grid trees'') {\color{blue}\uline{with all other
+    parameters fixed to known values}}. Separate trees were simulated for a
+    small subset of the grid values (``test trees''), {\color{blue}\uline{also
+    holding the other parameters fixed}}. Each test tree was
     compared to every grid tree using the tree kernel, and the resulting kernel
     scores were normalized to resemble a probability density from which the
     mode and 95\% highest density interval were calculated.
@@ -460,20 +539,27 @@ experiments is shown in \cref{fig:gridexpt}.
 
 \subsubsection*{Approximate Bayesian computation}
 
-To test the full kernel-assisted \gls{ABC} algorithm, we simulated three trees each under
-a variety of parameter values, and ran the \software{netabc} program to
-estimate posterior distributions for the parameters. The parameter values and
-priors used are listed in \cref{tab:abcexpt}. The tree kernel meta-parameters
-were set to $\lambda = 0.3$ and $\sigma = 4$. The \gls{SMC} algorithm was run
-with 1000 particles, five sampled datasets per particle, and the $\alpha$
-parameter (not to be confused with the \gls{BA} preferential attachment
-parameter, see \cref{subsec:adaptsmc}) set to 0.95. The algorithm was
-stopped when the acceptance rate of the \gls{MH} kernel dropped below 1.5\%,
-the same criterion used by \citeauthor{del2012adaptive}. Approximate marginal
-posterior densities for each parameter were calculated using the
-\software{density} function in \software{R} applied to the final weighted
-population of particles. {\color{red}\sout{Credible intervals were obtained for
-each parameter using the \software{HPDinterval} function in the \software{coda}
+{\color{blue}\uline{
+Our final simulation-based experiment was designed to test the full
+\gls{ABC}-\gls{SMC} algorithm by jointly estimating the four parameters of the
+\gls{BA} model. In contrast to the previous two experiments, we did not inform
+the algorithm of any of the true parameter values.
+}}
+
+We simulated three trees each under a variety of parameter values, and ran the
+\software{netabc} program to estimate posterior distributions for the
+parameters. The parameter values and priors used are listed in
+\cref{tab:abcexpt}. The tree kernel meta-parameters were set to $\lambda = 0.3$
+and $\sigma = 4$. The \gls{SMC} algorithm was run with 1000 particles, five
+sampled datasets per particle, and the $\alpha$ parameter (not to be confused
+with the \gls{BA} preferential attachment parameter, see
+\cref{subsec:adaptsmc}) set to 0.95. The algorithm was stopped when the
+acceptance rate of the \gls{MH} kernel dropped below 1.5\%, the same criterion
+used by \citeauthor{del2012adaptive}. Approximate marginal posterior densities
+for each parameter were calculated using the \software{density} function in
+\software{R} applied to the final weighted population of particles.
+{\color{red}\sout{Credible intervals were obtained for each parameter using the
+\software{HPDinterval} function in the \software{coda}
 package~\autocite{plummer2006coda}.}} {\color{blue}\uline{Posterior means
 obtained for each parameter using the \software{wtd.mean} function in the
 \software{Hmisc} package~\autocite{harrell2016hmisc}. Credible intervals were
@@ -987,7 +1073,7 @@ the distributions were flat for $N > 3000$.
     alpha.m.cor <- cor.test(d[,alpha_error], d[,true_m], method="spearman")
 @
 
-\Cref{fig:abcptm2} shows {\color{red}\cout{\gls{MAP}}}
+\Cref{fig:abcptm2} shows {\color{red}\sout{\gls{MAP}}}
 {\color{blue}\uline{posterior mean}} point estimates of the BA model parameters
 obtained with kernel-assisted ABC on simulated data. The estimates shown
 correspond only to the simulations where the $m$ parameter was set to 2,
@@ -1010,7 +1096,9 @@ Errors in estimating $\alpha$
 %the threshold of statistical significance
 %    (one-way ANOVA, $p 
 %    \Sexpr{pp(anova(lm(alpha_error~true_m, d))[1, "Pr(>F)"], eq=TRUE)}$),
-{\color{blue}\uline{did not vary across the true values of $m$ or $I$ (both one-way ANOVA).}} 
+{\color{blue}\uline{did not vary across the true values of $m$ or $I$ (both
+one-way ANOVA).}} 
+
 Estimates for $I$ were relatively accurate, with point estimate errors of
     \Sexpr{d[,round(median(I_error))]} 
     [\Sexpr{d[,round(quantile(I_error, 0.25))]} - 
@@ -1021,16 +1109,20 @@ at least 1
 and when the true value of $I$ was 2000 ($p < 10^{-5}$). The true value of $m$
 did not affect the estimates of $I$ (one-way ANOVA).
 
-The $m$ parameter was estimated correctly in only
+The $m$ parameter was estimated correctly in
     \Sexpr{as.integer(m.tbl[1] * 100)} \%
-of simulations {\color{red}\sout{barely better than random guessing}}. The true
-values of the other parameters did not significantly affect the estimates of
-$m$ (both one-way ANOVA). Finally, the total number of nodes $N$ was
-consistently over-estimated by about a factor of two
-    (error \Sexpr{d[,round(median(N_error))]} 
-    [\Sexpr{d[,round(quantile(N_error, 0.25))]} - 
-     \Sexpr{d[,round(quantile(N_error, 0.75))]}] individuals).
-No parameters influenced the accuracy of the $N$ estimates (all one-way ANOVA).
+of simulations {\color{red}\sout{barely better than random guessing}}.
+{\color{blue}\uline{However this was due to the estimated value being $m = 3$
+in the large majority of simulations (\Sexpr{d[,sum(m == 3)]} out of
+\Sexpr{nrow(d)}), with one-third of the simulations having the true value $m =
+3$.}} The true values of the other parameters did not significantly affect the
+estimates of $m$ (both one-way ANOVA). 
+
+Finally, the total number of nodes $N$ was consistently over-estimated by about
+a factor of two (error \Sexpr{d[,round(median(N_error))]}
+[\Sexpr{d[,round(quantile(N_error, 0.25))]} - \Sexpr{d[,round(quantile(N_error,
+0.75))]}] individuals). No parameters influenced the accuracy of the $N$
+estimates (all one-way ANOVA).
 
 \begin{figure}[ht]
   \centering
@@ -1055,14 +1147,14 @@ No parameters influenced the accuracy of the $N$ estimates (all one-way ANOVA).
   \centering
   \input{\tablepath/abc-hpd.tex}
   \caption[
-      Average maximum \textit{a posteriori} point estimates and 95\% highest
-      posterior density (HPD) interval widths for BA model parameter estimates
-      obtained with kernel-assisted ABC.
+      Average posterior mean point estimates and 95\% highest posterior density
+      (HPD) interval widths for BA model parameter estimates obtained with
+      kernel-assisted ABC.
   ]{
-      Average maximum \textit{a posteriori} point estimates and 95\% highest
-      posterior density (HPD) interval widths for BA model parameter estimates
-      obtained with kernel-assisted ABC. Three transmission trees were simulated under
-      each combination of the listed parameter values, and the parameters were
+      Average posterior mean point estimates and 95\% highest posterior density
+      (HPD) interval widths for BA model parameter estimates obtained with
+      kernel-assisted ABC. Three transmission trees were simulated under each
+      combination of the listed parameter values, and the parameters were
       estimated with kernel-assisted ABC without training.
   }
   \label{tab:abchpd}
@@ -1138,8 +1230,8 @@ and $N$ were more widely dispersed.
 
 To test the effect of model misspecification, we simulated one network where
 the nodes exhibited heterogeneous preferential attachment power (half 0.5, the
-other half 1.5), with $m$ = 2, $N$ = 5000, and $I$ = 1000. The MAP [95\%
-HPD] estimates for each parameter were: 
+other half 1.5), with $m$ = 2, $N$ = 5000, and $I$ = 1000. The posterior mean
+[95\% HPD] estimates for each parameter were: 
 $\alpha$, 
   \Sexpr{round(d["alpha", map], 2)} 
   [\Sexpr{round(d["alpha", hpd.min], 2)} -
@@ -1505,6 +1597,7 @@ $\alpha$ was somewhat lower than typical.
 
 
 \section{Application to real world HIV data}
+\label{sec:hiv}
 
 \subsection{Methods}
 
@@ -1590,14 +1683,14 @@ feasible due to the small number of runs required for this analysis.
   d1 <- fread(rownames(m)[m$m_min == 1])
   d2 <- fread(rownames(m)[m$m_min == 2])
 
-  map1 <- dcast.data.table(d1, dataset~parameter, value.var="map")
+  map1 <- dcast.data.table(d1, dataset~parameter, value.var="mean")
   up1 <- dcast.data.table(d1, dataset~parameter, value.var="hpd.max")
   low1 <- dcast.data.table(d1, dataset~parameter, value.var="hpd.min")
   setkey(map1, dataset)
   setkey(up1, dataset)
   setkey(low1, dataset)
 
-  map2 <- dcast.data.table(d2, dataset~parameter, value.var="map")
+  map2 <- dcast.data.table(d2, dataset~parameter, value.var="mean")
   up2 <- dcast.data.table(d2, dataset~parameter, value.var="hpd.max")
   low2 <- dcast.data.table(d2, dataset~parameter, value.var="hpd.min")
   setkey(map2, dataset)

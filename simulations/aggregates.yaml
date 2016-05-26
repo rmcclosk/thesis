@@ -351,11 +351,30 @@ Steps:
         Extension: tsv
         Parameters:
             parameter: ["alpha", "m", "N", "I"]
+            plot_ntip: 500
+            replicate: 0
         Interpreter: R --silent --vanilla
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
-            d <- fread(Sys.glob("gridsearch-{parameter}/point-estimate/*"))
-            setnames(d, c("ntip", "true_{parameter}"), c("tips", "true_value"))
+            m <- collect.metadata("gridsearch-{parameter}/kernel/*")
+            m <- subset(m, ntip == {plot_ntip} & test_replicate == {replicate})
+            d <- collect.data(rownames(m), header=FALSE, col.names=c("tree", "score"))
+            setDT(d)
+
+            mtrain <- collect.metadata("gridsearch-{parameter}/train-tree/*")
+            mtrain$tree <- rownames(mtrain)
+            setDT(mtrain)
+
+            setkey(mtrain, tree)
+            setkey(d, tree)
+            d <- mtrain[d]
+
+            setnames(d, c("{parameter}", "true_{parameter}"), 
+                        c("value", "true_value"))
+            setkey(d, true_value, value)
+
+            normconst <- function (x, y) integrate(splinefun(x, y), min(x), max(x), subdivisions=1000)$value
+            d[,score := score / normconst(value, score), by=true_value]
 
             cat("#{yaml}\n", file="{gridsearch}")
             write.tsv(d, file="{gridsearch}", append=TRUE)
@@ -370,7 +389,7 @@ Steps:
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
             d <- setDT(collect.data(strsplit("{gridsearch}", " ")[[1]]))
-            d <- subset(d, tips == {plot_ntip} & test_replicate == {replicate})
+
             plot.aes <- aes(x=true_value, y=point.est, ymin=lower, ymax=upper) 
             plot.theme <- theme(text=element_text(size=14))
             palpha <- ggplot(d[parameter == "alpha"], plot.aes) + 

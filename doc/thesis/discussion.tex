@@ -1,3 +1,5 @@
+\label{sec:disc}
+
 \subsection{\software{Netabc}: uses, limitations, and possible extensions}
 
 Contact networks can have a strong influence on epidemic progression, and are
@@ -60,9 +62,9 @@ basis. Addressing the impact of this simplifying assumption is outside the
 scope of this work. However, the same assumption is made by most studies using
 contact network models in an epidemiological
 context~\autocite{welch2011statistical, bansal2007individual}. In principle,
-kernel-assisted \gls{ABC} could be adapted to dynamic contact networks by using a method
-such as that developed by \textcite{robinson2012dynamics} to simulate such a
-network, while concurrently simulating the spread of an epidemic.
+kernel-assisted \gls{ABC} could be adapted to dynamic contact networks by using
+a method such as that developed by \textcite{robinson2012dynamics} to simulate
+such a network, while concurrently simulating the spread of an epidemic.
 
 It is important to note that \software{netabc} takes a transmission tree as
 input, rather than a viral phylogeny. In reality, true transmission trees are
@@ -75,8 +77,12 @@ significantly~\autocite{ypma2013relating, hall2015epidemic} due to within-host
 evolution and the sampling process. We have left the estimation of a
 transmission tree up to the user. In theory, it is possible to incorporate the
 process by which a viral phylogeny is generated along with a transmission tree
-into our method, for example by simulating within-host dynamics. Although this
-may be an avenue for future extension, we felt that it would obscure the
+into our method, for example by simulating within-host dynamics. {\color{blue}
+\uline{Indeed, progress has very recently been demonstrated on this front in a
+talk by \citeauthor{giardina2016inference}, who have independently developed in
+a method similar to ours to fit contact network models to phylogenetic data
+that additionally incorporates a within-host evolutionary model.}} Although
+this may be an avenue for future extension, we felt that it would obscure the
 primary purpose of this work, which is to study contact network parameters. In
 addition, there are a number of different methods available for inferring
 transmission trees~\autocite{didelot2014bayesian, ypma2012unravelling,

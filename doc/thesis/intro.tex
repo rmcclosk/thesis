@@ -196,7 +196,7 @@ within the donor in a different order. In this case, the topology of the
 transmission tree and the viral phylogeny will be mismatched. In practice, this
 discordance has not proven an insurmountable problem: for example,
 \textcite{leitner1996accurate, paraskevis2004phylogenetic} were able to
-accurately recover a known transmission tree using a viral phylogeny. The
+accurately recover known transmission trees using viral phylogenies. The
 problem of accurately estimating transmission trees is an ongoing area of
 research~\autocite{cottam2008integrating, jombart2011reconstructing,
 ypma2012unravelling, morelli2012bayesian, didelot2014bayesian,
@@ -645,6 +645,22 @@ equal-risk groups.
 \section{Sequential Monte Carlo}
 \label{sec:smc}
 
+{\color{blue}\uline{
+Recall that the primary objective of our work is to develop a statistical
+inference method for estimating contact network parameters from transmission
+trees. In particular, for a network model with parameters $\theta$ and an input
+transmission tree $T$, we are interested in the posterior distribution}
+\[
+  \Pr(\theta \mid T) = \frac{\Pr(T \mid \theta) \Pr(\theta)}{\Pr(T)}.
+\]
+\uline{As outlined in} \cref{sec:obj}, \uline{both the likelihood $\Pr(T \mid
+\theta)$ and the normalizing constant $\Pr(T)$ are likely computationally
+intractable. Hence, rather than computing the posterior distribution
+analytically, we will attempt to approximate it using a \defn{Monte Carlo}
+approach.
+TODO
+}}
+
 \glsreset{SMC}
 
 \subsection{Overview and notation}
@@ -1026,7 +1042,7 @@ error, environmental fluctuations, and other external factors. Formally, $y_i =
 relationship, and $\varepsilon_i$ is the error associated with measurement $i$.
 We can make this model a statistical one by hypothesizing a distribution for
 the error terms $\varepsilon_i$; most commonly, it is assumed that they are
-normally distributed with variance $\sigma$. In mathematical terms, $Y_i \sim
+normally distributed with variance $\sigma$. In mathematical terms, $y_i \sim
 \beta x_i + \N(0, \sigma^2)$, where ``$\sim$'' means ``is distributed as''. We
 can see from this formulation that the model is parametric, with parameters
 $\theta$ = ($\beta$, $\sigma$). Moreover, we can write down the probability
@@ -1167,14 +1183,15 @@ interest~\autocite{marin2012approximate}. That is,
 The distribution $\pi_\varepsilon(\theta, z \mid y)$ is variously referred to
 as the \textit{\gls{ABC} target distribution} or the \gls{ABC} approximation
 to the posterior. The intuition for why this approximation might be reasonable
-comes from the fact that, when $\varepsilon = 0$ and $\rho$ satisfies $\rho(z,
-y) = 0 \Rightarrow x = y$, the integral on the left is exactly equal to the
-posterior. Thus, by taking $\varepsilon$ small, we should attain something
-close to the posterior {\color{blue}\uline{if $\rho$ captures the similarity
-between datasets reasonably well. However, the accuracy of the \gls{ABC}
-approximation depends heavily on the choice of distance function. }}
+comes from the fact that, when $\varepsilon = 0$, the $\varepsilon$-ball around
+$y$ should contain only $y$ itself, hence the integral on the left is exactly
+equal to the posterior. Thus, by taking $\varepsilon$ small, we should attain
+something close to the posterior {\color{blue}\uline{if $\rho$ captures the
+similarity between datasets reasonably well. However, the accuracy of the
+\gls{ABC} approximation depends heavily on the choice of distance function
+\autocite{aeschbacher2012novel,blum2013comparative}.}}
 
-In many applications {\color{purple}\uline{(eg. \autocite{fu1997estimating,
+In many applications {\color{blue}\uline{(eg. \autocite{fu1997estimating,
 tanaka2006using})}}, $\rho$ is defined as $\rho(S(\cdot), S(\cdot))$ where $S$
 is a function which maps data points into a vector of summary statistics.
 {\color{blue}\uline{In the context of \gls{ABC}, a summary statistic $S$ is
@@ -1186,15 +1203,22 @@ called \defn{sufficient} if}
 summary statistic without losing any information about the posterior
 distribution~\autocite{marjoram2006modern}. For most problems, it is not
 possible to find sufficient summary statistics~\autocite{marjoram2006modern}.
-TODO
-}}
+A number of sophisticated methods have been developed for selecting and
+weighting summary statistics based on various optimality criteria}
+\autocite[][and references therein]{aeschbacher2012novel,
+blum2013comparative}}.
 
-This can be useful if the data are high-dimensional or of a complex type, but
-it is not strictly necessary. For instance, if the data are numeric and of low
-dimension, the distance function may simply be the Euclidean
-distance~\autocite{sisson2007sequential}. \textcite{poon2015phylodynamic}
-proposed the use of a kernel function (defined in \cref{subsec:treeshape}),
-which allows 
+Summary statistics can be useful if the data are high-dimensional or of a
+complex type, but they are not strictly necessary. For instance, if the data
+are numeric and of low dimension, the distance function may simply be the
+Euclidean distance~\autocite{sisson2007sequential}.
+{\color{blue}\textcite{park2015k2} \uline{proposed the use of a kernel function}
+(defined in \cref{subsec:treeshape}) \uline{in place of a distance function.
+The authors referred to their approach as ``double-kernel \gls{ABC}'' due to
+the use of a second kernel function to compute the weights of the particles.
+The work by \textcite{poon2015phylodynamic}, upon which ours is based, employed
+a similar approach, replacing the likelihood ratio in Bayesian \gls{MCMC} with
+a ratio of kernel scores.}}
 
 \subsection{Algorithms for ABC}
 \label{subsec:abcalg}
@@ -1325,4 +1349,14 @@ $q(\theta, \theta') f(z \mid \theta')$ is replaced by
 %sample from the target distributions. Both of these methods are
 %well-established and their convergence properties have been extensively
 %studied. Since we do not apply rejection or \gls{MCMC} in this work, we shall
-%restrict our attention to the convergence properties of \gls{SMC}. 
+%}restrict our attention to the convergence properties of \gls{SMC}. 
+
+\section{Summary}
+
+{\color{blue}\uline{ Our method integrates the four distinct research areas
+  just described: phylogenetics, contact networks, \acrlong{SMC}, and
+  \acrlong{ABC}. The first two topics together form the problem domain.
+  Phylogenetic data is the input to our method, while estimates of the
+  parameters of contact network models are the desired output. The latter two
+  topics define the algorithm and statistical framework that our inference
+method will use. }}
