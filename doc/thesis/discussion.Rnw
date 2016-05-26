@@ -332,18 +332,46 @@ preferential attachment dynamics. The dataset studied by
 where the predominant risk factor was believed to be heterosexual exposure.
 Although the MAP estimate of $\alpha$ was almost unchanged when the value $m =
 1$ was excluded from the prior, the confidence interval shrank substantially.
-For both priors, the estimated prevalence was extremely high, in fact higher
-than the estimated HIV prevalence in the sampled region. The authors indicated
-that the source of the samples was a town in close proximity to the country's
-capital city, and suggested that there may have been a high degree of migration
-and partner interchange between the two locations. It is possible that the
-contact network underlying the subtree we investigated includes a much larger
-group based in the capital city, which would explain the high estimate of $I$.
-There is no clear explanation for the discrepancy between the two priors for
-the \textcite{li2015hiv} data, as the subset we analyzed formed a phylogenetic
-cluster and therefore was a good candidate for the BA model. However, nearly
-all the posterior density was assigned to $m = 1$ when this value was allowed,
-indicating that the network was more likely to have an acyclic tree structure.
+
+%For both priors, the estimated prevalence was extremely high, in fact higher
+%than the estimated HIV prevalence in the sampled region. The authors indicated
+%that the source of the samples was a town in close proximity to the country's
+%capital city, and suggested that there may have been a high degree of migration
+%and partner interchange between the two locations. It is possible that the
+%contact network underlying the subtree we investigated includes a much larger
+%group based in the capital city, which would explain the high estimate of $I$.
+%There is no clear explanation for the discrepancy between the two priors for
+%the \textcite{li2015hiv} data, as the subset we analyzed formed a phylogenetic
+%cluster and therefore was a good candidate for the BA model. However, nearly
+%all the posterior density was assigned to $m = 1$ when this value was allowed,
+%indicating that the network was more likely to have an acyclic tree structure.
+
+{\color{blue}\uline{
+The estimates of the prevalence \gls{I} were largely robust to the choice of
+prior on \gls{m}} (\cref{fig:abchpd,fig:abchpdm2}).
+\uline{\textcite{niculescu2015recent} reported that 494 new \gls{HIV}
+infections were diagnosed among the studied population (\glspl{IDU} in
+Bucharest) during the study period. Our estimate of the prevalence was higher
+(X), although the 95\% \gls{HPD} interval did contain the value 494. In
+addition, it is not unreasonable to imagine that a substantial fraction of the
+\gls{HIV}-positive individuals in an \gls{IDU} population could be undiagnosed,
+given that these populations are often marginalized.
+
+The individuals sampled by \autocite{wang2015targeting} were recruited by
+following a prospective cohort of 2000 \gls{MSM} in Beijing. Of the 2000, 179
+new infections were identified during the study period. This number is much
+lower than the estimated prevalence of X obtained with \software{netabc}.
+However, although \citeauthor{wang2015targeting} ... TODO
+
+\textcite{cuevas2009hiv} reported that 620 newly infected and 1500
+chronically infected patients had been sampled during the study period, for a
+total of 2120. This is substantially greater than the point estimate of X we
+obtained with \gls{ABC}, even without considering the likely possibility that
+there were more infected than sampled individuals. Again, this error may in
+part be due to model misspecification, which highlights the importance of
+selecting a model appropriate to the dataset at hand.
+
+}}
 
 Our use of the \gls{BA} model makes several simplifying assumptions. First, we
 assume homogeneity across the network with respect to node behaviour and
@@ -357,8 +385,7 @@ possible, since this is the very first attempt to fit a contact network model
 in a phylodynamic context. However, the Gillespie simulation algorithm built
 into \software{netabc} can handle arbitrary transmission and removal rates
 which need not be homogeneous across the network. Moreover, it is possible to
-use kernel-assisted \gls{ABC} to fit a model which relaxes some or all of these
-assumptions, which may be a fruitful avenue for future investigation. 
-Despite the possible misspecification, our estimates of the power
-law exponent $\gamma$ were within the range of values reported in the
-literature (\cref{tab:gamma}).
+use \gls{ABC} to fit a model which relaxes some or all of these assumptions,
+which may be a fruitful avenue for future investigation.  Despite the possible
+misspecification, our estimates of the power law exponent $\gamma$ were within
+the range of values reported in the literature (\cref{tab:gamma}).

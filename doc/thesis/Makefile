@@ -24,6 +24,9 @@ main.pdf: main.tex preamble.tex preface.tex intro.tex objective.tex methods_resu
 methods_results.tex: methods_results.Rnw
 	R -e "knitr::knit('$^')"
 
+discussions.tex: discussion.Rnw
+	R -e "knitr::knit('$^')"
+
 appendix.tex: appendix.Rnw
 	R -e "knitr::knit('$^')"
 
