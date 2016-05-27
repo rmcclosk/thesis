@@ -27,13 +27,11 @@ d <- d[,I_error := abs(true_I - I)]
 d <- d[,m_error := abs(true_m - m)]
 
 make.glm <- function (param, family, link) {
-    frm <- paste0(param, "_error~factor(true_alpha)+factor(true_I)+factor(true_m)")
+    frm <- paste0(param, "_error~true_alpha+true_I+true_m")
     m <- glm(as.formula(frm), family(link=link), d)
     df <- as.data.frame(coef(summary(m)))
-    df$Parameter <- sub(").*", "", sub("factor(true_", "", rownames(df), fixed=TRUE))
+    df$Parameter <- sub(").*", "", sub("true_", "", rownames(df), fixed=TRUE))
     df$Parameter[1] <- "(Intercept)"
-    df$Value <- sub(".*)", "", rownames(df))
-    df$Value[1] <- "-"
     setDT(df)
     setnames(df, "Std. Error", "Standard error")
     if ("Pr(>|t|)" %in% colnames(df)) {
@@ -43,12 +41,13 @@ make.glm <- function (param, family, link) {
         df$`z value` <- NULL
         setnames(df, "Pr(>|z|)", "p")
     }
-    setcolorder(df, c("Parameter", "Value", "Estimate", "Standard error", "p"))
+    setcolorder(df, c("Parameter", "Estimate", "Standard error", "p"))
+    df[,p := p.adjust(p, method="holm", n=12)]
     df
 }
  
 # make GLMs
-alpha.glm <- make.glm("alpha", Gamma, "inverse")
-I.glm <- make.glm("I", Gamma, "inverse")
-N.glm <- make.glm("N", Gamma, "inverse")
+alpha.glm <- make.glm("alpha", gaussian, "inverse")
+I.glm <- make.glm("I", gaussian, "inverse")
+N.glm <- make.glm("N", gaussian, "inverse")
 m.glm <- make.glm("m", poisson, "log")

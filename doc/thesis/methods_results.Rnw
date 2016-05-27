@@ -497,10 +497,12 @@ test tree was compared to each of the grid trees using the tree kernel, with
 the meta-parameters set to $\lambda = 0.3$ and $\sigma = 4$, using the
 \software{treekernel} binary. The median kernel score was calculated for each
 grid value, and the scores were normalized such that the area under the curve
-was equal to 1. The grid value with the highest median kernel score was taken
-as the point estimate for the test value, and a 95\% credible interval was
-obtained using the \software{hpd} function in the \software{TeachingDemos}
-package~\autocite{snow2013teachingdemos}.
+was equal to 1. {\color{red}\sout{The grid value with the highest median kernel
+score was taken as the point estimate for the test value}}{\color{blue}\uline{
+A point estimate for the test value was obtained by calculating the weighted
+mean of the grid values with the kernel scores as weights}}, and a 95\%
+credible interval was obtained using the \software{hpd} function in the
+\software{TeachingDemos} package~\autocite{snow2013teachingdemos}.
 
 Each experiment of the type just described was repeated ten times with the same
 test value. Similar experiments were performed for each of the four \gls{BA}
@@ -579,6 +581,21 @@ package~\autocite{snow2013teachingdemos}.}}
   \label{tab:abcexpt}
 \end{table}
 
+{\color{blue}\uline{
+To evaluate the effects of the true parameter values on the accuracy of the
+posterior mean estimates, we analysed each parameter individually using a
+\gls{GLM} (four \glspl{GLM} total). The response variable was the error of the
+point estimate, and the predictor variables were the true values of
+\gls{alpha}, \gls{I}, and \gls{m}. We did not test for differences across true
+values of \gls{N}, because \gls{N} was not varied in these simulations. The
+distribution family and link function for each \gls{GLM} were chosen by
+examination of residual plots and \gls{AIC}. For \gls{alpha}, \gls{I}, and
+\gls{N}, we used the Gaussian distribution with the inverse link function. For
+\gls{m}, we used the Poisson distribution with the log link function. The
+$p$-values of the estimated \glspl{GLM} coefficients were corrected using
+Holm-Bonferroni correction~\autocite{holm1979simple} with $n = 12$ (four
+\glspl{GLM} with three predictors each). }}
+
 %\subsubsection*{Characterization of power-law exponent in Barab\'asi-Albert networks}
 %
 %Most studies of social network or transmission network
@@ -608,26 +625,6 @@ package~\autocite{snow2013teachingdemos}.}}
 %  }
 %  \label{tab:gammaexpt}
 %\end{table}
-
-%To evaluate the effects of the true parameter values on the accuracy of the
-%\gls{MAP} estimates, we analysed each parameter individually using a \gls{GLM}
-%(four \glspl{GLM} total). The response variable was the error of the point
-%estimate, and the predictor variables were the true values of \gls{alpha},
-%\gls{I}, and \gls{m}. We did not test for differences across true values of
-%\gls{N}, because \gls{N} was not varied in these simulations. The distribution
-%family and link function for each \gls{GLM} were chosen by examination of
-%residual plots and \gls{AIC} of the model fits. For \gls{alpha}, \gls{I}, and
-%\gls{N}, we used the Gamma distribution with the inverse link function. For
-%\gls{m}, we used the Poisson distribution with the log link function. To
-%allow for the possibility that the relationships between parameters and error
-%rates were nonlinear, the true parameter values were treated as discrete rather
-%than continuous predictors. When significant associations were found by the
-%\glspl{GLM}, additional post hoc tests were performed based on the observed
-%relationship between the error rate and true parameter value in question. If
-%the relationship appeared to be monotonic, Spearman's correlation was
-%calculated. Otherwise, if there were particular values which appeared to have a
-%higher error rate than the others, the Wilcoxon rank-sum test was used to check
-%for a significant difference between the two groups.
 
 Two further experiments were performed to address potential sources of error.
 To evaluate the effect of model misspecification in the case of heterogeneity
@@ -856,7 +853,10 @@ and little variation between scenarios.
       $\lambda = 0.3$ and $\sigma = 4$. Each point was calculated based on 300
       simulated transmission trees over networks with three different values of
       the parameter being tested. Vertical lines are empirical 95\% confidence
-      intervals based on 1000 two-fold cross-validations.
+      intervals based on 1000 two-fold cross-validations. {\color{blue}\uline{
+      The classifiers for \gls{I} were not evaluated with 1000-tip trees,
+      because one of the tested \gls{I} values was 500, and it is not possible
+      to sample a tree of size 1000 from 500 infected individuals.}}
   }
   \label{fig:rsquared}
 \end{figure}
@@ -877,10 +877,10 @@ and little variation between scenarios.
     stopifnot(tip.cor["m", p.value] > 0.05)
 
     # CI takes up >75% of grid
-    stopifnot(d["alpha", all(upper - lower >= 0.75*2)])
-    stopifnot(d["I", all(upper - lower >= 0.75*5000)])
-    stopifnot(d["N", all(upper - lower >= 0.75*15000)])
-    stopifnot(d["m", all(upper - lower >= 0.75*6)])
+    stopifnot(d["alpha", all(upper.95 - lower.95 >= 0.75*2)])
+    stopifnot(d["I", all(upper.95 - lower.95 >= 0.75*5000)])
+    stopifnot(d["N", all(upper.95 - lower.95 >= 0.75*15000)])
+    stopifnot(d["m", all(upper.95 - lower.95 >= 0.75*6)])
 
     # correlation between value and error
     av <- d[,list(p=summary(aov(error~factor(true_value)))[[1]][["Pr(>F)"]][1]),
@@ -889,6 +889,12 @@ and little variation between scenarios.
     stopifnot(av["I", p] < 0.05)
     stopifnot(av["m", p] < 0.05)
     stopifnot(av["N", p] < 0.05)
+
+    tests <- d[,list(rsquared=cor.test(true_value, point.est)$estimate^2,
+                     rel.err=mean(abs(true_value - point.est) * 100 / diff(range(true_value))),
+                     abs.err=mean(abs(true_value - point.est))),
+                by=parameter]
+    setkey(tests, parameter)
 
     alpha.test <- d["alpha", wilcox.test(.SD[true_value %in% c(1.0, 1.25),error], 
                                          .SD[!true_value %in% c(1.0, 1.25),error])]
@@ -911,26 +917,77 @@ and little variation between scenarios.
     stopifnot(value.cor["I", p.value] >= 0.05)
 @
 
-The accuracy of grid search estimates largely paralleled that of the \gls{kSVR}
-classifiers. \Cref{fig:gridest} shows point estimates and 95\% highest density
-intervals for each of the \gls{BA} parameters, for one replicate experiment
-with 500-tip trees. Plots showing the point estimates for all replicates can be
-found in \cref{fig:gridptalpha,fig:gridptI,fig:gridptm,fig:gridptN}. For all
-parameters except $m$, the error of point estimates was negatively correlated
-with the number of sampled tips in the tree (for
-\gls{alpha}, \gls{I}, and \gls{N} respectively: Spearman's $\rho$ = 
-    \Sexpr{tip.cor["alpha", round(estimate, 2)]},
-    \Sexpr{tip.cor["I", round(estimate, 2)]},
-    \Sexpr{tip.cor["N", round(estimate, 2)]};
-$p$-values
+{\color{red}\sout{The accuracy of grid search estimates largely paralleled that
+of the \gls{kSVR} classifiers.}}\Cref{fig:gridest} shows point estimates and
+95\% highest density intervals for each of the \gls{BA} parameters, for one
+replicate experiment with 500-tip trees. Plots showing the point estimates for
+all replicates can be found in
+\cref{fig:gridptalpha,fig:gridptI,fig:gridptm,fig:gridptN}. For all parameters
+except $m$, the error of point estimates was negatively correlated with the
+number of sampled tips in the tree (for \gls{alpha}, \gls{I}, and \gls{N}
+respectively: Spearman's $\rho$ = \Sexpr{tip.cor["alpha", round(estimate, 2)]},
+\Sexpr{tip.cor["I", round(estimate, 2)]}, \Sexpr{tip.cor["N", round(estimate,
+2)]}; $p$-values
     $\Sexpr{tip.cor["alpha", pp(p.value)]}$,
     $\Sexpr{tip.cor["I", pp(p.value)]}$,
     $\Sexpr{tip.cor["N", pp(p.value)]}$).
-The highest density intervals obtained for all parameters were extremely wide,
-occupying $>$75\% of the grid in all cases (\cref{fig:gridest}).
+The 95\% highest density intervals obtained for all parameters were extremely
+wide, occupying $>$75\% of the grid in all cases (\cref{fig:gridest}).
 
-The \gls{alpha} parameter was the most accurately estimated, with point
-estimates having an average deviation of 
+{\color{blue}\uline{Similar to the results obtained in the previous experiment,
+the \gls{alpha} and \gls{I} parameters were estimated with comparably high
+accuracy, while the other two parameters were less identifiable. Across all
+replicates, $R^2$ values for the correlations between the estimated and true
+values were
+    $\Sexpr{tests["alpha", round(rsquared, 2)]}$,
+    $\Sexpr{tests["I", round(rsquared, 2)]}$,
+    $\Sexpr{tests["m", round(rsquared, 2)]}$, and
+    $\Sexpr{tests["N", round(rsquared, 2)]}$
+for \gls{alpha}, \gls{I}, \gls{m}, and \gls{N} respectively. The mean absolute
+errors of the point estimates were
+    $\Sexpr{tests["alpha", round(abs.err, 2)]}$,
+    $\Sexpr{tests["I", round(abs.err)]}$,
+    $\Sexpr{tests["m", round(abs.err, 2)]}$, and
+    $\Sexpr{tests["N", round(abs.err)]}$,
+representing
+    $\Sexpr{tests["alpha", round(rel.err)]}$\%,
+    $\Sexpr{tests["I", round(rel.err)]}$\%,
+    $\Sexpr{tests["m", round(rel.err)]}$\%, and
+    $\Sexpr{tests["N", round(rel.err)]}$\%
+of the respective grids.}
+
+\uline{Qualitatively, three of the parameters (excluding \gls{N}) exhibited
+weak identifiability within particular sections of the grid. The \glspl{IQR}
+for \gls{alpha} were nearly identical for the values \gls{alpha} $\leq 1$,
+spanning approximately [0-1.3]. Similarly, the \glspl{IQR} for \gls{alpha} $>
+1$ were all approximately [0.7-2]} (\cref{fig:gridest}). \uline{The
+distributions of kernel scores for these groups of values were also
+qualitatively similar} (\cref{fig:gridalpha}), \uline{although the value
+\gls{alpha} = 1.25 exhibited a more pronounced peak in kernel scores around the
+true value.}
+
+\uline{For \gls{I}, the \glspl{IQR} were nearly identical for the values
+\gls{I} $\leq 2000$ (approximately [500,3800]), and for the values \gls{I} $>
+3000$ (approximately [1600-5000]). Kernel score distributions for all \gls{I}
+values exibited a similar rounded shape} (\cref{fig:gridI}), \uline{although
+this was most pronounced for values near the upper and lower extremes of the
+grid.}
+
+\uline{The \glspl{IQR} for \gls{m} were distinct for \gls{m} = 1 and 2, but
+were similar for all values of \gls{m} $> 2$ (approximately [2-6]). The kernel
+score distribution for \gls{m} = 1 was distinct from the others, having a large
+peak at \gls{m} = 1, while the others exhibited a valley at \gls{m} = 1 and
+were mostly flat everywhere else} (\cref{fig:gridm}). 
+
+\uline{The \glspl{IQR} for \gls{N} did not form any obvious groups like the
+other parameters' \glspl{IQR}} (\cref{fig:gridest}). \uline{The kernel score
+distribution for \gls{N} = 1000 was distinct, having a peak at the true value}
+(\cref{fig:gridN}). \uline{The distributions for \gls{N} $> 1000$ were all
+relatively similar, having a valley at the low end of the grid and being mostly 
+flat everywhere else.}}
+
+{\color{red}\sout{The \gls{alpha} parameter was the most accurately estimated,
+with point estimates having an average deviation of 
     \Sexpr{d["alpha", round(mean(error), 2)]}
 from the true value, on a grid from 0 to 2. The error of point estimates varied
 significantly between true values of \gls{alpha}
@@ -944,83 +1001,83 @@ for the other values
     for \gls{alpha} $\neq$ 1.0 or 1.5),
 and this difference was significant
     (Wilcoxon rank-sum test, $p \Sexpr{pp(alpha.test$p.value, eq=TRUE)}$,
-     \cref{fig:gridptalpha}).
-These two values exhibited different qualitative behaviour than the other
+}\cref{fig:gridptalpha}).
+\sout{These two values exhibited different qualitative behaviour than the other
 values in terms of the distribution of kernel scores along the grid
-(\cref{fig:gridalpha}). In particular, there was a pronounced peak in scores
+}(\cref{fig:gridalpha}). \sout{In particular, there was a pronounced peak in scores
 around the true value, in contrast to the other values where the scores were
 flat around the true value. The effect was most obvious for the value
-\gls{alpha} = 1.25.
+\gls{alpha} = 1.25.}}
 
-The average absolute error of the point estimates for \gls{I} was 
-    \Sexpr{d["I", round(mean(error))]} individuals,
-on a grid of 500 to 5000, and these errors differed between true values of
-\gls{I}
-    (one-way \gls{ANOVA}, $p \Sexpr{pp(av["I", p], eq=TRUE)}$).
-The errors for $2000 \leq I \leq 3000$ were higher than those for the other
-values
-    (average errors
-     \Sexpr{d["I", .SD[true_value >= 2000 & true_value <= 3000, round(mean(error))]]}
-     for $2000 \leq I \leq 3000$ vs.
-     \Sexpr{d["I", .SD[true_value < 2000 | true_value > 3000, round(mean(error))]]}
-     for $I < 2000$ or $I > 3000$),
-and this difference was significant
-    (Wilcoxon rank-sum test, $p \Sexpr{pp(I.test$p.value, eq=TRUE)}$,
-     \cref{fig:gridptI}).
-Kernel score distributions for all test values exhibited a similar rounded
-shape (\cref{fig:gridI}). 
-
-The average error for \gls{m} was
-    \Sexpr{d["m", round(mean(error), 2)]} edges per vertex,
-on a grid from 1 to 6. The error varied significantly between the true values
-of \gls{m} 
-    (one-way \gls{ANOVA}, $p \Sexpr{pp(av["m", p], eq=TRUE)}$).
-Errors for the value \gls{m} = 1 were lower than the other values
-    (average errors
-    \Sexpr{d["m", .SD[true_value == 1, round(mean(error), 2)]]}
-    for $m = 1$ vs.
-    \Sexpr{d["m", .SD[true_value > 1, round(mean(error), 2)]]}
-    for $m > 1$),
-and this difference was significant
-    (Wilcoxon rank-sum test, $p \Sexpr{pp(m.test$p.value, eq=TRUE)}$,
-     \cref{fig:gridptm}).
-The value $m = 1$ causes the network to take on a distinct shape relative to
-higher \gls{m} values, namely a tree (\ie there are no cycles, see
-\cref{subsec:treeshape}). The kernel score distribution had a peak at $m = 1$
-when this was the true value, and a valley at $m = 1$ when the true value of
-$m$ was greater that 1 (\cref{fig:gridm}).
-
-The average error for \gls{N} was 
-    \Sexpr{d[parameter == "N", round(mean(error))]} individuals,
-on a grid from 1000 to 15000, and was varied significantly with the true value
-of \gls{N}
-    (one-way \gls{ANOVA}, $p \Sexpr{pp(av["N", p], eq=TRUE)}$).
-The errors were lower for $N \leq 3000$
-    (average errors
-     \Sexpr{d["N", .SD[true_value <= 3000, round(mean(error))]]}
-     for $N \leq 3000$ vs.
-     \Sexpr{d["N", .SD[true_value > 3000, round(mean(error))]]}
-     for $N > 3000$),
-and this difference was significant
-    (Wilcoxon rank-sum test, $p \Sexpr{pp(N.test$p.value, eq=TRUE)}$,
-     \cref{fig:gridptN}).
-The kernel score distribution had a peak at $N = 1000$ when this was the true
-value, and a valley there otherwise (\cref{fig:gridN}). Except for this valley,
-the distributions were flat for $N > 3000$.
+%The average absolute error of the point estimates for \gls{I} was 
+%    \Sexpr{d["I", round(mean(error))]} individuals,
+%on a grid of 500 to 5000, and these errors differed between true values of
+%\gls{I}
+%    (one-way \gls{ANOVA}, $p \Sexpr{pp(av["I", p], eq=TRUE)}$).
+%The errors for $2000 \leq I \leq 3000$ were higher than those for the other
+%values
+%    (average errors
+%     \Sexpr{d["I", .SD[true_value >= 2000 & true_value <= 3000, round(mean(error))]]}
+%     for $2000 \leq I \leq 3000$ vs.
+%     \Sexpr{d["I", .SD[true_value < 2000 | true_value > 3000, round(mean(error))]]}
+%     for $I < 2000$ or $I > 3000$),
+%and this difference was significant
+%    (Wilcoxon rank-sum test, $p \Sexpr{pp(I.test$p.value, eq=TRUE)}$,
+%     \cref{fig:gridptI}).
+%Kernel score distributions for all test values exhibited a similar rounded
+%shape (\cref{fig:gridI}). 
+%
+%The average error for \gls{m} was
+%    \Sexpr{d["m", round(mean(error), 2)]} edges per vertex,
+%on a grid from 1 to 6. The error varied significantly between the true values
+%of \gls{m} 
+%    (one-way \gls{ANOVA}, $p \Sexpr{pp(av["m", p], eq=TRUE)}$).
+%Errors for the value \gls{m} = 1 were lower than the other values
+%    (average errors
+%    \Sexpr{d["m", .SD[true_value == 1, round(mean(error), 2)]]}
+%    for $m = 1$ vs.
+%    \Sexpr{d["m", .SD[true_value > 1, round(mean(error), 2)]]}
+%    for $m > 1$),
+%and this difference was significant
+%    (Wilcoxon rank-sum test, $p \Sexpr{pp(m.test$p.value, eq=TRUE)}$,
+%     \cref{fig:gridptm}).
+%The value $m = 1$ causes the network to take on a distinct shape relative to
+%higher \gls{m} values, namely a tree (\ie there are no cycles, see
+%\cref{subsec:treeshape}). The kernel score distribution had a peak at $m = 1$
+%when this was the true value, and a valley at $m = 1$ when the true value of
+%$m$ was greater that 1 (\cref{fig:gridm}).
+%
+%The average error for \gls{N} was 
+%    \Sexpr{d[parameter == "N", round(mean(error))]} individuals,
+%on a grid from 1000 to 15000, and was varied significantly with the true value
+%of \gls{N}
+%    (one-way \gls{ANOVA}, $p \Sexpr{pp(av["N", p], eq=TRUE)}$).
+%The errors were lower for $N \leq 3000$
+%    (average errors
+%     \Sexpr{d["N", .SD[true_value <= 3000, round(mean(error))]]}
+%     for $N \leq 3000$ vs.
+%     \Sexpr{d["N", .SD[true_value > 3000, round(mean(error))]]}
+%     for $N > 3000$),
+%and this difference was significant
+%    (Wilcoxon rank-sum test, $p \Sexpr{pp(N.test$p.value, eq=TRUE)}$,
+%     \cref{fig:gridptN}).
+%The kernel score distribution had a peak at $N = 1000$ when this was the true
+%value, and a valley there otherwise (\cref{fig:gridN}). Except for this valley,
+%the distributions were flat for $N > 3000$.
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=\textwidth]{gridsearch-example}
   \caption[Grid search estimates of \gls{BA} model parameters.]{Point estimates
-      and 95\% highest density intervals for each \gls{BA} model parameter,
-      obtained using grid search. Networks and transmission trees were
-      simulated over a grid of values for each parameter while holding the
-      others fixed. For a subset of the grid values ($x$-axis), test networks
-      and trees were created and compared to each tree on the grid using the
-      tree kernel. The kernel scores along the grid were normalized to resemble
-      a probability distribution, from which the mode and highest density
-      interval were calculated. Shown values correspond to one replicate
-      experiment, with trees of size 500.
+      (center lines) and 75\% (boxes) and 95\% (whiskers) highest density
+      intervals for each \gls{BA} model parameter, obtained using grid search.
+      Networks and transmission trees were simulated over a grid of values for
+      each parameter while holding the others fixed. For a subset of the grid
+      values ($x$-axis), test networks and trees were created and compared to
+      each tree on the grid using the tree kernel. The kernel scores along the
+      grid were normalized to resemble a probability distribution, from which
+      the mode and highest density interval were calculated. Shown values
+      correspond to one replicate experiment, with trees of size 500.
   } 
   \label{fig:gridest}
 \end{figure}
