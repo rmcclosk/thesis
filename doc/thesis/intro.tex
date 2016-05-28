@@ -4,7 +4,7 @@
 \subsection{Phylogenetic trees}
 
 In evolutionary biology, a \defn{phylogeny}, or \defn{phylogenetic tree}, is a
-graphical representation of the the evolutionary relationships among a group of
+graphical representation of the evolutionary relationships among a group of
 organisms or species (generally, \defn{taxa})~\autocite{haeckel1866generelle}.
 The \defn{tips} of a phylogeny, that is, the nodes without any descendants,
 correspond to \defn{extant}, or observed, taxa. The \defn{internal nodes}
@@ -44,7 +44,7 @@ trees~\autocite{buneman1974note}. These concepts are illustrated in
       the time axis. Internal nodes, representing extinct common ancestors to
       the extant taxa, fall in the past. The topology of the tree indicates
       that cats and dogs are the most closely related pair of species, whereas
-      fish is most distantly related to any other node in the tree.}
+      fish is most distantly related to any other taxon in the tree.}
   \label{fig:speciestree}
 \end{figure}
 
@@ -116,7 +116,7 @@ However, in all but the most well-studied of epidemics, transmission trees are
 not possible to assemble through traditional epidemiological
 methods~\autocite{welch2011statistical}. The time and effort to conduct
 detailed interviews and contact tracing of a sufficient number of infected
-individuals is usually prohibitive, and may be additionally be confounded by
+individuals is usually prohibitive, and may additionally be confounded by
 misreporting and other challenges~\autocite{eames2015six}. However, it turns
 out that for viral epidemics, some of the epidemiological information contained
 in the transmission tree leaves a mark on the viral genetic material
@@ -321,11 +321,13 @@ over all pairs of nodes $(n_1, n_2)$, where $n_1$ is a node in $T_1$ and $n_2$
 is a node in $T_2$. Following \textcite{poon2013mapping}, let $N(T)$ denote the
 set of all nodes in $T$, $\nc(n)$ be the number of children of node $n$,
 $c_n^{j}$ be the $j$th child of node $n$, and $l_n$ be the vector of branch
-lengths connecting node $n$ to its descendants. The \defn{production rule} of
-$n$ is its total number of children, and its number of leaf children. That is,
-if two nodes have the same number of children and among these, the same number
-of leaves, then they have the same production rule. Let $k_G(x, y)$ be a
-Gaussian radial basis function of the vectors $x$ and $y$,
+lengths connecting node $n$ to its $\nc(n)$ children. {\color{blue}\uline{
+Furthermore, let $\nl(n)$ be the number of children of $n$ which are leaves (we
+always have $\nl(n) \leq \nc(n)$). The \defn{production rule} of $n$ is the
+pair $(\nc(n), \nl(n))$.}} That is, if two nodes have the same number of
+children and among these, the same number of leaves, then they have the same
+production rule. Let $k_G(x, y)$ be a Gaussian radial basis function of the
+vectors $x$ and $y$,
 \[
   k_G(x, y) = \exp\left(-\frac{1}{2\sigma} \norm{x - y}_2^2\right),
 \]
@@ -400,19 +402,18 @@ transmission risk, or \defn{undirected}, representing symmetric transmission
 risk. For example, a network for an airborne epidemic would use undirected
 edges, because the same physical proximity is required for a host to infect or
 to become infected. However, an infection which may be spread through
-blood-to-blood contact through transfusions transfusions would use directed
-edges, since the donor has no chance of transmitting to the recipient. Directed
-edges are also useful when the transmission risk is not equal between the
-hosts, such as with \gls{HIV} transmission among \gls{MSM}, where the receptive
-partner carries a higher risk of infection than the insertive
-partner~\autocite{baggaley2010hiv}. In this case, a contact could be
-represented by two directed edges, one in each direction between the two hosts,
-with the edges annotated by what kind of risk they
-imply~\autocite{wasserman1994social}. An undirected contact network is
+blood-to-blood contact through transfusions would use directed edges, since the
+recipient has no chance of transmitting to the donor. Directed edges are also
+useful when the transmission risk is not equal between the hosts, such as with
+\gls{HIV} transmission among \gls{MSM}, where the receptive partner carries a
+higher risk of infection than the insertive partner~\autocite{baggaley2010hiv}.
+In this case, a contact could be represented by two directed edges, one in each
+direction between the two hosts, with the edges annotated by what kind of risk
+they imply~\autocite{wasserman1994social}. An undirected contact network is
 equivalent to a directed network where each contact is represented by two
 symmetric directed edges. The \defn{degree} of a node in the network is how
 many contacts it has. In directed networks, we may make the distinction between
-\defn{out-degree} and \defn{in-degree}, which count respectively the number
+\defn{in-degree} and \defn{out-degree}, which count respectively the number
 incoming and outgoing edges. The \defn{degree distribution} of a network
 denotes the probability that a node has any given number of links. The set of
 edges attached to a node are referred to as its \defn{incident} edges.
@@ -425,7 +426,7 @@ into groups with different contact rates between and among each
 group~\autocite{jacquez1988modeling}. However, these models still assume that
 every possible contact between a member of group $i$ and a member of group $j$
 is equally likely. This assumption is clearly unrealistic for the majority of
-human communities, and can lead to errors in predicted epidemic trajectories
+human communities and can lead to errors in predicted epidemic trajectories
 when there is substantial heterogeneity present~\autocite{bansal2007individual,
 volz2007susceptible, rolls2015simulation}. Contact networks provide a way to
 relax this assumption by representing individuals and their contacts
@@ -457,7 +458,7 @@ strategies may depend on the topology of the
 network~\autocite{keeling2005networks,peng2013vaccination, ma2013importance,
 rushmore2014network}. On a local level, contact networks can be informative
 about the groups or individuals who are at highest risk of acquiring or
-transmitting infection, and would therefore benefit most from public health
+transmitting infection who would therefore benefit most from public health
 interventions~\autocite{wang2015targeting, little2014using}.
 
 Contact networks are a challenging type of data to collect, requiring extensive
@@ -487,17 +488,17 @@ sequences are significantly more similar to each other's than to the general
 population's.  The phylogenetic network is informative about ``hotspots'' of
 transmission and can be used to identify demographic groups to whom targeted
 interventions are likely to have the greatest effect~\autocite{poon2015impact}.
-However, this network may show little to no agreement with a contact data
+However, this network may show little to no agreement with contact data
 obtained through epidemiological methods~\autocite{yirrell1998molecular,
-resik2007limitations, robinson2013dynamics}, and therefore may be a poor proxy
+resik2007limitations, robinson2013dynamics} and therefore may be a poor proxy
 for the contact network. Other studies~\autocite{brown2011transmission} have
 investigated the \defn{transmission network}, which is the subgraph of the
-contact network consisting of infected nodes and the edges which led to their
+contact network consisting of infected nodes and the edges that led to their
 infections~\autocite{welch2011statistical} (\cref{fig:contactnet}, left). It is
 possible to estimate the transmission network phylogenetically, although the
 methods required for doing so are more sophisticated than for estimating the
 phylogenetic network~\autocite{brown2011transmission}. These studies again
-mostly focusing on clustering, and also on degree distributions.
+mostly focus on clustering and also on degree distributions.
 
 Other statistical methods have been developed to infer contact network
 parameters strictly from the timeline of an epidemic, using neither genetic
@@ -507,10 +508,10 @@ transmission and removal rate parameters of the \gls{SI} model, using observed
 infection and optionally removal times. However, it was designed for only a
 small number of observations, and was unable to estimate $p$ independently from
 the transmission rate.  \textcite{groendyke2011bayesian} significantly updated
-and extended the methodology of \citeauthor{britton2002bayesian}, and applied
+and extended the methodology of \citeauthor{britton2002bayesian} and applied
 it to a measles outbreak affecting 188 individuals. They were able to obtain a
 much more informative estimate of $p$, although this data set included both
-symptom onset and recovery times for all individuals, and was unusual in that
+symptom onset and recovery times for all individuals and was unusual in that
 the entire contact network was presumed to be infected. \textcite{volz2008sir}
 developed differential equations describing the dynamics of the \gls{SIR} model
 on a wide variety of random networks defined by their degree distributions.
@@ -544,10 +545,11 @@ postulated to contribute in varying degree to the spread of diseases such as
 \gls{HIV}~\autocite{stadler2013uncovering} and
 \gls{SARS}~\autocite{shen2004superspreading}. Scale-free networks have no
 epidemic threshold~\autocite{pastor2001epidemic}, meaning that diseases with
-arbitrarily low transmissibility can persist at low levels indefinitely. This
-is in contrast with homogeneously mixed populations, in which transmissibility
-below the epidemic threshold would result in exponential decay in the number of
-infected individuals and eventual extinction of the
+arbitrarily low transmissibility {\color{red}\sout{can persist}} 
+{\color{blue}\uline{have a chance, however small, of persisting}} at low levels
+indefinitely. This is in contrast with homogeneously mixed populations, in
+which transmissibility below the epidemic threshold would result in exponential
+decay in the number of infected individuals and eventual extinction of the
 pathogen~\autocite{anderson1992infectious}.
 
 One mechanism which has been shown to lead to scale-free networks is
@@ -563,7 +565,7 @@ However, \citeauthor{barabasi1999emergence} suggest extending the model such
 that the probability of choosing a partner of degree $d$ is proportional to
 $d^\alpha + 1$ for some constant $\alpha$, and we use this extension here. When
 $m = 1$, the network takes on the distinctive shape of a tree, that is, it does
-not contain any cycles. Cycles are present in the network for all all other $m$
+not contain any cycles. Cycles are present in the network for all other $m$
 values. Examples of \gls{BA} networks with three different values of the
 preferential attachment power \gls{alpha} are shown in \cref{fig:baeg}.
 
@@ -585,7 +587,7 @@ preferential attachment power \gls{alpha} are shown in \cref{fig:baeg}.
   \label{fig:baeg}
 \end{figure}
 
-There has been some contention of the idea that contact networks are
+There has been some contention over the idea that contact networks are
 scale-free. \textcite{handcock2004likelihood} fit several stochastic models of
 partner formation to empirical degree distributions derived from population
 surveys of sexual behaviour. They found that a negative binomial distribution,
@@ -621,17 +623,17 @@ well as the relationship between the skyride and prevalence curve, was
 qualitatively different for each degree distribution.
 \textcite{leventhal2012inferring} investigated the relationship between
 transmission tree imbalance and several epidemic parameters under four contact
-network models, and found that these relationships varied considerably
+network models and found that these relationships varied considerably
 depending on which model was being considered. The authors also investigated a
-real-world \gls{HIV} phylogeny and found a level of unbalancedeness
-inconsistent with a randomly mixing population. \textcite{welch2011network}
-simulated transmission trees over networks with varying degrees of community
-structure. They found that transmission trees simulated under networks with low
-clustering could not generally be distinguished from those simulated under
-highly clustered networks, and concluded that contact network clusters do not
-affect transmission tree shape. However, more recently,
+real-world \gls{HIV} phylogeny and found a level of imbalance inconsistent with
+a randomly mixing population. \textcite{welch2011network} simulated
+transmission trees over networks with varying degrees of community structure.
+They found that transmission trees simulated under networks with low clustering
+could not generally be distinguished from those simulated under highly
+clustered networks and concluded that contact network clusters do not affect
+transmission tree shape. However, more recently,
 \textcite{villandre2016assessment} investigated the correspondence between
-contact network clusters and transmission tree clusters, and did find a
+contact network clusters and transmission tree clusters and did find a
 moderate correspondence between the two in some cases.
 \textcite{goodreau2006assessing} combined a dynamic contact network model with
 a model of within-host viral evolution to simulate viral phylogenies over eight
@@ -665,7 +667,7 @@ TODO
 
 \subsection{Overview and notation}
 
-\Gls{SMC} is the name for a family of statistical inference methods which rely
+\Gls{SMC} is the name for a family of statistical inference methods that rely
 on approximating probability distributions of interest with large collections
 of \defn{particles}, here denoted
 $\set{x^{(k)}}$~\autocite{doucet2000sequential, doucet2001introduction,
@@ -693,9 +695,9 @@ matrix in a finite-state Markov model.  For some spaces $X$ and $Y$, $K \maps X
 \end{align}
 for all $x \in X$. This is an ``operational'' definition of Markov kernel which
 will be suitable for our purposes. A more rigorous definition can be found in
-\eg~\autocite{kallenberg2006foundations}. Note that a Markov kernels have
-nothing to do with the kernel functions defined in \cref{subsec:treeshape},
-other than sharing a name (the word ``kernel'' is ubiquitous in mathematics).
+\eg~\autocite{kallenberg2006foundations}. Note that Markov kernels have nothing
+to do with the kernel functions defined in \cref{subsec:treeshape}, other than
+sharing a name (the word ``kernel'' is ubiquitous in mathematics).
 
 {\color{blue}\uline{
 The goal of this section of the introduction is to describe an algorithm called
@@ -795,7 +797,7 @@ or even compute it explicitly.
 The recursive definition \ref{eq:sisw} suggests an algorithm for obtaining a
 sample from {\color{blue}\uline{$\eta$ and using it to obtain an approximate
 sample from $\pi$ by \gls{IS}}} (\cref{alg:sis}).  We begin with $n$
-``particles'' which have been sampled from the importance distribution
+``particles'', which have been sampled from the importance distribution
 $\eta(x_0)$ for $\pi(x_0)$. The particles are updated and reweighted $d$ times,
 corresponding to the $d$ elements of the decomposition of $\pi$. At the $i$th
 step, each particle is extended to include $x_i$ drawn according to the chosen
@@ -928,7 +930,8 @@ That is,
   K_i(x, x') = \max\left(1, \frac{q(x', x)\pi_i(x)}{q(x, x')\pi_i(x')}\right),
 \]
 where $q(x, x')$ is a proposal function such as a Gaussian distribution
-centred at $x$ (see \cref{subsec:mfit}). 
+centred at $x$ {\color{blue}\uline{from which $x'$ is drawn}} (see
+\cref{subsec:mfit}). 
 
 Although this method of building up $\eta$ appears straightforward, the
 drawback is that the importance distribution itself becomes intractable. In
@@ -938,8 +941,8 @@ perform \gls{IS}, this construction appears to have defeated the purpose of
 providing an importance distribution for each $\pi_i$.
 \textcite{del2006sequential} overcome this problem with two ``artificial''
 objects. First, they propose the existence of \textit{backward} Markov kernels
-$L_{i-1}(x_i, x_{i-1})$. For now, these kernels are arbitrary, and will be
-precisely defined on a problem-specific basis. Second, they define an
+$L_{i-1}(x_i, x_{i-1})$. For now, these kernels are arbitrary; they will later
+be precisely defined on a problem-specific basis. Second, the authors define an
 alternative sequence of target distributions
 \[
   \tilde{\pi}_i(\vec{x_i}) = \pi_i(x_i) \prod_{k=1}^{i-1} L_k(x_{k+1}, x_k)
@@ -1053,7 +1056,7 @@ density $\pi$ of observing outcome $y_i$ given the parameters,
 \]
 where $f_{\N(0, \sigma^2)}$ is the probability density of the normal
 distribution with mean zero and variance $\sigma^2$. Note that we are treating
-the $x_i$ as fixed quantities, and therefore have not conditioned the
+the $x_i$ as fixed quantities and therefore have not conditioned the
 probability density on $x$. Also, we have assumed that all the $y_i$ are
 independent.
 
@@ -1064,14 +1067,14 @@ The higher the value of the likelihood, the more likely the observations $y$
 are under the model. Thus, the likelihood provides a natural criterion for
 fitting the model parameters: we want to pick $\theta$ such that the
 probability density of our observed outcomes $y$ is as high as possible. The
-parameters which optimize the likelihood are known as the \textit{\gls{ML}}
+parameters that optimize the likelihood are known as the \textit{\gls{ML}}
 estimates, denoted $\hat{\theta}$. That is,
 \[
   \hat{\theta} = \argmax_\theta\; \L(\theta \mid y).
 \]
 \Gls{ML} estimation is usually performed with numerical optimization. In the
 simplest terms, many possible values for $\theta$ are examined, $\L(\theta \mid
-y)$ is calculated for each, and the parameters which produce the highest value
+y)$ is calculated for each, and the parameters that produce the highest value
 are accepted. Many sophisticated numerical optimization methods exist, although
 they may not be guaranteed to find the true \gls{ML} estimates if the
 likelihood function is multi-modal. 
@@ -1111,7 +1114,7 @@ by defining a Markov chain whose states are indexed by possible model
 parameters. The transition probability from state $\theta_1$ to state
 $\theta_2$ is taken to be
 \[
-  \max\left(1, \frac{f(y \mid \theta_2) \pi(\theta_2) q(\theta_2, \theta_1)}
+  \min\left(1, \frac{f(y \mid \theta_2) \pi(\theta_2) q(\theta_2, \theta_1)}
                     {f(y \mid \theta_1) \pi(\theta_2) q(\theta_1, \theta_2)} \right),
 \]
 where $q(\theta, \theta')$ is a symmetric \defn{proposal distribution} used in
@@ -1130,7 +1133,7 @@ algorithm~\autocite{metropolis1953equation,hastings1970monte} (\cref{alg:mh}).
     \Loop
       \State Propose $\theta'$ according to $q(\theta, \theta')$
       \State Accept $\theta \gets \theta'$ with probability
-      $\max \left( 1, 
+      $\min \left( 1, 
        \dfrac{f(y \mid \theta') \pi(\theta') q(\theta', \theta)}
              {f(y \mid \theta\phantom{'}) \pi(\theta\phantom{'}) q(\theta, \theta')}
        \right)$
@@ -1275,8 +1278,8 @@ Bayesian \gls{MCMC} (\cref{subsec:mfit}), except that a distance cutoff
 replaces the likelihood ratio. That is, the transition probability between
 states $x$ and $x'$ is defined as
 \[
-  \max\left(1, \frac{f(z' \mid \theta') q(\theta', \theta)}
-                    {f(z \mid \theta) q(\theta, \theta')} 
+  \min\left(1, \frac{\pi(\theta') q(\theta', \theta)}
+                    {\pi(\theta) q(\theta, \theta')} 
     \cdot \I_{A_{\varepsilon, y}}(z') \right).
 \]
 
@@ -1289,7 +1292,7 @@ states $x$ and $x'$ is defined as
       \State Simulate a dataset $\vec{z'}$ according to the model with
              parameters $\theta$
       \State Accept $\theta \gets \theta'$ with probability
-      $\max \left( 1, 
+      $\min \left( 1, 
        \dfrac{\pi(\theta') q(\theta', \theta)}
              {\pi(\theta\phantom{'}) q(\theta, \theta')} 
        \cdot \I_{A_{\varepsilon, y}}(z') \right)$

@@ -4,11 +4,11 @@ library(netabc)
 library(Hmisc)
 library(xtable)
 
-pp <- function (p, eq=FALSE) {
-    if (p < 1e-5) {
-        "{<}10^{-5}"
+pp <- function (p, eq=FALSE, thres=1e-5) {
+    if (!is.na(thres) & p < thres) {
+        paste0("{<}", pp(thres, thres=0))
     } else {
-        n <- latexSN(round(p, -floor(log10(p))))
+        n <- latexSN(round(p, -floor(log10(abs(p)))))
         n <- sub("^1\\\\!\\\\times\\\\!", "", n)
         if (eq) {
             paste0("=", n)
@@ -42,12 +42,12 @@ make.glm <- function (param, family, link) {
         setnames(df, "Pr(>|z|)", "p")
     }
     setcolorder(df, c("Parameter", "Estimate", "Standard error", "p"))
-    df[,p := p.adjust(p, method="holm", n=12)]
+    df[,p := p.adjust(p, method="holm", n=6)]
     df
 }
  
 # make GLMs
 alpha.glm <- make.glm("alpha", gaussian, "inverse")
 I.glm <- make.glm("I", gaussian, "inverse")
-N.glm <- make.glm("N", gaussian, "inverse")
-m.glm <- make.glm("m", poisson, "log")
+#N.glm <- make.glm("N", gaussian, "inverse")
+#m.glm <- make.glm("m", poisson, "log")

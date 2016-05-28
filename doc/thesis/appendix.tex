@@ -784,54 +784,40 @@ Approximate marginal posterior distributions of BA model parameters obtained by 
 
 
 
-%\chapter{GLM results}
-%
-%<<glm_tables, echo=FALSE, warning=FALSE, error=FALSE, results="asis">>=
-%    format.glm <- function (df) {
-%        df[Parameter == "alpha", Parameter := "$\\alpha$"]
-%        df[,p := paste0("$", sapply(p, pp, eq=FALSE), "$")]
-%        setnames(df, "p", "$p$-value")
-%        df
-%    }
-%
-%    alpha.glm <- format.glm(alpha.glm)
-%    I.glm <- format.glm(I.glm)
-%    m.glm <- format.glm(m.glm)
-%    N.glm <- format.glm(N.glm)
-%
-%    capt.short <- paste("Parameters of a fitted GLM relating error in estimated",
-%                        "$\\alpha$ to true values of BA parameters.")
-%    capt <- paste(capt.short, "GLM was fitted with a Gamma distribution and",
-%                  "inverse link function. Coefficients are interpretable as",
-%                  "additive effects on the inverse of the mean error.")
-%    print(xtable(alpha.glm, label="tab:glmalpha", caption=c(capt, capt.short)),
-%          include.rownames=FALSE, sanitize.text.function=identity,
-%          sanitize.colnames.function=identity)
-%
-%    capt.short <- paste("Parameters of a fitted GLM relating error in estimated",
-%                        "$I$ to true values of BA parameters.")
-%    capt <- paste(capt.short, "GLM was fitted with a Gamma distribution and",
-%                  "inverse link function. Coefficients are interpretable as",
-%                  "additive effects on the inverse of the mean error.")
-%    print(xtable(I.glm, label="tab:glmI", caption=c(capt, capt.short)),
-%          include.rownames=FALSE, sanitize.text.function=identity,
-%          sanitize.colnames.function=identity)
-%
-%    capt.short <- paste("Parameters of a fitted GLM relating error in estimated",
-%                        "$m$ to true values of BA parameters.")
-%    capt <- paste(capt.short, "GLM was fitted with a Poisson distribution and",
-%                  "identity link function. Coefficients are interpretable as",
-%                  "additive effects on the exponential of the mean error.")
-%    print(xtable(m.glm, label="tab:glmm", caption=c(capt, capt.short)),
-%          include.rownames=FALSE, sanitize.text.function=identity,
-%          sanitize.colnames.function=identity)
-%
-%    capt.short <- paste("Parameters of a fitted GLM relating error in estimated",
-%                        "$N$ to true values of BA parameters.")
-%    capt <- paste(capt.short, "GLM was fitted with a Gaussian distribution and",
-%                  "identity link function. Coefficients are interpretable as",
-%                  "additive effects on the inverse of the mean error.")
-%    print(xtable(N.glm, label="tab:glmN", caption=c(capt, capt.short)),
-%          include.rownames=FALSE, sanitize.text.function=identity,
-%          sanitize.colnames.function=identity)
-%@
+\chapter{GLM results}
+
+% latex table generated in R 3.2.3 by xtable 1.8-2 package
+% Fri May 27 14:04:29 2016
+\begin{table}[ht]
+\centering
+\begin{tabular}{llll}
+  \hline
+Parameter & Estimate & Standard error & $p$-value \\ 
+  \hline
+(Intercept) & $2$ & $0.6$ & $0.01$ \\ 
+  $\alpha$ & $10$ & $2$ & ${<}10^{-5}$ \\ 
+  I & $-3\!\times\!10^{-4}$ & $2\!\times\!10^{-4}$ & $0.7$ \\ 
+  m & $0.5$ & $0.2$ & $0.01$ \\ 
+   \hline
+\end{tabular}
+\caption[Parameters of a fitted GLM relating error in estimated $\alpha$ to true values of BA parameters.]{Parameters of a fitted GLM relating error in estimated $\alpha$ to true values of BA parameters. GLM was fitted with a Gaussian distribution and inverse link function. Coefficients are interpretable as additive effects on the inverse of the mean error.} 
+\label{tab:glmalpha}
+\end{table}
+% latex table generated in R 3.2.3 by xtable 1.8-2 package
+% Fri May 27 14:04:29 2016
+\begin{table}[ht]
+\centering
+\begin{tabular}{llll}
+  \hline
+Parameter & Estimate & Standard error & $p$-value \\ 
+  \hline
+(Intercept) & $0.004$ & $5\!\times\!10^{-4}$ & ${<}10^{-5}$ \\ 
+  $\alpha$ & $-0.001$ & $2\!\times\!10^{-4}$ & ${<}10^{-5}$ \\ 
+  I & $-4\!\times\!10^{-7}$ & $2\!\times\!10^{-7}$ & $0.05$ \\ 
+  m & $-7\!\times\!10^{-5}$ & $8\!\times\!10^{-5}$ & $1$ \\ 
+   \hline
+\end{tabular}
+\caption[Parameters of a fitted GLM relating error in estimated $I$ to true values of BA parameters.]{Parameters of a fitted GLM relating error in estimated $I$ to true values of BA parameters. GLM was fitted with a gaussian distribution and inverse link function. Coefficients are interpretable as additive effects on the inverse of the mean error.} 
+\label{tab:glmI}
+\end{table}
+

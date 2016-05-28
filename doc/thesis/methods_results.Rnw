@@ -89,7 +89,7 @@ programs are freely available at \url{https://github.com/rmcclosk/netabc}.
 
 To check that our implementation of Gillespie simulation was correct, we
 reproduced Figure 1A of \textcite{leventhal2012inferring} (our
-\cref{fig:leventhal}), which plots the unbalancedness of transmission trees
+\cref{fig:leventhal}), which plots the imbalance of transmission trees
 simulated over four network models at various levels of pathogen
 transmissibility. Our implementation of adaptive \gls{ABC}-\gls{SMC} was tested
 by applying it to the same mixture of Gaussians used by
@@ -113,7 +113,7 @@ leventhal2012inferring, groendyke2011bayesian, villandre2016assessment}.
 \textcite{groendyke2011bayesian} published their implementation as an
 \software{R} package, but since the \gls{SMC} algorithm is quite
 computationally intensive, we chose to implement our own version in
-\software{C}.
+\software{C} {\color{blue}\uline{as part of \software{netabc}}}.
 
 Let $G = (V, E)$ be a directed contact network. We assume the individual nodes
 and edges of $G$ follow the dynamics of the \gls{SIR}
@@ -352,7 +352,7 @@ extremely important for the accuracy of the \gls{ABC} approximation to the
 posterior. Therefore, we evaluated two additional tree statistics in the same
 manner as we evaluated the tree kernel (that is, by constructing and testing a
 classifier). First, we considered Sackin's index~\autocite{shao1990tree}, which
-measures the degree of unbalancedeness or asymmetry in a phylogeny} (see
+measures the degree of imbalance or asymmetry in a phylogeny} (see
 \cref{subsec:treeshape}). \uline{Sackin's index is widely used for
 characterizing phylogenies~\autocite{frost2013modelling} and has been
 demonstrated to vary between transmission trees simulated under different
@@ -583,18 +583,19 @@ package~\autocite{snow2013teachingdemos}.}}
 
 {\color{blue}\uline{
 To evaluate the effects of the true parameter values on the accuracy of the
-posterior mean estimates, we analysed each parameter individually using a
-\gls{GLM} (four \glspl{GLM} total). The response variable was the error of the
+posterior mean estimates, we analysed the \gls{alpha} and \gls{I} parameters
+individually using \glspl{GLM}. The response variable was the error of the
 point estimate, and the predictor variables were the true values of
 \gls{alpha}, \gls{I}, and \gls{m}. We did not test for differences across true
 values of \gls{N}, because \gls{N} was not varied in these simulations. The
-distribution family and link function for each \gls{GLM} were chosen by
-examination of residual plots and \gls{AIC}. For \gls{alpha}, \gls{I}, and
-\gls{N}, we used the Gaussian distribution with the inverse link function. For
-\gls{m}, we used the Poisson distribution with the log link function. The
-$p$-values of the estimated \glspl{GLM} coefficients were corrected using
-Holm-Bonferroni correction~\autocite{holm1979simple} with $n = 12$ (four
-\glspl{GLM} with three predictors each). }}
+distribution family and link function for the \glspl{GLM} were chosen as
+Gaussian and inverse, respectively, by examination of residual plots and
+\gls{AIC}. The $p$-values of the estimated \glspl{GLM} coefficients were
+corrected using Holm-Bonferroni correction~\autocite{holm1979simple} with $n =
+6$ (two \glspl{GLM} with three predictors each). Because there was clearly
+little to no identifiability of the \gls{N} and \gls{m} parameters with
+\gls{ABC} (see Results in next section), we did not construct \glspl{GLM} for
+those parameters. }}
 
 %\subsubsection*{Characterization of power-law exponent in Barab\'asi-Albert networks}
 %
@@ -1135,9 +1136,108 @@ flat around the true value. The effect was most obvious for the value
 obtained with kernel-assisted ABC on simulated data. The estimates shown
 correspond only to the simulations where the $m$ parameter was set to 2,
 however the results for $m = 3$ and $m = 4$ were similar
-(\cref{fig:abcptm3,fig:abcptm4}). Average boundaries of 95\% HPD intervals are
-given in \cref{tab:abchpd}.
+(\cref{fig:abcptm3,fig:abcptm4}). Average boundaries of 95\% \gls{HPD}
+intervals are given in \cref{tab:abchpd}.
 
+{\color{blue}
+\uline{Across all simulations, the median [\gls{IQR}] absolute errors of the parameter 
+estimates obtained with \software{netabc} were
+    \Sexpr{d[,round(median(alpha_error), 2)]} 
+    [\Sexpr{d[,round(quantile(alpha_error, 0.25), 2)]} - 
+    \Sexpr{d[,round(quantile(alpha_error, 0.75), 2)]}]
+for \gls{alpha},
+    \Sexpr{d[,round(median(I_error))]} 
+    [\Sexpr{d[,round(quantile(I_error, 0.25))]} - 
+    \Sexpr{d[,round(quantile(I_error, 0.75))]}]
+for \gls{I},
+    \Sexpr{d[,round(median(m_error), 2)]} 
+    [\Sexpr{d[,round(quantile(m_error, 0.25), 2)]} - 
+    \Sexpr{d[,round(quantile(m_error, 0.75), 2)]}]
+for \gls{m}, and
+    \Sexpr{d[,round(median(N_error))]} 
+    [\Sexpr{d[,round(quantile(N_error, 0.25))]} - 
+    \Sexpr{d[,round(quantile(N_error, 0.75))]}]
+for \gls{N}. These errors comprised, respectively,
+    \Sexpr{d[,round(median(alpha_error) * 100 / 2)]}\%,
+    \Sexpr{d[,round(median(I_error) * 100 / 4500)]}\%,
+    \Sexpr{d[,round(median(m_error) * 100 / 6)]}\%, and
+    \Sexpr{d[,round(median(N_error) * 100 / 14500)]}\%
+of the regions of nonzero prior density. Average \gls{HPD} interval widths were
+    \Sexpr{d[,round(mean(alpha.upper - alpha.lower), 2)]},
+    \Sexpr{d[,round(mean(I.upper - I.lower))]},
+    \Sexpr{d[,round(mean(m.upper - m.lower), 2)]}, and
+    \Sexpr{d[,format(round(mean(N.upper - N.lower)), digits=5)]},
+representing 
+    \Sexpr{d[,round(mean(alpha.upper - alpha.lower) * 100 / 2)]}\%,
+    \Sexpr{d[,round(mean(I.upper - I.lower) * 100 / 4500)]}\%,
+    \Sexpr{d[,round(mean(m.upper - m.lower) * 100 / 6)]}\%, and
+    \Sexpr{d[,round(mean(N.upper - N.lower) * 100 / 14500)]}\%
+of the nonzero prior density regions. Point estimates of \gls{I} were upwardly
+biased: \gls{I} was overestimated in
+    \Sexpr{d[,sum(I > true_I)]}
+out of 
+    \Sexpr{nrow(d)}
+simulations
+    (\Sexpr{round(d[,sum(I < true_I)] * 100 / nrow(d))}\%).
+The estimates for \gls{m} and \gls{N} were similar across all simulations
+(median [IQR] point estimates
+    \Sexpr{d[,round(median(m), 2)]}
+    [\Sexpr{d[,round(quantile(m, 0.25), 2)]} - 
+    \Sexpr{d[,round(quantile(m, 0.75), 2)]}]
+and 
+    \Sexpr{d[,round(median(N))]}
+    [\Sexpr{d[,round(quantile(N, 0.25))]} - 
+    \Sexpr{d[,round(quantile(N, 0.75))]}])
+regardless of the true values of any of the \gls{BA} parameters.}
+
+\uline{To analyse the effects of the true parameter values on the
+accuracy our estimates of \gls{alpha} and \gls{I}, we fitted one \glspl{GLM}
+for each of these two parameters, with error rate as the dependent variable and
+the true parameter values as independent variables. Since the estimates of
+\gls{m} and \gls{N} were roughly equal across all simulations}
+(\cref{fig:abcptm2,fig:abcptm3,fig:abcptm4}), \uline{\glspl{GLM} were not
+fitted for these parameters. The estimated coefficients are shown in
+}\cref{tab:glmalpha,tab:glmI}. \uline{For the parameters \gls{alpha}, \gls{I},
+and \gls{N}, the \gls{GLM} were fitted using the inverse link function. That
+is, if $p$ is the true value of the parameter and $\hat{p}$ is a random
+variable representing our estimate of the parameter, the \gls{GLM} posits a
+relationship of the form }
+\[
+    \E(|p-\hat{p}|) = (\beta_0 + \beta_\alpha \alpha + \beta_I I + \beta_m m)^{-1},
+\]
+\uline{where the $\beta$'s are coefficients to be fitted. If the true value
+\gls{alpha}, say, is increased by one, the \emph{inverse} of the expected
+absolute error will increase by $\beta_\alpha$. If $\beta_\alpha$ is positive,
+it means that the absolute error decreases as the true value of \gls{alpha}
+increases.}
+
+<<abc_glm, include=FALSE>>=
+    stopifnot(alpha.glm[Parameter == "alpha",p] < 0.05)
+    stopifnot(alpha.glm[Parameter == "I",p] > 0.05)
+    stopifnot(alpha.glm[Parameter == "m",p] < 0.05)
+
+    stopifnot(I.glm[Parameter == "alpha",p] < 0.05)
+    stopifnot(I.glm[Parameter == "I",p] < 0.05)
+    stopifnot(I.glm[Parameter == "m",p] > 0.05)
+@
+
+\uline{The \gls{GLM} analysis indicated that the error in estimates of
+\gls{alpha} decreased with larger true values of \gls{alpha} 
+    ($p \Sexpr{pp(alpha.glm[Parameter == "alpha", p], eq=TRUE)}$)
+and \gls{m}
+    ($p \Sexpr{pp(alpha.glm[Parameter == "m", p], eq=TRUE)}$)
+but was not significatly affected by \gls{I}} (\cref{tab:glmalpha}). 
+\uline{Qualitatively, \gls{alpha} seemed to be only weakly identifiable between
+the values of 0 and 0.5} (\cref{fig:abcptm2}). \uline{The error in the
+estimated prevalence \gls{I} was slightly lower for smaller values of
+\gls{alpha}
+    ($p \Sexpr{pp(I.glm[Parameter == "alpha", p], eq=TRUE)}$)
+and \gls{I}
+    ($p \Sexpr{pp(I.glm[Parameter == "I", p], eq=TRUE)}$),
+but was not significantly affected by the true value of \gls{m}} 
+(\cref{tab:glmI}).}
+
+{\color{red}\sout{
 The accuracy of the parameter estimates obtained with kernel-assisted ABC
 paralleled the results from the \gls{kSVR} classifier. Of the four parameters,
 $\alpha$ was the most accurately estimated, with point estimates having a
@@ -1153,10 +1253,10 @@ Errors in estimating $\alpha$
 %the threshold of statistical significance
 %    (one-way ANOVA, $p 
 %    \Sexpr{pp(anova(lm(alpha_error~true_m, d))[1, "Pr(>F)"], eq=TRUE)}$),
-{\color{blue}\uline{did not vary across the true values of $m$ or $I$ (both
-one-way ANOVA).}} 
+did not vary across the true values of $m$ or $I$ (both
+one-way ANOVA).}
 
-Estimates for $I$ were relatively accurate, with point estimate errors of
+\sout{Estimates for $I$ were relatively accurate, with point estimate errors of
     \Sexpr{d[,round(median(I_error))]} 
     [\Sexpr{d[,round(quantile(I_error, 0.25))]} - 
     \Sexpr{d[,round(quantile(I_error, 0.75))]}] individuals.
@@ -1164,22 +1264,19 @@ These errors were significantly higher when the true value of $\alpha$ was
 at least 1
     (Wilcoxon rank-sum test, $p$ = $\Sexpr{latexSN(round(alpha.I.test$p.value, 4))}$)
 and when the true value of $I$ was 2000 ($p < 10^{-5}$). The true value of $m$
-did not affect the estimates of $I$ (one-way ANOVA).
+did not affect the estimates of $I$ (one-way ANOVA).}
 
-The $m$ parameter was estimated correctly in
+\sout{The $m$ parameter was estimated correctly in
     \Sexpr{as.integer(m.tbl[1] * 100)} \%
-of simulations {\color{red}\sout{barely better than random guessing}}.
-{\color{blue}\uline{However this was due to the estimated value being $m = 3$
-in the large majority of simulations (\Sexpr{d[,sum(m == 3)]} out of
-\Sexpr{nrow(d)}), with one-third of the simulations having the true value $m =
-3$.}} The true values of the other parameters did not significantly affect the
-estimates of $m$ (both one-way ANOVA). 
+of simulations barely better than random guessing. The true values of the other
+parameters did not significantly affect the
+estimates of $m$ (both one-way ANOVA).}
 
-Finally, the total number of nodes $N$ was consistently over-estimated by about
+\sout{Finally, the total number of nodes $N$ was consistently over-estimated by about
 a factor of two (error \Sexpr{d[,round(median(N_error))]}
 [\Sexpr{d[,round(quantile(N_error, 0.25))]} - \Sexpr{d[,round(quantile(N_error,
 0.75))]}] individuals). No parameters influenced the accuracy of the $N$
-estimates (all one-way ANOVA).
+estimates (all one-way ANOVA).}}
 
 \begin{figure}[ht]
   \centering
