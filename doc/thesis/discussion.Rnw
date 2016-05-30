@@ -333,6 +333,11 @@ where the predominant risk factor was believed to be heterosexual exposure.
 Although the MAP estimate of $\alpha$ was almost unchanged when the value $m =
 1$ was excluded from the prior, the confidence interval shrank substantially.
 
+{\color{blue}\uline{
+The posterior mean estimates for the real world \gls{HIV} datasets corresponded
+to power law exponents $\gamma$ between 2.09 and 2.49.  TODO
+}}
+
 %For both priors, the estimated prevalence was extremely high, in fact higher
 %than the estimated HIV prevalence in the sampled region. The authors indicated
 %that the source of the samples was a town in close proximity to the country's

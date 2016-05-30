@@ -658,9 +658,39 @@ transmission tree $T$, we are interested in the posterior distribution}
 \uline{As outlined in} \cref{sec:obj}, \uline{both the likelihood $\Pr(T \mid
 \theta)$ and the normalizing constant $\Pr(T)$ are likely computationally
 intractable. Hence, rather than computing the posterior distribution
-analytically, we will attempt to approximate it using a \defn{Monte Carlo}
-approach.
-TODO
+analytically, we will approximate it using a \defn{Monte Carlo} approach.
+The fundamental idea behind Monte Carlo methods is succinctly expressed by
+\textcite{liu2001theoretical}:
+\begin{quote}
+    Monte Carlo's view of the world is that any probability distribution $\pi$, 
+    regardless of its complexity, can always be \emph{represented} by a
+    discrete sample from it. By ``represented'', we mean that any computation
+    of expectations using $\pi$ can be replaced to an acceptable degree of
+    accuracy by using the empirical distribution resulting from the discrete
+    sample.
+\end{quote}
+In other words, if we are able to sample enough points from a distribution of
+interest, we will be able to make reasonably accurate statements about the
+distribution itself. For example, the expected value of the distribution can be
+estimated by the sample's population mean. Several algorithms exist for
+obtaining such a sample, some of which will be discussed further in
+\cref{subsec:mfit}. The particular method we apply in this work is \gls{SMC},
+which is also known as the \emph{particle filter}. The reason for this name is
+that the desired number of samples from the target distribution is decided at
+the outset, and that number of ``particles'' \ldots TODO
+
+This is in contrast 
+}
+
+\uline{In the
+context of this work, the distribution of interest is the posterior
+distribution on the parameters of a contact network model, given observed
+phylogenetic data in the form of a transmission tree.}
+
+\uline{A typical Bayesian Monte Carlo approach to this problem would be to
+calculate the product of the likelihood and the prior for each of the parameter
+particles. 
+
 }}
 
 \glsreset{SMC}
@@ -826,6 +856,7 @@ normalized.
 \end{algorithm}
 
 \subsection{Sequential Monte Carlo}
+\label{subsec:smc}
 
 The importance distribution $\eta$ constructed with \gls{SIS} is merely an
 approximation to $\pi$, and may be a fairly poor one in practice depending on
