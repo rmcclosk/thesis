@@ -3,7 +3,7 @@
 @
 
 {\color{blue}\uline{
-The chapter is organized as follows. One section is devoted to each of our
+This chapter is organized as follows. One section is devoted to each of our
 three research aims: the development of a method for inference of contact
 network parameters from transmission trees} (\cref{sec:netabc}), \uline{the
 investigation of the \acrlong{BA} network model using simulated data
@@ -291,6 +291,13 @@ rate of the \gls{MCMC} kernel, and the algorithm will be stopped when either of
 these termination conditions is reached. The latter condition stops the
 algorithm when the particles are not moving around very much, implying little
 change in the estimated target.
+
+\subsection{Justification for approach}
+
+We present here a mathematical justification for the use of \gls{ABC} for the
+problem at hand, as opposed to more frequently-used approaches for fitting
+mathematical models. Consider a contact network model with parameters $\theta$,
+and an estimated transmission tree $T$. TODO
 
 \section{Analysis of \acrlong{BA} model with synthetic data}
 \label{sec:ba}

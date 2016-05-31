@@ -33,6 +33,18 @@ in a phylodynamic framework.}
 \newcommand{\G}{\mathcal{G}}
 \newcommand{\Nu}{\mathcal{N}}
 
+{\color{blue}\uline{In this work, we take a Bayesian approach: our goal is to
+estimate the posterior distribution on model parameters given our data,}
+\[
+    \Pr(\theta \mid T) = \frac{\Pr(T \mid \theta) \Pr(\theta)}{\Pr(T)},
+\]
+\uline{where $\Pr(T \mid \theta)$ is the likelihood, $\Pr(\theta)$ is the prior,
+and $\Pr(T)$ is the marginal probability of $T$ which acts as a normalizing
+constant on the posterior (see \cref{chp:prelim} \uline{for a review of
+mathematical modeling and Bayesian inference, including definitions of these
+concepts).
+}}
+
 Calculating the likelihood of the parameters of a contact network model seems
 likely to be an intractable problem. We have not proven this is the case, but
 some intuition can be provided by examining the process involved in the
@@ -72,14 +84,10 @@ likelihood calculation becomes even more complex, because we must also sum over
 all possible complete trees.
 
 {\color{blue}\uline{
-In a Bayesian setting, our goal is to estimate the posterior distribution on
-model parameters given our data, $\Pr(\theta \mid T)$. Bayes' theorem relates
-the posterior distribution to the likelihood,}
-\[
-  \Pr(\theta \mid T) = \frac{\Pr(T \mid \theta) \Pr(\theta)}{\Pr(T)}.
-\]
-\uline{For all but the simplest mathematical models, the calculation of the
-normalizing constant $\Pr(T)$ is an intractable problem. What we have argued in
+\uline{
+For all but the simplest mathematical models, the calculation of the
+normalizing constant $\Pr(T)$ is an intractable problem. 
+What we have argued in
 the previous paragraph is that calculating $\Pr(T \mid \theta)$ for a single
 parameter candidate $\theta$ also seems likely to be computationally hard.
 Therefore, the problem of fitting contact network models to phylogenies seems
@@ -102,17 +110,18 @@ above, contact networks can profoundly affect transmission tree shape. Those
 shapes can be compared using a highly informative similarity measure called the
 ``tree kernel''~\autocite{poon2013mapping}; {\color{blue}\uline{similar kernel
 functions have been demonstrated to work well as distance functions in
-\gls{ABC}~\autocite{park2015k2}}}. \Gls{ABC} can be implemented with \gls{SMC},
-which has several advantages over other
-algorithms~\autocite{mckinley2009inference}. A recently-developed adaptive
-algorithm requiring minimal tuning on the part of the user makes \gls{SMC} an
-even more attractive approach~\autocite{del2012adaptive}. In summary, our
-method to infer contact network parameters will combine the following:
-stochastic simulation of epidemics on networks, the tree kernel, and adaptive
-\gls{ABC}-\gls{SMC}. {\color{blue}\uline{ Our method will expand on the
-framework developed by~\autocite{poon2015phylodynamic}, who combined \gls{ABC}
-with the tree kernel to infer parameters of population genetic models from
-viral phylogenies using \gls{MCMC}. }}
+\gls{ABC}~\autocite{park2015k2}}}. \Gls{ABC} can be implemented with several
+algorithms, but \gls{SMC} has advantages over others,
+{\color{blue}\uline{including improved accuracy in low-density regions and
+parallelizability}}~\autocite{mckinley2009inference}. A recently-developed
+adaptive algorithm requiring minimal tuning on the part of the user makes
+\gls{SMC} an even more attractive approach~\autocite{del2012adaptive}. In
+summary, our method to infer contact network parameters will combine the
+following: stochastic simulation of epidemics on networks, the tree kernel, and
+adaptive \gls{ABC}-\gls{SMC}. {\color{blue}\uline{ Our method will expand on
+the framework developed by~\autocite{poon2015phylodynamic}, who combined
+\gls{ABC} with the tree kernel to infer parameters of population genetic models
+from viral phylogenies using \gls{MCMC}. }}
 
 Empirical studies of sexual contact networks have found that these networks
 tend to be scale-free~\autocite{colgate1989risk, liljeros2001web,
