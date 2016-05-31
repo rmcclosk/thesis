@@ -647,55 +647,81 @@ equal-risk groups.
 \section{Sequential Monte Carlo}
 \label{sec:smc}
 
+\glsreset{SMC}
+
+\subsection{Overview and notation}
+
 {\color{blue}\uline{
 Recall that the primary objective of our work is to develop a statistical
 inference method for estimating contact network parameters from transmission
 trees. In particular, for a network model with parameters $\theta$ and an input
 transmission tree $T$, we are interested in the posterior distribution}
-\[
+\begin{align}
   \Pr(\theta \mid T) = \frac{\Pr(T \mid \theta) \Pr(\theta)}{\Pr(T)}.
-\]
+  \label{eq:post}
+\end{align}
 \uline{As outlined in} \cref{sec:obj}, \uline{both the likelihood $\Pr(T \mid
 \theta)$ and the normalizing constant $\Pr(T)$ are likely computationally
 intractable. Hence, rather than computing the posterior distribution
 analytically, we will approximate it using a \defn{Monte Carlo} approach.
 The fundamental idea behind Monte Carlo methods is succinctly expressed by
-\textcite{liu2001theoretical}:
+\textcite{liu2001theoretical}}:
 \begin{quote}
-    Monte Carlo's view of the world is that any probability distribution $\pi$, 
+    \uline{Monte Carlo's view of the world is that any probability distribution $\pi$, 
     regardless of its complexity, can always be \emph{represented} by a
     discrete sample from it. By ``represented'', we mean that any computation
     of expectations using $\pi$ can be replaced to an acceptable degree of
     accuracy by using the empirical distribution resulting from the discrete
-    sample.
+    sample.}
 \end{quote}
-In other words, if we are able to sample enough points from a distribution of
-interest, we will be able to make reasonably accurate statements about the
-distribution itself. For example, the expected value of the distribution can be
-estimated by the sample's population mean. Several algorithms exist for
-obtaining such a sample, some of which will be discussed further in
-\cref{subsec:mfit}. The particular method we apply in this work is \gls{SMC},
-which is also known as the \emph{particle filter}. The reason for this name is
-that the desired number of samples from the target distribution is decided at
-the outset, and that number of ``particles'' \ldots TODO
+\uline{In other words, if we are able to sample enough points from a
+distribution of interest, we will be able to make reasonably accurate
+statements about the distribution itself. For example, the expected value of
+the distribution can be estimated by the sample's population mean. The reason
+Monte Carlo methods will be useful in this work is that algorithms exist for
+obtaining samples from distributions, including as the aforementioned
+posterior, that are analytically intractable and from which direct sampling is
+not possible } (for a review see \autocite{robert2004monte}).
+\uline{\Gls{SMC}}~\autocite{doucet2000sequential, doucet2001introduction,
+liu2008monte} \uline{is one such algorithm.}
+  
+\uline{ \Gls{SMC} is also known as the \emph{particle filter}. Rather than
+sampling points one at a time from the target distribution, \gls{SMC} considers
+a population of points or ``particles'', here denoted $\set{x^{(k)}}$. The
+particles are associated with weights, $\set{w(x^{(k)})}$. These weighted
+particles are a representation for the target distribution. For example, the 
+expected value of the distribution is approximated by}
+\[
+  \frac{1}{n} \sum_{k=1}^n x^{(k)} w(x^{(k)}),
+\]
+\uline{where $n$ is the number of particles. Initially, the particles do not
+represent the target distribution but rather a more tractable distribution from
+which direct sampling is straightforward. The word ``sequential'' is used to
+describe the iterative process of perturbation, resampling, and reweighting
+applied to the particles in such a way that they converge, collectively, to a
+sample from the target. }
 
-This is in contrast 
-}
+\uline{In this work, the distribution of interest is the posterior distribution
+\ref{eq:post}. The particles are particular values of the parameters $\theta$
+of the contact network model being studied. If we were taking a typical
+Bayesian Monte Carlo approach to this problem, the particles would end up
+weighted by their posterior probability and distributed in such a way that the
+weighted population was a reasonable representation of $\Pr(\theta \mid T)$.
+This turns out to be not straightforward in our case, as we will address in
+}\cref{sec:abc}. \uline{For now, nothing is lost by \ldots}}
 
-\uline{In the
-context of this work, the distribution of interest is the posterior
-distribution on the parameters of a contact network model, given observed
-phylogenetic data in the form of a transmission tree.}
-
-\uline{A typical Bayesian Monte Carlo approach to this problem would be to
-calculate the product of the likelihood and the prior for each of the parameter
-particles. 
-
+{\color{blue}\uline{
+The goal of this section of the introduction is to describe an algorithm called
+the \gls{SMC} sampler~\autocite{del2006sequential}, which forms the basis of
+the adaptive \gls{ABC}-\gls{SMC} algorithm we apply toward the main objective
+of this work. We begin by describing \gls{SIS}, which is a precursor to
+\gls{SMC} that samples from a sequence of distributions defined on spaces of
+increasing dimension. We then describe \gls{SMC} itself, which extends
+\gls{SIS} with a resampling step to fight particle degeneracy. Finally, we
+outline the \gls{SMC} sampler, which allows \gls{SMC} to be applied to
+sequences of distributions all defined on the same space. This terminology will
+become clear as the methods are described.
 }}
-
-\glsreset{SMC}
-
-\subsection{Overview and notation}
 
 \Gls{SMC} is the name for a family of statistical inference methods that rely
 on approximating probability distributions of interest with large collections
@@ -728,19 +754,6 @@ will be suitable for our purposes. A more rigorous definition can be found in
 \eg~\autocite{kallenberg2006foundations}. Note that Markov kernels have nothing
 to do with the kernel functions defined in \cref{subsec:treeshape}, other than
 sharing a name (the word ``kernel'' is ubiquitous in mathematics).
-
-{\color{blue}\uline{
-The goal of this section of the introduction is to describe an algorithm called
-the \gls{SMC} sampler~\autocite{del2006sequential}, which forms the basis of
-the adaptive \gls{ABC}-\gls{SMC} algorithm we apply toward the main objective
-of this work. We begin by describing \gls{SIS}, which is a precursor to
-\gls{SMC} that samples from a sequence of distributions defined on spaces of
-increasing dimension. We then describe \gls{SMC} itself, which extends
-\gls{SIS} with a resampling step to fight particle degeneracy. Finally, we
-outline the \gls{SMC} sampler, which allows \gls{SMC} to be applied to
-sequences of distributions all defined on the same space. This terminology will
-become clear as the methods are described.
-}}
 
 \subsection{Sequential importance sampling}
 \label{subsec:sis}
@@ -902,7 +915,7 @@ particles are set equal.}}
 \end{algorithm}
 
 {\color{blue}\uline{The resampling step was formally integrated with
-\gls{SIS} by \citeauthor{doucet2000sequential} to form the first \gls{SMC}
+\gls{SIS} by \textcite{doucet2000sequential} to form the first \gls{SMC}
 algorithm }(\cref{alg:smc}). \uline{Rather than resample at every step as the
 bootstrap filter proposed, the authors use a criterion based on the \gls{ESS}
 the particle population to determine when resampling is necessary. }} The
@@ -1058,7 +1071,7 @@ section.
 A \defn{mathematical model} is a formal description of a hypothesized
 relationship between some observed data, $x$ and outcomes $y$. A
 \defn{parametric} model defines a family of possible relationships between data
-and outcomes, indexed by one or more numeric parameters $\theta$. A
+and outcomes, parameterized by one or more numeric parameters $\theta$. A
 \defn{statistical} model describes the relationship between data and outcomes
 in terms of probabilities. Statistical models define, either explicitly or
 implicitly, the probability of observing $y$ given $x$ and, if the model is
@@ -1141,9 +1154,11 @@ necessary to evaluate the normalizing constant in the denominator of
 
 A popular method for circumventing the normalizing constant is the use of
 \gls{MCMC} to obtain a sample from the posterior distribution. \Gls{MCMC} works
-by defining a Markov chain whose states are indexed by possible model
-parameters. The transition probability from state $\theta_1$ to state
-$\theta_2$ is taken to be
+by defining a Markov chain {\color{red}\sout{whose states are indexed by
+possible model parameters. The transition probability from state $\theta_1$ to
+state $\theta_2$ is taken to be}} {\color{blue}\uline{on the space of possible
+model parameters. The transition density from parameters $\theta_1$ to
+$\theta_2$ is taken to be}}
 \[
   \min\left(1, \frac{f(y \mid \theta_2) \pi(\theta_2) q(\theta_2, \theta_1)}
                     {f(y \mid \theta_1) \pi(\theta_2) q(\theta_1, \theta_2)} \right),

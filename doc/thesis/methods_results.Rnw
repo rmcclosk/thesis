@@ -244,7 +244,7 @@ referred to as the ``collapse'' of the approximation, {\color{blue}\uline{also
 known as particle degeneracy} (see \cref{subsec:smc})} and is mitigated by the
 adaptive approach. A single parameter {\color{red}\sout{$\alpha$ (not to be
 confused with the \gls{BA} model parameter)}} controls the decay rate.
-{\color{blue}\uline{In the original paper of \textcite{del2012adaptive}, the
+{\color{blue}\uline{In the original paper of }\textcite{del2012adaptive}, \uline{the
 parameter is called $\alpha$, but to avoid confusion with the \gls{BA}
 parameter of the same name, we will refer to it here as $\alpha_{\ESS}$.}}
 The tolerance $\varepsilon_i$ is chosen to satisfy
@@ -363,7 +363,7 @@ the parameter in question was identifiable in the range of values considered.
 A caveat of this preliminary analysis is that, since all parameters but one
 were held at known values, nothing could be said about the identifiability of
 \emph{combinations} of parameters; this issue will be explored later by jointly
-estimating all parameters with \gls{ABC}.}
+estimating all parameters with \gls{ABC}} (\cref{subsec:abc}).
 
 \uline{In addition to testing for identifiability, a secondary objective of
 this analysis was to validate the use of the tree kernel as a distance measure
@@ -1376,34 +1376,27 @@ and $N$ were more widely dispersed.
 \end{figure}
 
 <<mixed_peerdriven, include=FALSE>>=
-  library(coda)
   d <- fread("bzcat ../../simulations/abc-pa-mixed-alpha/abc/*")
   d <- d[iter == max(iter)]
-  d <- d[sample(1:nrow(d), prob=weight, replace=TRUE)]
+  #d <- d[sample(1:nrow(d), prob=weight, replace=TRUE)]
   params <- c("alpha", "m", "N", "I")
   d <- melt(d, measure.vars=params, variable.name="parameter")
-  f <- function (x) {
-    dens <- density(x)
-    hpd <- HPDinterval(mcmc(x))
-    list(map=dens$x[which.max(dens$y)], hpd.min=hpd[,"lower"], 
-         hpd.max=hpd[,"upper"])
+  f <- function (x, wt) {
+    hpd <- wtd.hpd(x, wt/sum(wt))
+    list(pmean=wtd.mean(x, wt, normwt=TRUE), 
+         hpd.min=hpd[1], 
+         hpd.max=hpd[2])
   }
-  d <- d[,f(value), by=parameter]
+  d <- d[,f(value, weight), by=parameter]
   setkey(d, parameter)
 
   m <- collect.metadata("../../simulations/abc-pa-peerdriven/abc/*")
   p <- fread(paste("bzcat", rownames(m)[m$sample_peer == 1]))
   p <- p[iter == max(iter)]
-  p <- p[sample(1:nrow(p), prob=weight, replace=TRUE)]
+  #p <- p[sample(1:nrow(p), prob=weight, replace=TRUE)]
   params <- c("alpha", "m", "N", "I")
   p <- melt(p, measure.vars=params, variable.name="parameter")
-  f <- function (x) {
-    dens <- density(x)
-    hpd <- HPDinterval(mcmc(x))
-    list(map=dens$x[which.max(dens$y)], hpd.min=hpd[,"lower"], 
-         hpd.max=hpd[,"upper"])
-  }
-  p <- p[,f(value), by=parameter]
+  p <- p[,f(value, weight), by=parameter]
   setkey(p, parameter)
   options(scipen=5)
 @
@@ -1413,19 +1406,19 @@ the nodes exhibited heterogeneous preferential attachment power (half 0.5, the
 other half 1.5), with $m$ = 2, $N$ = 5000, and $I$ = 1000. The posterior mean
 [95\% HPD] estimates for each parameter were: 
 $\alpha$, 
-  \Sexpr{round(d["alpha", map], 2)} 
+  \Sexpr{round(d["alpha", pmean], 2)} 
   [\Sexpr{round(d["alpha", hpd.min], 2)} -
    \Sexpr{round(d["alpha", hpd.max], 2)}];
 $I$,
-  \Sexpr{d["I", round(map)]} 
+  \Sexpr{d["I", round(pmean)]} 
   [\Sexpr{d["I", round(hpd.min)]} -
    \Sexpr{d["I", round(hpd.max)]}];
 $m$,
-  \Sexpr{d["m", floor(map)]} 
+  \Sexpr{d["m", floor(pmean)]} 
   [\Sexpr{d["m", floor(hpd.min)]} -
    \Sexpr{d["m", floor(hpd.max)]}];
 $N$,
-  \Sexpr{d["N", round(map)]} 
+  \Sexpr{d["N", round(pmean)]} 
   [\Sexpr{d["N", round(hpd.min)]}-
    \Sexpr{d["N", round(hpd.max)]}].
 The approximate posterior distributions for this simulation are shown in
@@ -1435,19 +1428,19 @@ node was twice as high if one of its peers had already been sampled. The
 parameters for this experiment were $N$ = 5000, $m$ = 2, $\alpha$ = 0.5, and
 $I$ = 2000. The estimated values were
 $\alpha$, 
-  \Sexpr{p["alpha", round(map, 2)]} 
+  \Sexpr{p["alpha", round(pmean, 2)]} 
   [\Sexpr{p["alpha", round(hpd.min, 2)]} -
    \Sexpr{p["alpha", round(hpd.max, 2)]}];
 $I$,
-  \Sexpr{p["I", floor(map)]} 
+  \Sexpr{p["I", floor(pmean)]} 
   [\Sexpr{p["I", floor(hpd.min)]} -
    \Sexpr{p["I", floor(hpd.max)]}];
 $m$,
-  \Sexpr{p["m", floor(map)]} 
+  \Sexpr{p["m", floor(pmean)]} 
   [\Sexpr{p["m", floor(hpd.min)]} -
    \Sexpr{p["m", floor(hpd.max)]}];
 $N$,
-  \Sexpr{p["N", floor(map)]} 
+  \Sexpr{p["N", floor(pmean)]} 
   [\Sexpr{p["N", floor(hpd.min)]} -
    \Sexpr{p["N", floor(hpd.max)]}].
 The approximate posterior distributions are shown in \cref{fig:peerdriven}. Both
@@ -1681,86 +1674,6 @@ $\alpha$ was somewhat lower than typical.
 %    \label{tab:abchpd}
 %\end{table}
 %
-%<<mixed_peerdriven, include=FALSE>>=
-%  library(coda)
-%  d <- fread("bzcat ../../simulations/abc-pa-mixed-alpha/abc/*")
-%  d <- d[iter == max(iter)]
-%  d <- d[sample(1:nrow(d), prob=weight, replace=TRUE)]
-%  params <- c("alpha", "m", "N", "I")
-%  d <- melt(d, measure.vars=params, variable.name="parameter")
-%  f <- function (x) {
-%    dens <- density(x)
-%    hpd <- HPDinterval(mcmc(x))
-%    list(map=dens$x[which.max(dens$y)], hpd.min=hpd[,"lower"], 
-%         hpd.max=hpd[,"upper"])
-%  }
-%  d <- d[,f(value), by=parameter]
-%  setkey(d, parameter)
-%
-%  m <- collect.metadata("../../simulations/abc-pa-peerdriven/abc/*")
-%  p <- fread(paste("bzcat", rownames(m)[m$sample_peer == 1]))
-%  p <- p[iter == max(iter)]
-%  p <- p[sample(1:nrow(p), prob=weight, replace=TRUE)]
-%  params <- c("alpha", "m", "N", "I")
-%  p <- melt(p, measure.vars=params, variable.name="parameter")
-%  f <- function (x) {
-%    dens <- density(x)
-%    hpd <- HPDinterval(mcmc(x))
-%    list(map=dens$x[which.max(dens$y)], hpd.min=hpd[,"lower"], 
-%         hpd.max=hpd[,"upper"])
-%  }
-%  p <- p[,f(value), by=parameter]
-%  setkey(p, parameter)
-%  options(scipen=5)
-%@
-%
-%To test the effect of model misspecification, we simulated one network where
-%the nodes exhibited heterogeneous preferential attachment power (half 0.5, the
-%other half 1.5), with $m$ = 2, $N$ = 5000, and $I$ = 1000. The MAP [95\%
-%HPD] estimates for each parameter were: 
-%$\alpha$, 
-%  \Sexpr{round(d["alpha", map], 2)} 
-%  [\Sexpr{round(d["alpha", hpd.min], 2)} -
-%   \Sexpr{round(d["alpha", hpd.max], 2)}];
-%$I$,
-%  \Sexpr{d["I", round(map)]} 
-%  [\Sexpr{d["I", round(hpd.min)]} -
-%   \Sexpr{d["I", round(hpd.max)]}];
-%$m$,
-%  \Sexpr{d["m", floor(map)]} 
-%  [\Sexpr{d["m", floor(hpd.min)]} -
-%   \Sexpr{d["m", floor(hpd.max)]}];
-%$N$,
-%  \Sexpr{d["N", round(map)]} 
-%  [\Sexpr{d["N", round(hpd.min)]} -
-%   \Sexpr{d["N", round(hpd.max)]}].
-%The approximate posterior distributions for this simulation are shown in
-%\cref{fig:mixed}. To test the effect of sampling bias, we sampled one
-%transmission tree in a peer-driven fashion, where the probability to sample a
-%node was twice as high if one of its peers had already been sampled. The
-%parameters for this experiment were $N$ = 5000, $m$ = 2, $\alpha$ = 0.5, and
-%$I$ = 2000. The estimated values were
-%$\alpha$, 
-%  \Sexpr{p["alpha", round(map, 2)]} 
-%  [\Sexpr{p["alpha", round(hpd.min, 2)]} -
-%   \Sexpr{p["alpha", round(hpd.max, 2)]}];
-%$I$,
-%  \Sexpr{p["I", floor(map)]} 
-%  [\Sexpr{p["I", floor(hpd.min)]} -
-%   \Sexpr{p["I", floor(hpd.max)]}];
-%$m$,
-%  \Sexpr{p["m", floor(map)]} 
-%  [\Sexpr{p["m", floor(hpd.min)]} -
-%   \Sexpr{p["m", floor(hpd.max)]}];
-%$N$,
-%  \Sexpr{p["N", floor(map)]} 
-%  [\Sexpr{p["N", floor(hpd.min)]} -
-%   \Sexpr{p["N", floor(hpd.max)]}].
-%The approximate posterior distributions are shown in \cref{fig:peerdriven}. Both
-%of these results were in line with estimates obtained on other simulated
-%datasets (\cref{tab:abchpd}), although the estimate of peer-driven sampling for
-%$\alpha$ was somewhat lower than typical.
-
 %\subsubsection*{Effect of parameters on power-law exponent}
 %
 %\Cref{tab:glm} shows the estimated parameters for a log-link \gls{GLM} fitted

@@ -4,24 +4,24 @@
 \defcounter {refsection}{0}\relax 
 \addvspace {10\p@ }
 \defcounter {refsection}{0}\relax 
-\contentsline {table}{\numberline {2.1}{\ignorespaces Variables used in tree kernel simulation experiments}}{34}{table.2.1}
+\contentsline {table}{\numberline {2.1}{\ignorespaces Variables used in tree kernel simulation experiments}}{35}{table.2.1}
 \defcounter {refsection}{0}\relax 
-\contentsline {table}{\numberline {2.2}{\ignorespaces Variables used in grid search experiments}}{34}{table.2.2}
+\contentsline {table}{\numberline {2.2}{\ignorespaces Variables used in grid search experiments}}{35}{table.2.2}
 \defcounter {refsection}{0}\relax 
-\contentsline {table}{\numberline {2.3}{\ignorespaces Variables used in grid search experiments}}{38}{table.2.3}
+\contentsline {table}{\numberline {2.3}{\ignorespaces Variables used in grid search experiments}}{39}{table.2.3}
 \defcounter {refsection}{0}\relax 
-\contentsline {table}{\numberline {2.4}{\ignorespaces Average posterior mean point estimates and 95\% highest posterior density (HPD) interval widths for BA model parameter estimates obtained with kernel-assisted ABC. }}{45}{table.2.4}
+\contentsline {table}{\numberline {2.4}{\ignorespaces Average posterior mean point estimates and 95\% highest posterior density (HPD) interval widths for BA model parameter estimates obtained with kernel-assisted ABC. }}{46}{table.2.4}
 \defcounter {refsection}{0}\relax 
-\contentsline {table}{\numberline {2.5}{\ignorespaces Characteristics of published HIV datasets analyzed with \textit {netabc}.}}{45}{table.2.5}
+\contentsline {table}{\numberline {2.5}{\ignorespaces Characteristics of published HIV datasets analyzed with \textit {netabc}.}}{46}{table.2.5}
 \defcounter {refsection}{0}\relax 
-\contentsline {table}{\numberline {2.6}{\ignorespaces Estimated power law exponents for six HIV datasets based on maximum \textit {a priori} estimates of BA model parameters. }}{49}{table.2.6}
-\defcounter {refsection}{0}\relax 
-\addvspace {10\p@ }
+\contentsline {table}{\numberline {2.6}{\ignorespaces Estimated power law exponents for six HIV datasets based on maximum \textit {a priori} estimates of BA model parameters. }}{50}{table.2.6}
 \defcounter {refsection}{0}\relax 
 \addvspace {10\p@ }
 \defcounter {refsection}{0}\relax 
 \addvspace {10\p@ }
 \defcounter {refsection}{0}\relax 
-\contentsline {table}{\numberline {B.1}{\ignorespaces Parameters of a fitted GLM relating error in estimated $\alpha $ to true values of BA parameters.}}{127}{table.1.B.1}
+\addvspace {10\p@ }
 \defcounter {refsection}{0}\relax 
-\contentsline {table}{\numberline {B.2}{\ignorespaces Parameters of a fitted GLM relating error in estimated $I$ to true values of BA parameters.}}{127}{table.1.B.2}
+\contentsline {table}{\numberline {B.1}{\ignorespaces Parameters of a fitted GLM relating error in estimated $\alpha $ to true values of BA parameters.}}{128}{table.1.B.1}
+\defcounter {refsection}{0}\relax 
+\contentsline {table}{\numberline {B.2}{\ignorespaces Parameters of a fitted GLM relating error in estimated $I$ to true values of BA parameters.}}{128}{table.1.B.2}
