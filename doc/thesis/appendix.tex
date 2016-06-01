@@ -1,5 +1,129 @@
 
 
+\chapter{Mathematical models, likelihood, and Bayesian inference}
+\label[appendix]{chp:prelim}
+
+A \defn{mathematical model} is a formal description of a hypothesized
+relationship between some observed data, $x$ and outcomes $y$. A
+\defn{parametric} model defines a family of possible relationships between data
+and outcomes, parameterized by one or more numeric parameters $\theta$. A
+\defn{statistical} model describes the relationship between data and outcomes
+in terms of probabilities. Statistical models define, either explicitly or
+implicitly, the probability of observing $y$ given $x$ and, if the model is
+parametric, $\theta$. Note that it is entirely possible to have no data $x$,
+only observed outcomes $y$. In this case, a model would describe the process by
+which $y$ is generated.
+
+To illustrate these concepts, consider the well-known linear model. For
+clarity, we will restrict our attention to the case of one-dimensional data and
+outcomes where $x = \set{x_1, \ldots, x_n}$ and $y = \set{y_1, \ldots, y_n}$
+are vectors of real numbers. The linear model postulates that the outcomes are
+linearly related to the data, modulo some noise introduced by measurement
+error, environmental fluctuations, and other external factors. Formally, $y_i =
+\beta x_i + \varepsilon_i$, where $\beta$ is the slope of the linear
+relationship, and $\varepsilon_i$ is the error associated with measurement $i$.
+We can make this model a statistical one by hypothesizing a distribution for
+the error terms $\varepsilon_i$; most commonly, it is assumed that they are
+normally distributed with variance $\sigma$. In mathematical terms, $y_i \sim
+\beta x_i + \N(0, \sigma^2)$, where ``$\sim$'' means ``is distributed as''. We
+can see from this formulation that the model is parametric, with parameters
+$\theta$ = ($\beta$, $\sigma$). Moreover, we can write down the probability
+density $\pi$ of observing outcome $y_i$ given the parameters,
+\[
+  \pi(y \mid \beta, \sigma) = 
+  \prod_{i=1}^n f_{\N(0, \sigma^2)} (y_i - \beta x_i),
+\]
+where $f_{\N(0, \sigma^2)}$ is the probability density of the normal
+distribution with mean zero and variance $\sigma^2$. Note that we are treating
+the $x_i$ as fixed quantities and therefore have not conditioned the
+probability density on $x$. Also, we have assumed that all the $y_i$ are
+independent.
+
+For a general model, the probability density of $y$ given the parameters
+$\theta$ is also known as the \defn{likelihood}, written $\L$, of $\theta$.
+That is, $\L(\theta \mid y) = f(y \mid \theta)$ for the model's \gls{pdf} $f$.
+The higher the value of the likelihood, the more likely the observations $y$
+are under the model. Thus, the likelihood provides a natural criterion for
+fitting the model parameters: we want to pick $\theta$ such that the
+probability density of our observed outcomes $y$ is as high as possible. The
+parameters that optimize the likelihood are known as the \textit{\gls{ML}}
+estimates, denoted $\hat{\theta}$. That is,
+\[
+  \hat{\theta} = \argmax_\theta\; \L(\theta \mid y).
+\]
+\Gls{ML} estimation is usually performed with numerical optimization. In the
+simplest terms, many possible values for $\theta$ are examined, $\L(\theta \mid
+y)$ is calculated for each, and the parameters that produce the highest value
+are accepted. Many sophisticated numerical optimization methods exist, although
+they may not be guaranteed to find the true \gls{ML} estimates if the
+likelihood function is multi-modal. 
+
+\Gls{ML} estimation makes use only of the data and outcomes to estimate the
+model parameters $\theta$. However, it is frequently the case that the
+investigator has some additional information or belief about what $\theta$ are
+likely to be. For example, in the linear regression case, the instrument used
+to measure the outcomes may have a well-known margin of error, or the sign of
+the slope may be obvious from previous experiments. The Bayesian approach to
+model fitting makes use of this information by codifying the investigator's
+beliefs as a \defn{prior distribution} on the parameters, denoted
+$\pi(\theta)$. Instead of considering only the likelihood, Bayesian inference
+focuses on the product of the likelihood and the prior, $f(y \mid \theta)
+\pi(\theta)$. Bayes' theorem tells us that this product is related to the
+\textit{posterior distribution} on $\theta$,
+\begin{align}
+  f(\theta \mid y) 
+    = \frac{f(y \mid \theta) \pi(\theta)}
+           {\int f(y \mid \theta) \pi(\theta) \d \theta}.
+  \label{eq:bayes}
+\end{align}
+In principle, $f(y \mid \theta) \pi(\theta)$ can be optimized numerically just
+like $\L(\theta \mid y)$, which would also optimize the posterior distribution.
+The resulting optimal parameters are called the \gls{MAP} estimates. However,
+from a Bayesian perspective, $\theta$ is not a fixed quantity to be estimated,
+but rather a random variable with an associated distribution (the posterior).
+Therefore, the \gls{MAP} estimate by itself is of limited value without
+associated statistics about the posterior distribution, such as the mean or
+credible intervals. Unfortunately, to calculate such statistics, it is
+necessary to evaluate the normalizing constant in the denominator of
+\cref{eq:bayes}, which is almost always an intractable integral.
+
+A popular method for circumventing the normalizing constant is the use of
+\gls{MCMC} to obtain a sample from the posterior distribution. \Gls{MCMC} works
+by defining a Markov chain {\color{red}\sout{whose states are indexed by
+possible model parameters. The transition probability from state $\theta_1$ to
+state $\theta_2$ is taken to be}} {\color{blue}\uline{on the space of possible
+model parameters. The transition density from parameters $\theta_1$ to
+$\theta_2$ is taken to be}}
+\[
+  \min\left(1, \frac{f(y \mid \theta_2) \pi(\theta_2) q(\theta_2, \theta_1)}
+                    {f(y \mid \theta_1) \pi(\theta_2) q(\theta_1, \theta_2)} \right),
+\]
+where $q(\theta, \theta')$ is a symmetric \defn{proposal distribution} used in
+the algorithm to generate the chain. The stationary distribution of this Markov
+chain is equal to the posterior distribution on $\theta$. Therefore, if a long
+enough random walk is performed on the chain, the distribution of states
+visited will be a Monte Carlo approximation of $f(\theta \mid y)$, from
+which we can calculate statistics of interest. Actually performing this random
+walk is straightforward and can be accomplished via the Metropolis-Hastings
+algorithm~\autocite{metropolis1953equation,hastings1970monte} (\cref{alg:mh}).
+
+\begin{algorithm}
+  \caption{Metropolis-Hastings algorithm for Markov chain Monte Carlo.}
+  \begin{algorithmic}
+    \State Draw $\theta$ according to the prior $\pi(\theta)$
+    \Loop
+      \State Propose $\theta'$ according to $q(\theta, \theta')$
+      \State Accept $\theta \gets \theta'$ with probability
+      $\min \left( 1, 
+       \dfrac{f(y \mid \theta') \pi(\theta') q(\theta', \theta)}
+             {f(y \mid \theta\phantom{'}) \pi(\theta\phantom{'}) q(\theta, \theta')}
+       \right)$
+    \EndLoop
+  \end{algorithmic}
+  \label{alg:mh}
+\end{algorithm}
+
+
 \chapter{Additional plots}
 
 \begin{figure}[ht]
@@ -784,40 +908,55 @@ Approximate marginal posterior distributions of BA model parameters obtained by 
 
 
 
-\chapter{GLM results}
-
-% latex table generated in R 3.2.3 by xtable 1.8-2 package
-% Fri May 27 14:04:29 2016
-\begin{table}[ht]
-\centering
-\begin{tabular}{llll}
-  \hline
-Parameter & Estimate & Standard error & $p$-value \\ 
-  \hline
-(Intercept) & $2$ & $0.6$ & $0.01$ \\ 
-  $\alpha$ & $10$ & $2$ & ${<}10^{-5}$ \\ 
-  I & $-3\!\times\!10^{-4}$ & $2\!\times\!10^{-4}$ & $0.7$ \\ 
-  m & $0.5$ & $0.2$ & $0.01$ \\ 
-   \hline
-\end{tabular}
-\caption[Parameters of a fitted GLM relating error in estimated $\alpha$ to true values of BA parameters.]{Parameters of a fitted GLM relating error in estimated $\alpha$ to true values of BA parameters. GLM was fitted with a Gaussian distribution and inverse link function. Coefficients are interpretable as additive effects on the inverse of the mean error.} 
-\label{tab:glmalpha}
-\end{table}
-% latex table generated in R 3.2.3 by xtable 1.8-2 package
-% Fri May 27 14:04:29 2016
-\begin{table}[ht]
-\centering
-\begin{tabular}{llll}
-  \hline
-Parameter & Estimate & Standard error & $p$-value \\ 
-  \hline
-(Intercept) & $0.004$ & $5\!\times\!10^{-4}$ & ${<}10^{-5}$ \\ 
-  $\alpha$ & $-0.001$ & $2\!\times\!10^{-4}$ & ${<}10^{-5}$ \\ 
-  I & $-4\!\times\!10^{-7}$ & $2\!\times\!10^{-7}$ & $0.05$ \\ 
-  m & $-7\!\times\!10^{-5}$ & $8\!\times\!10^{-5}$ & $1$ \\ 
-   \hline
-\end{tabular}
-\caption[Parameters of a fitted GLM relating error in estimated $I$ to true values of BA parameters.]{Parameters of a fitted GLM relating error in estimated $I$ to true values of BA parameters. GLM was fitted with a gaussian distribution and inverse link function. Coefficients are interpretable as additive effects on the inverse of the mean error.} 
-\label{tab:glmI}
-\end{table}
-
+%\chapter{GLM results}
+%<<glm_tables, echo=FALSE, warning=FALSE, error=FALSE, results="asis">>=
+%    format.glm <- function (df) {
+%        df[Parameter == "alpha", Parameter := "$\\alpha$"]
+%        df[,p := paste0("$", sapply(p, pp, eq=FALSE), "$")]
+%        df[,Estimate := paste0("$", sapply(Estimate, pp, eq=FALSE, thres=NA), "$")]
+%        df[,`Standard error` := paste0("$", sapply(`Standard error`, pp, eq=FALSE, thres=NA), "$")]
+%        setnames(df, "p", "$p$-value")
+%        df
+%    }
+%
+%    alpha.glm <- format.glm(alpha.glm)
+%    I.glm <- format.glm(I.glm)
+%    #m.glm <- format.glm(m.glm)
+%    #N.glm <- format.glm(N.glm)
+%
+%    capt.short <- paste("Parameters of a fitted GLM relating error in estimated",
+%                        "$\\alpha$ to true values of BA parameters.")
+%    capt <- paste(capt.short, "GLM was fitted with a Gaussian distribution and",
+%                  "inverse link function. Coefficients are interpretable as",
+%                  "additive effects on the inverse of the mean error.")
+%    print(xtable(alpha.glm, label="tab:glmalpha", caption=c(capt, capt.short)),
+%          include.rownames=FALSE, sanitize.text.function=identity,
+%          sanitize.colnames.function=identity)
+%
+%    capt.short <- paste("Parameters of a fitted GLM relating error in estimated",
+%                        "$I$ to true values of BA parameters.")
+%    capt <- paste(capt.short, "GLM was fitted with a gaussian distribution and",
+%                  "inverse link function. Coefficients are interpretable as",
+%                  "additive effects on the inverse of the mean error.")
+%    print(xtable(I.glm, label="tab:glmI", caption=c(capt, capt.short)),
+%          include.rownames=FALSE, sanitize.text.function=identity,
+%          sanitize.colnames.function=identity)
+%
+%    #capt.short <- paste("Parameters of a fitted GLM relating error in estimated",
+%    #                    "$m$ to true values of BA parameters.")
+%    #capt <- paste(capt.short, "GLM was fitted with a Poisson distribution and",
+%    #              "log link function. Coefficients are interpretable as",
+%    #              "additive effects on the exponential of the mean error.")
+%    #print(xtable(m.glm, label="tab:glmm", caption=c(capt, capt.short)),
+%    #      include.rownames=FALSE, sanitize.text.function=identity,
+%    #      sanitize.colnames.function=identity)
+%
+%    #capt.short <- paste("Parameters of a fitted GLM relating error in estimated",
+%    #                    "$N$ to true values of BA parameters.")
+%    #capt <- paste(capt.short, "GLM was fitted with a Gaussian distribution and",
+%    #              "inverse link function. Coefficients are interpretable as",
+%    #              "additive effects on the inverse of the mean error.")
+%    #print(xtable(N.glm, label="tab:glmN", caption=c(capt, capt.short)),
+%    #      include.rownames=FALSE, sanitize.text.function=identity,
+%    #      sanitize.colnames.function=identity)
+%@

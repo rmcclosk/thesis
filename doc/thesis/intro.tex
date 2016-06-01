@@ -49,6 +49,7 @@ trees~\autocite{buneman1974note}. These concepts are illustrated in
 \end{figure}
 
 \subsection{Transmission trees}
+\label{subsec:tt}
 
 In epidemiology, a \defn{transmission tree} is a graphical representation of an
 epidemic's progress through a population~\autocite{ypma2013relating}. Like
@@ -655,7 +656,7 @@ equal-risk groups.
 Recall that the primary objective of our work is to develop a statistical
 inference method for estimating contact network parameters from transmission
 trees. In particular, for a network model with parameters $\theta$ and an input
-transmission tree $T$, we are interested in the \emph{posterior distribution}
+transmission tree $T$, we are interested in the \emph{posterior distribution}}
 \begin{align}
   \Pr(\theta \mid T) = \frac{\Pr(T \mid \theta) \Pr(\theta)}{\Pr(T)}.
   \label{eq:post}
@@ -685,7 +686,7 @@ not possible } (for a review see \autocite{robert2004monte}).
 \uline{\Gls{SMC}}~\autocite{doucet2000sequential, doucet2001introduction,
 liu2008monte} \uline{is one such algorithm.}
   
-\uline{ \Gls{SMC} is also known as the \emph{particle filter}. Rather than
+\uline{\Gls{SMC} is also known as the \emph{particle filter}. Rather than
 sampling points one at a time from the target distribution, \gls{SMC} considers
 a population of points or ``particles'', here denoted $\set{x^{(k)}}$. The
 particles are associated with weights, $\set{w(x^{(k)})}$. These weighted
@@ -699,16 +700,16 @@ represent the target distribution but rather a more tractable distribution from
 which direct sampling is straightforward. The word ``sequential'' is used to
 describe the iterative process of perturbation, resampling, and reweighting
 applied to the particles in such a way that they converge, collectively, to a
-sample from the target. }
+sample from the target.}
 
-\uline{In this work, the distribution of interest is the posterior distribution
-\ref{eq:post}. The particles are particular values of the parameters $\theta$
-of the contact network model being studied. If we were taking a typical
-Bayesian Monte Carlo approach to this problem, the particles would end up
-weighted by their posterior probability and distributed in such a way that the
-weighted population was a reasonable representation of $\Pr(\theta \mid T)$.
-This turns out to be not straightforward in our case, as we will address in
-}\cref{sec:abc}. \uline{For now, nothing is lost by \ldots}}
+\uline{In this work, the distribution of interest is the posterior distribution}
+\ref{eq:post}. \uline{The particles are particular values of the parameters
+$\theta$ of the contact network model being studied. If we were taking a
+typical Bayesian Monte Carlo approach to this problem, the particles would end
+up weighted by their posterior probability and distributed in such a way that
+the weighted population was a reasonable representation of $\Pr(\theta \mid
+T)$. This turns out to be not straightforward in our case, as we will address
+in} \cref{sec:abc}. \uline{For now, nothing is lost by \ldots}}
 
 {\color{blue}\uline{
 The goal of this section of the introduction is to describe an algorithm called
@@ -1282,12 +1283,4 @@ $q(\theta, \theta') f(z \mid \theta')$ is replaced by
   Phylogenetic data is the input to our method, while estimates of the
   parameters of contact network models are the desired output. The latter two
   topics define the algorithm and statistical framework that our inference
-method will use. }
-
-\uline{Having introduced transmission trees and contact network models, we are
-now in a position to argue that approximate Bayesian computation is an
-appropriate tool to apply towards our main objective: fitting network models to
-phylogenetic data. Let $M$ be a contact network model having parameters
-$\theta$. 
-
-}}
+method will use. }}
