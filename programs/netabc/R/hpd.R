@@ -6,7 +6,7 @@
 #' @return a two-element vector containing upper and lower HPD interval bounds
 #' @export
 wtd.hpd <- function (x, wt, conf=0.95) {
-    if (is.integer(x)) {
+    if (all(x == as.integer(x))) {
         message("Integer values passed, calling wtd.hpd.discrete")
         return(wtd.hpd.discrete(x, wt, conf))
     }
@@ -25,7 +25,7 @@ wtd.hpd <- function (x, wt, conf=0.95) {
 #' @return a two-element vector containing upper and lower HPD interval bounds
 #' @export
 wtd.hpd.discrete <- function (x, wt, conf=0.95) {
-    if (any(diff(x) != 1)) {
+    if (any(diff(sort(unique(x))) != 1)) {
         stop("Not implemented yet for non-consecutive integers.")
     }
     
