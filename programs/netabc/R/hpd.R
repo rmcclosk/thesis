@@ -31,6 +31,9 @@ wtd.hpd.discrete <- function (x, wt, conf=0.95) {
     
     # make an empirical CDF and find the mode
     cdf <- setDT(wtd.Ecdf(x, wt))
+    if (cdf[1,x] != cdf[2,x]) {
+        cdf <- rbind(data.table(x=cdf[1,x], ecdf=0), cdf)
+    }
     mode <- cdf[,unique(x)][cdf[,which.max(diff(ecdf))]]
     
     # record the cdf excluding and including each value
@@ -55,7 +58,9 @@ wtd.hpd.discrete <- function (x, wt, conf=0.95) {
     
     # if there are multiple intervals left, pick the one which contains the
     # mode
-    intervals <- intervals[mode >= istart & mode <= iend]
+    if (nrow(intervals) > 1) {
+        intervals <- intervals[mode >= istart & mode <= iend]
+    }
     
     # if there are still multiple left, pick the one with the highest density
     intervals <- intervals[density == min(density)]
