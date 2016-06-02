@@ -2,17 +2,27 @@
     source("global.R")
 @
 
-{\color{blue}\uline{
-This chapter is organized as follows. One section is devoted to each of our
-three research aims: the development of a method for inference of contact
-network parameters from transmission trees} (\cref{sec:netabc}), \uline{the
-investigation of the \acrlong{BA} network model using simulated data
-}(\cref{sec:ba}), \uline{ and the application of the method to real-world
-\gls{HIV} epidemics }(\cref{sec:hiv}). \uline{Each of these sections contains a
-description of the methods used and, in the case of the latter two objectives,
-the results of the experiments. The fourth and final section of the chapter
-}(\cref{sec:disc}) \uline{contains a unified discussion of all three
-objectives. }}
+{\color{blue}\uline{ In this chapter, we will address the three research aims
+of this thesis introduced in} \cref{sec:obj}. \uline{First, in}
+\cref{sec:netabc}, \uline{we describe \software{netabc}, a computer program
+that implements an \acrlong{ABC}-based algorithm to fit contact network models
+to phylogenetic data. We also provide a justification for the use of \gls{ABC}
+for this problem by arguing that the likelihood functions required to fit these
+models by more conventional means are likely to be computationally intractable.
+Second, in} \cref{sec:ba}, \uline{we perform a simulation study to investigate
+the \acrlong{BA} network model, which uses a preferential attachment mechanism
+to generate networks with the power law degree distributions observed in real
+world social and sexual networks. We progress through two exploratory analyses
+testing the identifiability of the model's parameters, and conclude by testing
+\software{netabc}'s ability to recover the parameters from simulated
+transmission trees. Third, in} \cref{sec:hiv}, \uline{we apply
+\software{netabc} to fit the \gls{BA} model to six real world \gls{HIV}
+datasets, with the understanding of the model parameters' identifiability
+gained through the simulation experiments. We conclude the chapter with a
+unified discussion of the three research aims, including interpretation of the
+results of both the simulated and real data experiments, as well as an
+examination of the limitations of our approach and opportunities for future
+investigation. }}
 
 \section{\software{Netabc}: a computer program for estimation of contact
 network parameters with kernel-assisted ABC}
