@@ -132,19 +132,10 @@ Steps:
 
             by.cols <- c("ntip", paste0("true_", params), "replicate")
             d <- d[,.SD[iter == max(iter),], by=by.cols]
-            #d <- d[,.SD[sample(1:nrow(.SD), prob=weight, replace=TRUE),], by=by.cols]
-
-            #for (p in params) {{
-            #    d[,paste0(p, c(".lower", ".upper")) := as.list(HPDinterval(mcmc(.SD[[p]]), 0.95)), by=by.cols]
-            #}}
-
-            #d <- d[,N := density(N)$x[which.max(density(N)$y)], by=by.cols]
-            #d <- d[,I := density(I)$x[which.max(density(I)$y)], by=by.cols]
-            #d <- d[,alpha := density(alpha)$x[which.max(density(alpha)$y)], by=by.cols]
-            #d <- d[,m := density(m)$x[which.max(density(m)$y)], by=by.cols]
 
             for (p in params) {{
-                d[,paste0(p, c(".lower", ".upper")) := as.list(wtd.hpd(.SD[[p]], weight, conf=0.95)), by=by.cols]
+                d[,paste0(p, c(".lower.95", ".upper.95")) := as.list(wtd.hpd(.SD[[p]], weight, conf=0.95)), by=by.cols]
+                d[,paste0(p, c(".lower.50", ".upper.50")) := as.list(wtd.hpd(.SD[[p]], weight, conf=0.50)), by=by.cols]
                 d[,p := wtd.mean(.SD[[p]], weight), by=by.cols, with=FALSE]
             }}
 
@@ -255,7 +246,7 @@ Steps:
             p <- posterior.plot.pa(d, alpha_min=0, alpha_max=2, I_min=500, I_max=5000,
                     N_min=500, N_max=15000, m_min=1, m_max=5, show.map=FALSE,
                     true_alpha={true_alpha}, true_I={true_I}, true_m={true_m}, 
-                    true_N={true_N})
+                    true_N={true_N}, show.mean=TRUE)
             ggsave(p, file="{posterior-plot}", height=5, width=6)
 
     hpd-table:
@@ -273,8 +264,8 @@ Steps:
         Rule: |
             d <- fread("{point-estimate}")
             params <- c("alpha", "I", "m", "N")
-            measure.vars <- c(params, paste0(params, ".lower"),
-                              paste0(params, ".upper"))
+            measure.vars <- c(params, paste0(params, ".lower.95"),
+                              paste0(params, ".upper.95"))
             d <- melt(d, measure.vars=measure.vars, variable.factor=FALSE,
                       variable.name="parameter")
             d[,bound := sapply(strsplit(parameter, ".", fixed=TRUE), "[", 2)]
