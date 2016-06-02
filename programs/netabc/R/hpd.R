@@ -35,19 +35,19 @@ wtd.hpd.discrete <- function (x, wt, conf=0.95) {
     
     # record the cdf excluding and including each value
     setkey(cdf, x)
-    cdf <- cdf[,list(start=head(ecdf, 1), end=tail(ecdf, 1)), by=x]
-    cdf[,start := c(head(start, 1), head(end, -1))]
+    cdf <- cdf[,list(dstart=head(ecdf, 1), dend=tail(ecdf, 1)), by=x]
+    cdf[,dstart := c(head(dstart, 1), head(dend, -1))]
     
     # find every possible interval (yeah it's a bit hacky, ideally we would
     # stream them or something but I don't want to bother right now because all
     # my use cases are small)
-    intervals <- setnames(as.data.table(t(cdf[,combn(x, 2)])), c("start", "end"))
-    intervals <- rbind(intervals, cdf[,list(start=x, end=x)])
-    setkey(intervals, start, end)
+    intervals <- setnames(as.data.table(t(cdf[,combn(x, 2)])), c("istart", "iend"))
+    intervals <- rbind(intervals, cdf[,list(istart=x, iend=x)])
+    setkey(intervals, istart, iend)
     
     # record the width of each interval and the density they contain
-    intervals[,width := end - start + 1]
-    intervals[,density := cdf[end,end] - cdf[start,start]]
+    intervals[,width := iend - istart + 1]
+    intervals[,density := cdf[J(iend),dend] - cdf[J(istart),dstart]]
     
     # pick the minimum width interval containing at least conf of the density
     intervals <- intervals[density >= conf]
@@ -55,12 +55,12 @@ wtd.hpd.discrete <- function (x, wt, conf=0.95) {
     
     # if there are multiple intervals left, pick the one which contains the
     # mode
-    intervals <- intervals[mode >= start & mode <= end]
+    intervals <- intervals[mode >= istart & mode <= iend]
     
     # if there are still multiple left, pick the one with the highest density
     intervals <- intervals[density == min(density)]
     
     # finally, just pick one at random
     intervals <- intervals[sample(1:nrow(intervals), 1)]
-    intervals[,c(lower=start, upper=end)]
+    intervals[,c(lower=istart, upper=iend)]
 }
