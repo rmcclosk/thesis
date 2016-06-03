@@ -579,7 +579,7 @@ algorithm~\autocite{metropolis1953equation,hastings1970monte} (\cref{alg:mh}).
 \clearpage
 
 \begin{figure}[ht]
-  %\includegraphics{bctree-posterior}
+  \includegraphics{bctree-posterior}
   \caption[
       Approximate marginal posterior distributions of BA model parameters for
       BC data.

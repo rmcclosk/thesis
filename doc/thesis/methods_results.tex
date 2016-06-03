@@ -1,16 +1,26 @@
 
 
-{\color{blue}\uline{
-This chapter is organized as follows. One section is devoted to each of our
-three research aims: the development of a method for inference of contact
-network parameters from transmission trees} (\cref{sec:netabc}), \uline{the
-investigation of the \acrlong{BA} network model using simulated data
-}(\cref{sec:ba}), \uline{ and the application of the method to real-world
-\gls{HIV} epidemics }(\cref{sec:hiv}). \uline{Each of these sections contains a
-description of the methods used and, in the case of the latter two objectives,
-the results of the experiments. The fourth and final section of the chapter
-}(\cref{sec:disc}) \uline{contains a unified discussion of all three
-objectives. }}
+{\color{blue}\uline{ In this chapter, we will address the three research aims
+of this thesis introduced in} \cref{sec:obj}. \uline{First, in}
+\cref{sec:netabc}, \uline{we describe \software{netabc}, a computer program
+that implements an \acrlong{ABC}-based algorithm to fit contact network models
+to phylogenetic data. We also provide a justification for the use of \gls{ABC}
+for this problem by arguing that the likelihood functions required to fit these
+models by more conventional means are likely to be computationally intractable.
+Second, in} \cref{sec:ba}, \uline{we perform a simulation study to investigate
+the \acrlong{BA} network model, which uses a preferential attachment mechanism
+to generate networks with the power law degree distributions observed in real
+world social and sexual networks. We progress through two exploratory analyses
+testing the identifiability of the model's parameters, and conclude by testing
+\software{netabc}'s ability to recover the parameters from simulated
+transmission trees. Third, in} \cref{sec:hiv}, \uline{we apply
+\software{netabc} to fit the \gls{BA} model to six real world \gls{HIV}
+datasets, with the understanding of the model parameters' identifiability
+gained through the simulation experiments. We conclude the chapter with a
+unified discussion of the three research aims, including interpretation of the
+results of both the simulated and real data experiments, as well as an
+examination of the limitations of our approach and opportunities for future
+investigation. }}
 
 \section{\software{Netabc}: a computer program for estimation of contact
 network parameters with kernel-assisted ABC}
@@ -411,9 +421,9 @@ the sum into a tractable expression. Furthermore, under certain models, a large
 proportion of $\G$ may have zero probability, which would enable the
 simplification of the outer sum on a model-specific basis. It should also be
 noted that extensions of Bayesian \gls{MCMC} have been developed for
-doubly-intractable problems~\autocite{lang2010double, murray2012mcmc}, which
+doubly-intractable problems~\autocite{liang2010double, murray2012mcmc}, which
 might be adaptable to the problem at hand. These have not been as widely used
-as \gls{ABC}, nor as easily parallelizable as \gls{SMC}. }}
+as \gls{ABC}, nor are they as easily parallelizable as \gls{SMC}. }}
 
 \section{Analysis of \acrlong{BA} model with synthetic data}
 \label{sec:ba}
@@ -1104,7 +1114,7 @@ flat around the true value. The effect was most obvious for the value
   \label{fig:gridest}
 \end{figure}
 
-\subsubsection*{Joint parameter estimates with kernel-assisted ABC}
+\subsubsection*{Joint parameter estimates with \software{netabc}}
 
 
 
@@ -1140,14 +1150,14 @@ for \gls{N}. These errors comprised, respectively,
     17\%, and
     29\%
 of the regions of nonzero prior density. Average \gls{HPD} interval widths were
-    0.56,
-    1737,
-    3.06, and
-    12078,
+    0.68,
+    2454,
+    3.01, and
+    12046,
 representing 
-    28\%,
-    39\%,
-    51\%, and
+    34\%,
+    55\%,
+    50\%, and
     83\%
 of the nonzero prior density regions. Point estimates of \gls{I} were upwardly
 biased: \gls{I} was overestimated in
@@ -1191,7 +1201,7 @@ increases.}}
 
 
 % latex table generated in R 3.2.3 by xtable 1.8-2 package
-% Tue May 31 17:03:28 2016
+% Thu Jun  2 15:02:59 2016
 \begin{table}[ht]
 \centering
 \begin{tabular}{llll}
@@ -1208,7 +1218,7 @@ Parameter & Estimate & Standard error & $p$-value \\
 \label{tab:glmalpha}
 \end{table}
 % latex table generated in R 3.2.3 by xtable 1.8-2 package
-% Tue May 31 17:03:28 2016
+% Thu Jun  2 15:02:59 2016
 \begin{table}[ht]
 \centering
 \begin{tabular}{llll}
@@ -1362,7 +1372,7 @@ $I$,
 $m$,
   3 
   [1 -
-   4];
+   5];
 $N$,
   9861 
   [3710-
@@ -1384,7 +1394,7 @@ $I$,
 $m$,
   3 
   [2 -
-   4];
+   5];
 $N$,
   9132 
   [2852 -
@@ -1729,16 +1739,16 @@ estimated $\alpha$ values near unity for the prior allowing $m = 1$ (\gls{MAP}
 estimates [95\% \gls{HPD}] 
   0.76 
   [0.07 - 
-   1.31]
+   1.34]
 and
   0.61 
   [0.01 -
-   1.03] respectively).
+   1.02] respectively).
 The MAP estimates did not change appreciably when $m = 1$ was disallowed by the
 prior, although the credible interval of the \textcite{niculescu2015recent}
 data was narrower
   (0.07 - 
-   1.31).
+   1.34).
 When $m = 1$ was permitted, the \textcite{li2015hiv, cuevas2009hiv} both had
 low estimated $\alpha$ values
   (0.31 
@@ -1746,8 +1756,8 @@ low estimated $\alpha$ values
   0.73]
 and
   0.38 
-  [0.02 -
-   0.82]). 
+  [0.01 -
+   0.8]). 
 However, the MAP estimates increased when $m = 1$ was not permitted, although
 the HPD intervals remained roughly the same
   (0.55 
@@ -1771,14 +1781,14 @@ For all the datasets except \citeauthor{novitsky2014impact}, estimated values
 of $I$ were below 2000 when $m = 1$ was allowed, with relatively narrow HPD
 intervals compared to the nonzero prior density region
   (\citeauthor{cuevas2009hiv}, 943 
-  [285 -
-   2111];
+  [287 -
+   2093];
    \citeauthor{niculescu2015recent}, 1032
   [136 - 
-   2847];
+   2851];
   \citeauthor{li2015hiv}, 1437 
-  [364 -
-   2659];
+  [365 -
+   2897];
    \citeauthor{wang2015targeting}, 872
   [173 - 
    2119]).
@@ -1786,7 +1796,7 @@ The \citeauthor{novitsky2014impact} data was the outlier, with a very high
 estimated $I$, and HPD interval spanning almost the entire prior region
   (5586 
   [187 -
-   8812]).
+   8806]).
 The $I$ estimates and HPD intervals were generally robust to the choice of
 prior on $m$, with slightly narrower HPD intervals (compare
 \cref{fig:abchpd,fig:abchpdm2}).
@@ -1794,8 +1804,8 @@ prior on $m$, with slightly narrower HPD intervals (compare
 The MAP estimate of $m$ was equal to 1 for all but the
 \citeauthor{novitsky2014impact} data, when this value was allowed. However, the
 upper bound of the HPD interval was different for each dataset
-  (\citeauthor{niculescu2015recent}, 4;
-   \citeauthor{wang2015targeting}, 3;
+  (\citeauthor{niculescu2015recent}, 5;
+   \citeauthor{wang2015targeting}, 4;
    \citeauthor{li2015hiv}, 1;
    \citeauthor{cuevas2009hiv}, 2).
 When $m = 1$ was disallowed, the MAP for all datasets was either 2 or 3, with

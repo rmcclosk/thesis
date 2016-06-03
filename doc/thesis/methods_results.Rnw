@@ -1240,7 +1240,7 @@ flat around the true value. The effect was most obvious for the value
   \label{fig:gridest}
 \end{figure}
 
-\subsubsection*{Joint parameter estimates with kernel-assisted ABC}
+\subsubsection*{Joint parameter estimates with \software{netabc}}
 
 <<point_est, include=FALSE>>=
     f <- Sys.glob("../../simulations/abc-pa-free-m/point-estimate/*")
@@ -1320,15 +1320,15 @@ for \gls{N}. These errors comprised, respectively,
     \Sexpr{d[,round(median(m_error) * 100 / 6)]}\%, and
     \Sexpr{d[,round(median(N_error) * 100 / 14500)]}\%
 of the regions of nonzero prior density. Average \gls{HPD} interval widths were
-    \Sexpr{d[,round(mean(alpha.upper - alpha.lower), 2)]},
-    \Sexpr{d[,round(mean(I.upper - I.lower))]},
-    \Sexpr{d[,round(mean(m.upper - m.lower), 2)]}, and
-    \Sexpr{d[,format(round(mean(N.upper - N.lower)), digits=5)]},
+    \Sexpr{d[,round(mean(alpha.upper.95 - alpha.lower.95), 2)]},
+    \Sexpr{d[,round(mean(I.upper.95 - I.lower.95))]},
+    \Sexpr{d[,round(mean(m.upper.95 - m.lower.95), 2)]}, and
+    \Sexpr{d[,format(round(mean(N.upper.95 - N.lower.95)), digits=5)]},
 representing 
-    \Sexpr{d[,round(mean(alpha.upper - alpha.lower) * 100 / 2)]}\%,
-    \Sexpr{d[,round(mean(I.upper - I.lower) * 100 / 4500)]}\%,
-    \Sexpr{d[,round(mean(m.upper - m.lower) * 100 / 6)]}\%, and
-    \Sexpr{d[,round(mean(N.upper - N.lower) * 100 / 14500)]}\%
+    \Sexpr{d[,round(mean(alpha.upper.95 - alpha.lower.95) * 100 / 2)]}\%,
+    \Sexpr{d[,round(mean(I.upper.95 - I.lower.95) * 100 / 4500)]}\%,
+    \Sexpr{d[,round(mean(m.upper.95 - m.lower.95) * 100 / 6)]}\%, and
+    \Sexpr{d[,round(mean(N.upper.95 - N.lower.95) * 100 / 14500)]}\%
 of the nonzero prior density regions. Point estimates of \gls{I} were upwardly
 biased: \gls{I} was overestimated in
     \Sexpr{d[,sum(I > true_I)]}
@@ -1945,17 +1945,17 @@ feasible due to the small number of runs required for this analysis.
   d1 <- fread(rownames(m)[m$m_min == 1])
   d2 <- fread(rownames(m)[m$m_min == 2])
 
-  map1 <- dcast.data.table(d1, dataset~parameter, value.var="mean")
-  up1 <- dcast.data.table(d1, dataset~parameter, value.var="hpd.max")
-  low1 <- dcast.data.table(d1, dataset~parameter, value.var="hpd.min")
-  setkey(map1, dataset)
+  pmean1 <- dcast.data.table(d1, dataset~parameter, value.var="mean")
+  up1 <- dcast.data.table(d1, dataset~parameter, value.var="hpd.max.95")
+  low1 <- dcast.data.table(d1, dataset~parameter, value.var="hpd.min.95")
+  setkey(pmean1, dataset)
   setkey(up1, dataset)
   setkey(low1, dataset)
 
-  map2 <- dcast.data.table(d2, dataset~parameter, value.var="mean")
-  up2 <- dcast.data.table(d2, dataset~parameter, value.var="hpd.max")
-  low2 <- dcast.data.table(d2, dataset~parameter, value.var="hpd.min")
-  setkey(map2, dataset)
+  pmean2 <- dcast.data.table(d2, dataset~parameter, value.var="mean")
+  up2 <- dcast.data.table(d2, dataset~parameter, value.var="hpd.max.95")
+  low2 <- dcast.data.table(d2, dataset~parameter, value.var="hpd.min.95")
+  setkey(pmean2, dataset)
   setkey(up2, dataset)
   setkey(low2, dataset)
 @
@@ -1968,11 +1968,11 @@ for each dataset are shown in
 Two of the datasets (\textcite{niculescu2015recent, wang2015targeting}) had
 estimated $\alpha$ values near unity for the prior allowing $m = 1$ (\gls{MAP}
 estimates [95\% \gls{HPD}] 
-  \Sexpr{map1["niculescu2015", round(alpha, 2)]} 
+  \Sexpr{pmean1["niculescu2015", round(alpha, 2)]} 
   [\Sexpr{low1["niculescu2015", round(alpha, 2)]} - 
    \Sexpr{up1["niculescu2015", round(alpha, 2)]}]
 and
-  \Sexpr{map1["wang2015", round(alpha, 2)]} 
+  \Sexpr{pmean1["wang2015", round(alpha, 2)]} 
   [\Sexpr{low1["wang2015", round(alpha, 2)]} -
    \Sexpr{up1["wang2015", round(alpha, 2)]}] respectively).
 The MAP estimates did not change appreciably when $m = 1$ was disallowed by the
@@ -1982,26 +1982,26 @@ data was narrower
    \Sexpr{up1["niculescu2015", round(alpha, 2)]}).
 When $m = 1$ was permitted, the \textcite{li2015hiv, cuevas2009hiv} both had
 low estimated $\alpha$ values
-  (\Sexpr{map1["li2015", round(alpha, 2)]} 
+  (\Sexpr{pmean1["li2015", round(alpha, 2)]} 
   [\Sexpr{low1["li2015", round(alpha, 2)]} - 
   \Sexpr{up1["li2015", round(alpha, 2)]}]
 and
-  \Sexpr{map1["cuevas2009", round(alpha, 2)]} 
+  \Sexpr{pmean1["cuevas2009", round(alpha, 2)]} 
   [\Sexpr{low1["cuevas2009", round(alpha, 2)]} -
    \Sexpr{up1["cuevas2009", round(alpha, 2)]}]). 
 However, the MAP estimates increased when $m = 1$ was not permitted, although
 the HPD intervals remained roughly the same
-  (\Sexpr{map2["li2015", round(alpha, 2)]} 
+  (\Sexpr{pmean2["li2015", round(alpha, 2)]} 
   [\Sexpr{low2["li2015", round(alpha, 2)]} - 
   \Sexpr{up2["li2015", round(alpha, 2)]}]
 and
-  \Sexpr{map2["cuevas2009", round(alpha, 2)]} 
+  \Sexpr{pmean2["cuevas2009", round(alpha, 2)]} 
   [\Sexpr{low2["cuevas2009", round(alpha, 2)]} -
    \Sexpr{up2["cuevas2009", round(alpha, 2)]}]).
 The \textcite{novitsky2014impact} data had a fairly low estimated $\alpha$
 for both priors on $m$
-  (\Sexpr{map1["novitsky2014", round(alpha, 2)]} for $m \geq 1$;
-   \Sexpr{map2["novitsky2014", round(alpha, 2)]} for $m \geq 2$).
+  (\Sexpr{pmean1["novitsky2014", round(alpha, 2)]} for $m \geq 1$;
+   \Sexpr{pmean2["novitsky2014", round(alpha, 2)]} for $m \geq 2$).
 However, the confidence interval was much wider when $m = 1$ was allowed
   ([\Sexpr{low1["novitsky2014", round(alpha, 2)]} -
     \Sexpr{up1["novitsky2014", round(alpha, 2)]}] for $m \geq 1$ vs.
@@ -2011,21 +2011,21 @@ However, the confidence interval was much wider when $m = 1$ was allowed
 For all the datasets except \citeauthor{novitsky2014impact}, estimated values
 of $I$ were below 2000 when $m = 1$ was allowed, with relatively narrow HPD
 intervals compared to the nonzero prior density region
-  (\citeauthor{cuevas2009hiv}, \Sexpr{map1["cuevas2009", floor(I)]} 
+  (\citeauthor{cuevas2009hiv}, \Sexpr{pmean1["cuevas2009", floor(I)]} 
   [\Sexpr{low1["cuevas2009", floor(I)]} -
    \Sexpr{up1["cuevas2009", floor(I)]}];
-   \citeauthor{niculescu2015recent}, \Sexpr{map1["niculescu2015", floor(I)]}
+   \citeauthor{niculescu2015recent}, \Sexpr{pmean1["niculescu2015", floor(I)]}
   [\Sexpr{low1["niculescu2015", floor(I)]} - 
    \Sexpr{up1["niculescu2015", floor(I)]}];
-  \citeauthor{li2015hiv}, \Sexpr{map1["li2015", floor(I)]} 
+  \citeauthor{li2015hiv}, \Sexpr{pmean1["li2015", floor(I)]} 
   [\Sexpr{low1["li2015", floor(I)]} -
    \Sexpr{up1["li2015", floor(I)]}];
-   \citeauthor{wang2015targeting}, \Sexpr{map1["wang2015", floor(I)]}
+   \citeauthor{wang2015targeting}, \Sexpr{pmean1["wang2015", floor(I)]}
   [\Sexpr{low1["wang2015", floor(I)]} - 
    \Sexpr{up1["wang2015", floor(I)]}]).
 The \citeauthor{novitsky2014impact} data was the outlier, with a very high
 estimated $I$, and HPD interval spanning almost the entire prior region
-  (\Sexpr{map1["novitsky2014", floor(I)]} 
+  (\Sexpr{pmean1["novitsky2014", floor(I)]} 
   [\Sexpr{low1["novitsky2014", floor(I)]} -
    \Sexpr{up1["novitsky2014", floor(I)]}]).
 The $I$ estimates and HPD intervals were generally robust to the choice of
@@ -2045,7 +2045,7 @@ number of nodes $N$ were largely uninformative for all samples, with almost all
 MAP estimates greater than 7500 and HPD intervals spanning almost the entire
 nonzero prior density region. The only exception was the \citeauthor{li2015hiv}
 data, for which the MAP estimate was lower 
-  (\Sexpr{map1["li2015", floor(N)]})
+  (\Sexpr{pmean1["li2015", floor(N)]})
 when $m = 1$ was allowed.
 
 \begin{figure*}[ht]

@@ -113,15 +113,17 @@ performed nearly as well (\cref{fig:rsquared}). This result was intuitive: high
 nodes which are involved in a large number of transmissions, resulting in a
 highly unbalanced ladder-like tree structure (\cref{fig:alphatrees}). 
 There was no observable bias in the estimates of \gls{alpha} obtained with
-\software{netabc}, however the variation in these estimates was higher for
-$\alpha < 1$ than for $\alpha \geq 1$ (\cref{fig:abcptm2,tab:abchpd}). The
-relationship between \gls{alpha} and the power law exponent \gls{gamma} may
-explain this result (\cref{fig:gamma}). The \gls{gamma} values associated with
-\gls{alpha} = 0 and \gls{alpha} = 0.5 are nearly identical (about 2.28 for
-\gls{alpha} = 0 and 2.33 for \gls{alpha} = 0.5 with \gls{N} = 5000 and \gls{m}
-= 2). In other words, the degree distributions of networks with \gls{alpha} $<
-1$ are similar to each other, which may result in similarity of corresponding
-transmission trees as well. 
+\software{netabc}, however {\color{red}\sout{the variation in these estimates
+was higher for $\alpha < 1$ than for $\alpha \geq 1$}} {\color{blue}\uline{there
+appeared to be weaker identifiability for \gls{alpha} $<$ 1 than for \gls{alpha}
+$\geq$ 1}} (\cref{fig:abcptm2,tab:abchpd}). The relationship between
+\gls{alpha} and the power law exponent \gls{gamma} may explain this result
+(\cref{fig:gamma}). The \gls{gamma} values associated with \gls{alpha} = 0 and
+\gls{alpha} = 0.5 are nearly identical (about 2.28 for \gls{alpha} = 0 and 2.33
+for \gls{alpha} = 0.5 with \gls{N} = 5000 and \gls{m} = 2). In other words, the
+degree distributions of networks with \gls{alpha} $< 1$ are similar to each
+other, which may result in similarity of corresponding transmission trees as
+well. 
 %The accuracy of \gls{alpha} estimates also increased when the value of the
 %\gls{m} parameter was higher (compare
 %\cref{fig:abcptm2,fig:abcptm3,fig:abcptm4}). 
