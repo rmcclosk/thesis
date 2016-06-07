@@ -656,17 +656,19 @@ equal-risk groups.
 Recall that the primary objective of our work is to develop a statistical
 inference method for estimating contact network parameters from transmission
 trees. In particular, for a network model with parameters $\theta$ and an input
-transmission tree $T$, we are interested in the \emph{posterior distribution}}
+transmission tree $T$, we are interested in the posterior distribution}
 \begin{align}
-  \Pr(\theta \mid T) = \frac{\Pr(T \mid \theta) \Pr(\theta)}{\Pr(T)}.
+  \Pr(\theta \mid T) = \frac{\Pr(T \mid \theta) \Pr(\theta)}{\Pr(T)},
   \label{eq:post}
 \end{align}
-\uline{As outlined in} \cref{sec:obj}, \uline{both the likelihood $\Pr(T \mid
-\theta)$ and the normalizing constant $\Pr(T)$ are likely computationally
-intractable. Hence, rather than computing the posterior distribution
-analytically, we will approximate it using a \defn{Monte Carlo} approach.
-The fundamental idea behind Monte Carlo methods is succinctly expressed by
-\textcite{liu2001theoretical}}:
+where we have adopted the common abuse of the symbol $\Pr$ to refer to a
+probability density. \uline{As alluded to in} \cref{sec:obj}, \uline{both the
+likelihood $\Pr(T \mid \theta)$ and the normalizing constant $\Pr(T)$ are
+likely computationally intractable (this will be explained further in}
+\cref{subsec:just}\uline{). Hence, rather than computing the posterior
+distribution analytically, we will approximate it using a \defn{Monte Carlo}
+approach. The fundamental idea behind Monte Carlo methods is succinctly
+expressed by \textcite{liu2001theoretical}}:
 \begin{quote}
     \uline{Monte Carlo's view of the world is that any probability distribution $\pi$, 
     regardless of its complexity, can always be \emph{represented} by a
@@ -680,11 +682,10 @@ distribution of interest, we will be able to make reasonably accurate
 statements about the distribution itself. For example, the expected value of
 the distribution can be estimated by the sample's population mean. The reason
 Monte Carlo methods will be useful in this work is that algorithms exist for
-obtaining samples from distributions, including as the aforementioned
-posterior, that are analytically intractable and from which direct sampling is
-not possible } (for a review see \autocite{robert2004monte}).
-\uline{\Gls{SMC}}~\autocite{doucet2000sequential, doucet2001introduction,
-liu2008monte} \uline{is one such algorithm.}
+obtaining samples from distributions that are analytically intractable and from
+which direct sampling is not possible } (for a review see
+\autocite{robert2004monte}). \uline{\Gls{SMC}}~\autocite{doucet2000sequential,
+doucet2001introduction, liu2008monte} \uline{is one such algorithm.}
   
 \uline{\Gls{SMC} is also known as the \emph{particle filter}. Rather than
 sampling points one at a time from the target distribution, \gls{SMC} considers
@@ -708,33 +709,33 @@ $\theta$ of the contact network model being studied. If we were taking a
 typical Bayesian Monte Carlo approach to this problem, the particles would end
 up weighted by their posterior probability and distributed in such a way that
 the weighted population was a reasonable representation of $\Pr(\theta \mid
-T)$. This turns out to be not straightforward in our case, as we will address
-in} \cref{sec:abc}. \uline{For now, nothing is lost by \ldots}}
+T)$. In our case, due to the intractable likelihood, we will need to consider
+an approximation to the posterior } (see \cref{sec:abc}). \uline{However, for
+now, nothing is lost by assuming that our target distribution is the posterior
+itself.}
 
-{\color{blue}\uline{
-The goal of this section of the introduction is to describe an algorithm called
-the \gls{SMC} sampler~\autocite{del2006sequential}, which forms the basis of
-the adaptive \gls{ABC}-\gls{SMC} algorithm we apply toward the main objective
-of this work. We begin by describing \gls{SIS}, which is a precursor to
-\gls{SMC} that samples from a sequence of distributions defined on spaces of
+\uline{The goal of this section of the introduction is to describe an algorithm
+called the \gls{SMC} sampler~\autocite{del2006sequential}, which forms the
+basis of the adaptive \gls{ABC}-\gls{SMC} algorithm we apply toward the main
+objective of this work. We begin by describing \gls{SIS}, which is a precursor
+to \gls{SMC} that samples from a sequence of distributions defined on spaces of
 increasing dimension. We then describe \gls{SMC} itself, which extends
 \gls{SIS} with a resampling step to fight particle degeneracy. Finally, we
 outline the \gls{SMC} sampler, which allows \gls{SMC} to be applied to
 sequences of distributions all defined on the same space. This terminology will
-become clear as the methods are described.
-}}
+become clear as the methods are described. }}
 
-\Gls{SMC} is the name for a family of statistical inference methods that rely
-on approximating probability distributions of interest with large collections
-of \defn{particles}, here denoted
-$\set{x^{(k)}}$~\autocite{doucet2000sequential, doucet2001introduction,
-liu2008monte}. These collections or \defn{populations} are constructed to form
+{\color{red}\sout{Sequential Monte Carlo (SMC) is the name for a family of
+statistical inference methods that rely on approximating probability
+distributions of interest with large collections of \defn{particles}, here
+denoted $\set{x^{(k)}}$}\autocite{doucet2000sequential, doucet2001introduction,
+liu2008monte}. \sout{These collections or \defn{populations} are constructed to form
 a \defn{Monte Carlo approximation} to some distribution of interest $\pi$,
 meaning that the empirical distribution of the particles converges in
 distribution to $\pi$ as the population size gets
-large~\autocite{liu2001theoretical}. The word \defn{sequential} is used because
+large}\autocite{liu2001theoretical}. \sout{The word \defn{sequential} is used because
 the particle populations are modified in an iterative fashion over time, for
-example, to incorporate new evidence. 
+example, to incorporate new evidence.}}
 
 To fully describe \gls{SMC}, we will introduce some notation and terminology.
 The definitions of these terms will become clearer as they are used. For a
@@ -976,7 +977,7 @@ That is,
 \]
 where $q(x, x')$ is a proposal function such as a Gaussian distribution
 centred at $x$ {\color{blue}\uline{from which $x'$ is drawn}} (see
-\cref{subsec:mfit}). 
+\cref{chp:prelim}). 
 
 Although this method of building up $\eta$ appears straightforward, the
 drawback is that the importance distribution itself becomes intractable. In
@@ -1024,14 +1025,17 @@ The final key piece of information is to notice that, because the $L_i$ are
 Markov kernels, $\pi_i$ is simply the marginal in $\vec{x_{i-1}}$ of
 $\tilde{\pi}$. Therefore, a sample from $\tilde{\pi}_i$ automatically gets us a
 sample from $\pi_i$, by considering only the $i$th component of $\vec{x_i}$.
-These are all the ingredients we need to apply \gls{SIS}. The sequences of
-kernels $L$ and $K$ should be chosen based on the problem at hand to minimize
-the variance in the importance weights as well as possible. For a fixed choice
-of $K_i$, the backward kernels $L_i$ which minimize this variance are called
-the \defn{optimal} backward kernels. The full \gls{SMC} sampler algorithm is
-presented as \cref{alg:smcsamp}. A resampling step is applied whenever the
-\gls{ESS} of the population drops too low, as discussed in the previous
-section.
+{\color{blue}\uline{In fact, since the weight update} \cref{eq:smcwt} 
+\uline{depends only on the $i$th and $i-1$st components of each particle, we do
+not even need to keep track of the complete particles if we are only interested
+in the final distribution.}} These are all the ingredients we need to apply
+\gls{SIS}. The sequences of kernels $L$ and $K$ should be chosen based on the
+problem at hand to minimize the variance in the importance weights as well
+as possible. For a fixed choice of $K_i$, the backward kernels $L_i$ which
+minimize this variance are called the \defn{optimal} backward kernels. The full
+\gls{SMC} sampler algorithm is presented as \cref{alg:smcsamp}. A resampling
+step is applied whenever the \gls{ESS} of the population drops too low, as
+discussed in the previous section.
 
 \begin{algorithm}
   \caption{Sequential Monte Carlo sampler of \textcite{del2006sequential}.}
@@ -1065,55 +1069,109 @@ section.
 \label{sec:abc}
 
 \glsreset{ABC}
-{\color{blue}\uline{\acrlong{SMC}, and the \gls{SMC} sampler, were developed
-for sampling from distributions which can be evaluated up to a normalizing
-constant. TODO }
 
-\uline{This section is organized as follows. First, we formalize the concept of a
-mathematical model and discuss what it means to ``fit'' such models to data 
-and how this is typically accomplished. Second, we introduce \gls{ABC}, which
-was designed for situations like the one we face in this work where the most
-commonly used means of fitting models cannot be applied. Finally, we describe
-algorithms which can be used to implement \gls{ABC}, including a variant of
-\gls{SMC}.}}
-
-\subsection{Overview of ABC}
+\subsection{Overview and motivation}
 \label{subsec:abcoverview}
 
-Most mathematical models are amenable to fitting via one or both of the
-approaches, \gls{ML} or Bayesian inference, discussed above. However, there are
-some, particularly in the domain of population
-genetics~\autocite{beaumont2002approximate, beaumont2010approximate}, for which
-calculation of either the likelihood or the product of the likelihood and the
-prior may be infeasible. For example, one or both of these quantities may be
-expressible only as an intractable integral. \Gls{ABC} is designed for such
-cases, where standard likelihood-based techniques for model fitting cannot be
-applied. 
+{\color{blue}\uline{\Acrlong{SMC}, and the \gls{SMC} sampler, were developed
+for sampling from distributions which can be evaluated up to a normalizing
+constant. We claim, and shall argue more thoroughly below}
+(\cref{subsec:just}), \uline{that the posterior distribution}
+\[
+  \Pr(\theta \mid T) = \frac{\Pr(T \mid \theta) \Pr(\theta)}{\Pr(T)}
+\]
+\uline{for a contact network model with parameters $\theta$ and an input
+transmission tree $T$ does not fall in this category (note that, as in the
+previous section, we are using $\Pr$ to denote a probability density).
+Therefore, \gls{SMC}, and other Bayesian and \gls{ML} techniques for fitting
+mathematical models} (see \cref{chp:prelim}), \uline{cannot be directly
+applied to our problem. In particular, \gls{MCMC} and the \gls{SMC} sampler are
+designed for distributions $\pi$ which can be evaluated up to a normalizing
+constant $Z$, that is, $\pi(x) = \gamma(x) / Z$. Both algorithms calculate the
+ratio $\pi(x) / \pi(x') = \gamma(x) / \gamma(x')$ for a current value $x$ and
+proposed updated value $x'$ - for \gls{MCMC}, this is part of the \acrlong{MH}
+ratio, while for the \gls{SMC} sampler, it is required to calculate the
+importance weights. In the context of Bayesian inference, this ratio is a
+likelihood ratio, which must be calculated by computing the individual
+likelihoods and dividing them. If the likeilhood is intractible, this is
+clearly not a viable approach.}
 
-Ordinarily, Bayesian inference targets the posterior distribution $f(\theta
-\mid y)$. That is, in the Bayesian framework, model parameters with higher
-posterior density are ``better'' in the sense that they offer a more credible
-explanation for the observed data. Approximate Bayesian computation offers an
+\uline{\Gls{ABC}}~\autocite{rubin1984bayesianly, tavare1997inferring,
+fu1997estimating}\uline{ was developed to estimate posterior distributions with
+intractable likelihoods, which have arisen frequently in the domain of
+population genetics} \autocite{beaumont2002approximate,
+beaumont2010approximate}. \uline{\Gls{ABC} navigates around the intractable
+likelihood by replacing the posterior as the target of inference by an
+\emph{approximate} posterior. This distribution is constructed in such a way
+that the ratios required for \gls{MCMC} and the \gls{SMC} sampler can be
+computed. This conveniently allows us to apply the existing \gls{MCMC} and
+\gls{SMC} algorithms with minimal changes. In the next section, we shall
+demonstrate how this is done, but first we give the definition of the
+approximate posterior. }}
+
+{\color{red}\sout{Most mathematical models are amenable to fitting via one or
+both of the approaches, \gls{ML} or Bayesian inference, discussed above.
+However, there are some, particularly in the domain of population
+genetics}~\autocite{beaumont2002approximate, beaumont2010approximate},
+\sout{for which calculation of either the likelihood or the product of the
+likelihood and the prior may be infeasible. For example, one or both of these
+quantities may be expressible only as an intractable integral. \Gls{ABC} is
+designed for such cases, where standard likelihood-based techniques for model
+fitting cannot be applied.}}
+
+{\color{red}\sout{Ordinarily, Bayesian inference targets the posterior
+distribution $\Pr(\theta \mid y)$. That is, in the Bayesian framework,}} 
+{\color{blue}\uline{By targeting the posterior distribution, Bayesian inference
+makes the assertion that}} model parameters with higher posterior density are
+``better'' in the sense that they offer a more credible explanation for the
+observed data. The approximate posterior targeted by \gls{ABC} uses an
 alternative metric for parameter credibility, namely the similarity of
 simulated datasets to the observed data. If datasets simulated under the model
 closely resemble the real data, it follows that the model is a reasonable
 approximation to the real-world process generating the observed data. More
-formally, suppose we have a distance measure $\rho$ defined on the space of all
-possible data our model could generate. \gls{ABC} aims to sample from the joint
-posterior distribution of model parameters and simulated datasets $z$ which are
-within some small distance $\varepsilon$ of the observed data $y$,
+formally, {\color{blue}\uline{let $y$ be the observed data to which we are
+trying to fit a model with parameters $\theta$. In the case of this work, the
+data is a transmission tree $T$, but we shall stick with the generic variable
+$y$ for now.}} Suppose we have a distance measure $\rho$ defined on the space
+of all possible data our model could generate. \gls{ABC} aims to sample from
+the joint posterior distribution of model parameters and simulated datasets $z$
+which are within some small distance $\varepsilon$ of the observed data $y$,
 \[
   \pi_{\varepsilon}(\theta, z \mid y) =
-  \frac{\pi(\theta) f(z \mid \theta) \I_{A_{\varepsilon, y}} (z)}
-  {\int_{A_{\varepsilon, y} \times \Theta} \pi(\theta) f(z \mid \theta) \d \theta}.
+  \frac{\pi(\theta) \Pr(z \mid \theta) \I_{A_{\varepsilon, y}} (z)}
+  {\int_{A_{\varepsilon, y} \times \Theta} \pi(\theta) \Pr(z \mid \theta) \d \theta}.
 \]
 Here, $A_{\varepsilon, y}$ is an $\varepsilon$-ball around $y$ with
 respect to $\rho$, $\Theta$ is the space of all possible model parameters, and
-$\I$ is the indicator function~\autocite{marin2012approximate}. As we shall
-see in the next section, this distribution can be sampled from exactly. The
-word ``approximate'' derives from the assumption that, for a suitably chosen
-distance $\rho$ and a small enough $\varepsilon$, the marginal in $z$ of
-this distribution approximates the posterior of
+$\I$ is the indicator function~\autocite{marin2012approximate}.
+{\color{blue}\uline{The term $\Pr(z \mid \theta)$ appears to be the bothersome
+likelihood again, but this will turn out not to be a problem because we are
+simulating $z$ ourselves. In fact, it is possible to sample from this
+distribution exactly (see next section).}}
+
+{\color{blue}\uline{To return to the context of this thesis, the observed data
+$y$ is an estimated transmission tree for a viral epidemic under investigation.
+The model in question is a contact network model with parameters $\theta$. $z$
+is a simulated transmission tree, obtained by first generating a contact
+network under the model, and then simulating the spread of an epidemic over
+that network. A transmission tree can be constructed by keeping track of who
+infected whom during the simulated epidemic (further details will be given in
+} \cref{subsec:nettree} \uline{). The distance function $\rho$ must compare two
+transmission trees - the observed tree $y$, and the simulated tree $z$. We will
+define this distance function using the tree kernel discussed in}
+\cref{subsec:treeshape}. \uline{In words, the approximate posterior we consider
+here is a distribution which assigns a joint probability density to model
+parameters and simulated transmission trees under those parameters. The
+probability density is proportional to the product of the prior on the
+parameters, and the likelihood of the simulated transmission tree under those
+parameters, but only if the simulated transmission tree is sufficiently close
+to the true tree. Otherwise, the probability density is zero. }}
+
+{\color{red}\sout{As we shall see in the next section, this distribution can
+be sampled from exactly. The word ``approximate'' derives from the assumption
+that,}}
+for a suitably chosen distance $\rho$ and a small enough $\varepsilon$, the
+marginal in $z$ of this distribution approximates the posterior of
 interest~\autocite{marin2012approximate}. That is,
 \[
   \int \pi_\varepsilon(\theta, z \mid y) \d z \approx f(\theta \mid y).
@@ -1209,7 +1267,7 @@ by the curse of dimensionality - the measure of the $\varepsilon$-ball around
 $y$ decreases exponentially with the number of dimensions.
 \gls{ABC}-\gls{MCMC} (\cref{alg:abcmcmc}) was designed to overcome these
 hurdles~\autocite{marjoram2003markov}. The approach is similar to ordinary
-Bayesian \gls{MCMC} (\cref{subsec:mfit}), except that a distance cutoff
+Bayesian \gls{MCMC} (\cref{chp:prelim}), except that a distance cutoff
 replaces the likelihood ratio. That is, the transition probability between
 states $x$ and $x'$ is defined as
 \[
@@ -1224,8 +1282,8 @@ states $x$ and $x'$ is defined as
     \State Draw $\theta$ according to $\pi(\theta)$
     \Loop
       \State Propose $\theta'$ according to $q(\theta, \theta')$
-      \State Simulate a dataset $\vec{z'}$ according to the model with
-             parameters $\theta$
+      \State Simulate a dataset $z'$ according to the model with parameters
+             $\theta$
       \State Accept $\theta \gets \theta'$ with probability
       $\min \left( 1, 
        \dfrac{\pi(\theta') q(\theta', \theta)}
@@ -1251,11 +1309,43 @@ an existing Bayesian inference method, in this case the \gls{SMC} sampler
 $\pi_i = \pi_{\varepsilon_i}(x \mid y)$ for a decreasing sequence of tolerances
 $\varepsilon_i$. The intention is for the algorithm to progress smoothly
 through a sequence of target distributions which ends at the \gls{ABC}
-approximation to the posterior. As discussed in \cref{subsec:smcsamp}, the
+approximation to the posterior. {\color{blue}\uline{The initial importance
+distribution, denoted as $\eta_0$ in} \cref{alg:smcsamp}, \uline{is taken to be}
+$\Pr(\theta) \Pr(z \mid \theta)$. TODO}
+
+As discussed in \cref{subsec:smcsamp}, the
 choices of the kernels $K$ and $L$ is problem-specific, and so appropriate
 kernels must be chosen for \gls{ABC}. Several options have been
 proposed~\autocite{beaumont2009adaptive, sisson2007sequential,
 del2012adaptive}.
+
+\begin{algorithm}
+  \caption{\gls{ABC}-\gls{SMC}.}
+  \begin{algorithmic}
+    \For {$k = 1$ to $n$}
+      \State Sample $x_1^{(k)}$ from $\eta_1(x_1)$
+      \Comment{Initialize the $k$th particle}
+      \State $w^{(k)} \gets \gamma_1(x_1^{(k)}) / \eta_1(x_1^{(k)})$
+      \State Normalize the weights so that $\sum w = 1$
+    \EndFor
+    \For {$i = 2$ to $d$}
+      \For {$k = 1$ to $n$}
+        \State Sample $x_i^{(k)}$ from $K(x_{i-1}^{(k)}, x_i)$
+        \Comment Extend the $k$th particle
+        \State $w^{(k)} \gets w^{(k)} \cdot \dfrac{\gamma_i(x_i) L_{i-1}(x_i, x_{i-1})}{\gamma_{i-1}(x_{i-1}) K_i(x_{i-1}, x_i)}$
+      \EndFor
+      \State Normalize the weights so that $\sum w = 1$
+      \If {$\ESS(w) < T$}
+        \Comment{$T$ is a user-defined threshold}
+        \State Resample the particles according to $w$
+        \For {$k = 1$ to $n$}
+          \State $w^{(k)} \gets 1/n$
+        \EndFor
+      \EndIf
+    \EndFor
+  \end{algorithmic}
+  \label{alg:abcsmc}
+\end{algorithm}
 
 All the algorithms discussed in this section can be straightforwardly extended
 to sample from the joint distribution

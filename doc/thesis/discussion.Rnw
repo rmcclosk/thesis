@@ -1,3 +1,7 @@
+<<setup, include=FALSE>>=
+    source("global.R")
+@
+
 \label{sec:disc}
 
 \subsection{\software{Netabc}: uses, limitations, and possible extensions}
@@ -306,39 +310,94 @@ studied. More sophisticated models, for example models incorporating
 heterogeneity in node behaviour, are likely to provide a better fit to these
 data.
 
-With respect to the preferential attachment power $\alpha$, the six datasets
-analysed fell into two categories (\cref{fig:abchpd}). First, we estimated a
-preferential attachment power close to 1, indicating linear preferential
-attachment, for the BC data and the outbreaks studied by
-\textcite{niculescu2015recent} and \textcite{wang2015targeting}. These values
-were robust to specifying different priors for $m$. All three datasets were
-sampled from populations in which we would expect a high degree of
-epidemiological relatedness: \textcite{niculescu2015recent} studied a recent
-outbreak among Romanian \gls{IDU}, \citeauthor{wang2015targeting} sampled
-acutely infected MSM in Beijing, China, and the BC data constituted a
-phylogenetic \gls{IDU} cluster. These are all contexts in which we would expect
-some of the assumptions of the BA model, such as a connected network,
-relatively high mean degree, and preferential attachment dynamics, to hold.
+{\color{red}\sout{With respect to the preferential attachment power $\alpha$,
+the six datasets analysed fell into two categories} (\cref{fig:abchpd}).
+\sout{First, we estimated a preferential attachment power close to 1,
+indicating linear preferential attachment, for the BC data and the outbreaks
+studied by} \textcite{niculescu2015recent} and \textcite{wang2015targeting}.
+\sout{These values were robust to specifying different priors for $m$. All three
+datasets were sampled from populations in which we would expect a high degree
+of epidemiological relatedness:} \textcite{niculescu2015recent} \sout{studied a
+recent outbreak among Romanian \gls{IDU},} \citeauthor{wang2015targeting}
+\sout{sampled acutely infected MSM in Beijing, China, and the BC data
+constituted a phylogenetic \gls{IDU} cluster. These are all contexts in which
+we would expect some of the assumptions of the BA model, such as a connected
+network, relatively high mean degree, and preferential attachment dynamics, to
+hold.}
 
-The remaining three datasets (\textcite{cuevas2009hiv, novitsky2014impact,
-li2015hiv}) had estimated values of $\alpha$ below 0.5 when $m = 1$ was
-included in the prior, but these were not robust to changing the prior to
-exclude $m = 1$. For the \citeauthor{cuevas2009hiv} data, model
-misspecification is likely partially responsible. While the authors found that
-a large proportion of the samples were epidemiologically linked, these were
-mainly in small local clusters rather than the single large component
-postulated by the BA model. In addition, the mixed risk groups in the dataset
-would be unlikely to significantly interact, further weakening any global
-preferential attachment dynamics. The dataset studied by
-\textcite{novitsky2014impact} originated from a densely sampled population
-where the predominant risk factor was believed to be heterosexual exposure.
-Although the MAP estimate of $\alpha$ was almost unchanged when the value $m =
-1$ was excluded from the prior, the confidence interval shrank substantially.
+\sout{The remaining three datasets} (\textcite{cuevas2009hiv,
+novitsky2014impact, li2015hiv}) \sout{had estimated values of $\alpha$ below
+0.5 when $m = 1$ was included in the prior, but these were not robust to
+changing the prior to exclude $m = 1$. For the} \citeauthor{cuevas2009hiv} 
+\sout{data, model misspecification is likely partially responsible. While the
+authors found that a large proportion of the samples were epidemiologically
+linked, these were mainly in small local clusters rather than the single large
+component postulated by the BA model. In addition, the mixed risk groups in the
+dataset would be unlikely to significantly interact, further weakening any
+global preferential attachment dynamics. The dataset studied by}
+\textcite{novitsky2014impact} \sout{originated from a densely sampled
+population where the predominant risk factor was believed to be heterosexual
+exposure. Although the MAP estimate of $\alpha$ was almost unchanged when the
+value $m = 1$ was excluded from the prior, the confidence interval shrank
+substantially.}}
 
-{\color{blue}\uline{
-The posterior mean estimates for the real world \gls{HIV} datasets corresponded
-to power law exponents $\gamma$ between 2.09 and 2.49.  TODO
-}}
+<<disc, include=FALSE>>=
+    d <- setDT(collect.data("../../simulations/aggregates/hpd/*"))
+@
+
+For all datasets we examined, the posterior mean estimates for \gls{alpha} were
+sub-linear, ranging from 
+    \Sexpr{d[m_min == 1 & parameter == "alpha", round(min(mean), 2)]}
+to 
+    \Sexpr{d[m_min == 1 & parameter == "alpha", round(max(mean), 2)]}.
+The sub-linearity is consistent with the results of
+\textcite{de2007preferential}, who developed a statistical inference method to
+estimate the parameters of a more sophisticated \acrlong{PA} model
+incorporating heterogeneous node behaviour. They found \gls{alpha} values
+ranging from 0.26 to 0.62, depending on the gender and time period considered. 
+Our estimates of \gls{alpha} for the \textcite{niculescu2015recent} was above
+this range under both priors, as were the estimates for the
+\textcite{wang2015targeting} data and the BC data when \gls{m} = 1 was
+disallowed by the prior. The dataset investigated by
+\textcite{de2007preferential} was derived from a survey of a random sample of
+the Norwegian population, whereas our investigation focused on datasets from
+known phylogenetic or geographic clusters of \gls{HIV} infected persons. It is
+therefore unsurprising that we detected stronger \acrlong{PA} dynamics in some
+cases. For instance, random sampling is much less likely to discover the
+high-degree nodes characterizing the tail of the degree distribution, simply
+because those individuals are rare in the general population. In addition, it
+is plausible that \gls{HIV}-positive individuals are more likely to be highly
+connected in their sexual networks, as the odds of acquiring \gls{HIV} increase
+with the number of unprotected sexual contacts.
+
+Both \textcite{de2007preferential} and \textcite{novitsky2014impact} studied
+populations whose primary risk factor for \gls{HIV} infection was heterosexual
+contact. \citeauthor{de2007preferential} explicitly excluded reported
+homosexual contacts; \citeauthor{novitsky2014impact} did not, but noted that
+heterosexual contact is the primary mode of transmission in Botswana where the
+study was done. In the first of the two papers describing the Botswana
+study~\autocite{novitsky2013phylogenetic}, the authors noted that their sample
+was gender-biased, being composed of approximately 75\% women. Our estimate of
+\gls{alpha} for these data was X or X, depending on the prior on \gls{m};
+\citeauthor{de2007preferential} estimated 0.54, 0.57, and 0.29 for 3-year,
+5-year, and lifetime partnership networks respectively for the female portion
+of their sample.
+
+For both choices of prior on \gls{m}, the datasets derived from \gls{IDU}
+populations had a higher estimated \acrlong{PA} power than the other datasets
+(\cref{fig:abchpd,fig:abchpdm2}). This finding is in line with
+\textcite{dombrowski2013topological}, who reanalyzed a network of \glspl{IDU}
+in Brooklyn, USA, collected between 1991 and
+1993~\autocite{friedman2006social}. They found that the the \gls{IDU} network 
+resembled a \gls{BA} network much more closely than other social and sexual 
+networks, and offered sociological explanations for the apparent \acrlong{PA}
+dynamics in this population. Importantly, from a public health perspective,
+the authors asserted that the removal of \emph{random} individuals from
+\gls{IDU} networks may have the paradoxical effect of increasing the network's
+epidemic susceptibility. When low-degree nodes are removed, as would occur
+during a police crackdown, their network neighbours may turn to well-known
+community members for advice or supplies, thus increasing the connectivity of
+these high-degree nodes.
 
 %For both priors, the estimated prevalence was extremely high, in fact higher
 %than the estimated HIV prevalence in the sampled region. The authors indicated
