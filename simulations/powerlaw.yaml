@@ -1,0 +1,88 @@
+Name: powerlaw
+Description: Degree distributions in preferential attachment networks
+Processes: 1
+Sleep: 5
+Steps:
+    fits:
+        Extension: tsv
+        Walltime: 00:00:30
+        Parameters:
+            N: 5000
+            m: [1, 2, 3, 4]
+            alpha: [0.0, 0.5, 1.0, 1.5]
+            replicate: "range(10)"
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: | 
+            set.seed({seed})
+            se.coef <- NULL
+
+            while (is.null(se.coef)) {{
+                g <- sample_pa({N}, m={m}, power={alpha}, directed=FALSE)
+                tbl <- table(degree(g))
+                deg <- as.integer(names(tbl))
+                freq <- as.integer(tbl)
+                prop <- freq / sum(freq)
+    
+                #se.pdf <- function (c, x0, x) c * (x^(c-1) / x0^c) * exp(-(x/x0)^c)
+                se.pdf <- function (c, x0, x) exp(-(x/x0)^c)
+                x0.guess <- 1
+                c.guess <- mean(x0.guess * log(-log(prop)) / deg)
+                se.coef <- tryCatch({{
+                    coef(nls(prop ~ se.pdf(c, x0, deg), start=c(c=exp(-1), x0=1)))
+                }}, error = function (e) NULL)
+            }}
+
+            se.fit <- se.pdf(se.coef[1], se.coef[2], deg)
+            se.fit <- se.fit / sum(se.fit) * ecount(g) / 2
+
+            pl.coef <- coef(fit_power_law(degree(g), implementation="R.mle"))
+            pl.fit <- (pl.coef - 1) / min(deg) * (deg / min(deg))^-pl.coef
+            pl.fit <- pl.fit / sum(pl.fit) * ecount(g) / 2
+
+            d <- data.table(degree=deg, frequency=freq, pl=pl.fit, se=se.fit,
+                            pl.gamma=pl.coef, se.c=se.coef[1], se.x0 = se.coef[2])
+            cat("#{yaml}\n", file="{fits}")
+            write.tsv(d, file="{fits}", append=TRUE)
+
+    fit-plot:
+        Extension: pdf
+        Parameters:
+            N: 5000
+            replicate: 0
+        Depends: fits
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: | 
+            d <- setDT(collect.data(strsplit("{fits}", " ")[[1]]))
+            setnames(d, "frequency", "actual")
+            d <- melt(d, measure.vars=c("actual", "pl", "se"),
+                      variable.name="method", value.name="frequency")
+            ggplot(d, aes(x=degree, y=frequency)) + 
+                geom_point(data=subset(d, method == "actual"), size=0.5) +
+                geom_line(data=subset(d, method != "actual"), 
+                          aes(colour=method, linetype=method), size=1.2) + 
+                facet_grid(m~alpha, scales="free", labeller="label_both") +
+                scale_x_log10() +
+                scale_y_log10(limits=c(1, NA)) +
+                theme_bw()
+            ggsave("{fit-plot}", height=5, width=6)
+
+    tests:
+        Extension: tsv
+        Paremeters:
+            N: 5000
+        Depends: fits
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(dgof))
+        Rule: | 
+            d <- setDT(collect.data(strsplit("{fits}", " ")[[1]]))
+            pl.cdf <- function (degree, pl)
+                stepfun(degree, c(0, cumsum(pl) / sum(pl)), right=FALSE)
+            d <- d[,list(ks=ks.test(rep(degree, frequency), pl.cdf(degree, pl))$p.value,
+                         cvm=cvm.test(rep(degree, frequency), pl.cdf(degree, pl))$p.value),
+                    by=c("alpha", "m", "N", "replicate")]
+            cat("#{yaml}\n", file="{tests}")
+            write.tsv(d, file="{tests}", append=TRUE)
