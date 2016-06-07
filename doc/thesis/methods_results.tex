@@ -252,9 +252,10 @@ referred to as the ``collapse'' of the approximation, {\color{blue}\uline{also
 known as particle degeneracy} (see \cref{subsec:smc})} and is mitigated by the
 adaptive approach. A single parameter {\color{red}\sout{$\alpha$ (not to be
 confused with the \gls{BA} model parameter)}} controls the decay rate.
-{\color{blue}\uline{In the original paper of }\textcite{del2012adaptive}, \uline{the
-parameter is called $\alpha$, but to avoid confusion with the \gls{BA}
-parameter of the same name, we will refer to it here as $\alpha_{\ESS}$.}}
+{\color{blue}\uline{In the original paper of }\textcite{del2012adaptive},
+\uline{the parameter is called $\alpha$, but to avoid confusion with the
+\gls{BA} parameter of the same name, we will refer to it here as
+\gls{alphaess}.}}
 The tolerance $\varepsilon_i$ is chosen to satisfy
 \[
   \ESS(w_i) = \alpha_{\ESS} \ESS(w_{i-1}),
@@ -408,7 +409,7 @@ $O(2^{|T|^2})$ terms.}
 likelihood $\Pr(T \mid \theta)$ are likely computationally prohibitive to
 calculate. If this is the case, the problem of fitting contact network models
 to phylogenies seems to be of the \emph{doubly-intractible}
-type~\autocite{murray2012mcmc}, which would imply that these models are not
+ype~\autocite{murray2012mcmc}, which would imply that these models are not
 amenable to neither \gls{ML} nor Bayesian inference techniques. Although both
 methods are able to cope with an intractible normalizing constant (for example,
 by local search for \gls{ML} or Bayesian \gls{MCMC}), neither can avoid the
@@ -430,6 +431,13 @@ as \gls{ABC}, nor are they as easily parallelizable as \gls{SMC}. }}
 
 \subsection{Methods}
 \glsreset{BA}
+
+%{\color{blue}\uline{The \gls{BA} contact network model} (see \cref{subsec:pa})
+%\uline{generates networks with a power law degree distribution. Power law
+%distributions have been observed by several empirical studies of sexual
+%behaviour}~\autocite{colgate1989risk, liljeros2001web, schneeberger2004scale,
+%clemencon2015statistical} (although not all, see
+%\autocite{handcock2004likelihood, bansal2007individual}).}
 
 {\color{blue}\uline{Using synthetic data,}} we investigated four parameters
 related to the \gls{BA} contact network model, denoted \gls{N}, \gls{m},
@@ -496,7 +504,7 @@ the parameter in question was identifiable in the range of values considered.
 A caveat of this preliminary analysis is that, since all parameters but one
 were held at known values, nothing could be said about the identifiability of
 \emph{combinations} of parameters; this issue will be explored later by jointly
-estimating all parameters with \gls{ABC}} (\cref{subsec:abc}).
+estimating all parameters with \gls{ABC}}.
 
 \uline{In addition to testing for identifiability, a secondary objective of
 this analysis was to validate the use of the tree kernel as a distance measure
@@ -514,7 +522,7 @@ types~\autocite{leventhal2012inferring}. Sackin's index does not take branch
 lengths into account, considering only the tree's topology. The other statistic
 we considered was the \gls{nltt}~\autocite{janzen2015approximate}, which
 compares two trees based on normalized distributions of their branching times}
-(see \cref{sec:treeshape}).  \uline{In contrast with Sackin's index, the
+(see \cref{subsec:treeshape}).  \uline{In contrast with Sackin's index, the
 \gls{nltt} does not explicity consider the trees' topologies, but it does use
 their normalized branch lengths. While the \gls{nltt} is a newly developed
 statistic not yet in widespread use, the unnormalized
@@ -1100,16 +1108,20 @@ flat around the true value. The effect was most obvious for the value
 \begin{figure}[ht]
   \centering
   \includegraphics[width=\textwidth]{gridsearch-example}
-  \caption[Grid search estimates of \gls{BA} model parameters.]{Point estimates
-      (center lines) and 75\% (boxes) and 95\% (whiskers) highest density
-      intervals for each \gls{BA} model parameter, obtained using grid search.
-      Networks and transmission trees were simulated over a grid of values for
-       each parameter while holding the others fixed. For a subset of the grid
-      values ($x$-axis), test networks and trees were created and compared to
-      each tree on the grid using the tree kernel. The kernel scores along the
-      grid were normalized to resemble a probability distribution, from which
-      the mode and highest density interval were calculated. Shown values
-      correspond to one replicate experiment, with trees of size 500.
+  \caption[
+    Grid search estimates of \gls{BA} model parameters for one replicate
+    experiment with trees of size 500.
+  ]{
+    Grid search estimates of \gls{BA} model parameters for one replicate
+    experiment with trees of size 500. Point estimates (dots), 95\% highest
+    density intervals (lines), and 50\% highest density intervals (notches) for
+    each \gls{BA} model parameter, obtained using grid search. Networks and
+    transmission trees were simulated over a grid of values for each parameter
+    while holding the others fixed. For a subset of the grid values ($x$-axis),
+    test networks and trees were created and compared to each tree on the grid
+    using the tree kernel. The kernel scores along the grid were normalized to
+    resemble a probability distribution, from which the mode and highest
+    density interval were calculated. 
   } 
   \label{fig:gridest}
 \end{figure}
@@ -1165,7 +1177,7 @@ biased: \gls{I} was overestimated in
 out of 
     72
 simulations
-    (4\%).
+    (96\%).
 The estimates for \gls{m} and \gls{N} were similar across all simulations
 (median [IQR] point estimates
     3
@@ -1201,7 +1213,7 @@ increases.}}
 
 
 % latex table generated in R 3.2.3 by xtable 1.8-2 package
-% Thu Jun  2 15:02:59 2016
+% Mon Jun  6 15:27:33 2016
 \begin{table}[ht]
 \centering
 \begin{tabular}{llll}
@@ -1218,7 +1230,7 @@ Parameter & Estimate & Standard error & $p$-value \\
 \label{tab:glmalpha}
 \end{table}
 % latex table generated in R 3.2.3 by xtable 1.8-2 package
-% Thu Jun  2 15:02:59 2016
+% Mon Jun  6 15:27:33 2016
 \begin{table}[ht]
 \centering
 \begin{tabular}{llll}
@@ -1706,14 +1718,6 @@ carried forward. For the \textcite{novitsky2014impact} data, no large clusters
 were detected using the same cutoff, so we analysed a subtree of size 180
 chosen arbitrarily.
 
-Empirical studies of contact networks often report the exponent $\gamma$ of the
-power law degree distribution. To compare our results to the literature, we
-simulated 100 networks each according to the \gls{MAP} parameter estimates
-obtained for each investigated dataset. The power-law exponent $\gamma$ was
-calculated for each network using the \software{fit\_power\_law} function in
-\software{igraph}, with the `R.mle' implementation. The median of the 100
-$\gamma$ values was taken as a point estimate for the associated dataset.
-
 For all datasets, we used the priors $\alpha$ $\sim$ Uniform(0, 2) and $N$ and
 $I$ jointly uniform on the region \{$n \leq N \leq 10000$, $n \leq I \leq
 10000$, $I \leq N$\}, where $n$ is the number of tips in the tree (see
@@ -1725,6 +1729,14 @@ simulation experiments, except that we used 10000 particles instead of 1000 to
 increase the accuracy of the estimated posterior. This was computationally
 feasible due to the small number of runs required for this analysis.
 
+Empirical studies of contact networks often report the exponent $\gamma$ of the
+power law degree distribution. To compare our results to the literature, we
+simulated 100 networks each according to the posterior mean parameter estimates
+obtained for each investigated dataset. The power-law exponent $\gamma$ was
+calculated for each network using the \software{fit\_power\_law} function in
+\software{igraph}, with the `R.mle' implementation. The median of the 100
+$\gamma$ values was taken as a point estimate for the associated dataset.
+
 \subsection{Results}
 
 
@@ -1735,86 +1747,86 @@ and found substantial heterogeneity among the parameter estimates
 for each dataset are shown in
 \cref{fig:cuevas,fig:li,fig:niculescu,fig:novitsky,fig:wang}.
 Two of the datasets (\textcite{niculescu2015recent, wang2015targeting}) had
-estimated $\alpha$ values near unity for the prior allowing $m = 1$ (\gls{MAP}
-estimates [95\% \gls{HPD}] 
-  0.76 
-  [0.07 - 
-   1.34]
+estimated $\alpha$ values near unity for the prior allowing $m = 1$ (posterior
+mean [95\% \gls{HPD}] 
+  0.73 
+  [0.05 - 
+   1.18]
 and
-  0.61 
+  0.55 
   [0.01 -
-   1.02] respectively).
-The MAP estimates did not change appreciably when $m = 1$ was disallowed by the
+   0.99] respectively).
+The estimates did not change appreciably when $m = 1$ was disallowed by the
 prior, although the credible interval of the \textcite{niculescu2015recent}
 data was narrower
-  (0.07 - 
-   1.34).
+  (0.05 - 
+   1.18).
 When $m = 1$ was permitted, the \textcite{li2015hiv, cuevas2009hiv} both had
 low estimated $\alpha$ values
-  (0.31 
+  (0.33 
   [0 - 
-  0.73]
+  0.76]
 and
-  0.38 
-  [0.01 -
-   0.8]). 
-However, the MAP estimates increased when $m = 1$ was not permitted, although
-the HPD intervals remained roughly the same
-  (0.55 
-  [0.01 - 
-  0.93]
+  0.27 
+  [0 -
+   0.59]). 
+However, the estimates increased when $m = 1$ was not permitted, although the
+HPD intervals remained roughly the same
+  (0.58 
+  [0.06 - 
+  0.99]
 and
-  0.5 
-  [0.07 -
-   0.94]).
+  0.48 
+  [0.02 -
+   0.87]).
 The \textcite{novitsky2014impact} data had a fairly low estimated $\alpha$
 for both priors on $m$
-  (0.5 for $m \geq 1$;
-   0.34 for $m \geq 2$).
+  (0.55 for $m \geq 1$;
+   0.53 for $m \geq 2$).
 However, the confidence interval was much wider when $m = 1$ was allowed
-  ([0.03 -
-    1.61] for $m \geq 1$ vs.
+  ([0 -
+    1.75] for $m \geq 1$ vs.
    [0 -
-    0.73] for $m \geq 2$).
+    1.75] for $m \geq 2$).
 
 For all the datasets except \citeauthor{novitsky2014impact}, estimated values
 of $I$ were below 2000 when $m = 1$ was allowed, with relatively narrow HPD
 intervals compared to the nonzero prior density region
-  (\citeauthor{cuevas2009hiv}, 943 
-  [287 -
-   2093];
-   \citeauthor{niculescu2015recent}, 1032
+  (\citeauthor{cuevas2009hiv}, 701 
+  [289 -
+   1279];
+   \citeauthor{niculescu2015recent}, 747
   [136 - 
-   2851];
-  \citeauthor{li2015hiv}, 1437 
-  [365 -
-   2897];
-   \citeauthor{wang2015targeting}, 872
-  [173 - 
-   2119]).
+   2378];
+  \citeauthor{li2015hiv}, 1390 
+  [310 -
+   2821];
+   \citeauthor{wang2015targeting}, 675
+  [175 - 
+   1400]).
 The \citeauthor{novitsky2014impact} data was the outlier, with a very high
 estimated $I$, and HPD interval spanning almost the entire prior region
-  (5586 
-  [187 -
-   8806]).
+  (5431 
+  [183 -
+   8739]).
 The $I$ estimates and HPD intervals were generally robust to the choice of
 prior on $m$, with slightly narrower HPD intervals (compare
 \cref{fig:abchpd,fig:abchpdm2}).
 
-The MAP estimate of $m$ was equal to 1 for all but the
+The posterior mean of $m$ was equal to 1 for all but the
 \citeauthor{novitsky2014impact} data, when this value was allowed. However, the
 upper bound of the HPD interval was different for each dataset
-  (\citeauthor{niculescu2015recent}, 5;
-   \citeauthor{wang2015targeting}, 4;
+  (\citeauthor{niculescu2015recent}, 4;
+   \citeauthor{wang2015targeting}, 1;
    \citeauthor{li2015hiv}, 1;
-   \citeauthor{cuevas2009hiv}, 2).
-When $m = 1$ was disallowed, the MAP for all datasets was either 2 or 3, with
-HPD intervals spanning the entire prior region. The estimates for the total
-number of nodes $N$ were largely uninformative for all samples, with almost all
-MAP estimates greater than 7500 and HPD intervals spanning almost the entire
-nonzero prior density region. The only exception was the \citeauthor{li2015hiv}
-data, for which the MAP estimate was lower 
-  (6049)
+   \citeauthor{cuevas2009hiv}, 1).
+When $m = 1$ was disallowed, the estimate for all datasets was either 2 or 3,
+with HPD intervals spanning the entire prior region. The estimates for the
+total number of nodes $N$ were largely uninformative for all samples, with
+almost all posterior mean estimates greater than 7500 and HPD intervals
+spanning almost the entire nonzero prior density region. The only exception was
+the \citeauthor{li2015hiv} data, for which the estimate was lower 
+  (5916)
 when $m = 1$ was allowed.
 
 \begin{figure*}[ht]
@@ -1836,7 +1848,8 @@ when $m = 1$ was allowed.
 
 To make our analyses comparable to the existing network literature, we
 estimated values of the power law exponent $\gamma$ for each of the datasets 
-investigated. The results are summarized in \cref{tab:gamma}. All of the
+investigated, using the posterior median estimates with the prior allowing
+\gls{m} = 1. The results are summarized in \cref{tab:gamma}. All of the
 estimated exponents were in the range $2 \leq \gamma \leq 2.5$, which is on the
 lower end of the range $2 \leq \gamma \leq 4$ reported in the literature.
 
@@ -1849,7 +1862,7 @@ lower end of the range $2 \leq \gamma \leq 4$ reported in the literature.
     ]{
         Estimated power law exponents for six HIV datasets based on maximum
         \textit{a priori} estimates of BA model parameters. 100 networks were
-        simulated using \textit{MAP} parameter estimates obtained with
+        simulated using posterior mean parameter estimates obtained with
         \software{netabc}. The power law exponent $\gamma$ was estimated for
         each, and the median of those estimates was used as a point estimate
         for the corresponding dataset.
