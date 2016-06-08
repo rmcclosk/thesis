@@ -561,13 +561,45 @@ this model, networks are formed by starting with a small number $m_0$ of nodes.
 New nodes are added one at a time until there are a total of $N$ in the
 network. Each time a new node is added, $m \geq 1$ edges are added from it to
 other nodes in the graph. In the original formulation, the partners of the new
-node are chosen with probability linearly proportional to their degree.
-However, \citeauthor{barabasi1999emergence} suggest extending the model such
-that the probability of choosing a partner of degree $d$ is proportional to
-$d^\alpha + 1$ for some constant $\alpha$, and we use this extension here. When
-$m = 1$, the network takes on the distinctive shape of a tree, that is, it does
-not contain any cycles. Cycles are present in the network for all other $m$
-values. Examples of \gls{BA} networks with three different values of the
+node are chosen with probability linearly proportional to their degree plus
+one.
+
+There has been some contention over the idea that contact networks are
+scale-free. \textcite{handcock2004likelihood} fit several stochastic models of
+partner formation to empirical degree distributions derived from population
+surveys of sexual behaviour. They found that a negative binomial distribution,
+rather than a power law, was the best fit to five out of six datasets, although
+the difference in goodness of fit was extremely small in four out of these
+five. \textcite{bansal2007individual} found that an exponential distribution,
+rather than a power law, was the best fit to degree distributions of six social
+and sexual networks. \textcite{drombowski2013} contend that sexual networks are
+shaped more by homophily (``like attract like'') than by preferential
+attachment, but find that \gls{IDU} network do demonstrate a scale-free
+structure.
+
+In the paper describing the \gls{BA} model, \citeauthor{barabasi1999emergence}
+suggest an extension where the probability of choosing a partner of degree $d$
+is proportional to $d^\alpha + 1$ for some constant \gls{alpha}.
+{\color{blue}\uline{When $\gls{alpha} \neq 1$, the degree distribution no
+longer follows a power law~\autocite{krapivsky2000connectivity}. For
+$\gls{alpha} < 1$, the distribution is a stretched exponential, meaning that
+the number of nodes of degree $k$ is proportional to $\exp(-k^\beta)$ for some
+constant $\beta$. For $\gls{alpha} > 1$, the distribution takes on a
+characteristic called \emph{gelation}, where a one or a few high-degree hub
+nodes are connected to nearly every other node in the graph. We do not believe
+these departures from the power law affect the applicability of the model to
+real world networks. In fact,} \textcite{de2007preferential} \uline{were able to
+estimate the \acrlong{PA} power from partner count data collected from the same
+individuals for consecutive time intervals, and found a value less than one in
+all cases. It is also worth noting that, in addition to the \gls{BA} model,
+other investigations of the interaction between contact networks and
+transmission trees have studied the \acrlong{ER} and \acrlong{WS}
+models~\autocite{leventhal2012inferring}, whose degree distributions do not
+generally follow a power law under any parameter settings.}}
+
+When $m = 1$, the network takes on the distinctive shape of a tree, that is, it
+does not contain any cycles. Cycles are present in the network for all other
+$m$ values. Examples of \gls{BA} networks with three different values of the
 preferential attachment power \gls{alpha} are shown in \cref{fig:baeg}.
 
 \begin{figure}
@@ -587,16 +619,6 @@ preferential attachment power \gls{alpha} are shown in \cref{fig:baeg}.
   }
   \label{fig:baeg}
 \end{figure}
-
-There has been some contention over the idea that contact networks are
-scale-free. \textcite{handcock2004likelihood} fit several stochastic models of
-partner formation to empirical degree distributions derived from population
-surveys of sexual behaviour. They found that a negative binomial distribution,
-rather than a power law, was the best fit to five out of six datasets, although
-the difference in goodness of fit was extremely small in four out of these
-five. \textcite{bansal2007individual} found that an exponential distribution,
-rather than a power law, was the best fit to degree distributions of six social
-and sexual networks. 
 
 \subsection{Relationship between network structure and transmission trees}
 
@@ -661,8 +683,8 @@ transmission tree $T$, we are interested in the posterior distribution}
   \Pr(\theta \mid T) = \frac{\Pr(T \mid \theta) \Pr(\theta)}{\Pr(T)},
   \label{eq:post}
 \end{align}
-where we have adopted the common abuse of the symbol $\Pr$ to refer to a
-probability density. \uline{As alluded to in} \cref{sec:obj}, \uline{both the
+\uline{where we have adopted the common abuse of the symbol $\Pr$ to refer to a
+probability density. As alluded to in} \cref{sec:obj}, \uline{both the
 likelihood $\Pr(T \mid \theta)$ and the normalizing constant $\Pr(T)$ are
 likely computationally intractable (this will be explained further in}
 \cref{subsec:just}\uline{). Hence, rather than computing the posterior
@@ -689,10 +711,11 @@ doucet2001introduction, liu2008monte} \uline{is one such algorithm.}
   
 \uline{\Gls{SMC} is also known as the \emph{particle filter}. Rather than
 sampling points one at a time from the target distribution, \gls{SMC} considers
-a population of points or ``particles'', here denoted $\set{x^{(k)}}$. The
-particles are associated with weights, $\set{w(x^{(k)})}$. These weighted
-particles are a representation for the target distribution. For example, the 
-expected value of the distribution is approximated by}
+a population of points or ``particles'', here denoted $\set{x^{(k)}}$ and
+indexed by an integer $k$. The particles are associated with weights,
+$\set{w(x^{(k)})}$. These weighted particles are a representation for the
+target distribution. For example, the expected value of the distribution is
+approximated by}
 \[
   \frac{1}{n} \sum_{k=1}^n x^{(k)} w(x^{(k)}),
 \]
@@ -1138,8 +1161,8 @@ the joint posterior distribution of model parameters and simulated datasets $z$
 which are within some small distance $\varepsilon$ of the observed data $y$,
 \[
   \pi_{\varepsilon}(\theta, z \mid y) =
-  \frac{\pi(\theta) \Pr(z \mid \theta) \I_{A_{\varepsilon, y}} (z)}
-  {\int_{A_{\varepsilon, y} \times \Theta} \pi(\theta) \Pr(z \mid \theta) \d \theta}.
+  \frac{\Pr(\theta) \Pr(z \mid \theta) \I_{A_{\varepsilon, y}} (z)}
+  {\int_{A_{\varepsilon, y} \times \Theta} \Pr(\theta) \Pr(z \mid \theta) \d \theta}.
 \]
 Here, $A_{\varepsilon, y}$ is an $\varepsilon$-ball around $y$ with
 respect to $\rho$, $\Theta$ is the space of all possible model parameters, and
@@ -1165,11 +1188,15 @@ parameters and simulated transmission trees under those parameters. The
 probability density is proportional to the product of the prior on the
 parameters, and the likelihood of the simulated transmission tree under those
 parameters, but only if the simulated transmission tree is sufficiently close
-to the true tree. Otherwise, the probability density is zero. }}
+to the true tree. Otherwise, the probability density is zero.}}
 
 {\color{red}\sout{As we shall see in the next section, this distribution can
 be sampled from exactly. The word ``approximate'' derives from the assumption
 that,}}
+{\color{blue}\uline{It is not yet obvious that the \gls{ABC} target
+distribution just presented can in fact be used to approximate the true
+posterior. TODO }}
+
 for a suitably chosen distance $\rho$ and a small enough $\varepsilon$, the
 marginal in $z$ of this distribution approximates the posterior of
 interest~\autocite{marin2012approximate}. That is,

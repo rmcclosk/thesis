@@ -100,9 +100,9 @@ is possible that the use of a more sophisticated technique might increase the
 algorithm's accuracy. Finally, the \gls{ABC}-\gls{SMC} algorithm is
 computationally intensive, taking about a day when run on 20 cores in parallel
 with the settings described in the methods section. Implementing
-parallelization using MPI, rather than POSIX threads as we have done here,
-would allow the program to be run over a larger number of cores on multiple
-CPUs in parallel.
+parallelization using \gls{MPI}, rather than \gls{POSIX} threads as we have
+done here, would allow the program to be run over a larger number of cores on
+multiple CPUs in parallel.
 
 \subsection{Analysis of \acrlong{BA} model with synthetic data}
 
@@ -374,10 +374,13 @@ heterosexual contact is the primary mode of transmission in Botswana where the
 study was done. In the first of the two papers describing the Botswana
 study~\autocite{novitsky2013phylogenetic}, the authors noted that their sample
 was gender-biased, being composed of approximately 75\% women. Our estimate of
-\gls{alpha} for these data was X or X, depending on the prior on \gls{m};
-\citeauthor{de2007preferential} estimated 0.54, 0.57, and 0.29 for 3-year,
-5-year, and lifetime partnership networks respectively for the female portion
-of their sample.
+\gls{alpha} for these data was 
+    0.55
+        or 
+    0.53,
+depending on the prior on \gls{m}; \citeauthor{de2007preferential} estimated
+0.54, 0.57, and 0.29 for 3-year, 5-year, and lifetime partnership networks
+respectively for the female portion of their sample.
 
 For both choices of prior on \gls{m}, the datasets derived from \gls{IDU}
 populations had a higher estimated \acrlong{PA} power than the other datasets
@@ -394,6 +397,39 @@ epidemic susceptibility. When low-degree nodes are removed, as would occur
 during a police crackdown, their network neighbours may turn to well-known
 community members for advice or supplies, thus increasing the connectivity of
 these high-degree nodes.
+
+One somewhat surprising result was the difference between parameter estimates 
+for the \textcite{li2015hiv} and \textcite{wang2015targeting} datasets. Both
+groups studied cohorts of acutely infected \gls{MSM} in major Chinese cities
+(Shanghai and Beijing respectively); yet, the \citeauthor{li2015hiv} data was 
+estimated to have a lower \acrlong{PA} power and larger infected population
+than the \textcite{wang2015targeting} data\ldots
+
+% for discussion
+In order to compare our results to existing literature on networks and
+distributions of partner counts, we have reported estimated values for the
+power law exponent \gls{gamma} of the real data sets we evaluated. However, the
+posterior means for \gls{alpha} for all six datasets were less than one; the
+degree distributions in this parameter range are stretched exponential, not
+power law~\autocite{krapivsky2000connectivity}. As we show in
+\cref{fig:powerlaw}, the power law fit does capture the slope of the degree
+distribution fairly well, but the results should still be interpreted
+cautiously. \textcite{krapivsky2000connectivity} showed that the power law
+distribution can be maintained, with \gls{gamma} tuned to any desired value, by
+a straightforward modification of the \gls{BA} model. The authors define the
+``connection kernel'' $A_k$ the probability of a new connection to a node of
+degree $k$, up to a normalizing constant. In the \gls{BA} model as we have
+presented it here, $A_k = k^{\alpha} + 1$. Taking $A_k$ as any asymptotically
+linear function will result in a power law distribution, with the exponent
+\gls{gamma} determined by the properties of $A_k$. Implementing such a model
+would be straightforward and seems a natural next step toward improving the
+realism of the \gls{BA} model.
+
+\textcite{rothenberg2007large} estimated the power law exponents for 15 major
+network studies of sexual and injection drug use networks carried out between
+1981 and 2000. The estimated \gls{gamma} values for ``all contacts'' (that is,
+including both interviewed and non-interviewed individuals) were 
+between 2.08 and 2.87 for all but one of the networks\ldots
 
 %For both priors, the estimated prevalence was extremely high, in fact higher
 %than the estimated HIV prevalence in the sampled region. The authors indicated

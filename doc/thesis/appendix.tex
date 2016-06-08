@@ -458,23 +458,6 @@ algorithm~\autocite{metropolis1953equation,hastings1970monte} (\cref{alg:mh}).
 
 \clearpage
 
-%\begin{figure}[ht]
-%  \centering
-%  \includegraphics{abc-point-estimate-m1.pdf}
-%  \caption[
-%    \Acrlong{MAP} point estimates for \gls{BA} model parameters obtained by
-%    running \software{netabc} on simulated data, for simulations with \gls{m} = 1.
-%  ]{
-%    \Acrlong{MAP} point estimates for \gls{BA} model parameters obtained by
-%    running \software{netabc} on simulated data, for simulations with \gls{m} = 3.
-%    Dashed lines indicate true values. (A) Estimates of \gls{alpha} and \gls{I}
-%    which were varied in these simulations against known values. (B) Estimates
-%    of \gls{m} and \gls{N} which were held fixed in these simulations at the
-%    values \gls{m} = 1 and \gls{N} = 5000.
-%  }        
-%  \label{fig:abcptm1}
-%\end{figure}
-
 \begin{figure}[ht]
   \centering
   \includegraphics{abc-point-estimate-m3.pdf}
@@ -518,6 +501,18 @@ algorithm~\autocite{metropolis1953equation,hastings1970monte} (\cref{alg:mh}).
       network model with $N$ = 5000 and $m$ = 2.
   }
   \label{fig:gamma}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics{powerlaw.pdf}
+    \caption
+    {
+        Best fit power law and stretched exponential curves for degree
+        distributions of simulated \acrlong{BA} networks for several values of
+        \gls{alpha} and \gls{m}.
+    }
+    \label{fig:powerlaw}
 \end{figure}
 
 \begin{figure}[ht]
@@ -907,56 +902,3 @@ Approximate marginal posterior distributions of BA model parameters obtained by 
 \clearpage
 
 
-
-%\chapter{GLM results}
-%<<glm_tables, echo=FALSE, warning=FALSE, error=FALSE, results="asis">>=
-%    format.glm <- function (df) {
-%        df[Parameter == "alpha", Parameter := "$\\alpha$"]
-%        df[,p := paste0("$", sapply(p, pp, eq=FALSE), "$")]
-%        df[,Estimate := paste0("$", sapply(Estimate, pp, eq=FALSE, thres=NA), "$")]
-%        df[,`Standard error` := paste0("$", sapply(`Standard error`, pp, eq=FALSE, thres=NA), "$")]
-%        setnames(df, "p", "$p$-value")
-%        df
-%    }
-%
-%    alpha.glm <- format.glm(alpha.glm)
-%    I.glm <- format.glm(I.glm)
-%    #m.glm <- format.glm(m.glm)
-%    #N.glm <- format.glm(N.glm)
-%
-%    capt.short <- paste("Parameters of a fitted GLM relating error in estimated",
-%                        "$\\alpha$ to true values of BA parameters.")
-%    capt <- paste(capt.short, "GLM was fitted with a Gaussian distribution and",
-%                  "inverse link function. Coefficients are interpretable as",
-%                  "additive effects on the inverse of the mean error.")
-%    print(xtable(alpha.glm, label="tab:glmalpha", caption=c(capt, capt.short)),
-%          include.rownames=FALSE, sanitize.text.function=identity,
-%          sanitize.colnames.function=identity)
-%
-%    capt.short <- paste("Parameters of a fitted GLM relating error in estimated",
-%                        "$I$ to true values of BA parameters.")
-%    capt <- paste(capt.short, "GLM was fitted with a gaussian distribution and",
-%                  "inverse link function. Coefficients are interpretable as",
-%                  "additive effects on the inverse of the mean error.")
-%    print(xtable(I.glm, label="tab:glmI", caption=c(capt, capt.short)),
-%          include.rownames=FALSE, sanitize.text.function=identity,
-%          sanitize.colnames.function=identity)
-%
-%    #capt.short <- paste("Parameters of a fitted GLM relating error in estimated",
-%    #                    "$m$ to true values of BA parameters.")
-%    #capt <- paste(capt.short, "GLM was fitted with a Poisson distribution and",
-%    #              "log link function. Coefficients are interpretable as",
-%    #              "additive effects on the exponential of the mean error.")
-%    #print(xtable(m.glm, label="tab:glmm", caption=c(capt, capt.short)),
-%    #      include.rownames=FALSE, sanitize.text.function=identity,
-%    #      sanitize.colnames.function=identity)
-%
-%    #capt.short <- paste("Parameters of a fitted GLM relating error in estimated",
-%    #                    "$N$ to true values of BA parameters.")
-%    #capt <- paste(capt.short, "GLM was fitted with a Gaussian distribution and",
-%    #              "inverse link function. Coefficients are interpretable as",
-%    #              "additive effects on the inverse of the mean error.")
-%    #print(xtable(N.glm, label="tab:glmN", caption=c(capt, capt.short)),
-%    #      include.rownames=FALSE, sanitize.text.function=identity,
-%    #      sanitize.colnames.function=identity)
-%@
