@@ -1159,18 +1159,20 @@ $y$ for now.}} Suppose we have a distance measure $\rho$ defined on the space
 of all possible data our model could generate. \gls{ABC} aims to sample from
 the joint posterior distribution of model parameters and simulated datasets $z$
 which are within some small distance $\varepsilon$ of the observed data $y$,
-\[
+\begin{align}
   \pi_{\varepsilon}(\theta, z \mid y) =
   \frac{\Pr(\theta) \Pr(z \mid \theta) \I_{A_{\varepsilon, y}} (z)}
   {\int_{A_{\varepsilon, y} \times \Theta} \Pr(\theta) \Pr(z \mid \theta) \d \theta}.
-\]
+  \label{eq:abctarget}
+\end{align}
 Here, $A_{\varepsilon, y}$ is an $\varepsilon$-ball around $y$ with
 respect to $\rho$, $\Theta$ is the space of all possible model parameters, and
-$\I$ is the indicator function~\autocite{marin2012approximate}.
-{\color{blue}\uline{The term $\Pr(z \mid \theta)$ appears to be the bothersome
-likelihood again, but this will turn out not to be a problem because we are
-simulating $z$ ourselves. In fact, it is possible to sample from this
-distribution exactly (see next section).}}
+$\I$ is the indicator function~\autocite{marin2012approximate}. The
+distribution $\pi_\varepsilon(\theta, z \mid y)$ will be referred to as
+the \textit{\gls{ABC} target distribution}. {\color{blue}\uline{The term $\Pr(z
+\mid \theta)$ appears to be the bothersome likelihood again, but this will turn
+out not to be a problem because we are simulating $z$ ourselves. In fact, it is
+possible to sample from this distribution exactly (see next section).}}
 
 {\color{blue}\uline{To return to the context of this thesis, the observed data
 $y$ is an estimated transmission tree for a viral epidemic under investigation.
@@ -1191,21 +1193,17 @@ parameters, but only if the simulated transmission tree is sufficiently close
 to the true tree. Otherwise, the probability density is zero.}}
 
 {\color{red}\sout{As we shall see in the next section, this distribution can
-be sampled from exactly. The word ``approximate'' derives from the assumption
-that,}}
-{\color{blue}\uline{It is not yet obvious that the \gls{ABC} target
-distribution just presented can in fact be used to approximate the true
-posterior. TODO }}
-
+be sampled from exactly. The word ``approximate'' derives from assumption that,
 for a suitably chosen distance $\rho$ and a small enough $\varepsilon$, the
 marginal in $z$ of this distribution approximates the posterior of
-interest~\autocite{marin2012approximate}. That is,
+interest~\autocite{marin2012approximate}. That is, }}
+{\color{blue}\uline{In fact, it is not the \gls{ABC} target distribution
+itself, but rather its marginal in $z$, which approximates the posterior
+distribution. In other words, we claim that }} 
 \[
-  \int \pi_\varepsilon(\theta, z \mid y) \d z \approx f(\theta \mid y).
+  \int \pi_\varepsilon(\theta, z \mid y) \d z \approx \Pr(\theta \mid y).
 \]
-The distribution $\pi_\varepsilon(\theta, z \mid y)$ is variously referred to
-as the \textit{\gls{ABC} target distribution} or the \gls{ABC} approximation
-to the posterior. The intuition for why this approximation might be reasonable
+The intuition for why this approximation might be reasonable
 comes from the fact that, when $\varepsilon = 0$, the $\varepsilon$-ball around
 $y$ should contain only $y$ itself, hence the integral on the left is exactly
 equal to the posterior. Thus, by taking $\varepsilon$ small, we should attain
@@ -1214,13 +1212,15 @@ similarity between datasets reasonably well. However, the accuracy of the
 \gls{ABC} approximation depends heavily on the choice of distance function
 \autocite{aeschbacher2012novel,blum2013comparative}.}}
 
+\subsubsection{Distance functions and summary statistics in ABC}
+
 In many applications {\color{blue}\uline{(eg. \autocite{fu1997estimating,
 tanaka2006using})}}, $\rho$ is defined as $\rho(S(\cdot), S(\cdot))$ where $S$
 is a function which maps data points into a vector of summary statistics.
 {\color{blue}\uline{In the context of \gls{ABC}, a summary statistic $S$ is
 called \defn{sufficient} if} 
 \[
-  f(\theta \mid y) = f(\theta \mid S(y)).
+  \Pr(\theta \mid y) = \Pr(\theta \mid S(y)).
 \]
 \uline{That is, sufficiency implies that the data can be replaced with the
 summary statistic without losing any information about the posterior
@@ -1333,12 +1333,23 @@ The most recently developed class of algorithm for \gls{ABC} is
 with \gls{ABC}-\gls{MCMC}, the algorithm is a straightforward modification of
 an existing Bayesian inference method, in this case the \gls{SMC} sampler
 (\cref{subsec:smcsamp}). The sequence of target distributions is defined as
-$\pi_i = \pi_{\varepsilon_i}(x \mid y)$ for a decreasing sequence of tolerances
-$\varepsilon_i$. The intention is for the algorithm to progress smoothly
-through a sequence of target distributions which ends at the \gls{ABC}
-approximation to the posterior. {\color{blue}\uline{The initial importance
-distribution, denoted as $\eta_0$ in} \cref{alg:smcsamp}, \uline{is taken to be}
-$\Pr(\theta) \Pr(z \mid \theta)$. TODO}
+$\pi_i(x) = \pi_{\varepsilon_i}(x \mid y)$ for a decreasing sequence of
+tolerances $\varepsilon_i$. The intention is for the algorithm to progress
+smoothly through a sequence of target distributions which ends at the \gls{ABC}
+approximation to the posterior. {\color{blue}\uline{The initial value
+$\varepsilon_0$ is set to $\infty$, which makes the first distribution in the
+sequence}
+\[
+  \pi_0(\theta, z) = \frac{\Pr(\theta) \Pr(z \mid \theta)}
+               {\int_{\R \times \Theta} \Pr(\theta) \Pr(z \mid \theta) \d\theta \d z}.
+\]
+\uline{For brevity, we have ommitted the dependence on the observed data $y$.
+In the terminology of} \cref{alg:smc}, \uline{the numerator is the first of the
+$\gamma$'s, that is, $\gamma_0 = \Pr(\theta) \Pr(z \mid \theta)$. Sampling in
+proportion to $\gamma_0$ is straightforward and was already demonstrated for
+rejection \gls{ABC} above. Because the sampling is exact, the initial
+importance weights are all set equal to 1 and normalized to $1/n$ where $n$ is
+the number of particles.}}
 
 As discussed in \cref{subsec:smcsamp}, the
 choices of the kernels $K$ and $L$ is problem-specific, and so appropriate
@@ -1350,12 +1361,12 @@ del2012adaptive}.
   \caption{\gls{ABC}-\gls{SMC}.}
   \begin{algorithmic}
     \For {$k = 1$ to $n$}
-      \State Sample $x_1^{(k)}$ from $\eta_1(x_1)$
-      \Comment{Initialize the $k$th particle}
-      \State $w^{(k)} \gets \gamma_1(x_1^{(k)}) / \eta_1(x_1^{(k)})$
-      \State Normalize the weights so that $\sum w = 1$
+      \State Sample $x_1^{(k)}$ from $\Pr(\theta) \Pr(z \mid \theta)$
+      \Comment{Draw $\theta$ from the prior and simulate $z$ from $\theta$}
+      \State $w^{(k)} \gets 1/n$
     \EndFor
-    \For {$i = 2$ to $d$}
+    \For {$i = 2$ to $i_{\max}$}
+      \Comment{$i_{\max}$ is a user-specified number of iterations}
       \For {$k = 1$ to $n$}
         \State Sample $x_i^{(k)}$ from $K(x_{i-1}^{(k)}, x_i)$
         \Comment Extend the $k$th particle

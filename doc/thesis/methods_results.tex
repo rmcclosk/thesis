@@ -20,7 +20,7 @@ gained through the simulation experiments. We conclude the chapter with a
 unified discussion of the three research aims, including interpretation of the
 results of both the simulated and real data experiments, as well as an
 examination of the limitations of our approach and opportunities for future
-investigation. }}
+investigation.}}
 
 \section{\software{Netabc}: a computer program for estimation of contact
 network parameters with kernel-assisted ABC}
@@ -960,9 +960,9 @@ and little variation between scenarios.
 
 {\color{red}\sout{The accuracy of grid search estimates largely paralleled that
 of the \gls{kSVR} classifiers.}}\Cref{fig:gridest} shows point estimates and
-95\% highest density intervals for each of the \gls{BA} parameters, for one
-replicate experiment with 500-tip trees. Plots showing the point estimates for
-all replicates can be found in
+{\color{blue}\uline{50\%}} and 95\% highest density intervals for each of the
+\gls{BA} parameters, for one replicate experiment with 500-tip trees. Plots
+showing the point estimates for all replicates can be found in
 \cref{fig:gridptalpha,fig:gridptI,fig:gridptm,fig:gridptN}. For all parameters
 except $m$, the error of point estimates was negatively correlated with the
 number of sampled tips in the tree (for \gls{alpha}, \gls{I}, and \gls{N}
@@ -974,11 +974,8 @@ respectively: Spearman's $\rho$ = \ensuremath{-0.22},
 The 95\% highest density intervals obtained for all parameters were extremely
 wide, occupying $>$75\% of the grid in all cases (\cref{fig:gridest}).
 
-{\color{blue}\uline{Similar to the results obtained in the previous experiment,
-the \gls{alpha} and \gls{I} parameters were estimated with comparably high
-accuracy, while the other two parameters were less identifiable. Across all
-replicates, $R^2$ values for the correlations between the estimated and true
-values were
+{\color{blue}\uline{Across all replicates, $R^2$ values for the correlations
+between the estimated and true values were
     $0.91$,
     $0.91$,
     $0.25$, and
@@ -996,35 +993,29 @@ representing
     $17$\%
 of the respective grids.}
 
-\uline{Qualitatively, three of the parameters (excluding \gls{N}) exhibited
-weak identifiability within particular sections of the grid. The \glspl{IQR}
-for \gls{alpha} were nearly identical for the values \gls{alpha} $\leq 1$,
-spanning approximately [0-1.3]. Similarly, the \glspl{IQR} for \gls{alpha} $>
-1$ were all approximately [0.7-2]} (\cref{fig:gridest}). \uline{The
-distributions of kernel scores for these groups of values were also
-qualitatively similar} (\cref{fig:gridalpha}), \uline{although the value
-\gls{alpha} = 1.25 exhibited a more pronounced peak in kernel scores around the
-true value.}
+\uline{Qualitatively, each of the parameters exhibited weak identifiability
+within particular sections of the grid} (\cref{fig:gridest}). \uline{The 50\%
+\glspl{HDI} for \gls{alpha} were nearly identical for the values $\gls{alpha}
+\leq 0.5$ (on average [X-X]) and for $\gls{alpha} \geq 1.5$ ([X-X]).
+For \gls{I}, similar 50\% \gls{HPD} were observed for $\gls{I} \leq 1500$
+(average [X-X]) and for $\gls{I} > 3000$ ([X-X]). For \gls{m}, both the 50\%
+and 95\% \glspl{HDI} were generally identical for $\gls{m} > 2$ (average [X-X]
+for 50\% and [X-X] for 95\% \gls{HDI}). We did not observe a similar pattern
+for \gls{N}, however the boundaries of the \gls{HDI} did not always
+monotonically increase with the actual value.}
 
-\uline{For \gls{I}, the \glspl{IQR} were nearly identical for the values
-\gls{I} $\leq 2000$ (approximately [500,3800]), and for the values \gls{I} $>
-3000$ (approximately [1600-5000]). Kernel score distributions for all \gls{I}
-values exibited a similar rounded shape} (\cref{fig:gridI}), \uline{although
-this was most pronounced for values near the upper and lower extremes of the
-grid.}
-
-\uline{The \glspl{IQR} for \gls{m} were distinct for \gls{m} = 1 and 2, but
-were similar for all values of \gls{m} $> 2$ (approximately [2-6]). The kernel
-score distribution for \gls{m} = 1 was distinct from the others, having a large
-peak at \gls{m} = 1, while the others exhibited a valley at \gls{m} = 1 and
-were mostly flat everywhere else} (\cref{fig:gridm}). 
-
-\uline{The \glspl{IQR} for \gls{N} did not form any obvious groups like the
-other parameters' \glspl{IQR}} (\cref{fig:gridest}). \uline{The kernel score
-distribution for \gls{N} = 1000 was distinct, having a peak at the true value}
-(\cref{fig:gridN}). \uline{The distributions for \gls{N} $> 1000$ were all
-relatively similar, having a valley at the low end of the grid and being mostly 
-flat everywhere else.}}
+\Cref{fig:gridalpha,fig:gridI,fig:gridm,fig:gridN} \uline{show kernel score
+distributions of kernel scores along the grid for each parameter. The
+distributions for some values, such as $\gls{alpha} = 1.25$, $\gls{I} = 500$
+and $4500$, $\gls{m} = 1$, and $\gls{N} = 1000$, exhibited distinct peaks
+around the true value. This indicates that these values produce distinctively
+shaped trees that can be identified with the tree kernel, when the other
+parameter values are fixed and known. However, for the majority of values of
+each parameter, the score distributions were fairly flat around the true value. 
+This means there is a range of values which produce similarly shaped trees, and
+the parameter is less identifiable within that range. The exception was
+\gls{I}, whose score distributions exhibited a more or less rounded shape with
+the highest point near the true value. }}
 
 {\color{red}\sout{The \gls{alpha} parameter was the most accurately estimated,
 with point estimates having an average deviation of 
@@ -1213,7 +1204,7 @@ increases.}}
 
 
 % latex table generated in R 3.2.3 by xtable 1.8-2 package
-% Mon Jun  6 15:27:33 2016
+% Thu Jun  9 16:06:29 2016
 \begin{table}[ht]
 \centering
 \begin{tabular}{llll}
@@ -1230,7 +1221,7 @@ Parameter & Estimate & Standard error & $p$-value \\
 \label{tab:glmalpha}
 \end{table}
 % latex table generated in R 3.2.3 by xtable 1.8-2 package
-% Mon Jun  6 15:27:33 2016
+% Thu Jun  9 16:06:29 2016
 \begin{table}[ht]
 \centering
 \begin{tabular}{llll}
@@ -1692,11 +1683,25 @@ Columbia, Canada (the ``BC data''). The datasets are summarized in
 \end{table}
 
 We downloaded all sequences associated with each published study from GenBank.
-For the \textcite{novitsky2014impact} data, each \textit{env} sequence was
-aligned pairwise to the HXB2 reference sequence (GenBank accession number
-K03455), and the hypervariable regions were clipped out with
-\software{BioPython} version 1.66+~\autocite{cock2009biopython}. Sequences were
-multiply aligned using \software{MUSCLE} version 3.8.31
+{\color{blue}\uline{For the \textcite{niculescu2015recent} data, only sequences
+from \gls{IDU} (whose sequence identifiers included the letters ``DU'') were
+included in the analysis. \textcite{kao2011surveillance} found a very strong
+association in their study population between subtype and risk group - subtype
+B was almost always associated with \gls{MSM}, whereas \gls{IDU} were usually
+infected with a circulating recombinant form. Since there were many more
+subtype B sequences in their data than sequences of other subtypes, we
+restricted our analysis to the subtype B sequences and labelled this dataset as
+\gls{MSM}. Two datasets (\textcite{zetterberg2004two} and
+\textcite{grabowski2014role}) included both \textit{env} and \textit{gag}
+sequences. Each gene was analyzed separately to assess the robustness of
+\software{netabc} to the particular \gls{HIV} gene sequence used to estimate a
+transmission tree.}}
+
+{\color{red}\sout{For the \textcite{novitsky2014impact} data,}} Each
+\textit{env} sequence was aligned pairwise to the HXB2 reference sequence
+(GenBank accession number K03455), and the hypervariable regions were clipped
+out with \software{BioPython} version 1.66+~\autocite{cock2009biopython}.
+Sequences were multiply aligned using \software{MUSCLE} version 3.8.31
 \autocite{edgar2004muscle}, and alignments were manually inspected with
 \software{Seaview} version 4.4.2 \autocite{gouy2010seaview}. Phylogenies were
 constructed from the nucleotide alignments by approximate maximum likelihood
@@ -1741,131 +1746,3 @@ $\gamma$ values was taken as a point estimate for the associated dataset.
 
 
 
-We applied kernel-assisted ABC to five published HIV datasets (\cref{tab:data}),
-and found substantial heterogeneity among the parameter estimates
-(\cref{fig:abchpd,fig:abchpdm2}). Plots of the marginal posterior distributions
-for each dataset are shown in
-\cref{fig:cuevas,fig:li,fig:niculescu,fig:novitsky,fig:wang}.
-Two of the datasets (\textcite{niculescu2015recent, wang2015targeting}) had
-estimated $\alpha$ values near unity for the prior allowing $m = 1$ (posterior
-mean [95\% \gls{HPD}] 
-  0.73 
-  [0.05 - 
-   1.18]
-and
-  0.55 
-  [0.01 -
-   0.99] respectively).
-The estimates did not change appreciably when $m = 1$ was disallowed by the
-prior, although the credible interval of the \textcite{niculescu2015recent}
-data was narrower
-  (0.05 - 
-   1.18).
-When $m = 1$ was permitted, the \textcite{li2015hiv, cuevas2009hiv} both had
-low estimated $\alpha$ values
-  (0.33 
-  [0 - 
-  0.76]
-and
-  0.27 
-  [0 -
-   0.59]). 
-However, the estimates increased when $m = 1$ was not permitted, although the
-HPD intervals remained roughly the same
-  (0.58 
-  [0.06 - 
-  0.99]
-and
-  0.48 
-  [0.02 -
-   0.87]).
-The \textcite{novitsky2014impact} data had a fairly low estimated $\alpha$
-for both priors on $m$
-  (0.55 for $m \geq 1$;
-   0.53 for $m \geq 2$).
-However, the confidence interval was much wider when $m = 1$ was allowed
-  ([0 -
-    1.75] for $m \geq 1$ vs.
-   [0 -
-    1.75] for $m \geq 2$).
-
-For all the datasets except \citeauthor{novitsky2014impact}, estimated values
-of $I$ were below 2000 when $m = 1$ was allowed, with relatively narrow HPD
-intervals compared to the nonzero prior density region
-  (\citeauthor{cuevas2009hiv}, 701 
-  [289 -
-   1279];
-   \citeauthor{niculescu2015recent}, 747
-  [136 - 
-   2378];
-  \citeauthor{li2015hiv}, 1390 
-  [310 -
-   2821];
-   \citeauthor{wang2015targeting}, 675
-  [175 - 
-   1400]).
-The \citeauthor{novitsky2014impact} data was the outlier, with a very high
-estimated $I$, and HPD interval spanning almost the entire prior region
-  (5431 
-  [183 -
-   8739]).
-The $I$ estimates and HPD intervals were generally robust to the choice of
-prior on $m$, with slightly narrower HPD intervals (compare
-\cref{fig:abchpd,fig:abchpdm2}).
-
-The posterior mean of $m$ was equal to 1 for all but the
-\citeauthor{novitsky2014impact} data, when this value was allowed. However, the
-upper bound of the HPD interval was different for each dataset
-  (\citeauthor{niculescu2015recent}, 4;
-   \citeauthor{wang2015targeting}, 1;
-   \citeauthor{li2015hiv}, 1;
-   \citeauthor{cuevas2009hiv}, 1).
-When $m = 1$ was disallowed, the estimate for all datasets was either 2 or 3,
-with HPD intervals spanning the entire prior region. The estimates for the
-total number of nodes $N$ were largely uninformative for all samples, with
-almost all posterior mean estimates greater than 7500 and HPD intervals
-spanning almost the entire nonzero prior density region. The only exception was
-the \citeauthor{li2015hiv} data, for which the estimate was lower 
-  (5916)
-when $m = 1$ was allowed.
-
-\begin{figure*}[ht]
-  \centering
-  \includegraphics{realdata-hpd-bc}
-  \caption[
-      Maximum \textit{a posteriori} point estimates and 95\% HPD intervals for
-      parameters of the BA network model, fitted to six HIV datasets
-      with \software{netabc}.]
-  {
-      Maximum \textit{a posteriori} point estimates and 95\% HPD intervals for
-      parameters of the BA network model, fitted to six HIV datasets with
-      \software{netabc}. Legend labels indicate risk group and country of
-      origin. Abbreviations: IDU, injection drug users; MSM, men who have sex
-      with men; HET, heterosexual.
-  }
-  \label{fig:abchpd}
-\end{figure*}
-
-To make our analyses comparable to the existing network literature, we
-estimated values of the power law exponent $\gamma$ for each of the datasets 
-investigated, using the posterior median estimates with the prior allowing
-\gls{m} = 1. The results are summarized in \cref{tab:gamma}. All of the
-estimated exponents were in the range $2 \leq \gamma \leq 2.5$, which is on the
-lower end of the range $2 \leq \gamma \leq 4$ reported in the literature.
-
-\begin{table}
-    \centering
-    \input{\tablepath/realdata-gamma.tex}
-    \caption[
-        Estimated power law exponents for six HIV datasets based on maximum
-        \textit{a priori} estimates of BA model parameters.
-    ]{
-        Estimated power law exponents for six HIV datasets based on maximum
-        \textit{a priori} estimates of BA model parameters. 100 networks were
-        simulated using posterior mean parameter estimates obtained with
-        \software{netabc}. The power law exponent $\gamma$ was estimated for
-        each, and the median of those estimates was used as a point estimate
-        for the corresponding dataset.
-    }
-    \label{tab:gamma}
-\end{table}

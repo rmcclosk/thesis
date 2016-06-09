@@ -22,7 +22,7 @@ gained through the simulation experiments. We conclude the chapter with a
 unified discussion of the three research aims, including interpretation of the
 results of both the simulated and real data experiments, as well as an
 examination of the limitations of our approach and opportunities for future
-investigation. }}
+investigation.}}
 
 \section{\software{Netabc}: a computer program for estimation of contact
 network parameters with kernel-assisted ABC}
@@ -1139,7 +1139,9 @@ shaped trees that can be identified with the tree kernel, when the other
 parameter values are fixed and known. However, for the majority of values of
 each parameter, the score distributions were fairly flat around the true value. 
 This means there is a range of values which produce similarly shaped trees, and
-the parameter is less identifiable within that range.}}
+the parameter is less identifiable within that range. The exception was
+\gls{I}, whose score distributions exhibited a more or less rounded shape with
+the highest point near the true value. }}
 
 {\color{red}\sout{The \gls{alpha} parameter was the most accurately estimated,
 with point estimates having an average deviation of 
@@ -1894,11 +1896,25 @@ Columbia, Canada (the ``BC data''). The datasets are summarized in
 \end{table}
 
 We downloaded all sequences associated with each published study from GenBank.
-For the \textcite{novitsky2014impact} data, each \textit{env} sequence was
-aligned pairwise to the HXB2 reference sequence (GenBank accession number
-K03455), and the hypervariable regions were clipped out with
-\software{BioPython} version 1.66+~\autocite{cock2009biopython}. Sequences were
-multiply aligned using \software{MUSCLE} version 3.8.31
+{\color{blue}\uline{For the \textcite{niculescu2015recent} data, only sequences
+from \gls{IDU} (whose sequence identifiers included the letters ``DU'') were
+included in the analysis. \textcite{kao2011surveillance} found a very strong
+association in their study population between subtype and risk group - subtype
+B was almost always associated with \gls{MSM}, whereas \gls{IDU} were usually
+infected with a circulating recombinant form. Since there were many more
+subtype B sequences in their data than sequences of other subtypes, we
+restricted our analysis to the subtype B sequences and labelled this dataset as
+\gls{MSM}. Two datasets (\textcite{zetterberg2004two} and
+\textcite{grabowski2014role}) included both \textit{env} and \textit{gag}
+sequences. Each gene was analyzed separately to assess the robustness of
+\software{netabc} to the particular \gls{HIV} gene sequence used to estimate a
+transmission tree.}}
+
+{\color{red}\sout{For the \textcite{novitsky2014impact} data,}} Each
+\textit{env} sequence was aligned pairwise to the HXB2 reference sequence
+(GenBank accession number K03455), and the hypervariable regions were clipped
+out with \software{BioPython} version 1.66+~\autocite{cock2009biopython}.
+Sequences were multiply aligned using \software{MUSCLE} version 3.8.31
 \autocite{edgar2004muscle}, and alignments were manually inspected with
 \software{Seaview} version 4.4.2 \autocite{gouy2010seaview}. Phylogenies were
 constructed from the nucleotide alignments by approximate maximum likelihood
@@ -1961,11 +1977,20 @@ $\gamma$ values was taken as a point estimate for the associated dataset.
   setkey(low2, dataset)
 @
 
-We applied kernel-assisted ABC to five published HIV datasets (\cref{tab:data}),
-and found substantial heterogeneity among the parameter estimates
-(\cref{fig:abchpd,fig:abchpdm2}). Plots of the marginal posterior distributions
-for each dataset are shown in
+We applied kernel-assisted ABC to {\color{red}\sout{five}}
+{\color{blue}\uline{seven}} published HIV datasets, {\color{blue}\uline{plus
+one in-house, unpublished dataset}} (\cref{tab:data}).
+{\color{red}\sout{and found substantial heterogeneity among the parameter
+estimates}} {\color{blue}\uline{Posterior mean point estimates and 50\% and
+95\% \glspl{HPD} for each parameter are shown in} \cref{fig:abchpd}, \uline{and
+marginal posterior distributions in}
 \cref{fig:cuevas,fig:li,fig:niculescu,fig:novitsky,fig:wang}.
+\Cref{fig:abchpdm2} \uline{shows point estimates and \glspl{HPD} obtained when
+the value $\gls{m} = 1$ was disallowed by the prior. Since the results
+indicated that $\gls{m} = 1$ was the most credible value for several datasets, 
+all results discussed henceforth are for the prior $\gls{m} \sim
+\DiscreteUniform(1, 5)$ unless otherwise stated.}}
+
 Two of the datasets (\textcite{niculescu2015recent, wang2015targeting}) had
 estimated $\alpha$ values near unity for the prior allowing $m = 1$ (posterior
 mean [95\% \gls{HPD}] 

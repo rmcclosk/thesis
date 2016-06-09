@@ -47,6 +47,7 @@
 \newcommand{\F}{\mathcal{F}}
 \newcommand{\X}{\mathcal{X}}
 \newcommand{\E}{\mathbb{E}}
+\newcommand{\R}{\mathbb{R}}
 \renewcommand{\L}{\mathcal{L}}
 
 \DeclareMathOperator*{\argmin}{arg\,min}
@@ -54,6 +55,7 @@
 
 \DeclareMathOperator{\Exponential}{Exponential}
 \DeclareMathOperator{\Uniform}{Uniform}
+\DeclareMathOperator{\DiscreteUniform}{DiscreteUniform}
 \DeclareMathOperator{\Var}{Var}
 \DeclareMathOperator{\inc}{in}
 \DeclareMathOperator{\out}{out}
@@ -116,15 +118,15 @@
   description=preferential attachment power parameter in Barab\'asi-Albert networks
 }
 \newglossaryentry{m}{
-  name=$m$,
+  name=\ensuremath{m},
   description=number of edges added per vertex when constructing a Barab\'asi-Albert network
 }
 \newglossaryentry{N}{
-  name=$N$,
+  name=\ensuremath{N},
   description=total number of nodes in a contact network
 }
 \newglossaryentry{I}{
-  name=$I$,
+  name=\ensuremath{I},
   description=number of infected nodes in a contact network at the time of
   transmission tree sampling
 }
@@ -133,31 +135,27 @@
   description=exponent of power-law degree distribution in scale-free networks
 }
 \newglossaryentry{p}{
-  name=$p$,
+  name=\ensuremath{p},
   description=edge density parameter in Erd\H{o}s-R\'enyi networks
 }
 \newglossaryentry{lambda}{
-  name=$\lambda$,
+  name=\ensuremath{\lambda},
   description=decay factor meta-parameter for tree kernel
 }
 \newglossaryentry{sigma}{
-  name=$\sigma$,
+  name=\ensuremath{\sigma},
   description=radial basis function variance meta-parameter for tree kernel
 }
 \newglossaryentry{n}{
-  name=$n$,
+  name=\ensuremath{n},
   description=number of particles used for ABC-SMC
 }
 \newglossaryentry{M}{
-  name=$M$,
+  name=\ensuremath{M},
   description=number of simulated datasets per particle in ABC-SMC
 }
-\newglossaryentry{tmrca}{
-  name=$t_{\mathrm{mrca}}$,
-  description=time to most recent common ancestor of a group of extant taxa
-}
 \newglossaryentry{alphaess}{
-  name=$\alpha_{\ESS}$,
+  name=\ensuremath{\alpha_{\ESS}},
   description=per-iteration rate of expected sample size decay in adaptive ABC-SMC
 }
 
