@@ -1085,9 +1085,9 @@ and little variation between scenarios.
 
 {\color{red}\sout{The accuracy of grid search estimates largely paralleled that
 of the \gls{kSVR} classifiers.}}\Cref{fig:gridest} shows point estimates and
-95\% highest density intervals for each of the \gls{BA} parameters, for one
-replicate experiment with 500-tip trees. Plots showing the point estimates for
-all replicates can be found in
+{\color{blue}\uline{50\%}} and 95\% highest density intervals for each of the
+\gls{BA} parameters, for one replicate experiment with 500-tip trees. Plots
+showing the point estimates for all replicates can be found in
 \cref{fig:gridptalpha,fig:gridptI,fig:gridptm,fig:gridptN}. For all parameters
 except $m$, the error of point estimates was negatively correlated with the
 number of sampled tips in the tree (for \gls{alpha}, \gls{I}, and \gls{N}
@@ -1100,11 +1100,8 @@ respectively: Spearman's $\rho$ = \Sexpr{tip.cor["alpha", round(estimate, 2)]},
 The 95\% highest density intervals obtained for all parameters were extremely
 wide, occupying $>$75\% of the grid in all cases (\cref{fig:gridest}).
 
-{\color{blue}\uline{Similar to the results obtained in the previous experiment,
-the \gls{alpha} and \gls{I} parameters were estimated with comparably high
-accuracy, while the other two parameters were less identifiable. Across all
-replicates, $R^2$ values for the correlations between the estimated and true
-values were
+{\color{blue}\uline{Across all replicates, $R^2$ values for the correlations
+between the estimated and true values were
     $\Sexpr{tests["alpha", round(rsquared, 2)]}$,
     $\Sexpr{tests["I", round(rsquared, 2)]}$,
     $\Sexpr{tests["m", round(rsquared, 2)]}$, and
@@ -1122,35 +1119,27 @@ representing
     $\Sexpr{tests["N", round(rel.err)]}$\%
 of the respective grids.}
 
-\uline{Qualitatively, three of the parameters (excluding \gls{N}) exhibited
-weak identifiability within particular sections of the grid. The \glspl{IQR}
-for \gls{alpha} were nearly identical for the values \gls{alpha} $\leq 1$,
-spanning approximately [0-1.3]. Similarly, the \glspl{IQR} for \gls{alpha} $>
-1$ were all approximately [0.7-2]} (\cref{fig:gridest}). \uline{The
-distributions of kernel scores for these groups of values were also
-qualitatively similar} (\cref{fig:gridalpha}), \uline{although the value
-\gls{alpha} = 1.25 exhibited a more pronounced peak in kernel scores around the
-true value.}
+\uline{Qualitatively, each of the parameters exhibited weak identifiability
+within particular sections of the grid} (\cref{fig:gridest}). \uline{The 50\%
+\glspl{HDI} for \gls{alpha} were nearly identical for the values $\gls{alpha}
+\leq 0.5$ (on average [X-X]) and for $\gls{alpha} \geq 1.5$ ([X-X]).
+For \gls{I}, similar 50\% \gls{HPD} were observed for $\gls{I} \leq 1500$
+(average [X-X]) and for $\gls{I} > 3000$ ([X-X]). For \gls{m}, both the 50\%
+and 95\% \glspl{HDI} were generally identical for $\gls{m} > 2$ (average [X-X]
+for 50\% and [X-X] for 95\% \gls{HDI}). We did not observe a similar pattern
+for \gls{N}, however the boundaries of the \gls{HDI} did not always
+monotonically increase with the actual value.}
 
-\uline{For \gls{I}, the \glspl{IQR} were nearly identical for the values
-\gls{I} $\leq 2000$ (approximately [500,3800]), and for the values \gls{I} $>
-3000$ (approximately [1600-5000]). Kernel score distributions for all \gls{I}
-values exibited a similar rounded shape} (\cref{fig:gridI}), \uline{although
-this was most pronounced for values near the upper and lower extremes of the
-grid.}
-
-\uline{The \glspl{IQR} for \gls{m} were distinct for \gls{m} = 1 and 2, but
-were similar for all values of \gls{m} $> 2$ (approximately [2-6]). The kernel
-score distribution for \gls{m} = 1 was distinct from the others, having a large
-peak at \gls{m} = 1, while the others exhibited a valley at \gls{m} = 1 and
-were mostly flat everywhere else} (\cref{fig:gridm}). 
-
-\uline{The \glspl{IQR} for \gls{N} did not form any obvious groups like the
-other parameters' \glspl{IQR}} (\cref{fig:gridest}). \uline{The kernel score
-distribution for \gls{N} = 1000 was distinct, having a peak at the true value}
-(\cref{fig:gridN}). \uline{The distributions for \gls{N} $> 1000$ were all
-relatively similar, having a valley at the low end of the grid and being mostly 
-flat everywhere else.}}
+\Cref{fig:gridalpha,fig:gridI,fig:gridm,fig:gridN} \uline{show kernel score
+distributions of kernel scores along the grid for each parameter. The
+distributions for some values, such as $\gls{alpha} = 1.25$, $\gls{I} = 500$
+and $4500$, $\gls{m} = 1$, and $\gls{N} = 1000$, exhibited distinct peaks
+around the true value. This indicates that these values produce distinctively
+shaped trees that can be identified with the tree kernel, when the other
+parameter values are fixed and known. However, for the majority of values of
+each parameter, the score distributions were fairly flat around the true value. 
+This means there is a range of values which produce similarly shaped trees, and
+the parameter is less identifiable within that range.}}
 
 {\color{red}\sout{The \gls{alpha} parameter was the most accurately estimated,
 with point estimates having an average deviation of 
