@@ -26,7 +26,12 @@ wtd.hpd <- function (x, wt, conf=0.95) {
 #' @export
 wtd.hpd.discrete <- function (x, wt, conf=0.95) {
     if (any(diff(sort(unique(x))) != 1)) {
-        stop("Not implemented yet for non-consecutive integers.")
+        x <- c(x, min(x) : max(x))
+        wt <- c(wt, rep(0, max(x) - min(x) + 1))
+    }
+    if (length(unique(x)) == 1) {
+        warning("Only one value passed to wtd.hpd.discrete")
+        return(c(lower=x[1], upper=x[1]))
     }
     
     # make an empirical CDF and find the mode
