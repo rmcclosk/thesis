@@ -345,6 +345,8 @@ substantially.}}
     d <- setDT(collect.data("../../simulations/aggregates/hpd/*"))
 @
 
+\subsubsection{Preferential attachment power}
+
 For all datasets we examined, the posterior mean estimates for \gls{alpha} were
 sub-linear, ranging from 
     \Sexpr{d[m_min == 1 & parameter == "alpha", round(min(mean), 2)]}
@@ -409,6 +411,8 @@ groups studied cohorts of acutely infected \gls{MSM} in major Chinese cities
 estimated to have a lower \acrlong{PA} power and larger infected population
 than the \textcite{wang2015targeting} data\ldots
 
+\subsubsection{Power law exponent}
+
 % for discussion
 In order to compare our results to existing literature on networks and
 distributions of partner counts, we have reported estimated values for the
@@ -448,16 +452,53 @@ between 2.08 and 2.87 for all but one of the networks\ldots
 %all the posterior density was assigned to $m = 1$ when this value was allowed,
 %indicating that the network was more likely to have an acyclic tree structure.
 
-{\color{blue}\uline{
+\subsubsection{HIV prevalence}
+
+{\color{blue}\uline{The true \gls{HIV} prevalence in a population can be
+difficult to estimate for several reasons. \gls{HIV}-infected individuals may
+be asymptomatic for months or years, possibly delaying their awareness of their
+status. In many contexts, the risk factors for acquisition of \gls{HIV} are
+illegal or stigmatized, which may represent a barrier to testing, treatment,
+and/or disclosure of status. Several of the studies whose data we analysed
+report the number of new infections over the study period. We expect these
+numbers to be lower, perhaps substantially, than the true prevalence. We also
+note that our simulation study showed that the estimates of \gls{I} obtained
+with \software{netabc} were upwardly biased, the severity increasing with the
+true value of \gls{I}. In addition, our initial exploratory analysis showed
+that the identifiability of \gls{I} decreases with the number of sampled tips 
+(\cref{fig:Icrossv,fig:Ikpca}). In real world studies, the proportion of
+infected individuals sampled is usually low, whic may imede our ability to
+estimate \gls{I}.
+
 The estimates of the prevalence \gls{I} were largely robust to the choice of
-prior on \gls{m}} (\cref{fig:abchpd,fig:abchpdm2}).
-\textcite{niculescu2015recent} \uline{reported that 494 new HIV infections were
-diagnosed among the studied population (\glspl{IDU} in Bucharest) during the
-study period. Our estimate of the prevalence was higher (X), although the 95\%
-\gls{HPD} interval did contain the value 494. In addition, it is not
-unreasonable that a substantial fraction of the \gls{HIV}-positive individuals
-in an \gls{IDU} population could be undiagnosed, given that these populations
-are often marginalized.}
+prior on \gls{m}} (\cref{fig:abchpd,fig:abchpdm2}). 
+
+\textcite{niculescu2015recent} and \textcite{zetterberg2004two} both reported 
+on epidemics in \gls{IDU} populations in Eastern Europe (Romania and Estonia,
+respectively). The point estimates of \gls{I} for these two datasets were
+similar (X and X), although the confidence interval around the
+\textcite{niculescu2015recent} data was wider. \textcite{niculescu2015recent}
+\uline{reported that 494 new \gls{HIV} infections were diagnosed among the
+studied population (\glspl{IDU} in Bucharest) during the study period, and this
+value was contained in our 95\% \gls{HPD} (X-X). On the other hand,
+\textcite{zetterberg2004two} collected samples from several locations
+throughout Estonia; using their reported incidence estimates, there were
+approximately 2000 new infections in the country during the study period. This
+value was outside our 95\% \gls{HPD} (X-X). The authors indicated that their
+sample was ``convenience based''. It is possible that other, harder-to-reach
+individuals had no contacts with those sampled, which would reduce the apparent
+network size. Alternatively, the low estimated prevalence may have been due to
+the low sampling fraction.}
+
+\uline{The cluster we analysed within the BC data consists primarily of
+\gls{IDU} in Vancouver's downtown east side. This population has been
+intensively targeted by public health interventions. Combined with the routine 
+clinical genotyping performed in BC for all new \gls{HIV} infections, it is not
+unreasonable to suppose that the sampled individuals (399) comprise the
+majority of \gls{HIV}-positive network members.
+
+\textcite{wang2015targeting} and \textcite{li2015hiv} studied \gls{MSM}
+populations in major Chinese cities (Shanghai and Beijing). 
 
 \uline{The individuals sampled by} \textcite{wang2015targeting} \uline{were
 recruited by following a prospective cohort of 2000 \gls{MSM} in Beijing,
@@ -486,7 +527,9 @@ total of 2120. This is substantially greater than the point estimate of X we
 obtained with \gls{ABC}, even without considering the likely possibility that
 there were more infected than sampled individuals. Again, this error may in
 part be due to model misspecification, which highlights the importance of
-selecting a model appropriate to the dataset at hand.} }
+selecting a model appropriate to the dataset at hand.}}
+
+\subsubsection{Caveats? TODO}
 
 Our use of the \gls{BA} model makes several simplifying assumptions. First, we
 assume homogeneity across the network with respect to node behaviour and
