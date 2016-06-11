@@ -1204,7 +1204,7 @@ increases.}}
 
 
 % latex table generated in R 3.2.3 by xtable 1.8-2 package
-% Thu Jun  9 16:06:29 2016
+% Fri Jun 10 18:17:33 2016
 \begin{table}[ht]
 \centering
 \begin{tabular}{llll}
@@ -1221,7 +1221,7 @@ Parameter & Estimate & Standard error & $p$-value \\
 \label{tab:glmalpha}
 \end{table}
 % latex table generated in R 3.2.3 by xtable 1.8-2 package
-% Thu Jun  9 16:06:29 2016
+% Fri Jun 10 18:17:33 2016
 \begin{table}[ht]
 \centering
 \begin{tabular}{llll}
@@ -1691,11 +1691,11 @@ B was almost always associated with \gls{MSM}, whereas \gls{IDU} were usually
 infected with a circulating recombinant form. Since there were many more
 subtype B sequences in their data than sequences of other subtypes, we
 restricted our analysis to the subtype B sequences and labelled this dataset as
-\gls{MSM}. Two datasets (\textcite{zetterberg2004two} and
-\textcite{grabowski2014role}) included both \textit{env} and \textit{gag}
-sequences. Each gene was analyzed separately to assess the robustness of
-\software{netabc} to the particular \gls{HIV} gene sequence used to estimate a
-transmission tree.}}
+\gls{MSM}. Three datasets (\textcite{zetterberg2004two},
+\textcite{grabowski2014role}, and \textcite{mccormack2002early}) included both
+\textit{env} and \textit{gag} sequences. Each gene was analyzed separately to
+assess the robustness of \software{netabc} to the particular \gls{HIV} gene
+sequence used to estimate a transmission tree.}}
 
 {\color{red}\sout{For the \textcite{novitsky2014impact} data,}} Each
 \textit{env} sequence was aligned pairwise to the HXB2 reference sequence
@@ -1712,16 +1712,24 @@ modified version of Path-O-Gen (distributed as part of
 BEAST~\autocite{drummond2007beast}) as described
 previously~\autocite{poon2015phylodynamic}. 
 
-Three of the datasets \autocite[][and the BC data]{li2015hiv,novitsky2014impact}
-were initially much larger than the others, containing 1265, 1299, and 7923
-sequences respectively. To ensure that the analyses were comparable, we reduced
-these to a number of sequences similar to the smaller datasets. For the
-\citeauthor{li2015hiv} and BC datasets, we detected clusters of size 280 and
-399 respectively using a patristic distance cutoff of 0.02 as described
+{\color{red}\sout{Three}} 
+{\color{blue}\uline{Six}} of the datasets 
+\autocite[][and the BC data]{li2015hiv,novitsky2014impact,grabowski2014role,little2014using}
+were initially larger than the others, containing 1265, 1299, 1026/915
+(\textit{env}/\textit{gag}), 648, and 7923 sequences respectively. To ensure
+that the analyses were comparable, we reduced these to a number of sequences
+similar to the smaller datasets. For the \citeauthor{li2015hiv} and BC
+datasets, we detected clusters of size 280 and 399 respectively using a
+patristic distance cutoff of 0.02 as described
 previously~\autocite{poon2015impact}. Only sequences within these clusters were
-carried forward. For the \textcite{novitsky2014impact} data, no large clusters
-were detected using the same cutoff, so we analysed a subtree of size 180
-chosen arbitrarily.
+carried forward. For the
+\textcite{grabowski2014role,novitsky2014impact,little2014using} datasets, no
+large clusters were detected using the same cutoff, so we analysed subsets of
+size 225, 180, and 180 respectively. {\color{blue}\uline{The subset of the
+\citeauthor{grabowski2014role} data was chosen by eye such that the individuals
+were monophyletic in both the \textit{gag} and \textit{env} trees. The other
+subsets were arbitrarily chosen subtrees from phylogenies of the complete
+datasets.}}
 
 For all datasets, we used the priors $\alpha$ $\sim$ Uniform(0, 2) and $N$ and
 $I$ jointly uniform on the region \{$n \leq N \leq 10000$, $n \leq I \leq
@@ -1746,3 +1754,166 @@ $\gamma$ values was taken as a point estimate for the associated dataset.
 
 
 
+We applied \software{netabc} to {\color{red}\sout{five}}
+{\color{blue}\uline{ten}} published HIV datasets, {\color{blue}\uline{plus
+one in-house, unpublished dataset}} (\cref{tab:data}).
+{\color{red}\sout{and found substantial heterogeneity among the parameter
+estimates}} {\color{blue}\uline{Posterior mean point estimates and 50\% and
+95\% \glspl{HPD} for each parameter are shown in} \cref{fig:abchpd}, \uline{and
+marginal posterior distributions in}
+\cref{fig:cuevas,fig:li,fig:niculescu,fig:novitsky,fig:wang}.
+\Cref{fig:abchpdm2} \uline{shows point estimates and \glspl{HPD} obtained when
+the value $\gls{m} = 1$ was disallowed by the prior. Since the results
+indicated that $\gls{m} = 1$ was the most credible value for several datasets, 
+all results discussed henceforth are for the prior $\gls{m} \sim
+\DiscreteUniform(1, 5)$ unless otherwise stated. For clarity, datasets will be
+referred to as their risk group and location. For example, \gls{IDU}/Estonia
+refers to the} \textcite{zetterberg2004two} \uline{dataset.}}
+
+{\color{red}\sout{
+Two of the datasets (\textcite{niculescu2015recent, wang2015targeting}) had
+estimated $\alpha$ values near unity for the prior allowing $m = 1$ (posterior
+mean [95\% \gls{HPD}] 
+  0.73 
+  [0.05 - 
+   1.18]
+and
+  0.55 
+  [0.01 -
+   0.99] respectively).
+The estimates did not change appreciably when $m = 1$ was disallowed by the
+prior, although the credible interval of the \textcite{niculescu2015recent}
+data was narrower
+  (0.05 - 
+   1.18).
+When $m = 1$ was permitted, the \textcite{li2015hiv, cuevas2009hiv} both had
+low estimated $\alpha$ values
+  (0.33 
+  [0 - 
+  0.76]
+and
+  0.27 
+  [0 -
+   0.59]). 
+However, the estimates increased when $m = 1$ was not permitted, although the
+HPD intervals remained roughly the same
+  (0.58 
+  [0.06 - 
+  0.99]
+and
+  0.48 
+  [0.02 -
+   0.87]).
+The \textcite{novitsky2014impact} data had a fairly low estimated $\alpha$
+for both priors on $m$
+  (0.55 for $m \geq 1$;
+   0.53 for $m \geq 2$).
+However, the confidence interval was much wider when $m = 1$ was allowed
+  ([0 -
+    1.75] for $m \geq 1$ vs.
+   [0 -
+    1.75] for $m \geq 2$). }}
+
+{\color{blue}\uline{Posterior mean point estimates for the \acrlong{PA} power
+\gls{alpha} ranged from 
+    0.9
+for the \gls{IDU}/Estonia data to
+    0.27
+for the mixed/Spain data. When aggregated by risk group, the average estimates
+were
+    0.73
+for \gls{IDU},
+    0.43
+for primarily heterosexual risk, and
+    0.39
+for \gls{MSM}. These values were obtained with \textit{gag} for the datasets
+where both \textit{gag} and \textit{env} were sequenced, but the estimates for
+\gls{alpha} did not change appreciably between the two genes} (TODO figure).
+\uline{There was a large amount of uncertainty associated with these
+estimates. 95\% \gls{HPD} were very wide for most datasets, often encompassing
+almost the entire range from 0 to 1} (\cref{fig:abchpd}). \uline{For all the
+datasets except HET/Malawi and MSM/Beijing, the posterior mean was either
+outside, or very close to the border of, the 50\% \gls{HPD}. This indicates
+that the posterior distributions were diffuse with heavy tails, rather than
+having most of their mass around the mode.}}
+
+{\color{red}\sout{For all the datasets except \citeauthor{novitsky2014impact},
+estimated values of $I$ were below 2000 when $m = 1$ was allowed, with
+relatively narrow HPD intervals compared to the nonzero prior density region
+  (\citeauthor{cuevas2009hiv}, 701 
+  [289 -
+   1279];
+   \citeauthor{niculescu2015recent}, 747
+  [136 - 
+   2378];
+  \citeauthor{li2015hiv}, 1390 
+  [310 -
+   2821];
+   \citeauthor{wang2015targeting}, 675
+  [175 - 
+   1400]).
+The \citeauthor{novitsky2014impact} data was the outlier, with a very high
+estimated $I$, and HPD interval spanning almost the entire prior region
+  (5431 
+  [183 -
+   8739]).
+The $I$ estimates and HPD intervals were generally robust to the choice of
+prior on $m$, with slightly narrower HPD intervals (compare
+\cref{fig:abchpd,fig:abchpdm2}).}}
+
+The posterior mean of $m$ was equal to 1 for all but the
+\citeauthor{novitsky2014impact} data, when this value was allowed. However, the
+upper bound of the HPD interval was different for each dataset
+  (\citeauthor{niculescu2015recent}, 4;
+   \citeauthor{wang2015targeting}, 1;
+   \citeauthor{li2015hiv}, 1;
+   \citeauthor{cuevas2009hiv}, 1).
+When $m = 1$ was disallowed, the estimate for all datasets was either 2 or 3,
+with HPD intervals spanning the entire prior region. The estimates for the
+total number of nodes $N$ were largely uninformative for all samples, with
+almost all posterior mean estimates greater than 7500 and HPD intervals
+spanning almost the entire nonzero prior density region. The only exception was
+the \citeauthor{li2015hiv} data, for which the estimate was lower 
+  (5916)
+when $m = 1$ was allowed.
+
+\begin{figure*}[ht]
+  \centering
+  \includegraphics{realdata-hpd-bc}
+  \caption[
+      Maximum \textit{a posteriori} point estimates and 95\% HPD intervals for
+      parameters of the BA network model, fitted to six HIV datasets
+      with \software{netabc}.]
+  {
+      Maximum \textit{a posteriori} point estimates and 95\% HPD intervals for
+      parameters of the BA network model, fitted to six HIV datasets with
+      \software{netabc}. Legend labels indicate risk group and country of
+      origin. Abbreviations: IDU, injection drug users; MSM, men who have sex
+      with men; HET, heterosexual.
+  }
+  \label{fig:abchpd}
+\end{figure*}
+
+To make our analyses comparable to the existing network literature, we
+estimated values of the power law exponent $\gamma$ for each of the datasets 
+investigated, using the posterior median estimates with the prior allowing
+\gls{m} = 1. The results are summarized in \cref{tab:gamma}. All of the
+estimated exponents were in the range $2 \leq \gamma \leq 2.5$, which is on the
+lower end of the range $2 \leq \gamma \leq 4$ reported in the literature.
+
+\begin{table}
+    \centering
+    \input{\tablepath/realdata-gamma.tex}
+    \caption[
+        Estimated power law exponents for six HIV datasets based on maximum
+        \textit{a priori} estimates of BA model parameters.
+    ]{
+        Estimated power law exponents for six HIV datasets based on maximum
+        \textit{a priori} estimates of BA model parameters. 100 networks were
+        simulated using posterior mean parameter estimates obtained with
+        \software{netabc}. The power law exponent $\gamma$ was estimated for
+        each, and the median of those estimates was used as a point estimate
+        for the corresponding dataset.
+    }
+    \label{tab:gamma}
+\end{table}
