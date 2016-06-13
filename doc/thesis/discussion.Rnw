@@ -201,7 +201,7 @@ estimates of \gls{I} were accurate and unbiased (\cref{fig:gridptI}).
 
 \begin{figure}[ht]
   \centering
-  \includegraphics{derivatives.pdf}
+  %\includegraphics{derivatives.pdf}
   \caption[
     First and second derivatives of epidemic growth curves at time of sampling
     for various values of $I$ and $N$.

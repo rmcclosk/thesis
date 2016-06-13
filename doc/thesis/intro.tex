@@ -1351,39 +1351,22 @@ rejection \gls{ABC} above. Because the sampling is exact, the initial
 importance weights are all set equal to 1 and normalized to $1/n$ where $n$ is
 the number of particles.}}
 
-As discussed in \cref{subsec:smcsamp}, the
-choices of the kernels $K$ and $L$ is problem-specific, and so appropriate
-kernels must be chosen for \gls{ABC}. Several options have been
-proposed~\autocite{beaumont2009adaptive, sisson2007sequential,
-del2012adaptive}.
-
-\begin{algorithm}
-  \caption{\gls{ABC}-\gls{SMC}.}
-  \begin{algorithmic}
-    \For {$k = 1$ to $n$}
-      \State Sample $x_1^{(k)}$ from $\Pr(\theta) \Pr(z \mid \theta)$
-      \Comment{Draw $\theta$ from the prior and simulate $z$ from $\theta$}
-      \State $w^{(k)} \gets 1/n$
-    \EndFor
-    \For {$i = 2$ to $i_{\max}$}
-      \Comment{$i_{\max}$ is a user-specified number of iterations}
-      \For {$k = 1$ to $n$}
-        \State Sample $x_i^{(k)}$ from $K(x_{i-1}^{(k)}, x_i)$
-        \Comment Extend the $k$th particle
-        \State $w^{(k)} \gets w^{(k)} \cdot \dfrac{\gamma_i(x_i) L_{i-1}(x_i, x_{i-1})}{\gamma_{i-1}(x_{i-1}) K_i(x_{i-1}, x_i)}$
-      \EndFor
-      \State Normalize the weights so that $\sum w = 1$
-      \If {$\ESS(w) < T$}
-        \Comment{$T$ is a user-defined threshold}
-        \State Resample the particles according to $w$
-        \For {$k = 1$ to $n$}
-          \State $w^{(k)} \gets 1/n$
-        \EndFor
-      \EndIf
-    \EndFor
-  \end{algorithmic}
-  \label{alg:abcsmc}
-\end{algorithm}
+As discussed in \cref{subsec:smcsamp}, the choices of the kernels $K$ and $L$
+is problem-specific, and so appropriate kernels must be chosen for \gls{ABC}.
+Several options have been proposed~\autocite{beaumont2009adaptive,
+sisson2007sequential, del2012adaptive}. {\color{blue}\uline{With an
+appropriately chosen kernel, the weight update} (\cref{eq:smcwt}) \uline{will
+simplify into a computable expression.} \textcite{sisson2007sequential} and
+\textcite{beaumont2009adaptive} \uline{both suggest random walk kernels for
+$K$, where each particle is
+perturbed according to a Gaussian distribution. The backwards kernels $L$ are
+chosen to approximately minimize the variance in importance weights. In this
+thesis, we use an \gls{MCMC} kernel, as proposed by} \textcite{del2012adaptive}.
+\uline{The associated backwards kernels and weight updates are discussed in the
+next chapter} (\cref{subsec:adaptsmc}). \uline{With generic kernels $K$ and
+$L$, the \gls{ABC}-\gls{SMC} algorithm is almost identical to the \gls{SMC}
+sampler} (\cref{alg:smcsamp}), \uline{with $\gamma_i$ replaced with $\pi_i$.}
+Therefore we will not repeat the full algorithm here.}
 
 All the algorithms discussed in this section can be straightforwardly extended
 to sample from the joint distribution
@@ -1405,10 +1388,53 @@ $q(\theta, \theta') f(z \mid \theta')$ is replaced by
 
 \section{Summary}
 
-{\color{blue}\uline{ Our method integrates the four distinct research areas
-  just described: phylogenetics, contact networks, \acrlong{SMC}, and
-  \acrlong{ABC}. The first two topics together form the problem domain.
-  Phylogenetic data is the input to our method, while estimates of the
-  parameters of contact network models are the desired output. The latter two
-  topics define the algorithm and statistical framework that our inference
-method will use. }}
+\glsreset{ABC}
+\glsreset{SMC}
+\glsreset{BA}
+
+{\color{blue}\uline{In} \cref{sec:obj}, \uline{we outlined three research
+objectives that will be addressed in this thesis. First, we aim to develop a
+method for fitting contact network models to estimated transmission trees.
+Although transmission trees can be estimated for any epidemic by thorough
+contact tracing, viral diseases are the most useful context for this method.
+Transmission and sequence evolution occur on similar time scales for RNA
+viruses, resulting in viral phylogenies whose shapes are heavily constrained by
+the transmission process. The study of this interaction between evolution and
+epidemiology is called \emph{phylodynamics}. Phylodynamic methods make it
+possible to estimate transmission trees from viral sequence data; these
+estimated trees form the input data for our method.}
+
+\uline{From these estimated transmission trees, our method's purpose is to
+estimate the parameters of a contact network model. Rather than assuming a
+homogeneously mixed population, as most epidemiological models do, network
+models take the more realistic view that human populations are structured. That
+is, contacts which allow for transmission may occur in a nonrandom way, rather
+than between every pair of individuals in the population. A network model
+parameterizes this structure. In particular, our second research objective is
+to characterize our ability to fit the \gls{BA} model, which incorporates
+preferential attachment to generate networks with realistic degree
+distributions.}
+
+\uline{Our method will apply \gls{ABC}, a simulation-based approach, for
+fitting these models. Simulating a transmission tree according to a network
+model is straightforward: a network can be generated according to the model,
+and the spread of an epidemic can be simulated over the network and recorded in
+a transmission tree. \gls{ABC} uses the concordance between these simulated
+transmission trees and the ``true'' estimated tree as an indicator of parameter
+credibility. The closer the simulated transmission trees appear to the true
+tree, the more weight is assigned to the associated network parameters.}
+
+\uline{\gls{ABC} can be implemented by at least three algorithms, but the one
+we choose to apply in this work is \gls{SMC}. \Gls{SMC} uses a population of
+parameter ``particles'' to approximate a distribution of interest, in this case
+the approximate posterior distribution targeted by \gls{ABC}. After running the
+\gls{ABC}-\gls{SMC} algorithm, statistics on the model parameters can be
+approximated by the weighted population of particles. For example, a weighted
+average would give an approximate expected value for each parameter.}
+
+\uline{Thus, our method integrates four research topics: phylogenetics, contact
+networks, \acrlong{SMC}, and \acrlong{ABC}. The first two topics together form
+the problem domain. Phylogenetic data is the input to our method, while
+estimates of the parameters of contact network models are the desired output.
+The latter two topics define the algorithm and statistical framework that our
+inference method will use. }}
