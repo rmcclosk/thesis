@@ -678,7 +678,7 @@ tree $T$, our goal is to estimate statistics, such as means and credible
 intervals, of the posterior distribution}
 \begin{align}
   \madd{\post(\theta \mid T) = \frac{\lik(T \mid \theta) \prior(\theta)}
-    {\int_\Theta\lik(T \mid \theta) \prior(\theta)}.}
+    {\int_\Theta\lik(T \mid \theta) \prior(\theta) \d\theta}.}
   \label{eq:post}
 \end{align}
 \add{As alluded to in \cref{sec:obj}, both the likelihood $\lik(T \mid \theta)$

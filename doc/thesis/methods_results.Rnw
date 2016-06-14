@@ -24,19 +24,19 @@ and real data experiments, as well as an examination of the limitations of our
 approach and opportunities for future investigation.}
 
 \section{\software{Netabc}: a computer program for estimation of contact
-network parameters with kernel-assisted ABC}
+network parameters with ABC}
 \label{sec:netabc}
 
 \software{Netabc} is a computer program to perform statistical inference of
 contact network parameters from an estimated transmission tree using
-\gls{ABC}. {\color{blue}\uline{As discussed in }\cref{sec:obj}, \uline{the principal
-statistical algorithm used by \software{netabc} is adaptive
+\gls{ABC}. \add{As discussed in \cref{sec:obj}, the principal statistical
+algorithm used by \software{netabc} is adaptive
 \gls{ABC}-\gls{SMC}~\autocite{del2012adaptive}. In addition, there are two
 supplementary components which are specific to the domain of phylogenetics and
 contact networks: Gillespie simulation~\autocite{gillespie1976general}, to
 simulate transmission trees on contact networks; and the tree
 kernel~\autocite{poon2013mapping}, which is used as the distance function in
-\gls{ABC} to compare transmission trees~\autocite{poon2015phylodynamic}} (see
+\gls{ABC} to compare transmission trees~\autocite{poon2015phylodynamic} (see
 \cref{sec:abc}).} We give a high-level overview of the program here, before
 describing these components in detail. \software{Netabc} takes as input an
 estimated transmission tree, which can be derived from a viral phylogeny by
@@ -47,37 +47,40 @@ didelot2014bayesian, hall2015epidemic}. We variously refer to this estimated
 transmission tree as the observed tree, input tree, or true tree.
 
 As described in \cref{sec:smc}, \software{netabc} keeps track of a population
-of particles $x^{(k)}$, each of which contains particular parameter values
-$\theta^{(k)}$ for the {\color{blue}\uline{contact network}} model we are
-trying to fit {\color{blue}\uline{to the input tree}}. A small number of
-contact networks $z^{(k)}$ are generated under the model for each particle, in
-accordance with that particle's parameters. An epidemic is simulated over each
-of these networks using Gillespie simulation, and by keeping track of its
-progress, a transmission tree is obtained. Thus, each particle becomes
-associated with several simulated transmission trees. These trees are compared
-to the input tree using the tree kernel. Particles are weighted according to
-the similarity of their associated simulated trees with the true tree, with
-more similar trees receiving higher weights. The particles are iteratively
-perturbed to explore the parameter space, and particles with simulated trees
-too distant from the true tree are periodically dropped and resampled. Once a
-convergence criterion is attained, the final set of particles is used as a
-Monte Carlo approximation to the target distribution of \gls{ABC}, which is
-assumed to resemble the posterior distribution on model parameters (see
-\cref{sec:abc}). A graphical schematic of this algorithm is given in
+of particles $x^{(k)}$ indexed by an integere $k$, each of which contains
+particular parameter values $\theta^{(k)}$ for the \add{contact network} model
+we are trying to fit \add{to the input tree}. A small number \gls{M} of contact
+networks $z^{(k,i)}$, $1 \leq i \leq \gls{M}$, are generated under the model
+for each particle in accordance with that particle's parameters. An epidemic is
+simulated over each of these networks using Gillespie simulation, and by
+keeping track of its progress, a transmission tree is obtained. Thus, each
+particle becomes associated with several simulated transmission trees. These
+trees are compared to the input tree using the tree kernel. Particles are
+weighted according to the similarity of their associated simulated trees with
+the true tree, with more similar trees receiving higher weights. The particles
+are iteratively perturbed to explore the parameter space, and particles with
+simulated trees too distant from the true tree are periodically dropped and
+resampled. Once a convergence criterion is attained, the final set of particles
+is used as a Monte Carlo approximation to the target distribution of \gls{ABC},
+which is assumed to resemble the posterior distribution on model parameters
+(see \cref{sec:abc}). A graphical schematic of this algorithm is shown in
 \cref{fig:abcsmc}.
 
 \begin{figure}
     \includegraphics{abc-smc.pdf}
-    \caption[Graphical schematic of the ABC-SMC algorithm implemented in \software{netabc}.]{
-      Graphical schematic of the \gls{ABC}-\gls{SMC} algorithm implemented in
-      \software{netabc}. Particles are initially drawn from their prior
-      distributions, making the initial population a Monte Carlo approximation
-      to the prior. At each iteration, particles are perturbed, and a distance
-      threshold around the true tree contracts. Particles are rejected, and
-      eventually resampled, when all their associated simulated trees lie
-      outside the threshold. As the algorithm progresses, the population
-      smoothly approaches a Monte Carlo approximation of the \gls{ABC} target
-      distribution, which is assumed to resemble the posterior.
+    \caption[
+        Graphical schematic of the ABC-SMC algorithm implemented in \software{netabc}.
+    ]{
+        Graphical schematic of the \gls{ABC}-\gls{SMC} algorithm implemented in
+        \software{netabc}. Particles are initially drawn from their prior
+        distributions, making the initial population a Monte Carlo
+        approximation to the prior. At each iteration, particles are perturbed,
+        and a distance threshold around the true tree contracts. Particles are
+        rejected, and eventually resampled, when all their associated simulated
+        trees lie outside the threshold. As the algorithm progresses, the
+        population smoothly approaches a Monte Carlo approximation of the
+        \gls{ABC} target distribution, which is assumed to resemble the
+        posterior.
     }
     \label{fig:abcsmc}
 \end{figure}
@@ -87,14 +90,15 @@ assumed to resemble the posterior distribution on model parameters (see
 store contact networks and phylogenies. Judy arrays~\autocite{baskins2004judy}
 are used for hash tables and dynamic programming matrices. The
 \gls{GSL}~\autocite{gough2009gnu} is used to generate random draws from
-probability distributions, and to perform the bisection step in the adaptive
-\gls{ABC}-\gls{SMC} algorithm. Parallelization is implemented with \gls{POSIX}
+probability distributions, and to \del{perform the bisection step} \add{solve
+for the next $\varepsilon$ by bisection} in the adaptive \gls{ABC}-\gls{SMC}
+algorithm. Parallelization is implemented with \gls{POSIX}
 threads~\autocite{barney2009posix}. In addition to the \software{netabc} binary
-to perform kernel-assisted \gls{ABC}, we provide three additional stand-alone
-utilities: \software{treekernel}, to calculate the tree kernel;
-\software{nettree}, to simulate a transmission tree over a contact network; and
-\software{treestat}, to compute various summary statistics of phylogenies. The
-programs are freely available at \url{https://github.com/rmcclosk/netabc}.
+to perform \gls{ABC}, we provide three additional stand-alone utilities:
+\software{treekernel}, to calculate the tree kernel; \software{nettree}, to
+simulate a transmission tree over a contact network; and \software{treestat},
+to compute various summary statistics of phylogenies. The programs are freely
+available at \url{https://github.com/rmcclosk/netabc}.
 
 To check that our implementation of Gillespie simulation was correct, we
 reproduced Figure 1A of \textcite{leventhal2012inferring} (our
@@ -107,7 +111,7 @@ by~\textcite{sisson2007sequential}). We were able to obtain a close
 approximation to the function (see \cref{fig:smctest}), and attained the
 stopping condition used by the authors in a comparable number of steps. To
 check that the algorithm would converge to a bimodal distribution, we also
-applied it to a mixture of two Gaussians with means $\pm$4 and variances 1. The
+applied it to a mixture of two Gaussians with means $\pm4$ and variances 1. The
 algorithm was able to recover both peaks (\cref{fig:smctest2}).
 
 \subsection{Simulation of transmission trees over contact networks}
@@ -122,88 +126,103 @@ leventhal2012inferring, groendyke2011bayesian, villandre2016assessment}.
 \textcite{groendyke2011bayesian} published their implementation as an
 \software{R} package, but since the \gls{SMC} algorithm is quite
 computationally intensive, we chose to implement our own version in
-\software{C} {\color{blue}\uline{as part of \software{netabc}}}.
+\software{C} \add{as part of \software{netabc}}.
 
 Let $G = (V, E)$ be a directed contact network. We assume the individual nodes
 and edges of $G$ follow the dynamics of the \gls{SIR}
 model~\autocite{kermack1927contribution}. Each directed edge $e = (u, v)$ in
 the network is associated with a transmission rate $\beta_e$, which indicates
 that, once $u$ becomes infected, the waiting time until $u$ infects $v$ is
-distributed as $\Exponential(\beta_e)$. Note that $v$ may become infected
+distributed as $\Exponential(\gls{beta}_e)$. Note that $v$ may become infected
 before this time has elapsed, if $v$ has other incoming edges. $v$ also has a
-removal rate $\gamma_v$, so that the waiting time until removal of $v$ from the
-population is $\Exponential(\gamma_v)$. Removal may correspond to death or
-recovery with immunity, or a combination of both, but in our implementation
+removal rate $\gls{nu}_v$, so that the waiting time until removal of $v$ from
+the population is $\Exponential(\gls{nu}_v)$. Removal may correspond to death
+or recovery with immunity, or a combination of both, but in our implementation
 recovered nodes never re-enter the susceptible population. We define a
 \defn{discordant edge} as an edge $(u, v)$ where $u$ is infected and $v$ has
-never been infected.
+never been infected. \add{In the epidemiology literature, the symbol $\gamma$
+is usually used in place of \gls{nu}; we use \gls{nu} here to distinguish the
+recovery rate from the power law exponent of scale free networks (see
+\cref{subsec:pa}).}
 
 To describe the algorithm, we introduce some notation and variables. Let
 $\inc(v)$ be the set of incoming edges to $v$, and $\out(v)$ be the set of
-outgoing edges from $v$. Let $I$ be the set of infected nodes in the network,
-$R$ be the set of removed nodes, and $S$ be the remaining susceptible nodes,
-and $D$ be the set of discordant edges in the network. Let $\beta$ be the total
-transmission rate over all discordant edges, and $\gamma$ be the total removal
-rate of all infected nodes,
+outgoing edges from $v$. Let \gls{gI} be the set of infected nodes in the
+network, \gls{gR} be the set of removed nodes, \gls{gS} be the set of
+susceptible nodes, and \gls{gD} be the set of discordant edges in the network.
+Let \gls{beta} be the total transmission rate over all discordant edges, and
+\gls{nu} be the total removal rate of all infected nodes,
 \[
-  \beta = \sum_{e \in D} \beta_e, \quad
-  \gamma = \sum_{v \in I} \gamma_v.
+    \gls{beta} = \sum_{e \in \gls{gD}} \gls{beta}_e, \quad
+    \gls{nu} = \sum_{v \in \gls{gI}} \gls{nu}_v.
 \]
-The variables $S$, $I$, $R$, $D$, $\beta$, and $\gamma$ are all updated as the
-simulation progresses. When a node $v$ becomes infected, it is deleted from $S$
-and added to $I$. Any formerly discordant edges in $\inc(v)$ are deleted from
-$D$, and edges in $\out(v)$ to nodes in $S$ are added to $D$. If $v$ is later
-removed, it is deleted from $I$ and added to $R$, and any discordant edges in
-$\out(v)$ are deleted from $D$. At the time of either infection or removal, the
-variables $\beta$ and $\gamma$ are updated to reflect the changes in the
-network. Since these updates are straightforward, we do not write them
-explicitly in the algorithm.
+The variables \gls{gS}, \gls{gI}, \gls{gR}, \gls{gD}, \gls{beta}, and \gls{nu}
+are all updated as the simulation progresses. When a node $v$ becomes infected,
+it is deleted from \gls{gS} and added to \gls{gI}. Any formerly discordant
+edges in $\inc(v)$ are deleted from \gls{gD}, and edges in $\out(v)$ to nodes
+in \gls{gS} are added to \gls{gD}. If $v$ is later removed, it is deleted from
+\gls{gI} and added to \gls{gR}, and any discordant edges in $\out(v)$ are
+deleted from \gls{gD}. At the time of either infection or removal, the
+variables \gls{beta} and \gls{nu} are updated to reflect the changes in the
+network. \del{The updates to \gls{gS}, \gls{gI}, \gls{gR}, \gls{gD},
+\gls{beta}, and \gls{nu} are straightforward and are not written explicitly in
+the algorithm.}
 
 \newcommand{\tip}{\mathit{tip}}
 
-The Gillespie simulation algorithm is given as Algorithm~\ref{alg:nettree}. The
-transmission tree $T$ is simulated along with the epidemic. We keep a map
-called $\tip$, which maps infected nodes in $I$ to the tips of $T$. The
-simulation continues until either there are no discordant edges left in the
-network, or we reach a user-defined cutoff of time ($t_{\max}$) or number of
-infections ($I_{\max}$). We use the notation $\Uniform(0, 1)$ to indicate a
-number drawn from a uniform distribution on $(0, 1)$, and likewise for
-$\Exponential(\lambda)$. The combined number of internal nodes and tips in $T$
-is denoted $|T|$.
+The Gillespie simulation algorithm is given as \cref{alg:nettree}. The
+transmission tree \gls{T} is simulated along with the epidemic. We keep a map
+called ``$\tip$'', which maps infected nodes in \gls{gI} to the tips of
+\gls{T}. The simulation continues until either there are no discordant edges
+left in the network, or we reach a user-defined cutoff of time (\gls{tmax}) or
+number of infections (\gls{I}). We use the notation $\Uniform(0, 1)$ to
+indicate a number drawn from a uniform distribution on $(0, 1)$, and
+$\Exponential(\lambda)$ to indicate a number drawn from an exponential
+distribution with rate $\lambda$. The combined number of internal nodes and
+tips in \gls{T} is denoted $|T|$. \add{The updates to \gls{gS}, \gls{gI},
+\gls{gR}, \gls{gD}, \gls{beta}, and \gls{nu} described in the previous
+paragraph are not written explicitly in \cref{alg:nettree}, as they are quite
+straightforward and would only obfuscate the pseudocode.}
 
 \begin{algorithm}
-  \label{alg:nettree}
-  \caption{Simulation of an epidemic and transmission tree over a contact network}
-  \begin{algorithmic}
-    \State infect a node $v$ at random, updating $S$, $I$, $D$, $\beta$ and $\gamma$
-    \State $T \gets$ a single node with label $1$
-    \State $\tip[v] \gets 1$
-    \State $t \gets 0$
-    \While{$D \neq \emptyset$ and $|I| + |R| < I_{\max}$ and $t < t_{\max}$}
-      \State $s \gets \min(t_{\max} - t, \Exponential(\beta + \gamma))$
-      \For{$v \in \tip$}
-        \State{extend the branch length of $\tip[v]$ by $s$}
-      \EndFor
-      \State $t \gets t + s$
-      \If{$t < t_{\max}$}
-        \If{$\Uniform(0, \beta + \gamma) < \beta$}
-          \State choose an edge $e = (u, v)$ from $D$ with probability $\beta_e / \beta$
-                 and infect $v$
-          \State $\tip[v] \gets |T|+1$
-          \Comment{add new tips to tree and tip array}
-          \State $\tip[u] \gets |T|+2$
-          \Comment{corresponding to $u$ and $v$}
-          \State add tips with labels $(|T|+1)$ and $(|T|+2)$ to $T$
-          \State connect the new nodes to $\tip[v]$ in $T$, with branch lengths $0$
-        \Else
-          \State choose a node $v$ from $I$ with probability $\gamma_v / \gamma$
-                 and remove $v$
-          \State delete $v$ from $\tip$
-        \EndIf
-        \State update $S$, $I$, $R$, $D$, $\beta$, and $\gamma$
-      \EndIf
-    \EndWhile
-  \end{algorithmic}
+    \label{alg:nettree}
+    \caption{Simulation of an epidemic and transmission tree over a contact network}
+    \begin{algorithmic}
+        \State infect a node $v$ at random, updating \gls{gS}, \gls{gI},
+                 \gls{gD}, \gls{beta}, and \gls{gamma}
+        \State $\gls{T} \gets$ a single node with label $1$
+        \State $\tip[v] \gets 1$
+        \State $\gls{t} \gets 0$
+        \While{$\gls{gD} \neq \emptyset$ and $|\gls{gI}| + |\gls{gR}| < \gls{I}$
+                and $\gls{t} < \gls{tmax}$}
+            \State $s \gets \min(\gls{tmax} - \gls{t},\,
+                \Exponential(\gls{beta} + \gls{nu}))$
+            \For{$v \in \tip$}
+                \State{extend the branch length of $\tip[v]$ by $s$}
+            \EndFor
+            \State $\gls{t} \gets \gls{t} + s$
+            \If{$\gls{t} < \gls{tmax}$}
+                \If{$\Uniform(0, \gls{beta} + \gls{nu}) < \gls{beta}$}
+                    \State choose an edge $e = (u, v)$ from \gls{gD} with
+                        probability $\gls{beta}_e / \gls{beta}$ and infect $v$
+                    \State $\tip[v] \gets |\gls{T}|+1$
+                    \Comment add new tips to tree and tip array
+                    \State $\tip[u] \gets |\gls{T}|+2$
+                    \Comment corresponding to $u$ and $v$ 
+                    \State add tips with labels $(|\gls{T}|+1)$ and
+                        $(|\gls{T}|+2)$ to \gls{T}
+                    \State connect the new nodes to $\tip[v]$ in $\gls{T}$,
+                        with branch lengths $0$ 
+                \Else
+                    \State choose a node $v$ from \gls{gI} with probability
+                        $\gls{nu}_v / \gls{nu}$ and remove $v$
+                    \State delete $v$ from $\tip$
+                \EndIf
+                \State update \gls{gS}, \gls{gI}, \gls{gR}, \gls{gD},
+                    \gls{beta}, and \gls{nu}
+            \EndIf
+        \EndWhile
+    \end{algorithmic}
 \end{algorithm}
 
 \subsection{Phylogenetic kernel}
@@ -211,10 +230,10 @@ is denoted $|T|$.
 The tree kernel developed by \textcite{poon2013mapping} provides a
 comprehensive similarity score between two phylogenetic trees, via the
 dot-product of the two trees' feature vectors in the space of all possible
-subset trees with branch lengths (see \cref{subsec:treeshape}). {\color{blue}
-\uline{Because the branch lengths are continuous, there are infinitely many
-possible subset trees; hence, the feature space is infinite-dimensional.}}
-The kernel was implemented using the fast algorithm developed by
+subset trees with branch lengths (see \cref{subsec:treeshape}). \add{Because
+the branch lengths are continuous, there are infinitely many possible subset
+trees; hence, the feature space is infinite-dimensional.} The kernel was
+implemented using the fast algorithm developed by
 \textcite{moschitti2006making}. First, the production rule of each node, which
 is the total number of children and the number of leaf children, is recorded.
 The nodes of both trees are ordered by production rule, and a list of pairs of
@@ -224,15 +243,16 @@ value of zero. The pairs to be compared are then re-ordered so that the child
 nodes are always evaluated before their parents. Due to its recursive
 definition, ordering the pairs in this way allows the tree kernel to be
 computed by dynamic programming. The complexity of this implementation is
-$O(|T_1||T_2|)$ for the two trees $T_1$ and $T_2$ being compared.
+$O(|\gls{T}_1||\gls{T}_2|)$ for the two trees $\gls{T}_1$ and $\gls{T}_2$ being
+compared.
 
 The tree kernel cannot be used directly as a distance measure for \gls{ABC},
 since it is maximized, not minimized, when the two trees being compared are the
 same. Therefore, we defined the distance between two trees as
 \[
-  \rho(T_1, T_2) = 1 - \frac{K(T_1, T_2)}{\sqrt{K(T_1, T_1) K(T_2, T_2)}},
+    \gls{rho}(\gls{T}_1, \gls{T}_2) = 1 - \frac{K(\gls{T}_1, \gls{T}_2)}{\sqrt{K(\gls{T}_1, \gls{T}_1) K(\gls{T}_2, \gls{T}_2)}},
 \]
-which is a number between 0 and 1 that is minimized when $T_1 = T_2$. This is
+which is a number between 0 and 1 that is minimized when $\gls{T}_1 = \gls{T}_2$. This is
 similar to the normalization used by \textcite{collins2002new,
 poon2013mapping}.
 
@@ -242,87 +262,100 @@ poon2013mapping}.
 We implemented the adaptive \gls{SMC} algorithm for \gls{ABC} developed by
 \textcite{del2012adaptive}. This algorithm is similar to the reference
 \gls{ABC}-\gls{SMC} algorithm described in \cref{subsec:abcalg}, except that
-the sequence of tolerances $\varepsilon_i$ is automatically determined rather
+the sequence of tolerances $\gls{epsilon}_i$ is automatically determined rather
 than specified in advance. The tolerances are chosen such that the \gls{ESS} of
 the particle population, which indicates the quality of the Monte Carlo
 approximation (see \cref{subsec:sis}), decays at a controlled rate. A
 sudden precipitous drop in \gls{ESS} would indicate that only a small number of
 particles had non-zero importance weights, which would result in a very poor
 Monte Carlo approximation to the target distribution. This situation is
-referred to as the ``collapse'' of the approximation, {\color{blue}\uline{also
-known as particle degeneracy} (see \cref{subsec:smc})} and is mitigated by the
-adaptive approach. A single parameter {\color{red}\sout{$\alpha$ (not to be
-confused with the \gls{BA} model parameter)}} controls the decay rate.
-{\color{blue}\uline{In the original paper of }\textcite{del2012adaptive},
-\uline{the parameter is called $\alpha$, but to avoid confusion with the
-\gls{BA} parameter of the same name, we will refer to it here as
-\gls{alphaess}.}}
-The tolerance $\varepsilon_i$ is chosen to satisfy
+referred to as the collapse of the approximation \add{or particle degeneracy
+(see \cref{subsec:smc})} and is mitigated by the adaptive approach. A single
+parameter \del{$\alpha$ (not to be confused with the \gls{BA} model parameter)}
+controls the decay rate. \add{In the original paper of
+\textcite{del2012adaptive}, the parameter is called $\alpha$, but to avoid
+confusion with the \gls{BA} parameter of the same name we will refer to it
+here as \gls{alphaess}.} The tolerance $\gls{epsilon}_i$ is chosen to satisfy
 \[
-  \ESS(w_i) = \alpha_{\ESS} \ESS(w_{i-1}),
+    \ESS(w_i) = \gls{alphaess} \ESS(w_{i-1}),
 \]
 where, $w_i$ is the vector of weights at the $i$th step. Note that, since $w_i$
-depends on $\varepsilon_i$, this equation solves for the updated weights and
+depends on $\gls{epsilon}_i$, this equation solves for the updated weights and
 the updated tolerance simultaneously. As pointed out by
 \textcite{del2012adaptive}, the equation has no analytic solution, but can be
 solved numerically by bisection. The forward kernels $K_i$ are taken to be
-\gls{MCMC} kernels with stationary distributions $\pi_{\varepsilon_i}$ and
+\gls{MCMC} kernels with stationary distributions $\pi_{\gls{epsilon}_i}$ and
 proposal distributions
 \[
-  q_i(\theta, \theta') \prod_{k=1}^M \Pr(z_i^{(k)'} \mid \theta'),
+    \gls{q}_i\left(\theta^{(k)}, \theta^{(k)\prime}\right) 
+    \prod_{j=1}^{\gls{M}} \lik\left(z^{(j,k)\prime} \middle| \theta^{(k)\prime} \right),
 \]
-where $\theta$ is the vector of model parameters and $z_k$ are $M$ datasets
-simulated according to $\theta'$. In our implementation, $q$ is either a
-Gaussian proposal for continuous parameters, or a Poisson proposal for discrete
-parameters. For the Poisson proposals, the number of steps to move the particle
-is drawn from a Poisson distribution, and the direction in which to move the
-particle is chosen uniformly at random. For both proposals, the variance was
-set equal to twice the empirical variance of the particles,
-following~\autocite{beaumont2009adaptive, del2012adaptive}. The backwards
-kernels are
+where $\theta^{(k)}$ is the vector of model parameters \add{associated with
+particle $x^{(k)}$} and $z^{(j,k)\prime}$, $1 \leq j \leq \gls{M}$, are \gls{M}
+datasets simulated according to $\theta^{(k)\prime}$. In our implementation,
+the $\gls{q}_i$ \add{are constructed component-wise for $\theta$ out of}
+Gaussian proposals for continuous parameters and Poisson proposals for discrete
+parameters. For the Poisson proposals, the number of \add{discrete} steps to
+move the particle is drawn from a Poisson distribution, and the direction in
+which to move the particle is chosen uniformly at random. The variance of each
+proposal distribution was set equal to twice the empirical variance of the
+particles, following~\autocite{beaumont2009adaptive, del2012adaptive}. The
+backwards kernels are
 \[
-  L_{i-1}(x', x) = \frac{\pi_n(x)K(x, x')}{\pi_n(x')}.
+    L_{i-1}(x', x) = \frac{\pi_i(x)K_i(x, x')}{\pi_i(x')}.
 \]
-When substituted into \cref{eq:smcwt}, the forward kernels $K(x, x')$ and
-densities $\pi_n(x') = \pi_{\varepsilon_n}(x')$ cancel out, and we are left
-with the weight update 
+Here we have written $x'$ for $x_i$ and $x$ for $x_{i-1}$ to emphasize that
+$x_{i-1}$ is the current value of the particle and $x_i$ is the proposed value.
+When substituted into \cref{eq:smcwt}, the forward kernels $K_i(x, x')$ and
+densities $\pi_i(x') = \pi_{\varepsilon_i}(x')$ cancel out, and we are left
+with the following weight update.
 \begin{align*}
-  w_i(x) 
-    &\propto w_{i-1}(x) \frac{\pi_n(x \mid y)}{\pi_{i-1}(x \mid y)} \\
-    &= w_{i-1}(x) \frac{\pi(x) \pi_i(y \mid x)}{\pi(x) \pi_{i-1}(y \mid x)} \\
-    &= w_{i-1}(x) \frac{\sum_{k=i}^M \I_{A_{\varepsilon_i, y}}(z_k)}
-            {\sum_{k=i}^M \I_{A_{\varepsilon_{i-1}, y}}(z_k)}.
+    w_i(x) 
+    & \madd{\propto w_{i-1}(x) \frac{\pi_i(x') L_{i-1}(x', x)}{\pi_{i-1}(x)K_i(x, x')}}
+        & \madd{\text{importance weight update from SMC}} \\
+    &\madd{=w_{i-1}(x) \frac{\pi_i(x') \pi_i(x) K_i(x, x')}{\pi_{i-1}(x)K_i(x, x')\pi_i(x')}}
+        & \madd{\text{substitute } L_{i-1}} \\
+    &= w_{i-1}(x) \frac{\pi_i(x)}{\pi_{i-1}(x)}
+        & \madd{\text{cancel } K_i(x, x') \text{ and } \pi_i(x')} \\
+    &= \madd{w_{i-1}(x) \frac{\pi(\theta) \prod_{j=1}^M f(z^{(j)\prime} \mid \theta) 
+                        \sum_{j=i}^M \I_{A_{\varepsilon_i, y}}(z^{(j)})}
+                       {\pi(\theta) \prod_{j=1}^M f(z^{(j)\prime} \mid \theta) 
+                       \sum_{j=i}^M \I_{A_{\varepsilon_{i-1}, y}}(z^{(j)})}}
+        & \madd{\text{definition of } \pi_i(x)} \\
+    &= w_{i-1}(x) \frac{\sum_{j=i}^M \I_{A_{\varepsilon_i, y}}(z^{(j)})}
+        {\sum_{j=i}^M \I_{A_{\varepsilon_{i-1}, y}}(z^{(j)})}
+        & \madd{\text{cancel prior and likelihood.}}
 \end{align*}
-In other words, when the distance threshold $\varepsilon_{i-1}$ is contracted
-to $\varepsilon_i$, the particles' weights are multiplied by the proportion of
-simulated datasets that are still inside the new threshold. 
-The user may specify a final tolerance $\varepsilon$, or a final acceptance
-rate of the \gls{MCMC} kernel, and the algorithm will be stopped when either of
-these termination conditions is reached. The latter condition stops the
-algorithm when the particles are not moving around very much, implying little
-change in the estimated target.
+In other words, when the distance threshold $\gls{epsilon}_{i-1}$ is contracted
+to $\gls{epsilon}_i$, the particles' weights are multiplied by the proportion of
+simulated datasets that are still inside the new threshold. The user may
+specify a final tolerance $\gls{epsilon}$, or a final acceptance rate of the
+\gls{MCMC} kernel, and the algorithm will be stopped when either of these
+termination conditions is reached. The latter condition stops the algorithm
+when the particles are not moving around very much, implying little change in
+the estimated target.
 
 \subsection{Justification for approach}
 \label{subsec:just}
 
-{\color{blue}\uline{We present here a non-rigorous justification for the use of
+\add{We present here a non-rigorous justification for the use of
 \gls{ABC} for the problem at hand, as opposed to more frequently-used
-approaches for fitting mathematical models} (see \cref{chp:prelim}).
-\uline{Consider a contact network model with parameters $\theta$, and an
-estimated transmission tree $T$. Taking a Bayesian approach, our aim is to
-obtain a sample from the posterior distribution on the model's parameters given
-our data,}
+approaches for fitting mathematical models (see \cref{chp:prelim}). Consider a
+contact network model with parameters $\theta$, and an estimated transmission
+tree \gls{T}. Taking a Bayesian approach, our aim is to obtain a sample from
+the posterior distribution on the model's parameters given our data,}
 \[
-    \Pr(\theta \mid T) = \frac{\Pr(T \mid \theta) \Pr(\theta)}{\Pr(T)}.
+    \madd{\post(\theta \mid \gls{T}) = \frac{\lik(\gls{T} \mid \theta) \prior(\theta)}
+    {\int_{\Theta}\lik(\gls{T} \mid \theta) \prior(\theta) \d\theta}.}
 \]
-\uline{For all but the simplest models, the normalizing constant $\Pr(T)$ is an
-intractable integral. What we shall argue here is that, in contrast to most
-commonly studied mathematical models, the likelihood $\Pr(T \mid \theta)$ is
-also likely to be intractible in our case.}
+\add{For all but the simplest models, the normalizing constant in the
+denominator is an intractable integral. What we shall argue here is that, in
+contrast to most commonly studied mathematical models, the likelihood
+$\lik(\gls{T} \mid \theta)$ is also likely to be intractible in our case.}
 
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{transtree}
+    \includegraphics[width=0.6\textwidth]{transtree}
     \caption[
         Illustration of an estimated transmission tree without labels and two
         possible underlying complete transmission trees with labels.
@@ -338,100 +371,193 @@ also likely to be intractible in our case.}
     \label{fig:tt}
 \end{figure}
 
-\uline{As discussed in} \cref{subsec:tt}, \uline{the internal nodes of
-transmission trees represent transmission events, and are labelled with the
-donor in the associated transmission pair. However, when we estimate a
-transmission tree from viral sequence data, we generally only know the labels
-of the tips of the tree, not the labels of the internal nodes. In viral
-phylogenies, the transmissions are at least partially preserved through the
-evolutionary relationships among the viruses, but the directionality of those
-transmissions is unknown. Thus, a single estimated transmission tree can
-correspond to many possible pathways of the epidemic through the network.
-}\Cref{fig:tt} \uline{illustrates this concept for a simple transmission tree
-with three tips. When calculating a likelihood given a transmission tree, we
-must sum over all possible labellings of the internal nodes. Let $\Nu$ be the
-set of such labellings. Then}
+\add{As discussed in \cref{subsec:tt}, the internal nodes of transmission trees
+represent transmission events, and are labelled with the donor in the
+associated transmission pair. However, when we estimate a transmission tree
+from viral sequence data, we generally only know the labels of the tips of the
+tree, not the labels of the internal nodes. In viral phylogenies, the
+transmissions are at least partially preserved through the evolutionary
+relationships among the viruses, but the directionality of those transmissions
+is unknown. Thus, a single estimated transmission tree can correspond to many
+possible pathways of the epidemic through the network. \Cref{fig:tt}
+illustrates this concept for a simple transmission tree with three tips. When
+calculating a likelihood given a transmission tree, we must sum over all
+possible labellings of the internal nodes. Let $\L$ be the set of such
+labellings. Then}
 \begin{align}
-    \Pr(T \mid \theta) = \sum{\nu \in \Nu} \Pr(T, \nu \mid \theta).
+    \madd{\lik(\gls{T} \mid \theta) = \sum_{l \in \L} \lik(\gls{T},\, l \mid \theta).}
     \label{eq:lik1}
 \end{align}
-\uline{A contact network model assigns a probability to each possible contact
-network. Transmission trees are realized over particular contact networks, not
-over the model itself. Therefore, we must also sum over all contact networks
-which could be generated by the model. Let $\G$ be the set of all possible
-contact networks. Summing } \cref{eq:lik1} \uline{over $\G$ gives}
+\add{A contact network model assigns a probability density to each possible
+contact network. Transmission trees are realized over particular contact
+networks, not over the model itself. Therefore, we must also sum over all
+contact networks which could be generated by the model. Let $\G$ be the set of
+all possible contact networks. Summing \cref{eq:lik1} over $\G$ gives}
 \begin{align}
-    \Pr(T \mid \theta) = \sum_{G \in \G} \sum{\nu \in \Nu} 
-        \Pr(T, \nu \mid G, \theta) \Pr(G \mid \theta).
+    \madd{\lik(\gls{T} \mid \theta) = \sum_{G \in \G} \sum_{l \in \L} 
+        \lik(\gls{T},\, l \mid G, \theta) \lik(G \mid \theta).}
     \label{eq:lik2}
 \end{align}
-\uline{This can be simplified somewhat by noticing that, given a specific
+\add{This can be simplified somewhat by noticing that, given a specific
 contact network, the labelled transmission tree depends only on that network
-and not on the model that generated it. That is, $\Pr(T, \nu \mid G, \theta) =
-\Pr(T, \nu \mid G)$, and}
+and not on the model that generated it. That is, $\lik(\gls{T}, \nu \mid G,
+\theta) = \lik(\gls{T},\, l \mid G)$, and}
 \begin{align}
-    \Pr(T \mid \theta) = \sum_{G \in \G} \Pr(G \mid \theta) \sum{\nu \in \Nu} 
-        \Pr(T, \nu \mid G)
+    \madd{\lik(\gls{T} \mid \theta) = \sum_{G \in \G} \lik(G \mid \theta) \sum_{l \in \L} 
+    \lik(\gls{T}, \nu \mid G)}
     \label{eq:lik3}
 \end{align}
-\uline{Under the assumption that both transmission and removal are Poisson
-processes, calculating $\Pr(T, \nu \mid G)$ can be accomplished by a
-straightforward modification of the Gillespie simulation algorithm} 
-(\cref{alg:nettree}). \uline{Rather than choosing transmission or removal
-events according to their probabilities, the events would be deterministically
-chosen based on the transmission tree and the probabilities of each event
-would be multiplied together. Assuming efficient data structures for storing
-lists of nodes and edges, the complexity of this calculation would be $O(|T|)$.
-The number of possible labellings of internal nodes of $T$ is easily seen to be
-$2^{(|T|-1)/2}$ by noticing that each of the $(|T|-1)/2$ internal nodes must be
-labelled with the same label as either its right child or its left child.
-Although exponential calculations of this nature can are often be simplified on 
-trees using dynamic programming} (\eg \autocite{pupko2000fast}), \uline{it
-cannot be straightforwardly applied in this case because the subtrees'
-probabilities depend on the existing epidemic progress (their parents and
-siblings). Hence, calculating the inner sum over labels may take time
-$O(2^{(|T|-1)/2})$.}
+\add{Under the assumption that both transmission and removal are Poisson
+processes, calculating $\lik(\gls{T},\, l \mid G)$ can be accomplished by a
+straightforward modification of the Gillespie simulation algorithm
+(\cref{alg:nettree}). Rather than choosing transmission or removal events
+according to their probabilities, the events would be deterministically chosen
+based on the transmission tree and the probabilities of each event would be
+multiplied together. Assuming efficient data structures for storing lists of
+nodes and edges, the complexity of this calculation would be $O(|\gls{T}|)$.
+The number of possible labellings of internal nodes of $\gls{T}$ is easily seen
+to be $2^{(|\gls{T}|-1)/2}$ by noticing that each of the $(|\gls{T}|-1)/2$
+internal nodes must be labelled with the same label as either its right child
+or its left child. Although exponential calculations of this nature can are
+often be simplified on trees using dynamic programming (\eg
+\autocite{pupko2000fast}), it cannot be straightforwardly applied in this case
+because the subtrees' probabilities depend on the existing epidemic progress
+(their parents and siblings). Hence, calculating the inner sum over labels may
+take time $O(2^{(|\gls{T}|-1)/2})$.}
 
-\uline{The outer sum, over all contact networks, is also difficult to evaluate
-in general. There are $2^{N(N-1)}$ directed graphs on $N$
+\add{The outer sum, over all contact networks, is also difficult to evaluate
+in general. There are $2^{\gls{N}(\gls{N}-1)}$ directed graphs on \gls{N}
 nodes~\autocite{harary2014graphical}. There must be at least as many nodes in
-the contact network as the number of tips in the tree, which is $(|T|+1)/2$. Of
-course, it is very likely that there are more nodes in the network than
-observed tips because some individuals are never infected and/or some infected
-individuals are never sampled. The complexity of calculating $\Pr(G \mid
-\theta)$ is obviously dependent on the particular model being investigated. For
-the \gls{BA} model, we might have to sum over all possible orders in which the
-nodes could be added, and all assignments of edges to the nodes which generated
-them. However, even in the unlikely case that calculating $\Pr(G \mid \theta)$
-can be done in constant time, the sum} \ref{eq:lik3} \uline{still has at least
-$O(2^{|T|^2})$ terms.}
+the contact network as the number of tips in the tree, which is
+$(|\gls{T}|+1)/2$. Of course, it is very likely that there are more nodes in
+the network than observed tips because some individuals are never infected
+and/or some infected individuals are never sampled. The complexity of
+calculating $\lik(G \mid \theta)$ is obviously dependent on the particular
+model being investigated. For the \gls{BA} model, we might have to sum over all
+possible orders in which the nodes could be added, and all assignments of edges
+to the nodes which generated them. However, even in the case that calculating
+$\lik(G \mid \theta)$ can be done in constant time, the sum (\ref{eq:lik3})
+still has at least $O(2^{|\gls{T}|^2})$ terms.}
 
-\uline{We have shown that both the normalizing constant $\Pr(T)$ and the
-likelihood $\Pr(T \mid \theta)$ are likely computationally prohibitive to
-calculate. If this is the case, the problem of fitting contact network models
-to phylogenies seems to be of the \emph{doubly-intractible}
-ype~\autocite{murray2012mcmc}, which would imply that these models are not
-amenable to neither \gls{ML} nor Bayesian inference techniques. Although both
-methods are able to cope with an intractible normalizing constant (for example,
-by local search for \gls{ML} or Bayesian \gls{MCMC}), neither can avoid the
-intractable likelihood calculations. This justifies the use of \gls{ABC}, which
-is a likelihood-free method.}
+\add{We have shown that both the normalizing constant $\int_\Theta \lik(\gls{T}
+\mid \theta) \prior(\theta) \d\theta$ and the likelihood $\lik(T \mid \theta)$
+are likely computationally prohibitive to calculate. If this is the case, the
+problem of fitting contact network models to phylogenies seems to be of the
+\emph{doubly-intractible} type~\autocite{murray2012mcmc}, which would imply that
+these models are not amenable to neither \gls{ML} nor Bayesian inference
+techniques. Although both methods are able to cope with an intractible
+normalizing constant (for example, by local search for \gls{ML} or Bayesian
+\gls{MCMC}), neither can avoid the intractable likelihood calculations. This
+justifies the use of \gls{ABC}, which is a likelihood-free method.}
 
-\uline{We have not proven here that} \cref{eq:lik3} \uline{is impossible to
-calculate in polynomial time - it could be possible to algebraically simplify
-the sum into a tractable expression. Furthermore, under certain models, a large
-proportion of $\G$ may have zero probability, which would enable the
-simplification of the outer sum on a model-specific basis. It should also be
-noted that extensions of Bayesian \gls{MCMC} have been developed for
-doubly-intractable problems~\autocite{liang2010double, murray2012mcmc}, which
-might be adaptable to the problem at hand. These have not been as widely used
-as \gls{ABC}, nor are they as easily parallelizable as \gls{SMC}. }}
+\add{We have not proven here that \cref{eq:lik3} is impossible to calculate in
+polynomial time - it could be possible to algebraically simplify the sum into a
+tractable expression. Furthermore, under certain models, a large proportion of
+$\G$ may have zero probability, which would enable the simplification of the
+outer sum on a model-specific basis. It should also be noted that extensions of
+Bayesian \gls{MCMC} have been developed for doubly-intractable
+problems~\autocite{liang2010double, murray2012mcmc}, which might be adaptable
+to the problem at hand. These have not been as widely used as \gls{ABC}, nor
+are they as easily parallelizable as \gls{SMC}.}
 
 \section{Analysis of \acrlong{BA} model with synthetic data}
 \label{sec:ba}
+\glsreset{BA}
+
+\subsection{Motivation}
+
+\add{We developed \software{netabc} with the objective of extracting useful,
+quantitative information about network structures from viral phylogenies.}
+
+\add{There are three aspects to ``usefulness''. The first is model
+specification and the biological or epidemiological interpretation of the
+parameters. We want the model to be somewhat realistic, so that \ldots, but no
+too complicated that it becomes difficult to interpret. At least some of the
+parameters should be of interest from a theoretical or practical perspective.
+As this is a phylodynamic method, intended to be used with viral sequence data, 
+we would also like to choose parameters which may be difficult to estimate with
+more standard methods; otherwise, our method provides no advantage. The
+\gls{BA} model (\cref{subsec:pa}) satisfies these criteria, albeit some better
+than others. The purported realism of the model stems from the fat-tailed
+degree distributions it produces, which are similar to those observed in real
+world sexual networks~\autocite{colgate1989risk, liljeros2001web,
+schneeberger2004scale, clemenccon2015statistical, rothenberg2007large}.
+Moreover, the ``rich get richer'' phenomenon, where popular individuals attract
+new connections at an elevated rate, is intuitively reasonable for both
+sexual~\autocite{de2007preferential} and
+\gls{IDU}~\autocite{dombrowski2013topological} networks. However, the model is 
+very simple, assuming that all nodes form the same number of links when added
+to the network and share the same preference for popular individuals.}
+
+\add{In this thesis, we consider four parameters related to the \gls{BA} model,
+denoted \gls{N}, \gls{m}, \gls{alpha}, and \gls{I} (see \cref{subsec:pa}). The
+first three of these are parameters of the model itself, while \gls{I} is
+related to the simulation of transmission trees over the network. However, we
+will refer to all four as \gls{BA} parameters. \gls{N} denotes the total number
+of nodes in the network, or equivalently, susceptible individuals in the
+population. \gls{m} is the number of new undirected edges added for each new
+vertex, or equivalently one-half of the average degree. \gls{alpha} is the
+power of preferential attachment - new nodes are attached to existing nodes of
+degree $d$ with probability proportional to $d^{\gls{alpha}} + 1$. Finally,
+\gls{I} is the number of infected individuals at the time when sampling occurs.}
+
+\add{From a public health standpoint, all four parameters are of some interest.
+The prevalence \gls{I} can be used to estimate the resources required to combat
+an ongoing epidemic, while total susceptible population size \gls{N} provides a
+similar metric for preventative measures. The average degree, controlled by
+\gls{m}, may have some value in predicting how fast an epidemic will spread.
+When there are more connections in the network, the time intervals between
+transmission events decrease, as does the number of transmissions required for
+the epidemic to travel from one part of the network to another. High average
+degrees may be reduced by interventions causing behaviour change, such as using
+condoms or caughing into one's sleeve; these types of interventions will be
+less helpful when the average number of contacts per person is already low. The
+preferential attachment power \gls{alpha} is perhaps the least obviously
+useful, but it can offer some insight into the dynamics of the network and how
+it would react to the removal of nodes. \textcite{dombrowski2013topological} 
+found evidence of preferential attachment in \gls{IDU} networks, and suggested
+that as a consequence of this characteristic, the removal of random nodes (such
+as through a police crackdown) might inadventently make it easier for epidemics
+to spread. When individuals with only one or two connections lose them, they
+might tend to seek out well-known (that is, high-degree) members of the
+community, thus increasing those individuals' connectivity even further.}
+
+\add{All four \gls{BA} parameters can be estimated using more conventional
+approaches, but the difficulty of doing so varies between the parameters and
+based on other characteristics of the epidemic under consideration. All network
+parameters can theoretically be estimated by explicitly constructing the
+contact network, although this is highly resource intensive and is hampered by 
+misreporting and other challenges~\autocite{eames2015six}. In any event, if we
+are in a position to know the true contact network then the point of estimating
+network parameters is moot. Depending on the context, \gls{N} may be estimable
+with a survey, but if the population in question is ``hidden'' (such as
+\gls{IDU} in regions where drug use is illegal) estimation of numbers may be
+more challenging. Respondent-driven
+sampling~\autocite{heckathorn1997respondent} was developed to investigate such
+populations. The prevalence \gls{I} may be estimated from reports of hospital
+admissions or engagement in care, but this may be very difficult for diseases
+such as \gls{HCV} which may remain asymptomatic for decades. Routine
+population-level testing is another possibility, but is resource intensive and
+the barriers associated with hidden populations still apply. The average degree
+of the network ($2\gls{m}$) can be ascertained by simply asking a sample of
+people how many contacts they had, but they might be unwilling to disclose this
+information or, in the case of airborne transmissions, they might not know. The
+estimation of \gls{alpha} is even more complex, as this parameter is most
+strongly reflected in the connectivity of very high degree nodes, who are rare
+in the population. Even if full degree distributions are available, there are
+models other than preferential attachment which can produce scale-free 
+networks~\autocite[\eg][]{kumar2000stochastic}. \textcite{de2007preferential}
+were able to estimate \gls{alpha} by maximum likelihood using partner count
+data from several sequential time intervals, but they admit such detailed data
+are not usually available. Moreover, their dataset was constructed via a random
+survey, which would likely miss the few high-degree nodes characterizing a
+power law degree distribution. In short, each of these parameters may be
+estimated without phylodynamics, but there are sufficient difficulties that we
+believe an alternative method based on sequence data is warranted.} 
+
+\end{document}
 
 \subsection{Methods}
-\glsreset{BA}
 
 %{\color{blue}\uline{The \gls{BA} contact network model} (see \cref{subsec:pa})
 %\uline{generates networks with a power law degree distribution. Power law
@@ -440,20 +566,23 @@ as \gls{ABC}, nor are they as easily parallelizable as \gls{SMC}. }}
 %clemencon2015statistical} (although not all, see
 %\autocite{handcock2004likelihood, bansal2007individual}).}
 
-{\color{blue}\uline{Using synthetic data,}} we investigated four parameters
-related to the \gls{BA} contact network model, denoted \gls{N}, \gls{m},
-\gls{alpha}, \gls{I} (see \cref{subsec:pa}). The first three of these are
-parameters of the model itself, while \gls{I} is related to the simulation of
-transmission trees over the network. However, we will refer to all four as
-\gls{BA} parameters. \gls{N} denotes the total number of nodes in the network,
-or equivalently, susceptible individuals in the population. When a node is
-added to the network, \gls{m} new undirected edges are added incident to it,
-and are attached to existing nodes of degree $k$ with probability proportional
-to $k^\alpha + 1$ (\cref{subsec:pa}). To simulate transmission trees over a
-\gls{BA} network, we allowed an epidemic to spread until \gls{I} nodes were
-infected, and sampled a transmission tree at that time. The \gls{alpha}
-parameter is unitless, while \gls{m} has units of edges or connections per
-vertex, and \gls{N} and \gls{I} both have units of nodes or individuals.
+\add{Using synthetic data,} we investigated four parameters related to the
+\gls{BA} contact network model, 
+denoted \gls{N}, \gls{m}, \gls{alpha}, \gls{I}
+(see \cref{subsec:pa}). The first three of these are parameters of the model
+itself, while \gls{I} is related to the simulation of transmission trees over
+the network. However, we will refer to all four as \gls{BA} parameters. \gls{N}
+denotes the total number of nodes in the network, or equivalently, susceptible
+individuals in the population. When a node is added to the network, \gls{m} new
+undirected edges are added incident to it, and are attached to existing nodes
+of degree $d$ with probability proportional to $d^{\gls{alpha}} + 1$
+(\cref{subsec:pa}). To simulate transmission trees over a \gls{BA} network, we
+allowed an epidemic to spread until \gls{I} nodes were infected, and sampled a
+transmission tree at that time. The \gls{alpha} parameter is unitless, while
+\gls{m} has units of edges or connections per vertex, and \gls{N} and \gls{I}
+both have units of nodes or individuals.
+
+\end{document}
 
 {\color{blue}\uline{Our investigation comprised three sets of computational
 experiments aimed at determining which of these parameters could be estimated
@@ -738,7 +867,7 @@ package~\autocite{snow2013teachingdemos}.}}
   {
     Variables and \gls{BA} parameter values used for \gls{ABC} validation
     experiments. Trees were simulated under the test values, and
-    kernel-assisted \gls{ABC} was used to re-estimate posterior distributions for the
+    \gls{ABC} was used to re-estimate posterior distributions for the
     \gls{BA} parameters without training.
   }
   \label{tab:abcexpt}
@@ -806,7 +935,7 @@ network peers had already been sampled. The parameters of this network were $N$
 
 \subsubsection*{Classifiers for BA model parameters based on tree shape}
 
-<<treestats, include=FALSE, eval=FALSE>>=
+<<treestats, include=FALSE>>=
     params <- c("alpha", "I", "m", "N")
 
     get.treestats <- function (param) {
@@ -916,7 +1045,7 @@ can be made for other values of \gls{I} and the number of tips
   \label{fig:kpca}
 \end{figure}
 
-<<classifiers, include=FALSE, eval=FALSE>>=
+<<classifiers, include=FALSE>>=
     get.kernel.data <- function (param, step) {
         md <- collect.metadata(paste0('../../simulations/kernel-', param, '/', step, '/*'))
         if ('rbf_variance' %in% colnames(md)) {
@@ -1028,7 +1157,7 @@ and little variation between scenarios.
 
 \subsubsection*{Marginal parameter estimates with grid search}
 
-<<gridsearch, include=FALSE, eval=FALSE>>=
+<<gridsearch, include=FALSE>>=
     d <- setDT(collect.data("../../simulations/aggregates/gridsearch/*"))
     d[,error := abs(true_value - point.est)]
     setkey(d, parameter)
@@ -1244,7 +1373,7 @@ flat around the true value. The effect was most obvious for the value
 
 \subsubsection*{Joint parameter estimates with \software{netabc}}
 
-<<point_est, include=FALSE, eval=FALSE>>=
+<<point_est, include=FALSE>>=
     f <- Sys.glob("../../simulations/abc-pa-free-m/point-estimate/*")
     d <- fread(f)
     d[,m := floor(m)]
@@ -1292,7 +1421,7 @@ flat around the true value. The effect was most obvious for the value
 
 \Cref{fig:abcptm2} shows {\color{red}\sout{\gls{MAP}}}
 {\color{blue}\uline{posterior mean}} point estimates of the BA model parameters
-obtained with kernel-assisted ABC on simulated data. The estimates shown
+obtained with ABC on simulated data. The estimates shown
 correspond only to the simulations where the $m$ parameter was set to 2,
 however the results for $m = 3$ and $m = 4$ were similar
 (\cref{fig:abcptm3,fig:abcptm4}). Average boundaries of 95\% \gls{HPD}
@@ -1370,7 +1499,7 @@ absolute error will increase by $\beta_\alpha$. If $\beta_\alpha$ is positive,
 it means that the absolute error decreases as the true value of \gls{alpha}
 increases.}}
 
-<<abc_glm, include=FALSE, eval=FALSE>>=
+<<abc_glm, include=FALSE>>=
     stopifnot(alpha.glm[Parameter == "alpha",p] < 0.05)
     stopifnot(alpha.glm[Parameter == "I",p] > 0.05)
     stopifnot(alpha.glm[Parameter == "m",p] < 0.05)
@@ -1380,7 +1509,7 @@ increases.}}
     stopifnot(I.glm[Parameter == "m",p] > 0.05)
 @
 
-<<glm_tables, echo=FALSE, warning=FALSE, error=FALSE, results="asis", eval=FALSE>>=
+<<glm_tables, echo=FALSE, warning=FALSE, error=FALSE, results="asis">>=
     source("global.R")
     format.glm <- function (df) {
         df.copy <- copy(df)
@@ -1431,7 +1560,7 @@ but was not significantly affected by the true value of \gls{m}}
 (\cref{tab:glmI}).}
 
 {\color{red}\sout{
-The accuracy of the parameter estimates obtained with kernel-assisted ABC
+The accuracy of the parameter estimates obtained with ABC
 paralleled the results from the \gls{kSVR} classifier. Of the four parameters,
 $\alpha$ was the most accurately estimated, with point estimates having a
 median [IQR] absolute error of 
@@ -1496,18 +1625,18 @@ estimates (all one-way ANOVA).}}
   \caption[
       Average posterior mean point estimates and 95\% highest posterior density
       (HPD) interval widths for BA model parameter estimates obtained with
-      kernel-assisted ABC.
+      ABC.
   ]{
       Average posterior mean point estimates and 95\% highest posterior density
       (HPD) interval widths for BA model parameter estimates obtained with
-      kernel-assisted ABC. Three transmission trees were simulated under each
+      ABC. Three transmission trees were simulated under each
       combination of the listed parameter values, and the parameters were
-      estimated with kernel-assisted ABC without training.
+      estimated with ABC without training.
   }
   \label{tab:abchpd}
 \end{table*}
 
-<<supp_labels, echo=FALSE, results="asis", eval=FALSE>>=
+<<supp_labels, echo=FALSE, results="asis">>=
     N <- 5000
     replicate <- 0
     lab <- NULL
@@ -1536,17 +1665,17 @@ and $N$ were more widely dispersed.
   \vspace{6pt}
   \caption[
     Marginal posterior distributions of BA model parameters estimated
-    with kernel-assisted ABC for a single simulated transmission tree.
+    with ABC for a single simulated transmission tree.
   ]{
     Marginal posterior distributions of BA model parameters estimated
-    with kernel-assisted ABC for a single simulated transmission tree. Dotted
+    with ABC for a single simulated transmission tree. Dotted
     lines indicate true values, solid lines indicate posterior mean point
     estimates, and shaded areas show 95\% highest posterior density intervals.
   }
   \label{fig:abcex}
 \end{figure}
 
-<<mixed_peerdriven, include=FALSE, eval=FALSE>>=
+<<mixed_peerdriven, include=FALSE>>=
   d <- fread("bzcat ../../simulations/abc-pa-mixed-alpha/abc/*")
   d <- d[iter == max(iter)]
   #d <- d[sample(1:nrow(d), prob=weight, replace=TRUE)]
@@ -1628,7 +1757,7 @@ $\alpha$ was somewhat lower than typical.
 The synthetic data experiments presented in the previous section demonstrated 
 that the \gls{alpha} and \gls{I} parameters, and to a lesser extent the \gls{N}
 parameter, had measurable impacts on tree shape and were identifiable with
-kernel-assisted \gls{ABC}. Therefore, our next step was to use
+\gls{ABC}. Therefore, our next step was to use
 \software{netabc} to estimate the parameters of the \gls{BA} model for real
 world \gls{HIV} epidemics. }} Because the \gls{BA} model assumes a single
 connected contact network, it is most appropriate to apply to groups of
@@ -1723,13 +1852,13 @@ $\gamma$ values was taken as a point estimate for the associated dataset.
 
 \subsection{Results}
 
-<<realdata, include=FALSE, eval=FALSE>>=
+<<realdata, include=FALSE>>=
   m <- collect.metadata("../../simulations/aggregates/hpd/*")
-  d1 <- fread(rownames(m)[m$m_min == 1 & m$gene == "gag"])
-  d2 <- fread(rownames(m)[m$m_min == 2 & m$gene == "gag"])
+  d1 <- fread(rownames(m)[m$m_min == 1 & m$agg_gene == "gag"])
+  d2 <- fread(rownames(m)[m$m_min == 2 & m$agg_gene == "gag"])
 
-  d1.env <- fread(rownames(m)[m$m_min == 1 & m$gene == "env"])
-  d2.env <- fread(rownames(m)[m$m_min == 2 & m$gene == "env"])
+  d1.env <- fread(rownames(m)[m$m_min == 1 & m$agg_gene == "env"])
+  d2.env <- fread(rownames(m)[m$m_min == 2 & m$agg_gene == "env"])
 
   pmean1 <- dcast.data.table(d1, dataset~parameter, value.var="mean")
   up1 <- dcast.data.table(d1, dataset~parameter, value.var="hpd.max.95")

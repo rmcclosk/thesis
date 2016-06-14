@@ -53,10 +53,12 @@
 \let\Mref\Cref
 \let\mtextcite\textcite
 \let\mautocite\autocite
+\let\mciteauthor\citeauthor
 \renewcommand{\cref}[1]{\mbox{\mref{#1}}}
 \renewcommand{\Cref}[1]{\mbox{\Mref{#1}}}
 \renewcommandtwoopt{\textcite}[3][][]{\mbox{\mtextcite[#1][#2]{#3}}}
 \renewcommandtwoopt{\autocite}[3][][]{\mbox{\mautocite[#1][#2]{#3}}}
+\renewcommand{\citeauthor}[1]{\mbox{\mciteauthor{#1}}}
 \newcommand{\add}[1]{\color{blue}\uline{#1} \color{black}}
 \newcommand{\madd}[1]{\color{blue}\underline{#1} \color{black}}
 \newcommand{\del}[1]{\color{red}\sout{#1} \color{black}}
@@ -72,6 +74,7 @@
 %TC:macro \del [ignore]
 %TC:macro \mdel [ignore]
 
+\DeclareMathAlphabet{\mathcal}{OMS}{cmsy}{m}{n}
 \newcommand{\N}{\mathcal{N}}
 \newcommand{\I}{\mathbb{I}}
 \newcommand{\F}{\mathcal{F}}
@@ -87,7 +90,7 @@
 \DeclareMathOperator{\Uniform}{Uniform}
 \DeclareMathOperator{\DiscreteUniform}{DiscreteUniform}
 \DeclareMathOperator{\Var}{Var}
-\DeclareMathOperator{\inc}{in}
+\DeclareMathOperator{\inc}{inc}
 \DeclareMathOperator{\out}{out}
 \DeclareMathOperator{\ESS}{ESS}
 \DeclareMathOperator{\nc}{nc}
@@ -138,10 +141,19 @@
 \newacronym{IQR}{IQR}{interquartile range}
 \newacronym{MPI}{MPI}{message passing interface}
 \newacronym{PA}{PA}{preferential attachment}
+\newacronym{HCV}{HCV}{hepatitis C virus}
 
 \newglossaryentry{alpha}{
   name=\ensuremath{\alpha},
   description=preferential attachment power parameter in Barab\'asi-Albert networks
+}
+\newglossaryentry{beta}{
+  name=\ensuremath{\beta},
+  description=transmission rate in susceptible-infected and susceptible-infected-removed epidemiological models
+}
+\newglossaryentry{nu}{
+  name=\ensuremath{\nu},
+  description=recovery rate in the susceptible-infected-removed epidemiological model
 }
 \newglossaryentry{m}{
   name=\ensuremath{m},
@@ -156,8 +168,24 @@
   description=number of infected nodes in a contact network at the time of
   transmission tree sampling
 }
+\newglossaryentry{gI}{
+  name=\ensuremath{\mathcal{I}},
+  description=set of infected nodes in Gillespie simulation
+}
+\newglossaryentry{gR}{
+  name=\ensuremath{\mathcal{R}},
+  description=set of recovered nodes in Gillespie simulation
+}
+\newglossaryentry{gS}{
+  name=\ensuremath{\mathcal{S}},
+  description=set of recovered nodes in Gillespie simulation
+}
+\newglossaryentry{gD}{
+  name=\ensuremath{\mathcal{D}},
+  description=set of discordant edges in Gillespie simulation
+}
 \newglossaryentry{gamma}{
-  name=$\gamma$,
+  name=\ensuremath{\gamma},
   description=exponent of power-law degree distribution in scale-free networks
 }
 \newglossaryentry{p}{
@@ -187,6 +215,30 @@
 \newglossaryentry{Theta}{
   name=\ensuremath{\Theta},
   description=parameter space for a given mathematical model
+}
+\newglossaryentry{T}{
+  name=\ensuremath{T},
+  description=a transmission tree
+}
+\newglossaryentry{tmax}{
+  name=\ensuremath{t_{\max}},
+  description=user-defined cutoff time at which to stop Gillespie simulation
+}
+\newglossaryentry{t}{
+  name=\ensuremath{t},
+  description=time since initial infection of index case in an epidemic
+}
+\newglossaryentry{rho}{
+  name=\ensuremath{\rho},
+  description=distance function for approximate Bayesian computation
+}
+\newglossaryentry{epsilon}{
+  name=\ensuremath{\varepsilon},
+  description=distance function for approximate Bayesian computation
+}
+\newglossaryentry{q}{
+  name=\ensuremath{q},
+  description=proposal function for Metropolis-Hastings kernel
 }
 
 \graphicspath{{../figures/}}

@@ -241,128 +241,132 @@ infected node may only end up transmitting along a fraction of its outgoing
 edges, which could mask the presence of the extra edges associated with higher
 \gls{m}}.
 
-\end{document}
-
 In addition to the tree height, many summary statistics have been developed to
-capture particular details of tree shape. Two of these, Sackin's index and the
-ratio of internal to terminal branch lengths, were correlated with every
-\gls{BA} parameter. Classifiers based on Sackin's index and the \gls{nltt}
-similarity measure performed well in some cases, though poorly in others.
-\gls{ABC} is often applied using a vector of summary
-statistics~\autocite{marin2012approximate, sunnaaker2013approximate}, rather
-than a kernel-based similarity score as we have done here. Methods have been
-developed to select an optimal combination of summary statistics for a given
-inference task~\autocite{fearnhead2012constructing}. Hence, an avenue for
+capture particular details of tree shape~\autocite{bortolussi2006aptreeshape}.
+Two of these, Sackin's index and the ratio of internal to terminal branch
+lengths, were correlated with every \gls{BA} parameter. Classifiers based on
+Sackin's index and the \gls{nltt} similarity measure performed well in some
+cases, though poorly in others. \Gls{ABC} is often applied using a vector of
+summary statistics~\autocite{marin2012approximate, sunnaaker2013approximate},
+rather than a kernel-based similarity score as we have done here. Methods have
+been developed to select an optimal combination of summary statistics for a
+given inference task~\autocite{fearnhead2012constructing}. Hence, an avenue for
 future improvement of our method may be the inclusion of additional summary
-statistics to supplement the tree kernel. In addition, all four parameters were
-more accurately classified when the number of tips in the transmission trees
-was larger, underscoring the importance of adequate sampling for accurate
-phylodynamic inference.
+statistics to supplement the tree kernel. In addition, all four \gls{BA}
+parameters were more accurately classified when the number of tips in the
+transmission trees was larger, underscoring the importance of adequate sampling
+for accurate phylodynamic inference~\autocite{novitsky2014impact}.
 
-For the more identifiable parameters, the credible intervals attained from the
-marginal \gls{ABC} target distributions were much narrower than those obtained
-through grid search, while point estimates were of comparable accuracy. This
-was likely due to the fact that \gls{SMC} employs importance sampling to
-approximate the posterior distribution, while grid search simply calculates a
-distance metric which may not have any resemblance to the posterior.
-Admittedly, our method of finding credible intervals from kernel scores along
-the grid, namely by normalizing the scores to resemble a probability
-distribution, was somewhat ad hoc, which may also have played a role.
-Regardless, this result indicates that there is benefit to applying the more
-sophisticated method, even if values for some of the parameters are known
-\textit{a priori}, and especially if credible intervals are desired on the
-parameters of interest.
+For \del{the more identifiable parameters}\add{\gls{alpha} and \gls{I}}, the
+credible intervals attained from the marginal \gls{ABC} target distributions
+were \del{much} narrower than those obtained through grid search\del{, while
+point estimates were of comparable accuracy}. This was likely due to the fact
+that \gls{SMC} employs importance sampling to approximate the posterior
+distribution, while grid search simply calculates a distance metric which may
+not have any resemblance to the posterior. Our method of finding credible
+intervals from kernel scores along the grid, by normalizing the scores to
+resemble a probability distribution, was somewhat ad hoc, which may also have
+played a role. Regardless, this result indicates that there is benefit to
+applying the more sophisticated method, even if values for some of the
+parameters are known \textit{a priori}, and especially if credible intervals
+are desired on the parameters of interest.
 
 As noted by \textcite{lintusaari2016identifiability}, uniform priors on model
 parameters may translate to highly informative priors on quantities of
 interest. We observed a non-linear relationship between the preferential
-attachment power $\alpha$ and the power law exponent $\gamma$
-(\cref{fig:gamma}). Therefore, placing a uniform prior on $\alpha$ between 0
-and 2 is equivalent to placing an informative prior that $\gamma$ is close to
-2. Therefore, if we were primarily interested in $\gamma$ rather than
-$\alpha$, a more sensible choice of prior might have a shape informed by
-\cref{fig:gamma} and be bounded above by approximately $\alpha$ = 1.5. This
-would uniformly bound $\gamma$ in the region $2 \leq \gamma \leq 4$ commonly
-reported in the network literature~\autocite{liljeros2001web,
-schneeberger2004scale, colgate1989risk, brown2011transmission}. We note however
-that \textcite{jones2003assessment} estimated $\gamma$ values greater than
-four for some datasets, in one case as high as 17, indicating that a wider
-range of permitted $\gamma$ values may be warranted.
+attachment power \gls{alpha} and the fitted power law exponent \gls{gamma}
+(\cref{fig:gamma}, although see the discussion in \cref{TODO}). Therefore,
+placing a uniform prior on \gls{alpha} between 0 and 2 is equivalent to placing an
+informative prior that \gls{gamma} is close to 2. If we were primarily
+interested in \gls{gamma} rather than \gls{alpha}, a more sensible choice of
+prior might have a shape informed by \cref{fig:gamma} and be bounded above by
+approximately $\gls{alpha} = 1.5$. This would bound \gls{gamma} in the region
+$2 \leq \gls{gamma} \leq 4$ commonly reported in the network
+literature~\autocite{liljeros2001web, schneeberger2004scale, colgate1989risk,
+brown2011transmission}. We note however that \textcite{jones2003assessment}
+estimated \gls{gamma} values greater than four for some datasets, in one case
+as high as 17, indicating that consideration of a wider range of permitted
+\gls{gamma} values may be warranted.
 
 The combination of method, model, and priors we employed did not produce
 perfect estimates of any of the parameters. The estimates of \gls{alpha} were
 the most accurate, although the variance of the estimates was high and the
-confidence intervals were wide for \gls{alpha} $< 1$
+confidence intervals were wide for $\gls{alpha} < 1$
 (\cref{tab:abchpd,fig:abcptm2,fig:abcptm3,fig:abcptm4}). The estimates of
-\gls{N} and \gls{I} were both biased, and the estimates of \gls{m} were largely
-uninformative. Despite these issues, a major result of our our investigation is
-that some contact network parameters have a measurable impact on tree shape
-which can be used to perform statistical inference. Further refinements to
-\software{netabc}, as well as the use of more sophisticated network models, may
-improve the accuracy and precision of these estimates.
+\gls{N} and \gls{I} were both upwardly biased, and the estimates of \gls{m}
+were largely uninformative. Despite these limitations, a major result of our
+investigation is that some contact network parameters have a measurable impact
+on tree shape which can be used to perform statistical inference. Further
+refinements to \software{netabc}, as well as the use of more sophisticated
+network models, may improve the accuracy and precision of these estimates.
 
 \subsection{Application to real world HIV data}
 
 Our investigation of published HIV datasets indicated heterogeneity in the
 contact network structures underlying several distinct local epidemics. When
-interpreting these results, we caution that the BA model is quite simple and
-most likely misspecified for these data. In particular, the average degree of a
-node in the network is equal to $2m$, and therefore is constrained to be a
-multiple of 2. Furthermore, we considered the case $m = 1$, where the network
-has no cycles, to be implausible and therefore assigned it zero prior
-probability in one set of analyses. This forced the average degree to be at
-least four, which may be unrealistically high for sexual networks. The fact
-that the estimated values of $\alpha$ differed substantially for three datasets
-depending on whether or not $m = 1$ was allowed by the prior is further evidence
-of this potential misspecification. However, we note that for two of the
-datasets, the estimated values of $\alpha$ did not change much between priors,
-and the estimates of $I$ were robust to the choice of prior for all datasets
-studied. More sophisticated models, for example models incorporating
-heterogeneity in node behaviour, are likely to provide a better fit to these
-data.
+interpreting these results, we caution that the \gls{BA} model is quite simple
+and most likely misspecified for these data. In particular, the average degree
+of a node in the network is equal to $2\gls{m}$, and therefore is constrained
+to be a multiple of 2. Furthermore, we considered the case $\gls{m} = 1$, where
+the network has no cycles, to be implausible and therefore assigned it zero
+prior probability in one set of analyses. This forced the average degree to be
+at least four, which may be unrealistically high for sexual networks. The fact
+that the estimated values of \gls{alpha} differed substantially for several
+datasets depending on whether or not $\gls{m} = 1$ was allowed by the prior is
+further evidence of this potential misspecification. However, we note that for
+two of the datasets, the estimated values of \gls{alpha} did not change much
+between priors, and the estimates of $\gls{I}$ were robust to the choice of
+prior for all datasets studied. More sophisticated models, for example models
+incorporating heterogeneity in node behaviour, are likely to provide a better
+fit to these data.
 
-{\color{red}\sout{With respect to the preferential attachment power $\alpha$,
-the six datasets analysed fell into two categories} (\cref{fig:abchpd}).
-\sout{First, we estimated a preferential attachment power close to 1,
-indicating linear preferential attachment, for the BC data and the outbreaks
-studied by} \textcite{niculescu2015recent} and \textcite{wang2015targeting}.
-\sout{These values were robust to specifying different priors for $m$. All three
-datasets were sampled from populations in which we would expect a high degree
-of epidemiological relatedness:} \textcite{niculescu2015recent} \sout{studied a
-recent outbreak among Romanian \gls{IDU},} \citeauthor{wang2015targeting}
-\sout{sampled acutely infected MSM in Beijing, China, and the BC data
+\del{With respect to the preferential attachment power $\alpha$, the six
+datasets analysed fell into two categories (\cref{fig:abchpd}). First, we
+estimated a preferential attachment power close to 1, indicating linear
+preferential attachment, for the BC data and the outbreaks studied by
+\textcite{niculescu2015recent} and \textcite{wang2015targeting}. These
+values were robust to specifying different priors for $m$. All three datasets
+were sampled from populations in which we would expect a high degree of
+epidemiological relatedness: \textcite{niculescu2015recent} studied a
+recent outbreak among Romanian \gls{IDU}, \citeauthor{wang2015targeting}
+sampled acutely infected MSM in Beijing, China, and the BC data
 constituted a phylogenetic \gls{IDU} cluster. These are all contexts in which
 we would expect some of the assumptions of the BA model, such as a connected
 network, relatively high mean degree, and preferential attachment dynamics, to
 hold.}
 
-\sout{The remaining three datasets} (\textcite{cuevas2009hiv,
-novitsky2014impact, li2015hiv}) \sout{had estimated values of $\alpha$ below
-0.5 when $m = 1$ was included in the prior, but these were not robust to
-changing the prior to exclude $m = 1$. For the} \citeauthor{cuevas2009hiv} 
-\sout{data, model misspecification is likely partially responsible. While the
-authors found that a large proportion of the samples were epidemiologically
-linked, these were mainly in small local clusters rather than the single large
-component postulated by the BA model. In addition, the mixed risk groups in the
-dataset would be unlikely to significantly interact, further weakening any
-global preferential attachment dynamics. The dataset studied by}
-\textcite{novitsky2014impact} \sout{originated from a densely sampled
-population where the predominant risk factor was believed to be heterosexual
-exposure. Although the MAP estimate of $\alpha$ was almost unchanged when the
-value $m = 1$ was excluded from the prior, the confidence interval shrank
-substantially.}}
+\del{The remaining three datasets (\textcite{cuevas2009hiv, novitsky2014impact,
+li2015hiv}) had estimated values of $\alpha$ below 0.5 when $m = 1$ was
+included in the prior, but these were not robust to changing the prior to
+exclude $m = 1$. For the \citeauthor{cuevas2009hiv} data, model
+misspecification is likely partially responsible. While the authors found that
+a large proportion of the samples were epidemiologically linked, these were
+mainly in small local clusters rather than the single large component
+postulated by the BA model. In addition, the mixed risk groups in the dataset
+would be unlikely to significantly interact, further weakening any global
+preferential attachment dynamics. The dataset studied by
+\textcite{novitsky2014impact} originated from a densely sampled population
+where the predominant risk factor was believed to be heterosexual exposure.
+Although the MAP estimate of $\alpha$ was almost unchanged when the value $m =
+1$ was excluded from the prior, the confidence interval shrank substantially.}
 
-%<<disc, include=FALSE>>=
-%    d <- setDT(collect.data("../../simulations/aggregates/hpd/*"))
-%@
+<<disc, include=FALSE>>=
+    source("global.R")
+    d <- setDT(collect.data("../../simulations/aggregates/hpd/*"))
+    d <- d[agg_gene == "gag"]
+    d1 <- d[m_min == 1]
+    d2 <- d[m_min == 2]
+@
 
-\subsubsection{Preferential attachment power}
+\end{document}
 
-For all datasets we examined, the posterior mean estimates for \gls{alpha} were
-sub-linear, ranging from 
-    X%\S%expr{d[m_min == 1 & parameter == "alpha", round(min(mean), 2)]}
+\subsubsection{Preferential attachment power is sub-linear and higher for \gls{IDU}}
+
+\add{For all datasets we examined, the posterior mean estimates for \gls{alpha}
+were sub-linear, ranging from 
+    \Sexpr{d[m_min == 1 & parameter == "alpha", round(min(mean), 2)]}
 to 
-    X%\S%expr{d[m_min == 1 & parameter == "alpha", round(max(mean), 2)]}.
+    \Sexpr{d[m_min == 1 & parameter == "alpha", round(max(mean), 2)]}.
 The sub-linearity is consistent with the results of
 \textcite{de2007preferential}, who developed a statistical inference method to
 estimate the parameters of a more sophisticated \acrlong{PA} model
@@ -381,7 +385,7 @@ high-degree nodes characterizing the tail of the degree distribution, simply
 because those individuals are rare in the general population. In addition, it
 is plausible that \gls{HIV}-positive individuals are more likely to be highly
 connected in their sexual networks, as the odds of acquiring \gls{HIV} increase
-with the number of unprotected sexual contacts.
+with the number of unprotected sexual contacts.}
 
 Both \textcite{de2007preferential} and \textcite{novitsky2014impact} studied
 populations whose primary risk factor for \gls{HIV} infection was heterosexual
