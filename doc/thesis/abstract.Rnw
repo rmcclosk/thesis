@@ -31,16 +31,26 @@ number of infected nodes could often be accurately estimated. However, the mean
 degree of the network and the total number of nodes appeared to be weakly- or
 non-identifiable with ABC. 
 
+<<alpha, include=FALSE>>=
+    source("global.R") 
+    d <- setDT(collect.data("../../simulations/aggregates/hpd/*"))
+    d <- d[m_min == 1 & agg_gene == "gag",]
 
+    stopifnot(d[parameter == "alpha", dataset[which.min(mean)]] == "cuevas2009")
+    stopifnot(d[parameter == "alpha", dataset[which.max(mean)]] == "zetterberg2004")
+
+    stopifnot(d[parameter == "alpha", max(mean)] >= 0.9)
+    stopifnot(d[parameter == "alpha", max(mean)] < 1.0)
+@
 
 Finally, the Barab\'{a}si-Albert model was fit to \del{six}\add{eleven} real
 world HIV datasets, and substantial heterogeneity in the parameter estimates
 was observed. \del{Point estimates} \add{Posterior means} for the preferential
 attachment power \add{were all sub-linear} and ranged from \del{0.06 to 1.05}
 \add{ 
-    0.27
+    \Sexpr{d[parameter == "alpha", round(min(mean), 2)]}
 to
-    0.9.
+    \Sexpr{d[parameter == "alpha", round(max(mean), 2)]}.
 Point estimates of the strength of preferential attachment were higher in
 injection drug user populations, potentially indicating that high-degree
 ``hub'' nodes may play a role in epidemics among this risk group.} Our results

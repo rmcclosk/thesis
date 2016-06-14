@@ -24,6 +24,7 @@
 \usepackage[titletoc]{appendix}
 \usepackage{tocloft}
 \usepackage[normalem]{ulem}
+\usepackage{calc}
 
 \newcommand{\comment}[1]{(\textbf{#1})}
 
@@ -41,6 +42,34 @@
 \renewcommand{\d}{\mathrm{d}\,}
 \newcommand{\norm}[1]{\left\lVert#1\right\rVert}
 \newcommand{\maps}{:}
+\newcommand{\vx}{\vec{x}}
+
+\newcommand{\prior}{\pi}
+\newcommand{\lik}{f}
+\newcommand{\post}{\pi}
+
+\let\mref\cref
+\let\Mref\Cref
+\let\mtextcite\textcite
+\let\mautocite\autocite
+\renewcommand{\cref}[1]{\mbox{\mref{#1}}}
+\renewcommand{\Cref}[1]{\mbox{\Mref{#1}}}
+\renewcommand{\textcite}[1]{\mbox{\mtextcite{#1}}}
+\renewcommand{\autocite}[1]{\mbox{\mautocite{#1}}}
+\newcommand{\add}[1]{\color{blue}\uline{#1} \color{black}}
+\newcommand{\madd}[1]{\color{blue}\underline{#1} \color{black}}
+\newcommand{\del}[1]{\color{red}\sout{#1} \color{black}}
+% http://tex.stackexchange.com/a/20612/60841
+\newsavebox\CBox
+\newcommand\mdel[1]{%
+  \color{red}%
+  \ifmmode\sbox\CBox{$#1$}\else\sbox\CBox{#1}\fi%
+  \makebox[0pt][l]{\usebox\CBox}%
+  \rule[0.5\ht\CBox-0.25pt]{\wd\CBox}{0.5pt}
+  \color{black}%
+}
+%TC:macro \del [ignore]
+%TC:macro \mdel [ignore]
 
 \newcommand{\N}{\mathcal{N}}
 \newcommand{\I}{\mathbb{I}}
@@ -62,10 +91,6 @@
 \DeclareMathOperator{\ESS}{ESS}
 \DeclareMathOperator{\nc}{nc}
 \DeclareMathOperator{\nl}{nl}
-
-\newfloat{data}{hb}{lod}
-\floatname{data}{Data}
-\crefname{data}{data}{data}
 
 \newacronym{MCMC}{MCMC}{Markov chain Monte Carlo}
 \newacronym{ER}{ER}{Erd\H{o}s-R\'enyi}
@@ -148,7 +173,7 @@
 }
 \newglossaryentry{n}{
   name=\ensuremath{n},
-  description=number of particles used for ABC-SMC
+  description=number of particles used for sequential Monte Carlo
 }
 \newglossaryentry{M}{
   name=\ensuremath{M},
@@ -157,6 +182,10 @@
 \newglossaryentry{alphaess}{
   name=\ensuremath{\alpha_{\ESS}},
   description=per-iteration rate of expected sample size decay in adaptive ABC-SMC
+}
+\newglossaryentry{Theta}{
+  name=\ensuremath{\Theta},
+  description=parameter space for a given mathematical model
 }
 
 \graphicspath{{../figures/}}
