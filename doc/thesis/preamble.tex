@@ -25,6 +25,7 @@
 \usepackage{tocloft}
 \usepackage[normalem]{ulem}
 \usepackage{calc}
+\usepackage{twoopt}
 
 \newcommand{\comment}[1]{(\textbf{#1})}
 
@@ -54,8 +55,8 @@
 \let\mautocite\autocite
 \renewcommand{\cref}[1]{\mbox{\mref{#1}}}
 \renewcommand{\Cref}[1]{\mbox{\Mref{#1}}}
-\renewcommand{\textcite}[1]{\mbox{\mtextcite{#1}}}
-\renewcommand{\autocite}[1]{\mbox{\mautocite{#1}}}
+\renewcommandtwoopt{\textcite}[3][][]{\mbox{\mtextcite[#1][#2]{#3}}}
+\renewcommandtwoopt{\autocite}[3][][]{\mbox{\mautocite[#1][#2]{#3}}}
 \newcommand{\add}[1]{\color{blue}\uline{#1} \color{black}}
 \newcommand{\madd}[1]{\color{blue}\underline{#1} \color{black}}
 \newcommand{\del}[1]{\color{red}\sout{#1} \color{black}}

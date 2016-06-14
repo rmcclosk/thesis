@@ -1207,88 +1207,91 @@ $\pi_\varepsilon(\theta, z \mid y)$ will be referred to as the
 appears to be the bothersome likelihood again, but this will turn out not to
 be a problem because we are simulating $z$ ourselves.}
 
-\end{document}
-
 \add{To return to the context of this thesis, the observed data $y$ is an
 estimated transmission tree for a viral epidemic under investigation. The model
-in question is a contact network model with parameters $\theta$. $z$ is a
-simulated transmission tree, obtained by first generating a contact network
-under the model, and then simulating the spread of an epidemic over that
-network. A transmission tree can be constructed by keeping track of who
+in question is a contact network model with parameters $\theta$. The simulated
+dataset $z$ is a transmission tree, obtained by first generating a contact
+network under the model, and then simulating the spread of an epidemic over
+that network. A transmission tree can be constructed by keeping track of who
 infected whom during the simulated epidemic (further details will be given in
 \cref{subsec:nettree}). The distance function $\rho$ must compare two
-transmission trees - the observed tree $y$, and the simulated tree $z$. We will
-define this distance function using the tree kernel discussed in
-\cref{subsec:treeshape}. In words, the approximate posterior we consider here
-is a distribution which assigns a joint probability density to model parameters
-and simulated transmission trees under those parameters. The probability
-density is proportional to the product of the prior on the parameters, and the
-likelihood of the simulated transmission tree under those parameters, but only
-if the simulated transmission tree is sufficiently close to the true tree.
-Otherwise, the probability density is zero.}
+transmission trees - the observed tree, which takes the place of $y$, and the
+simulated tree $z$. We will define this distance function using the tree kernel
+discussed in \cref{subsec:treeshape}. In words, the approximate posterior we
+consider here is a distribution which assigns a joint probability density to
+model parameters and simulated transmission trees under those parameters. The
+probability density is proportional to the product of the prior on the
+parameters, and the likelihood of the simulated transmission tree under those
+parameters, but only if the simulated transmission tree is sufficiently close
+to the true tree.  Otherwise, the probability density is zero.}
 
-{\color{red}\sout{As we shall see in the next section, this distribution can
-be sampled from exactly. The word ``approximate'' derives from assumption that,
-for a suitably chosen distance $\rho$ and a small enough $\varepsilon$, the
-marginal in $z$ of this distribution approximates the posterior of
-interest~\autocite{marin2012approximate}. That is, }}
-{\color{blue}\uline{In fact, it is not the \gls{ABC} target distribution
+\del{As we shall see in the next section, this distribution can be sampled from
+exactly. The word ``approximate'' derives from assumption that, for a suitably
+chosen distance $\rho$ and a small enough $\varepsilon$, the marginal in $z$ of
+this distribution approximates the posterior of
+interest~\autocite{marin2012approximate}. That is,}
+\add{In fact, it is not the \gls{ABC} target distribution
 itself, but rather its marginal in $z$, which approximates the posterior
-distribution. In other words, we claim that }} 
+distribution. In other words, we claim that}
 \[
-  \int \pi_\varepsilon(\theta, z \mid y) \d z \approx \Pr(\theta \mid y).
+  \int \pi_\varepsilon(\theta, z \mid y) \d z \approx \post(\theta \mid y).
 \]
-The intuition for why this approximation might be reasonable
-comes from the fact that, when $\varepsilon = 0$, the $\varepsilon$-ball around
-$y$ should contain only $y$ itself, hence the integral on the left is exactly
-equal to the posterior. Thus, by taking $\varepsilon$ small, we should attain
-something close to the posterior {\color{blue}\uline{if $\rho$ captures the
-similarity between datasets reasonably well. However, the accuracy of the
-\gls{ABC} approximation depends heavily on the choice of distance function
-\autocite{aeschbacher2012novel,blum2013comparative}.}}
+The intuition for why this approximation might be reasonable comes from
+\add{considering the case when $\varepsilon$ = 0 and $\rho$ has the property
+that $\rho(z, y)$ if and only if $x = y$. In that case,} \del{the fact that,
+when $\varepsilon = 0$,} the $\varepsilon$-ball around $y$ should contain only
+$y$ itself, hence the integral on the left is exactly equal to the posterior.
+Thus, by taking $\varepsilon$ small, we should attain something close to the
+posterior \add{if $\rho$ captures the similarity between datasets reasonably
+well. However, the accuracy of the \gls{ABC} approximation depends heavily on
+the choice of distance function
+\autocite{aeschbacher2012novel,blum2013comparative}.}
 
 \subsubsection{Distance functions and summary statistics in ABC}
 
-In many applications {\color{blue}\uline{(eg. \autocite{fu1997estimating,
-tanaka2006using})}}, $\rho$ is defined as $\rho(S(\cdot), S(\cdot))$ where $S$
-is a function which maps data points into a vector of summary statistics.
-{\color{blue}\uline{In the context of \gls{ABC}, a summary statistic $S$ is
-called \defn{sufficient} if} 
+In many applications \add{(eg. \autocite{fu1997estimating,tanaka2006using})},
+$\rho$ is defined as $\rho(S(\cdot), S(\cdot))$ where $S$ is a function which
+maps data points into a vector of summary statistics.
+\add{In the context of \gls{ABC}, a summary statistic $S$ is called
+\defn{sufficient} if}
 \[
-  \Pr(\theta \mid y) = \Pr(\theta \mid S(y)).
+  \post(\theta \mid y) = \post(\theta \mid S(y)).
 \]
-\uline{That is, sufficiency implies that the data can be replaced with the
+\add{That is, sufficiency implies that the data can be replaced with the
 summary statistic without losing any information about the posterior
 distribution~\autocite{marjoram2006modern}. For most problems, it is not
 possible to find sufficient summary statistics~\autocite{marjoram2006modern}.
 A number of sophisticated methods have been developed for selecting and
-weighting summary statistics based on various optimality criteria}
-\autocite[][and references therein]{aeschbacher2012novel,
-blum2013comparative}}.
+weighting summary statistics based on various optimality criteria
+\autocite[][and~references~therein]{aeschbacher2012novel,blum2013comparative}.
+We do not apply these methods in this work, instead focusing on a distance
+function which is not based on summary statistics.}
 
-Summary statistics can be useful if the data are high-dimensional or of a
-complex type, but they are not strictly necessary. For instance, if the data
-are numeric and of low dimension, the distance function may simply be the
-Euclidean distance~\autocite{sisson2007sequential}.
-{\color{blue}\textcite{park2015k2} \uline{proposed the use of a kernel function}
-(defined in \cref{subsec:treeshape}) \uline{in place of a distance function.
-The authors referred to their approach as ``double-kernel \gls{ABC}'' due to
-the use of a second kernel function to compute the weights of the particles.
-The work by \textcite{poon2015phylodynamic}, upon which ours is based, employed
-a similar approach, replacing the likelihood ratio in Bayesian \gls{MCMC} with
-a ratio of kernel scores.}}
+\del{Summary statistics can be useful if the data are high-dimensional or of a
+complex type, but}\add{Although summary statistics are often presented as a
+fundamental part of \gls{ABC},} they are not strictly necessary. For instance,
+if the data are numeric and of low dimension, the distance function may simply
+be the Euclidean distance~\autocite{sisson2007sequential}.
+\add{\textcite{park2015k2} proposed the use of a kernel function
+(as defined in \cref{subsec:treeshape}) in place of a distance function.  The
+authors referred to their approach as ``double-kernel \gls{ABC}'' due to the
+use of a second (unrelated) kernel function to compute the weights of the
+particles. The work by \textcite{poon2015phylodynamic}, upon which ours is
+based, employed a similar approach, replacing the likelihood ratio in Bayesian
+\gls{MCMC} with a ratio of kernel scores.}
 
 \subsection{Algorithms for ABC}
 \label{subsec:abcalg}
 
-Algorithms for performing \gls{ABC} fall into one of three categories:
+Algorithms for performing \gls{ABC} can be grouped into three categories:
 rejection, \gls{MCMC}, and \gls{SMC}~\autocite{marin2012approximate}. To
 simplify the notation, we shall restrict the descriptions of these algorithms
 to the case of one simulated dataset per parameter particle (the meaning of
 this will become clear shortly). The extension to multiple datasets per
 particle is straightforward and will be given at the end of the section. We use
 the variable $x$ to refer to the pair $(\theta, z)$, so that the \gls{ABC}
-target distribution can be written $\pi_\varepsilon(x \mid y)$.
+target distribution can be written $\pi_\varepsilon(x \mid y)$. \add{This makes
+our notation consistent with \cref{sec:smc}.}
 
 Rejection ABC is the simplest method, and also the one which was first
 proposed~\autocite{rubin1984bayesianly, tavare1997inferring}. The algorithm,
@@ -1302,7 +1305,7 @@ distance of $z$ from the observed data $y$ is less than $\varepsilon$, that is,
 with probability $\I_{A_{\varepsilon, y}}(z)$. Putting this all together, the
 parameters $\theta$ are sampled with probability proportional to
 \[
-  \pi(\theta) f(z \mid \theta) \I_{A_{\varepsilon, y}}(z),
+  \prior(\theta) \lik(z \mid \theta) \I_{A_{\varepsilon, y}}(z),
 \]
 which is exactly the numerator of the \gls{ABC} target distribution. Thus,
 $\theta$ represents an unbiased sample from the approximate posterior.
@@ -1371,37 +1374,35 @@ an existing Bayesian inference method, in this case the \gls{SMC} sampler
 $\pi_i(x) = \pi_{\varepsilon_i}(x \mid y)$ for a decreasing sequence of
 tolerances $\varepsilon_i$. The intention is for the algorithm to progress
 smoothly through a sequence of target distributions which ends at the \gls{ABC}
-approximation to the posterior. {\color{blue}\uline{The initial value
-$\varepsilon_0$ is set to $\infty$, which makes the first distribution in the
-sequence}
+approximation to the posterior. \add{The initial value $\varepsilon_1$ is set
+to $\infty$, which makes the first distribution in the sequence}
 \[
-  \pi_0(\theta, z) = \frac{\Pr(\theta) \Pr(z \mid \theta)}
-               {\int_{\R \times \Theta} \Pr(\theta) \Pr(z \mid \theta) \d\theta \d z}.
+  \madd{\pi_1(\theta, z) = \frac{\prior(\theta) \lik(z \mid \theta)}
+  {\int_{\R \times \Theta} \prior(\theta) \lik(z \mid \theta) \d\theta \d z}}.
 \]
-\uline{For brevity, we have ommitted the dependence on the observed data $y$.
-In the terminology of} \cref{alg:smc}, \uline{the numerator is the first of the
-$\gamma$'s, that is, $\gamma_0 = \Pr(\theta) \Pr(z \mid \theta)$. Sampling in
-proportion to $\gamma_0$ is straightforward and was already demonstrated for
-rejection \gls{ABC} above. Because the sampling is exact, the initial
-importance weights are all set equal to 1 and normalized to $1/n$ where $n$ is
-the number of particles.}}
+\add{This initial distribution does not depend on the observed data $y$.  In
+the terminology of the \gls{SMC} sampler (\cref{alg:smc}), the numerator is the
+first of the $\gamma$'s, that is, $\gamma_1 = \prior(\theta) \lik(z \mid
+\theta)$. Sampling in proportion to $\gamma_1$ is straightforward and was
+already demonstrated for rejection \gls{ABC} above. Because the sampling is
+exact, the initial importance weights are all set equal to 1 and normalized to
+$1/\gls{n}$ where \gls{n} is the number of particles.}
 
 As discussed in \cref{subsec:smcsamp}, the choices of the kernels $K$ and $L$
 is problem-specific, and so appropriate kernels must be chosen for \gls{ABC}.
 Several options have been proposed~\autocite{beaumont2009adaptive,
-sisson2007sequential, del2012adaptive}. {\color{blue}\uline{With an
-appropriately chosen kernel, the weight update} (\cref{eq:smcwt}) \uline{will
-simplify into a computable expression.} \textcite{sisson2007sequential} and
-\textcite{beaumont2009adaptive} \uline{both suggest random walk kernels for
-$K$, where each particle is
-perturbed according to a Gaussian distribution. The backwards kernels $L$ are
-chosen to approximately minimize the variance in importance weights. In this
-thesis, we use an \gls{MCMC} kernel, as proposed by} \textcite{del2012adaptive}.
-\uline{The associated backwards kernels and weight updates are discussed in the
-next chapter} (\cref{subsec:adaptsmc}). \uline{With generic kernels $K$ and
-$L$, the \gls{ABC}-\gls{SMC} algorithm is almost identical to the \gls{SMC}
-sampler} (\cref{alg:smcsamp}), \uline{with $\gamma_i$ replaced with $\pi_i$.}
-Therefore we will not repeat the full algorithm here.}
+sisson2007sequential, del2012adaptive}. \add{With an appropriately chosen
+kernel, the weight update (\cref{eq:smcwt}) will simplify into a computable
+expression. \textcite{sisson2007sequential} and \textcite{beaumont2009adaptive}
+both suggest random walk kernels for $K$, where each particle is perturbed
+according to a Gaussian distribution. The backwards kernels $L$ are chosen to
+approximately minimize the variance in importance weights. In this thesis, we
+use an \gls{MCMC} kernel, as proposed by \textcite{del2012adaptive}.  The
+associated backwards kernels and weight updates are discussed in the next
+chapter (\cref{subsec:adaptsmc}). With generic kernels $K$ and $L$, the
+\gls{ABC}-\gls{SMC} algorithm is almost identical to the \gls{SMC} sampler
+(\cref{alg:smcsamp}), with $\gamma_i$ replaced with $\pi_i$.  Therefore we will
+not repeat the full algorithm here.}
 
 All the algorithms discussed in this section can be straightforwardly extended
 to sample from the joint distribution
@@ -1427,49 +1428,49 @@ $q(\theta, \theta') f(z \mid \theta')$ is replaced by
 \glsreset{SMC}
 \glsreset{BA}
 
-{\color{blue}\uline{In} \cref{sec:obj}, \uline{we outlined three research
-objectives that will be addressed in this thesis. First, we aim to develop a
-method for fitting contact network models to estimated transmission trees.
-Although transmission trees can be estimated for any epidemic by thorough
-contact tracing, viral diseases are the most useful context for this method.
-Transmission and sequence evolution occur on similar time scales for RNA
-viruses, resulting in viral phylogenies whose shapes are heavily constrained by
-the transmission process. The study of this interaction between evolution and
-epidemiology is called \emph{phylodynamics}. Phylodynamic methods make it
-possible to estimate transmission trees from viral sequence data; these
-estimated trees form the input data for our method.}
+\add{In \cref{sec:obj}, we outlined three research objectives that will be
+addressed in this thesis. First, we aim to develop a method for fitting contact
+network models to estimated transmission trees. Although transmission trees
+can be estimated for any epidemic by thorough contact tracing, viral diseases
+are the most useful context for this method due to the possibility of inferring
+the trees from sequence data. Transmission and sequence evolution occur on
+similar time scales for RNA viruses, resulting in viral phylogenies whose
+shapes are heavily constrained by the transmission process. The study of this
+interaction between evolution and epidemiology is called \emph{phylodynamics};
+phylodynamic methods make it possible to estimate transmission trees from viral
+sequence data. These estimated trees form the input data for our method.}
 
-\uline{From these estimated transmission trees, our method's purpose is to
-estimate the parameters of a contact network model. Rather than assuming a
-homogeneously mixed population, as most epidemiological models do, network
-models take the more realistic view that human populations are structured. That
-is, contacts which allow for transmission may occur in a nonrandom way, rather
-than between every pair of individuals in the population. A network model
-parameterizes this structure. In particular, our second research objective is
-to characterize our ability to fit the \gls{BA} model, which incorporates
-preferential attachment to generate networks with realistic degree
-distributions.}
+\add{The desired output of our method is a posterior distribution of the
+parameters of a contact network model. Rather than assuming a homogeneously
+mixed population, as most epidemiological models do, network models take the
+more realistic view that human populations are structured. That is, contacts
+which allow for transmission may occur in a nonrandom way, rather than between
+every pair of individuals in the population. A network model parameterizes this
+structure. In particular, our second research objective is to characterize our
+ability to fit the \gls{BA} model, which incorporates preferential attachment
+to generate networks with realistic degree distributions.}
 
-\uline{Our method will apply \gls{ABC}, a simulation-based approach, for
-fitting these models. Simulating a transmission tree according to a network
-model is straightforward: a network can be generated according to the model,
-and the spread of an epidemic can be simulated over the network and recorded in
-a transmission tree. \gls{ABC} uses the concordance between these simulated
+\add{To fit these models, our method will apply \gls{ABC}, a simulation-based
+approach. Simulating a transmission tree according to a network model is
+straightforward: a network can be generated according to the model, and the
+spread of an epidemic can be simulated over the network and recorded in a
+transmission tree. \Gls{ABC} uses the concordance between these simulated
 transmission trees and the ``true'' estimated tree as an indicator of parameter
 credibility. The closer the simulated transmission trees appear to the true
 tree, the more weight is assigned to the associated network parameters.}
 
-\uline{\gls{ABC} can be implemented by at least three algorithms, but the one
-we choose to apply in this work is \gls{SMC}. \Gls{SMC} uses a population of
-parameter ``particles'' to approximate a distribution of interest, in this case
-the approximate posterior distribution targeted by \gls{ABC}. After running the
-\gls{ABC}-\gls{SMC} algorithm, statistics on the model parameters can be
-approximated by the weighted population of particles. For example, a weighted
-average would give an approximate expected value for each parameter.}
+\add{\Gls{ABC} can be implemented by at least three classes of algorithm, but
+the one we choose to apply in this work is \gls{SMC}. \Gls{SMC} uses a
+population of parameter ``particles'' to approximate a distribution of
+interest, in this case the approximate posterior distribution targeted by
+\gls{ABC}. After running the \gls{ABC}-\gls{SMC} algorithm, statistics on the
+model parameters can be approximated by the weighted population of particles.
+For example, a weighted average would give an approximate expected value for
+each parameter.}
 
-\uline{Thus, our method integrates four research topics: phylogenetics, contact
+\add{Thus, our method integrates four research topics: phylogenetics, contact
 networks, \acrlong{SMC}, and \acrlong{ABC}. The first two topics together form
 the problem domain. Phylogenetic data is the input to our method, while
 estimates of the parameters of contact network models are the desired output.
 The latter two topics define the algorithm and statistical framework that our
-inference method will use. }}
+inference method will use.}

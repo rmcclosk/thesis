@@ -2,27 +2,26 @@
     source("global.R")
 @
 
-{\color{blue}\uline{ In this chapter, we will address the three research aims
-of this thesis introduced in} \cref{sec:obj}. \uline{First, in}
-\cref{sec:netabc}, \uline{we describe \software{netabc}, a computer program
-that implements an \acrlong{ABC}-based algorithm to fit contact network models
-to phylogenetic data. We also provide a justification for the use of \gls{ABC}
-for this problem by arguing that the likelihood functions required to fit these
-models by more conventional means are likely to be computationally intractable.
-Second, in} \cref{sec:ba}, \uline{we perform a simulation study to investigate
-the \acrlong{BA} network model, which uses a preferential attachment mechanism
-to generate networks with the power law degree distributions observed in real
-world social and sexual networks. We progress through two exploratory analyses
-testing the identifiability of the model's parameters, and conclude by testing
+\add{In this chapter, we will address the three research aims
+of this thesis introduced in \cref{sec:obj}. First, in \cref{sec:netabc}, we
+describe \software{netabc}, a computer program that implements an
+\acrlong{ABC}-based algorithm to fit contact network models to phylogenetic
+data. We also provide a justification for the use of \gls{ABC} for this problem
+by arguing that the likelihood functions required to fit these models by more
+conventional means are likely to be computationally intractable.  Second, in
+\cref{sec:ba}, we perform a simulation study to investigate the \acrlong{BA}
+network model, which uses a preferential attachment mechanism to generate
+networks with the power law degree distributions observed in real world social
+and sexual networks. We progress through two exploratory analyses testing the
+identifiability of the model's parameters, and conclude by testing
 \software{netabc}'s ability to recover the parameters from simulated
-transmission trees. Third, in} \cref{sec:hiv}, \uline{we apply
-\software{netabc} to fit the \gls{BA} model to six real world \gls{HIV}
-datasets, with the understanding of the model parameters' identifiability
-gained through the simulation experiments. We conclude the chapter with a
-unified discussion of the three research aims, including interpretation of the
-results of both the simulated and real data experiments, as well as an
-examination of the limitations of our approach and opportunities for future
-investigation.}}
+transmission trees. Third, in \cref{sec:hiv}, we apply \software{netabc} to fit
+the \gls{BA} model to six real world \gls{HIV} datasets, with the understanding
+of the model parameters' identifiability gained through the simulation
+experiments. We conclude the chapter with a unified discussion of the three
+research aims, including interpretation of the results of both the simulated
+and real data experiments, as well as an examination of the limitations of our
+approach and opportunities for future investigation.}
 
 \section{\software{Netabc}: a computer program for estimation of contact
 network parameters with kernel-assisted ABC}
@@ -807,7 +806,7 @@ network peers had already been sampled. The parameters of this network were $N$
 
 \subsubsection*{Classifiers for BA model parameters based on tree shape}
 
-<<treestats, include=FALSE>>=
+<<treestats, include=FALSE, eval=FALSE>>=
     params <- c("alpha", "I", "m", "N")
 
     get.treestats <- function (param) {
@@ -917,7 +916,7 @@ can be made for other values of \gls{I} and the number of tips
   \label{fig:kpca}
 \end{figure}
 
-<<classifiers, include=FALSE>>=
+<<classifiers, include=FALSE, eval=FALSE>>=
     get.kernel.data <- function (param, step) {
         md <- collect.metadata(paste0('../../simulations/kernel-', param, '/', step, '/*'))
         if ('rbf_variance' %in% colnames(md)) {
@@ -1029,7 +1028,7 @@ and little variation between scenarios.
 
 \subsubsection*{Marginal parameter estimates with grid search}
 
-<<gridsearch, include=FALSE>>=
+<<gridsearch, include=FALSE, eval=FALSE>>=
     d <- setDT(collect.data("../../simulations/aggregates/gridsearch/*"))
     d[,error := abs(true_value - point.est)]
     setkey(d, parameter)
@@ -1245,7 +1244,7 @@ flat around the true value. The effect was most obvious for the value
 
 \subsubsection*{Joint parameter estimates with \software{netabc}}
 
-<<point_est, include=FALSE>>=
+<<point_est, include=FALSE, eval=FALSE>>=
     f <- Sys.glob("../../simulations/abc-pa-free-m/point-estimate/*")
     d <- fread(f)
     d[,m := floor(m)]
@@ -1371,7 +1370,7 @@ absolute error will increase by $\beta_\alpha$. If $\beta_\alpha$ is positive,
 it means that the absolute error decreases as the true value of \gls{alpha}
 increases.}}
 
-<<abc_glm, include=FALSE>>=
+<<abc_glm, include=FALSE, eval=FALSE>>=
     stopifnot(alpha.glm[Parameter == "alpha",p] < 0.05)
     stopifnot(alpha.glm[Parameter == "I",p] > 0.05)
     stopifnot(alpha.glm[Parameter == "m",p] < 0.05)
@@ -1381,7 +1380,7 @@ increases.}}
     stopifnot(I.glm[Parameter == "m",p] > 0.05)
 @
 
-<<glm_tables, echo=FALSE, warning=FALSE, error=FALSE, results="asis">>=
+<<glm_tables, echo=FALSE, warning=FALSE, error=FALSE, results="asis", eval=FALSE>>=
     source("global.R")
     format.glm <- function (df) {
         df.copy <- copy(df)
@@ -1508,7 +1507,7 @@ estimates (all one-way ANOVA).}}
   \label{tab:abchpd}
 \end{table*}
 
-<<supp_labels, echo=FALSE, results="asis">>=
+<<supp_labels, echo=FALSE, results="asis", eval=FALSE>>=
     N <- 5000
     replicate <- 0
     lab <- NULL
@@ -1547,7 +1546,7 @@ and $N$ were more widely dispersed.
   \label{fig:abcex}
 \end{figure}
 
-<<mixed_peerdriven, include=FALSE>>=
+<<mixed_peerdriven, include=FALSE, eval=FALSE>>=
   d <- fread("bzcat ../../simulations/abc-pa-mixed-alpha/abc/*")
   d <- d[iter == max(iter)]
   #d <- d[sample(1:nrow(d), prob=weight, replace=TRUE)]
@@ -1619,247 +1618,6 @@ The approximate posterior distributions are shown in \cref{fig:peerdriven}. Both
 of these results were in line with estimates obtained on other simulated
 datasets (\cref{tab:abchpd}), although the estimate of peer-driven sampling for
 $\alpha$ was somewhat lower than typical.
-
-%<<abc_glm, include=FALSE>>=
-%    source("global.R")
-%    options(scipen=-1, digits=2)
-%@
-%
-%<<alpha_glm, include=FALSE>>=
-%    # alpha_error is influenced by alpha and m but not I
-%    stopifnot(alpha.glm[Parameter == "alpha", min(p) < 0.05])
-%    stopifnot(alpha.glm[Parameter == "m", min(p) < 0.05])
-%    stopifnot(alpha.glm[Parameter == "I", min(p) > 0.05])
-%
-%    # alpha_error is correlated with true_alpha
-%    alpha.test <- d[,cor.test(alpha_error, true_alpha, method="spearman")]
-%    stopifnot(alpha.test$p.value < 0.05)
-%
-%    # alpha_error is not correlated with true_m
-%    alpha.m.cor <- d[,cor.test(alpha_error, true_m)]
-%    stopifnot(alpha.m.cor$p.value < 0.05)
-%@
-%
-%We used \software{netabc} to estimate the parameters of the \gls{BA} model on
-%simulated trees where the true parameter values were known. Point estimates for
-%each parameter are shown in \cref{fig:abcptm2} for the simulations with \gls{m} =
-%2. The results for the other values of \gls{m} were similar
-%(\cref{fig:abcptm3,fig:abcptm4}). The median [IQR] absolute error of estimates
-%of \gls{alpha} across all simulations was
-%    \Sexpr{d[,median(alpha_error)]} 
-%    [\Sexpr{d[,quantile(alpha_error, 0.25)]}-\Sexpr{d[,quantile(alpha_error, 0.75)]}].
-%\Gls{GLM} analysis indicated that the true values of both \gls{alpha} and
-%\gls{m} had significant effects on the error in estimated \gls{alpha}
-%    ($p$ values $\Sexpr{pp(alpha.glm[Parameter == "alpha", min(p)], eq=FALSE)}$
-%     $\Sexpr{pp(alpha.glm[Parameter == "m", min(p)], eq=FALSE)}$,
-%     \cref{tab:glmalpha}),
-%but the true value of \gls{I} did not. There was a significant negative
-%correlation between the true value of \gls{alpha} and the error
-%    (Spearman's $\rho$ = \Sexpr{round(alpha.test$estimate, 2)},
-%     $p \Sexpr{pp(alpha.test$p.value, eq=TRUE)}$).
-%There was a negative correlation between \gls{m} and the error in \gls{alpha}
-%    (Spearman's $\rho$ = \Sexpr{round(alpha.m.cor$estimate, 2)},
-%    $p \Sexpr{pp(alpha.m.cor$p.value, eq=FALSE)}$).
-%
-%<<I_glm, include=FALSE>>=
-%    # I_error is influenced by alpha and I but not by m
-%    stopifnot(I.glm[Parameter == "alpha", min(p) < 0.05])
-%    stopifnot(I.glm[Parameter == "m", min(p) > 0.05])
-%    stopifnot(I.glm[Parameter == "I", min(p) < 0.05])
-%
-%    # correlation between I_error and true_alpha
-%    I.alpha.cor <- d[,cor.test(I_error, true_alpha, method="spearman")]
-%    stopifnot(I.alpha.cor$p.value < 0.05)
-%
-%    # correlation between I_error and true_I
-%    I.I.cor <- d[,cor.test(I_error, true_I, method="spearman")]
-%    stopifnot(I.alpha.cor$p.value < 0.05)
-%@
-%
-%The mean error in the estimated value of \gls{I} was
-%    \Sexpr{d[,round(median(I_error))]} 
-%    [\Sexpr{d[,round(quantile(I_error, 0.25))]}-\Sexpr{d[,round(quantile(I_error, 0.75))]}],
-%an over-estimate of roughly a factor of 1.5
-%(\cref{fig:abcptm2,fig:abcptm1,fig:abcptm3,fig:abcptm4}). \Gls{GLM} analysis
-%indicated a relationship between the error in estimated \gls{I}, and the true
-%values of \gls{alpha} and \gls{I}
-%    ($p$ values $\Sexpr{pp(I.glm[Parameter == "alpha", min(p)], eq=FALSE)}$
-%     $\Sexpr{pp(alpha.glm[Parameter == "I", min(p)], eq=FALSE)}$,
-%     \cref{tab:glmalpha}),
-%but not the true value of \gls{m}. There was a significant correlation between 
-%the true value of \gls{alpha} and the error in estimated \gls{I}
-%    (Spearman's $\rho$ = \Sexpr{I.alpha.cor$estimate},
-%     $p \Sexpr{pp(I.alpha.cor$p.value, eq=TRUE)}$),
-%and between the true value of \gls{I} and the error in estimated \gls{I}
-%    (Spearman's $\rho$ = \Sexpr{I.I.cor$estimate},
-%     $p \Sexpr{pp(I.I.cor$p.value, eq=TRUE)}$).
-%
-%<<m_glm, include=FALSE>>=
-%    # effects of parameters on m_error
-%    stopifnot(m.glm[Parameter == "m", min(p)] < 0.05)
-%    stopifnot(m.glm[Parameter == "alpha", min(p)] > 0.05)
-%    stopifnot(m.glm[Parameter == "I", min(p)] > 0.05)
-%
-%    # m was only estimated correctly in just over 20\% of simulations with m > 2
-%    m.tbl <- prop.table(table(d[true_m > 1,m_error]))
-%    stopifnot(m.tbl[1] > 0.2 & m.tbl[1] < 0.3)
-%
-%    # with m = 1, over 95% of simulations are right
-%    m1.est <- d[true_m == 1, m_error]
-%    stopifnot(sum(m1.est == 0) / length(m1.est) > 0.95)
-%    stopifnot(sum(m1.est == 0) / length(m1.est) < 1)
-%@
-%
-%\gls{GLM} analysis showed an effect of the true value of \gls{m} on the error
-%in the estimated \gls{m}
-%    ($p \Sexpr{pp(m.glm[Parameter == "m", min(p)])}$,
-%     \cref{tab:glmm}).
-%When the true value of \gls{m} was 1, the correct value was recovered by
-%\software{netabc} in virtually every case
-%    (\Sexpr{sum(m1.est == 0)} out of \Sexpr{length(m1.est)} simulations).
-%However, when the true value of \gls{m} was 2 or higher, the correct value was
-%recovered in only 
-%    \Sexpr{as.integer(m.tbl[1] * 100)}\%
-%of simulations, little better than random guessing. The \gls{GLM} analysis did
-%not indicate any effects of the true parameter values on the error in estimated
-%\gls{m} (\cref{tab:glmm}).
-%
-%<<N_glm, include=FALSE>>=
-%    # alpha_error is influenced by alpha and m but not I
-%    stopifnot(N.glm[Parameter == "alpha", min(p) < 0.05])
-%    stopifnot(N.glm[Parameter == "I", min(p) < 0.05])
-%    stopifnot(N.glm[Parameter == "m", min(p) > 0.05])
-%
-%    N.alpha.test <- d[,wilcox.test(.SD[true_alpha == 1.5, N_error], 
-%                                   .SD[true_alpha < 1.5, N_error])]
-%    stopifnot(N.alpha.test$p.value < 0.05)
-%    N.I.test <- d[,wilcox.test(.SD[true_I == 3000, N_error], 
-%                               .SD[true_I < 3000, N_error])]
-%    stopifnot(N.I.test$p.value < 0.05)
-%@
-%
-%Finally, the total number of nodes \gls{N} was consistently over-estimated by
-%about a factor of two
-%    (error \Sexpr{d[,format(median(N_error), scientific=FALSE)]} 
-%    [\Sexpr{d[,format(quantile(N_error, 0.25), scientific=FALSE)]} - 
-%     \Sexpr{d[,format(quantile(N_error, 0.75), scientific=FALSE)]}]).
-%The fitted \gls{GLM} indicated that the true values of both \gls{alpha} and
-%\gls{I} had an effect on the error in the estimated \gls{N}
-%    ($p$-values $\Sexpr{pp(N.glm[Parameter == "alpha", min(p)], eq=FALSE)}$ and 
-%     $\Sexpr{pp(N.glm[Parameter == "I", min(p)], eq=FALSE)}$,
-%     \cref{tab:glmN}),
-%but that the true value of \gls{m} did not. The error in the estimated \gls{N}
-%when \gls{alpha} was equal to 1.5 was slightly lower than for other values of
-%\gls{alpha}
-%    (median [IQR] error rates 
-%     \Sexpr{d[true_alpha == 1.5, format(median(N_error), scientific=FALSE)]} 
-%    [\Sexpr{d[true_alpha == 1.5, format(quantile(N_error, 0.25), scientific=FALSE)]} - 
-%     \Sexpr{d[true_alpha == 1.5, format(quantile(N_error, 0.75), scientific=FALSE)]}]
-%     for \gls{alpha} = 1.5 vs. 
-%     \Sexpr{d[true_alpha < 1.5, format(median(N_error), scientific=FALSE)]} 
-%    [\Sexpr{d[true_alpha < 1.5, format(quantile(N_error, 0.25), scientific=FALSE)]} - 
-%     \Sexpr{d[true_alpha < 1.5, format(quantile(N_error, 0.75), scientific=FALSE)]}]
-%     for \gls{alpha} < 1.5),
-%and this difference was statistically significant
-%    (Wilcoxon rank-sum test, $p \Sexpr{pp(N.alpha.test$p.value, eq=TRUE)}$).
-%Similarly, the error in the estimated \gls{N} when \gls{I} was equal to 3000 was
-%lower than for other values of \gls{I}
-%    (median [IQR] error rates 
-%     \Sexpr{d[true_I == 3000, format(median(N_error), scientific=FALSE)]} 
-%    [\Sexpr{d[true_I == 3000, format(quantile(N_error, 0.25), scientific=FALSE)]} - 
-%     \Sexpr{d[true_I == 3000, format(quantile(N_error, 0.75), scientific=FALSE)]}]
-%     for \gls{I} = 3000 vs. 
-%     \Sexpr{d[true_alpha < 3000, format(median(N_error), scientific=FALSE)]} 
-%    [\Sexpr{d[true_alpha < 3000, format(quantile(N_error, 0.25), scientific=FALSE)]} - 
-%     \Sexpr{d[true_alpha < 3000, format(quantile(N_error, 0.75), scientific=FALSE)]}]
-%     for \gls{I} < 3000),
-%and this difference was statistically significant
-%    (Wilcoxon rank-sum test, $p \Sexpr{pp(N.I.test$p.value, eq=TRUE)}$).
-%
-%\begin{figure}
-%  \includegraphics{abc-point-estimate-m2}
-%  \caption[\Acrlong{MAP} point estimates for \gls{BA} model parameters obtained
-%    by running \software{netabc} on simulated data, for simulations with $m = 2$.] 
-%  {
-%    \Acrlong{MAP} point estimates for \gls{BA} model parameters obtained by         
-%    running \software{netabc} on simulated data. Values shown are for               
-%    simulations with \gls{m} = 2. Dashed lines indicate true values. (A)            
-%    Estimates of \gls{alpha} and \gls{I} which were varied in these simulations  
-%    against known values. (B) Estimates of \gls{m} and \gls{N} which were held   
-%    fixed in these simulations at the values \gls{m} = 2 and \gls{N} = 5000. 
-%  }
-%  \label{fig:abcptm2}
-%\end{figure}
-%
-%<<posterior_sims, echo=FALSE>>=
-%    N <- 5000
-%    replicate <- 0
-%    lab <- NULL
-%    for (m in c(2, 3, 4)) {
-%    for (I in c(1000, 2000)) {
-%    for (alpha in c(0, 0.5, 1, 1.5)) {
-%        lab <- c(lab, sprintf("fig:%.1f-%d-%d-%d-%d", alpha, I, m, N, replicate))
-%    }
-%    }
-%    }
-%    lab <- paste(lab, collapse=",")
-%@
-%
-%\Cref{fig:abcex} shows the \gls{ABC} approximation to the posterior
-%distribution on the \gls{BA} parameters for one simulation. Equivalent plots
-%for one replicate simulation with each combination of parameters can be found
-%in \cref{\Sexpr{lab}}. \Gls{HPD} intervals around \gls{alpha} and \gls{I} were
-%narrow relative to the region of nonzero prior density, whereas the intervals
-%for $m$ and \gls{N} were widely dispersed. \Cref{tab:abchpd} shows point
-%estimates and 95\% \gls{HPD} intervals averaged over all simulations.
-%
-%\begin{figure}
-%  \includegraphics{{abc-posterior/1.0_1000_2_5000_0}.pdf}
-%  \caption[Approximate marginal posterior distributions of BA model parameters
-%      obtained by applying \textit{netabc} to a simulated transmission tree
-%      with values $\alpha$ = 1.0, $I$ = 1000, $m$ = 2, and $N$ = 5000.]
-%    {
-%        Approximate marginal posterior distributions of BA model parameters
-%        obtained by applying \textit{netabc} to a simulated transmission tree
-%        with BA parameter values $\alpha$ = 1.0, $I$ = 1000, $m$ = 2, and $N$ =
-%        5000. Vertical dashed lines indicate true values. Shaded areas are 95\%
-%        highest posterior density intervals. $x$-axes indicate regions of
-%        nonzero prior density.
-%    }
-%  \label{fig:abcex}
-%\end{figure}
-%
-%
-%\begin{table}
-%    \centering
-%    \input{\tablepath/abc-hpd}
-%    \caption[
-%        Maximum \textit{a priori} estimates and 95\% highest posterior density
-%        (HPD) interval boundaries for \gls{BA} model parameters estimated with
-%        \software{netabc}, averaged over simulated transmission trees.
-%    ]
-%    {
-%        Maximum \textit{a priori} estimates and 95\% highest posterior density
-%        (HPD) interval boundaries for \gls{BA} model parameters estimated with
-%        \software{netabc}, averaged over simulated transmission trees.
-%    }
-%    \label{tab:abchpd}
-%\end{table}
-%
-%\subsubsection*{Effect of parameters on power-law exponent}
-%
-%\Cref{tab:glm} shows the estimated parameters for a log-link \gls{GLM} fitted
-%to the observed distribution of \gls{gamma} values. The coefficients are
-%interpretable as multiplicative effects.
-%
-%\begin{table}
-%    \centering
-%    \input{\tablepath/pa-gamma-glm}
-%    \caption{Estimated \gls{GLM} parameters for relationship between power-law
-%    exponent \gls{gamma} and \gls{BA} model parameters.}
-%    \label{tab:glm}
-%\end{table}
-
 
 \section{Application to real world HIV data}
 \label{sec:hiv}
@@ -1965,7 +1723,7 @@ $\gamma$ values was taken as a point estimate for the associated dataset.
 
 \subsection{Results}
 
-<<realdata, include=FALSE>>=
+<<realdata, include=FALSE, eval=FALSE>>=
   m <- collect.metadata("../../simulations/aggregates/hpd/*")
   d1 <- fread(rownames(m)[m$m_min == 1 & m$gene == "gag"])
   d2 <- fread(rownames(m)[m$m_min == 2 & m$gene == "gag"])
