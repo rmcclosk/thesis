@@ -555,6 +555,73 @@ power law degree distribution. In short, each of these parameters may be
 estimated without phylodynamics, but there are sufficient difficulties that we
 believe an alternative method based on sequence data is warranted.} 
 
+\add{Regardless of how useful or interesting the \gls{BA} model parameters are, 
+there is another aspect to the ``usefulness'' of our method - identifiability. 
+Roughly speaking, the identifiability of a parameter says how much information
+about that parameter can possibly be obtained from the observed data (see
+\cref{chp:prelim}). If the parameters of the \gls{BA} model do not influence
+tree shape at all, then the posterior distribution will exactly resemble the
+prior. In that case, no matter how accurate a representation of the posterior
+we are able to produce, no useful information can be learned about the network.
+Hence, before proceeding with a full validation of \software{netabc} on
+simulated data, we undertook two experiments designed to assess the
+identifiability of each parameter separately.}
+
+\add{First, we simulated trees under three different values of each parameter,
+and asked how well we could tell the different trees apart. The better we are
+able to distinguish the trees, the more identifiability we might expect for the
+corresponding parameter when we attempt to estimate it with \gls{ABC}. In this
+experiment, we fix all but one of the parameters at a time, so it is possible
+that identifiability will be lost when all parameters are free to vary. This
+experiment also has the secondary purpose of validating our choice of the tree
+kernel as a distance measure in \gls{ABC}. To tell the trees apart, we use a
+classifier based on the tree kernel, but we also test two other tree shape
+statistics: Sackin's index, which considers only the topology, and the
+\gls{nltt}, which considers only branching times. Since the tree kernel
+incorporates both of these sources of information, we expect it to outperform 
+the other two statistics. Finally, the tree kernel can be ``tuned'' by
+adjusting the values of the meta-parameters \gls{lambda} and \gls{sigma}. We
+used this experiment to choose values for these meta-parameters which were best
+able to distinguish the different trees. }
+
+\add{A second experiment was designed to test whether we could actually
+estimate the parameters numerically, rather than just telling three different
+values apart, and also to assess how identifiability varied in different
+regions of the parameter space. An individual tree was compared to simulated
+trees on a one-dimensional grid of values of one \gls{BA} parameter, to obtain
+a ``distribution'' of kernel score values. From this distribution, estimates
+and credible intervals of the parameter in question could be calculated. We
+still held all but one parameter fixed, as the curse of dimensionality made it
+infeasible to perform grid search on the full parameter space. Repeating this
+experiment with trees located throughout the parameter space allowed us to
+beter quantify the identifiability. Furthermore, doing marginal estimation
+(that is, estimating one parameter with all others fixed) can provide insight
+into any biases observed when doing joint estimation with \gls{ABC}. If grid
+search is inaccurate, it indicates a lack of parameter identifiability.
+However, if the marginal grid search estimates are accurate but the estimates
+obtained with \gls{ABC} are biased, this points to confounding between the
+parameters which could only be observed when they are all estimated jointly.}
+
+\add{After these preliminary experiments, the strategy we used for testing
+\software{netabc} was a standard simulation-based validation. Transmission
+trees were simulated under several combinations of parameter values; we tried
+to recover these values by running \software{netabc} on the simulated trees.}
+
+\add{We have argued that the \gls{BA} parameters are worth estimating, and
+described three simulation-based experiments to assess our ability to do so. 
+There is a final aspect of the usefulness of these estimates: the accuracy of
+the \gls{ABC} approximation to the posterior.}
+
+... There are two factors which can affect the accuracy of the \gls{ABC}
+approximation: the choice of distance function, and the settings used for
+\gls{SMC} such as the number of particles and \gls{ESS} decay rate
+\gls{alphaess}. Fortunately, these are both easy to test. If the \gls{ABC}
+estimates are wrong, we can check if the distance function is responsible by
+simulating several trees under both the estimated and true values. ...
+For the \gls{SMC} parameters, we can simply rerun one simulation with better
+settings (more particles, more samples per particle, and higher
+\gls{alphaess}), and see if the approximation improves.
+
 \end{document}
 
 \subsection{Methods}
