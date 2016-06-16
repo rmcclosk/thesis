@@ -464,125 +464,145 @@ are they as easily parallelizable as \gls{SMC}.}
 \label{sec:ba}
 \glsreset{BA}
 
-\subsection{Motivation}
+\subsection{Why study the \acrlong{BA} model?}
 
 \add{We developed \software{netabc} with the objective of extracting useful,
-quantitative information about network structures from viral phylogenies.}
-
-\add{There are three aspects to ``usefulness''. The first is model
-specification and the biological or epidemiological interpretation of the
-parameters. We want the model to be somewhat realistic, so that \ldots, but no
-too complicated that it becomes difficult to interpret. At least some of the
-parameters should be of interest from a theoretical or practical perspective.
-As this is a phylodynamic method, intended to be used with viral sequence data, 
-we would also like to choose parameters which may be difficult to estimate with
-more standard methods; otherwise, our method provides no advantage. The
-\gls{BA} model (\cref{subsec:pa}) satisfies these criteria, albeit some better
-than others. The purported realism of the model stems from the fat-tailed
-degree distributions it produces, which are similar to those observed in real
-world sexual networks~\autocite{colgate1989risk, liljeros2001web,
-schneeberger2004scale, clemenccon2015statistical, rothenberg2007large}.
-Moreover, the ``rich get richer'' phenomenon, where popular individuals attract
-new connections at an elevated rate, is intuitively reasonable for both
-sexual~\autocite{de2007preferential} and
-\gls{IDU}~\autocite{dombrowski2013topological} networks. However, the model is 
+quantitative information about network structures from viral phylogenies. An
+important aspect of ``usefulness'' is model specification and the biological or
+epidemiological interpretation of the parameters. We want the model to be
+realistic, but no so complicated that it becomes difficult to interpret. At
+least some of the parameters should be of interest from a theoretical or
+practical perspective, or there would be no point in estimating them. Since
+\software{netabc} is a phylodynamic method, intended to be used with viral
+sequence data, we would also like to choose parameters which may be difficult
+to estimate with more standard methods. Otherwise, our method provides no
+advantage. The \gls{BA} model (\cref{subsec:pa}) satisfies these criteria,
+albeit some better than others. The purported realism of the model stems from
+the fat-tailed degree distributions it produces, which are similar to those
+observed in real world sexual networks~\autocite{colgate1989risk,
+liljeros2001web, schneeberger2004scale, clemenccon2015statistical,
+rothenberg2007large}. Moreover, the ``rich get richer'' phenomenon, where
+popular individuals attract new connections at an elevated rate, is intuitively
+reasonable for both sexual~\autocite{de2007preferential} and
+\gls{IDU}~\autocite{dombrowski2013topological} networks. However, the model is
 very simple, assuming that all nodes form the same number of links when added
 to the network and share the same preference for popular individuals.}
 
 \add{In this thesis, we consider four parameters related to the \gls{BA} model,
 denoted \gls{N}, \gls{m}, \gls{alpha}, and \gls{I} (see \cref{subsec:pa}). The
-first three of these are parameters of the model itself, while \gls{I} is
+first three of these parameterize the network structure, while \gls{I} is
 related to the simulation of transmission trees over the network. However, we
 will refer to all four as \gls{BA} parameters. \gls{N} denotes the total number
 of nodes in the network, or equivalently, susceptible individuals in the
 population. \gls{m} is the number of new undirected edges added for each new
 vertex, or equivalently one-half of the average degree. \gls{alpha} is the
-power of preferential attachment - new nodes are attached to existing nodes of
+power of preferential attachment -- new nodes are attached to existing nodes of
 degree $d$ with probability proportional to $d^{\gls{alpha}} + 1$. Finally,
-\gls{I} is the number of infected individuals at the time when sampling occurs.}
+\gls{I} is the number of infected individuals at the time when sampling occurs.
+The \gls{alpha} parameter is unitless, while \gls{m} has units of edges or
+connections per vertex, and \gls{N} and \gls{I} both have units of nodes or
+individuals.}
 
 \add{From a public health standpoint, all four parameters are of some interest.
 The prevalence \gls{I} can be used to estimate the resources required to combat
 an ongoing epidemic, while total susceptible population size \gls{N} provides a
-similar metric for preventative measures. The average degree, controlled by
-\gls{m}, may have some value in predicting how fast an epidemic will spread.
-When there are more connections in the network, the time intervals between
-transmission events decrease, as does the number of transmissions required for
-the epidemic to travel from one part of the network to another. High average
-degrees may be reduced by interventions causing behaviour change, such as using
-condoms or caughing into one's sleeve; these types of interventions will be
-less helpful when the average number of contacts per person is already low. The
-preferential attachment power \gls{alpha} is perhaps the least obviously
-useful, but it can offer some insight into the dynamics of the network and how
-it would react to the removal of nodes. \textcite{dombrowski2013topological} 
-found evidence of preferential attachment in \gls{IDU} networks, and suggested
-that as a consequence of this characteristic, the removal of random nodes (such
-as through a police crackdown) might inadventently make it easier for epidemics
-to spread. When individuals with only one or two connections lose them, they
-might tend to seek out well-known (that is, high-degree) members of the
-community, thus increasing those individuals' connectivity even further.}
+similar metric for preventative measures. The average degree of the network, in
+this case $2\gls{m}$, is directly related to \gls{R0}, the basic reproductive
+number~\autocite{britton2002bayesian}. \gls{R0} quantifies the number of
+secondary infections ultimately caused by one infected individual; higher
+\gls{R0} generally indicates faster epidemic growth and/or larger eventual
+epidemic size~\autocite{anderson1992infectious}. In a homogeneously mixed
+population, the proportion of the population which must be vaccinated to
+control an epidemic can be expressed in terms of
+\gls{R0}~\autocite{anderson1982directly}. Although optimal vaccination
+strategies may differ in heterogeneous contact
+structures~\autocite{ma2013importance}, it is reasonable to suppose that there
+would still be a relationship between \gls{m}, \gls{R0}, and the vaccination
+threshold. The preferential attachment power \gls{alpha} quantifies the degree
+to which high-degree nodes, also called
+superspreaders~\autocite{kemper1980identification}, characterize the network
+structure. Superspreaders have been hypothesized to play a greater-than-average
+role in the spread of several diseases~\autocite{stadler2013uncovering,
+shen2004superspreading}. If so, network-based
+interventions~\autocite{little2014using, wang2015targeting} may be worth
+considering as part of an epidemic control strategy. \gls{alpha} can also offer
+some insight into how the network would react to the removal of nodes.
+\textcite{dombrowski2013topological} found evidence of preferential attachment
+in \gls{IDU} networks, and suggested that as a consequence of this
+characteristic, the removal of random nodes (such as through a police
+crackdown) might inadventently make it easier for epidemics to spread. When
+individuals with only one or two connections lose them, they might tend to seek
+out well-known (that is, high-degree) members of the community, thus increasing
+those individuals' connectivity even further.}
 
 \add{All four \gls{BA} parameters can be estimated using more conventional
-approaches, but the difficulty of doing so varies between the parameters and
-based on other characteristics of the epidemic under consideration. All network
-parameters can theoretically be estimated by explicitly constructing the
-contact network, although this is highly resource intensive and is hampered by 
-misreporting and other challenges~\autocite{eames2015six}. In any event, if we
-are in a position to know the true contact network then the point of estimating
-network parameters is moot. Depending on the context, \gls{N} may be estimable
-with a survey, but if the population in question is ``hidden'' (such as
-\gls{IDU} in regions where drug use is illegal) estimation of numbers may be
-more challenging. Respondent-driven
-sampling~\autocite{heckathorn1997respondent} was developed to investigate such
-populations. The prevalence \gls{I} may be estimated from reports of hospital
-admissions or engagement in care, but this may be very difficult for diseases
-such as \gls{HCV} which may remain asymptomatic for decades. Routine
-population-level testing is another possibility, but is resource intensive and
-the barriers associated with hidden populations still apply. The average degree
-of the network ($2\gls{m}$) can be ascertained by simply asking a sample of
-people how many contacts they had, but they might be unwilling to disclose this
-information or, in the case of airborne transmissions, they might not know. The
-estimation of \gls{alpha} is even more complex, as this parameter is most
-strongly reflected in the connectivity of very high degree nodes, who are rare
-in the population. Even if full degree distributions are available, there are
-models other than preferential attachment which can produce scale-free 
+approaches, but this estimation may be challenging depending on characteristics
+of the epidemic under consideration. In theory, any network parameter can be
+estimated by explicitly constructing the contact network, although this is
+highly resource intensive and is hampered by misreporting and other
+challenges~\autocite{eames2015six}. All parameters become more difficult to
+estimate when the infected population is ``hidden'' due to illegal or
+stigmatized behaviour, as is sometimes the case with \gls{HIV} outbreaks among
+\gls{IDU}, \gls{MSM}, or sex workers. Of course, phylodynamic methods are
+equally ineffective when the population is completely hidden, since we must at
+least be able to sample viral sequences from its members. If a population is
+accessible, \gls{N} and \gls{I} may be estimable by surveying and/or testing
+each member of the population for the disease. However, this will not tell us
+if there are large compartments of the population that we simply have not
+sampled. Our hope is that estimating \gls{N} and \gls{I} phylogenetically might
+provide this additional information. The average degree of the network,
+$2\gls{m}$, is also estimable by a survey, although individuals may be
+unwilling or unable to disclose how many contacts they have had. The estimation
+of \gls{alpha} is more complex, as this parameter is most strongly reflected in
+the connectivity of very high degree nodes, who are rare in the population.
+Locating them might require contact tracing, or respondent-driven
+sampling~\autocite{heckathorn1997respondent}. Even if the full degree
+distribution of a network is available, there are models other than
+preferential attachment which can produce scale-free
 networks~\autocite[\eg][]{kumar2000stochastic}. \textcite{de2007preferential}
 were able to estimate \gls{alpha} by maximum likelihood using partner count
 data from several sequential time intervals, but they admit such detailed data
 are not usually available. Moreover, their dataset was constructed via a random
 survey, which would likely miss the few high-degree nodes characterizing a
-power law degree distribution. In short, each of these parameters may be
-estimated without phylodynamics, but there are sufficient difficulties that we
-believe an alternative method based on sequence data is warranted.} 
+power law degree distribution. In summary, each of the \gls{BA} parameters may
+be estimated without phylodynamics, but there are sufficient difficulties that
+we believe an alternative method using sequence data is warranted.} 
 
-\add{Regardless of how useful or interesting the \gls{BA} model parameters are, 
-there is another aspect to the ``usefulness'' of our method - identifiability. 
-Roughly speaking, the identifiability of a parameter says how much information
-about that parameter can possibly be obtained from the observed data (see
-\cref{chp:prelim}). If the parameters of the \gls{BA} model do not influence
-tree shape at all, then the posterior distribution will exactly resemble the
-prior. In that case, no matter how accurate a representation of the posterior
-we are able to produce, no useful information can be learned about the network.
-Hence, before proceeding with a full validation of \software{netabc} on
-simulated data, we undertook two experiments designed to assess the
-identifiability of each parameter separately.}
+\subsection{Using synthetic data to investigate identifiability and sources of
+estimation error and bias}
+
+\add{We have argued that the parameters of the \gls{BA} model are interesting
+and worth estimating with phylodynamic methods. However, these estimates will
+only constitute ``useful'' information about the network if the parameters are
+identifiable from phylogenetic data. Roughly speaking, the identifiability of a
+parameter says how much information about that parameter can possibly be
+obtained from the observed data. If the parameters of the \gls{BA} model do not
+influence tree shape at all, then we cannot possibly estimate them -- the
+posterior distribution will exactly resemble the prior, no matter how accurate
+a representation of the posterior we are able to produce. Hence, before
+proceeding with a full validation of \software{netabc} on simulated data, we
+undertook two experiments designed to assess the identifiability of the
+\gls{BA} parameters. These experiments only investigated one parameter of the
+\gls{BA} model at a time while holding all others fixed, a strategy commonly
+used when performing sensitivity analyses of mathematical models. This allowed
+us to perform a fast preliminary analysis without dealing with the ``curse of
+dimensionality'' of the full parameter space. The experiments are motivated and
+described on a high level here, with more detail provided in the next section.}
 
 \add{First, we simulated trees under three different values of each parameter,
 and asked how well we could tell the different trees apart. The better we are
 able to distinguish the trees, the more identifiability we might expect for the
-corresponding parameter when we attempt to estimate it with \gls{ABC}. In this
-experiment, we fix all but one of the parameters at a time, so it is possible
-that identifiability will be lost when all parameters are free to vary. This
-experiment also has the secondary purpose of validating our choice of the tree
-kernel as a distance measure in \gls{ABC}. To tell the trees apart, we use a
-classifier based on the tree kernel, but we also test two other tree shape
-statistics: Sackin's index, which considers only the topology, and the
-\gls{nltt}, which considers only branching times. Since the tree kernel
-incorporates both of these sources of information, we expect it to outperform 
-the other two statistics. Finally, the tree kernel can be ``tuned'' by
-adjusting the values of the meta-parameters \gls{lambda} and \gls{sigma}. We
-used this experiment to choose values for these meta-parameters which were best
-able to distinguish the different trees. }
+corresponding parameter when we attempt to estimate it with \gls{ABC}. This
+experiment also had the secondary purpose of validating our choice of the tree
+kernel as a distance measure in \gls{ABC}. To tell the trees apart, we used a
+classifier based on the tree kernel, but we also tested two other tree shape
+statistics: one which considers only the topology, and another which considers
+only branching times. Since the tree kernel incorporates both of these sources
+of information, we expected it to outperform the other two statistics. Finally,
+the tree kernel can be ``tuned'' by adjusting the values of the meta-parameters
+\gls{lambda} and \gls{sigma}. The results of this experiment were used to
+select values for these meta-parameters to carry forward to the rest of the
+thesis, based on their accuracy in distinguishing the different trees. }
 
 \add{A second experiment was designed to test whether we could actually
 estimate the parameters numerically, rather than just telling three different
@@ -590,9 +610,7 @@ values apart, and also to assess how identifiability varied in different
 regions of the parameter space. An individual tree was compared to simulated
 trees on a one-dimensional grid of values of one \gls{BA} parameter, to obtain
 a ``distribution'' of kernel score values. From this distribution, estimates
-and credible intervals of the parameter in question could be calculated. We
-still held all but one parameter fixed, as the curse of dimensionality made it
-infeasible to perform grid search on the full parameter space. Repeating this
+and credible intervals of the parameter could be calculated. Repeating this
 experiment with trees located throughout the parameter space allowed us to
 beter quantify the identifiability. Furthermore, doing marginal estimation
 (that is, estimating one parameter with all others fixed) can provide insight
@@ -604,90 +622,86 @@ parameters which could only be observed when they are all estimated jointly.}
 
 \add{After these preliminary experiments, the strategy we used for testing
 \software{netabc} was a standard simulation-based validation. Transmission
-trees were simulated under several combinations of parameter values; we tried
-to recover these values by running \software{netabc} on the simulated trees.}
+trees were simulated under several combinations of parameter values, and we
+tried to recover these values with \software{netabc}. We then used a
+multivariable analysis to investigate how accuracy of these estimates was
+influenced by the true parameter values.}
 
-\add{We have argued that the \gls{BA} parameters are worth estimating, and
-described three simulation-based experiments to assess our ability to do so. 
-There is a final aspect of the usefulness of these estimates: the accuracy of
-the \gls{ABC} approximation to the posterior.}
+\add{In the previous section, we argued that the \gls{BA} model parameters were
+worth investigating, and here we have presented several computational
+experiments designed to assess their identifiability. There is a final, more
+technical aspect of our method's ``usefulness'' to consider, which is the
+accuracy of the \gls{ABC} approximation to the posterior. As discussed in
+\cref{sec:abc}, \gls{ABC} does not target the posterior distribution directly,
+but rather an approximate posterior derived from simulated data and a distance
+function. \gls{ABC} \emph{assumes} that this approximate posterior resembles
+the true posterior, and it is critical for our estimates' relevance that this
+assumption holds. There are two potential causes of an inaccurate \gls{ABC}
+approximation~\autocite{fearnhead2012constructing}. First, the Monte Carlo
+approximation to the \gls{ABC} target distribution may be poor, due to the
+settings used for \gls{ABC}-\gls{SMC}. Second, the \gls{ABC} target
+distribution may not resemble the posterior, due to a poor choice of distance
+function. We designed two experiments to investigate the impact of these
+sources of error.}
 
-... There are two factors which can affect the accuracy of the \gls{ABC}
-approximation: the choice of distance function, and the settings used for
-\gls{SMC} such as the number of particles and \gls{ESS} decay rate
-\gls{alphaess}. Fortunately, these are both easy to test. If the \gls{ABC}
-estimates are wrong, we can check if the distance function is responsible by
-simulating several trees under both the estimated and true values. ...
-For the \gls{SMC} parameters, we can simply rerun one simulation with better
-settings (more particles, more samples per particle, and higher
-\gls{alphaess}), and see if the approximation improves.
-
-\end{document}
+\add{The Monte Carlo approximation error is fairly easily quantified by simply
+increasing the computing power used for \gls{SMC}. We ran one simulation using
+a larger number of pakticles, more simulated datasets per particle, and a
+higher value for \gls{alphaess}. A substantial improvement in accuracy
+resulting from these changes would likely indicate a high Monte Carlo error
+with the lower settings. The second issue, the resemblance of the \gls{ABC}
+target distribution to the true posterior, is somewhat more difficult to
+investigate. We do not have access to the true posterior, even for simulations
+where the true parameter values are known. To address this source of error, we
+performed marginal parameter estimation with \gls{ABC} by informing
+\software{netabc} of some of the true parameter values. Any inaccuracy or bias
+observed only in the joint estimation results, but not the marginal estimates, 
+is most easily explained by interdependence between parameters in the true
+posterior. However, errors observed in both marginal and joint estimates could
+be due to either the shape of the true posterior or an inaccurate \gls{ABC}
+approximation, and we have no way to distinguish one from the other. In other
+words, this experiment provided only an upper bound on the error due to an
+inaccurate \gls{ABC} approximation.}
 
 \subsection{Methods}
 
-%{\color{blue}\uline{The \gls{BA} contact network model} (see \cref{subsec:pa})
-%\uline{generates networks with a power law degree distribution. Power law
-%distributions have been observed by several empirical studies of sexual
-%behaviour}~\autocite{colgate1989risk, liljeros2001web, schneeberger2004scale,
-%clemencon2015statistical} (although not all, see
-%\autocite{handcock2004likelihood, bansal2007individual}).}
+\del{We investigated four parameters related to the \gls{BA} contact network
+model, denoted \gls{N}, \gls{m}, \gls{alpha}, \gls{I} (see \cref{subsec:pa}).
+The first three of these are parameters of the model itself, while \gls{I} is
+related to the simulation of transmission trees over the network. However, we
+will refer to all four as \gls{BA} parameters. \gls{N} denotes the total number
+of nodes in the network, or equivalently, susceptible individuals in the
+population. When a node is added to the network, \gls{m} new undirected edges
+are added incident to it, and are attached to existing nodes of degree $d$ with
+probability proportional to $d^{\gls{alpha}} + 1$ (\cref{subsec:pa}). To
+simulate transmission trees over a \gls{BA} network, we allowed an epidemic to
+spread until \gls{I} nodes were infected, and sampled a transmission tree at
+that time.}
 
-\add{Using synthetic data,} we investigated four parameters related to the
-\gls{BA} contact network model, 
-denoted \gls{N}, \gls{m}, \gls{alpha}, \gls{I}
-(see \cref{subsec:pa}). The first three of these are parameters of the model
-itself, while \gls{I} is related to the simulation of transmission trees over
-the network. However, we will refer to all four as \gls{BA} parameters. \gls{N}
-denotes the total number of nodes in the network, or equivalently, susceptible
-individuals in the population. When a node is added to the network, \gls{m} new
-undirected edges are added incident to it, and are attached to existing nodes
-of degree $d$ with probability proportional to $d^{\gls{alpha}} + 1$
-(\cref{subsec:pa}). To simulate transmission trees over a \gls{BA} network, we
-allowed an epidemic to spread until \gls{I} nodes were infected, and sampled a
-transmission tree at that time. The \gls{alpha} parameter is unitless, while
-\gls{m} has units of edges or connections per vertex, and \gls{N} and \gls{I}
-both have units of nodes or individuals.
-
-\end{document}
-
-{\color{blue}\uline{Our investigation comprised three sets of computational
-experiments aimed at determining which of these parameters could be estimated
-from phylogenetic data, and with what degree of accuracy. First, we performed
-an exploratory analysis using a tree kernel-based classifier to determine which
-of the four \gls{BA} parameters might be identifiable from tree shapes when all
-others were held fixed. This analysis was also used to validate our choice of
-the tree kernel as a distance function for \gls{ABC}, by evaluating two further
-classifiers based on other tree summary statistics from the literature. Second,
-we used grid search to investigate the accuracy and precision of marginal
-parameter estimates, again holding all but one parameters of the model fixed.
-Finally, we applied the full \gls{ABC}-\gls{SMC} algorithm to jointly estimate
-the four parameters of the \gls{BA} model simultaneously.}}
-
-We assumed that all contacts had symmetric transmission risk, which was
-implemented by replacing each undirected edge in the network with two directed
-edges (one in each direction). Nodes in our networks followed simple \gls{SI}
-dynamics, meaning that they became infected at a rate proportional to their
-number of infected neighbours, and never recovered. We did not consider the
-time scale of the transmission trees in these simulations, only their shape.
-Therefore, the transmission rate along each edge in the network was set to 1,
-the removal rate of each node was set to 0, and all transmission trees' branch
-lengths were scaled by their mean. The \textit{igraph} library's implementation
-of the BA model~\autocite{csardi2006igraph} was used to generate the graphs.
-The analyses were run on Westgrid (\url{https://www.westgrid.ca/}) and a local
-computer cluster. With the exception of our own programs, all analyses were
-done in \software{R}, and all packages listed below are \software{R} packages.
-{\color{blue}\uline{Code to run all simulation-based experiments is freely
-available at \url{https://github.com/rmcclosk/thesis}.}}
+\add{For all simulations,} we assumed that all contacts had symmetric
+transmission risk, which was implemented by replacing each undirected edge in
+the network with two directed edges (one in each direction). Nodes in our
+networks followed simple \gls{SI} dynamics, meaning that they became infected
+at a rate proportional to their number of infected neighbours, and never
+recovered. We did not consider the time scale of the transmission trees in
+these simulations, only their shape. Therefore, the transmission rate along
+each edge in the network was set to 1, the removal rate of each node was set to
+0, and all transmission trees' branch lengths were scaled by their mean. The
+\textit{igraph} library's implementation of the BA
+model~\autocite{csardi2006igraph} was used to generate the graphs. The analyses
+were run on Westgrid (\url{https://www.westgrid.ca/}) and a local computer
+cluster. With the exception of our own C programs, all analyses were done in
+\software{R}, and all packages listed below are \software{R} packages.
+\add{Code to run all experiments is freely available at
+    \url{https://github.com/rmcclosk/thesis}.}
 
 \subsubsection*{Classifiers for BA model parameters based on tree shape}
 \label{subsec:kernel}
 
 \glsreset{nltt}
 
-{\color{blue}\uline{
-Our first computational experiment was designed as an exploratory analysis of
-the four \gls{BA} model parameters defined above: \gls{alpha}, \gls{I},
+\add{Our first computational experiment was designed as an exploratory analysis
+of the four \gls{BA} model parameters defined above: \gls{alpha}, \gls{I},
 \gls{m}, and \gls{N}. The objective of this experiment was to determine whether
 any of the four parameters were identifiable from the shape of the transmission
 tree, as quantified by the tree kernel. Each of the \gls{BA} model parameters
@@ -703,32 +717,31 @@ were held at known values, nothing could be said about the identifiability of
 \emph{combinations} of parameters; this issue will be explored later by jointly
 estimating all parameters with \gls{ABC}}.
 
-\uline{In addition to testing for identifiability, a secondary objective of
+\add{In addition to testing for identifiability, a secondary objective of
 this analysis was to validate the use of the tree kernel as a distance measure
-for \gls{ABC} in our context. As discussed in} \cref{sec:abc}, \uline{the
-choice of distance function is extremely important for the accuracy of the
-\gls{ABC} approximation to the posterior. Therefore, we evaluated two
-additional tree statistics in the same manner as we evaluated the tree kernel
-(that is, by constructing and testing a classifier). First, we considered
-Sackin's index~\autocite{shao1990tree}, which measures the degree of imbalance
-or asymmetry in a phylogeny} (see \cref{subsec:treeshape}). \uline{Sackin's
-index is widely used for characterizing
-phylogenies~\autocite{frost2013modelling} and has been demonstrated to vary
-between transmission trees simulated under different contact network
-types~\autocite{leventhal2012inferring}. Sackin's index does not take branch
-lengths into account, considering only the tree's topology. The other statistic
-we considered was the \gls{nltt}~\autocite{janzen2015approximate}, which
-compares two trees based on normalized distributions of their branching times}
-(see \cref{subsec:treeshape}).  \uline{In contrast with Sackin's index, the
-\gls{nltt} does not explicity consider the trees' topologies, but it does use
-their normalized branch lengths. While the \gls{nltt} is a newly developed
-statistic not yet in widespread use, the unnormalized
-\gls{ltt}~\autocite{nee1992tempo} was the basis of seminal early work
-extracting epidemiological information from
-phylodynamics~\autocite{holmes1995revealing}. We expected the tree kernel to
+for \gls{ABC} in our context. As discussed in \cref{sec:abc}, the choice of
+distance function is extremely important for the accuracy of the \gls{ABC}
+approximation to the posterior. Therefore, we evaluated two additional tree
+statistics in the same manner as we evaluated the tree kernel (that is, by
+constructing and testing a classifier). First, we considered Sackin's
+index~\autocite{shao1990tree}, which measures the degree of imbalance or
+asymmetry in a phylogeny (see \cref{subsec:treeshape}). Sackin's index is
+widely used for characterizing phylogenies~\autocite{frost2013modelling} and
+has been demonstrated to vary between transmission trees simulated under
+different contact network types~\autocite{leventhal2012inferring}. Sackin's
+index does not take branch lengths into account, considering only the tree's
+topology. The other statistic we considered was the
+\gls{nltt}~\autocite{janzen2015approximate}, which compares two trees based on
+normalized distributions of their branching times (see
+\cref{subsec:treeshape}). In contrast with Sackin's index, the \gls{nltt} does
+not explicity consider the trees' topologies, but it does use their normalized
+branch lengths. While the \gls{nltt} is a newly developed statistic not yet in
+widespread use, the unnormalized \gls{ltt}~\autocite{nee1992tempo} was the
+basis of seminal early work extracting epidemiological information from
+phylogenies~\autocite{holmes1995revealing}. We expected the tree kernel to
 classify the \gls{BA} parameters more accurately than either Sackin's index or
 the \gls{nltt}, since the tree kernel takes both topology and branch lengths
-into account. }}
+into account.}
 
 This experiment involved a large number of variables that were varied
 combinatorially. For ease of exposition, we will describe a single experiment
@@ -773,76 +786,85 @@ projection of the kernel matrix, and used it to visualize the separation of the
 different \gls{alpha} values in the tree kernel's feature space. A schematic of
 this experiment is presented in \cref{fig:kernelexpt}.
 
+\begin{figure}[ht]
+    \centering
+    \includegraphics{kernel-expt.pdf}
+    \caption[
+        Schematic of classifier experiments investigating identifiability of BA
+        model parameters from tree shapes.
+    ]{
+        Schematic of classifier experiments investigating identifiability of BA
+        model parameters from tree shapes. The parameters of the BA model were
+        varied one at a time \add{while holding all others fixed}. Transmission
+        trees were simulated under three different values of each
+        parameter\del{, then compared pairwise using the tree kernel.}
+        Classifiers were constructed for each parameter \add{based on three
+        tree shape statistics}, and their accuracy was evaluated by
+        cross-validation. Kernel-\gls{PCA} projections were used to visually
+        examine the separation of the trees in the feature space defined by the
+        tree kernel.
+    }
+    \label{fig:kernelexpt}
+\end{figure}
+
 Similar experiments were performed with the values shown in
-\cref{tab:kernelexpt}. The other three \gls{BA} parameters, namely \gls{N},
-\gls{m}, and \gls{I}, were each varied while holding the others fixed. The
-experiments for \gls{alpha}, \gls{m}, and \gls{N} were repeated with three
-different values of \gls{I}. All experiments were repeated with trees having
-three different numbers of tips. Kernel matrices were computed for all pairs of
-the meta-parameters \gls{lambda} = \sett{0.2, 0.3, 0.4} and \gls{sigma} =
+\cref{tab:kernelexpt}. The other three \gls{BA} parameters, \gls{N}, \gls{m},
+and \gls{I}, were each varied while holding the others fixed. The experiments
+for \gls{alpha}, \gls{m}, and \gls{N} were repeated with three different values
+of \gls{I}. All experiments were repeated with trees having three different
+numbers of tips. Kernel matrices were computed for all pairs of the
+meta-parameters \gls{lambda} = \sett{0.2, 0.3, 0.4} and \gls{sigma} =
 \sett{\nicefrac18, \nicefrac14, \nicefrac12, 1, 2, 4, 8}.
 
 \begin{landscape}
 \begin{table}[ht]
-  \centering
-  \input{\tablepath/kernel-expt}
-  \caption[Variables used in tree kernel simulation experiments]
-  {
-    Values of parameters and other variables used in tree kernel simulation
-    experiments. Each row corresponds to one of the \gls{BA} model parameters.
-    One kernel matrix was created for every combination of values except the
-    one indicated in the ``varied parameter'' column, which was varied when
-    producing simulated trees.
-  }
-  \label{tab:kernelexpt}
+    \centering
+    \input{\tablepath/kernel-expt}
+    \caption[
+        Values of parameters and meta-parameters used in classifier experiments
+        to investigate identifiability of BA model parameters from tree shapes.
+    ]{
+        Values of parameters and meta-parameters used in classifier experiments
+        to investigate identifiability of BA model parameters from tree shapes.
+        Each row corresponds to one of the BA model parameters. One kernel
+        matrix was created for every combination of values except the one
+        indicated in the ``varied parameter'' column, which was varied when
+        producing simulated trees.
+    }
+    \label{tab:kernelexpt}
 \end{table}
 
 \begin{table}[ht]
-  \centering
-  \input{\tablepath/gridsearch-expt}
-  \caption[Variables used in grid search experiments]
-  {
-    Variables and \gls{BA} parameter values used for grid search experiments. 
-    Trees were simulated under the test values, and compared to a grid of trees
-    simulated under the grid values. Kernel scores were used to calculate point
-    estimates and credible intervals for the test values.
-  }
+    \centering
+    \input{\tablepath/gridsearch-expt}
+    \caption[
+        Values of parameters and meta-parameters used in grid search
+        experiments to further investigate identifiability of BA model
+        parameters.
+    ]{
+        Values of parameters and meta-parameters used in grid search
+        experiments to further investigate identifiability of BA model
+        parameters. Trees were simulated under the test values, and compared to
+        a grid of trees simulated under the grid values. Kernel scores were
+        used to calculate point estimates and credible intervals for each
+        parameter, which were compared to the test values.
+    }
   \label{tab:gridexpt}
 \end{table}
 \end{landscape}
 
-\begin{figure}[ht]
-  \centering
-  \includegraphics{kernel-expt.pdf}
-  \caption[Schematic of experiments investigating impact of BA model parameters
-           on tree shape.]{
-    Schematic of experiments designed to investigate the impact of variations
-    in BA model parameters on transmission tree shapes. The parameters of the
-    BA model were varied one at a time {\color{blue}\uline{while holding all
-    others fixed}}. Transmission trees were simulated under three different
-    values of each parameter, then compared pairwise using the tree kernel.
-    Classifiers were constructed for each parameter, and their accuracy was
-    evaluated by cross-validation. Kernel-PCA projections were used to visually
-    examine the separation of the trees in the feature space defined by the
-    tree kernel.
-  }
-  \label{fig:kernelexpt}
-\end{figure}
-
 \subsubsection*{Grid search}
 
-{\color{blue}\uline{The previous experiment was an exploratory analysis
-intended to determine which of the \gls{BA} parameters were identifiable, and
-whether the tree kernel could potentially be used to distinguish different
-parameter values when all others were held fixed. In this experiment, which was
-still of an exploratory nature, we continued to consider one parameter at a
-time while fixing the other three. However, rather than checking for
-identifiability, we were now interested in quantifying the accuracy and
-precision of kernel score-based estimates. This was done by examining the
-distribution of kernel scores on a grid of parameter values, when trees
-simulated according to those values were compared with a single simulated test
-tree. This experiment did not involve the full \gls{ABC}-\gls{SMC} algorithm,
-nor did we continue to use Sackin's index or the \gls{nltt}.}}
+\add{The previous experiment was an exploratory analysis intended to determine
+which of the \gls{BA} parameters were identifiable, and whether the tree kernel
+could potentially be used to distinguish different parameter values when all
+others were held fixed. In this experiment, which was still of an exploratory
+nature, we continued to consider one parameter at a time while fixing the other
+three. However, rather than checking for identifiability, we were now
+interested in quantifying the accuracy and precision of kernel score-based
+estimates. This was done by examining the distribution of kernel scores on a
+grid of parameter values, when trees simulated according to those values were
+compared with a single simulated test tree.}
 
 As in the previous section, we will begin by describing a single experiment,
 and then list the variables for which similar experiments were performed. We
@@ -852,99 +874,107 @@ transmission trees were simulated over each using \software{nettree}. These
 trees will be referred to as ``grid trees''. Next, one further test tree was
 simulated with the test value \gls{alpha} = 0. Both the grid trees and the test
 tree had 500 tips, and were simulated with the other \gls{BA} parameters set to
-{\color{blue}\uline{the known values}} $N$ = 5000, $m$ = 2, and $I$ = 1000. The
-test tree was compared to each of the grid trees using the tree kernel, with
-the meta-parameters set to $\lambda = 0.3$ and $\sigma = 4$, using the
-\software{treekernel} binary. The median kernel score was calculated for each
-grid value, and the scores were normalized such that the area under the curve
-was equal to 1. {\color{red}\sout{The grid value with the highest median kernel
-score was taken as the point estimate for the test value}}{\color{blue}\uline{
-A point estimate for the test value was obtained by calculating the weighted
-mean of the grid values with the kernel scores as weights}}, and a 95\%
-credible interval was obtained using the \software{hpd} function in the
-\software{TeachingDemos} package~\autocite{snow2013teachingdemos}.
+\add{the known values} $\gls{N} = 5000$, $\gls{m} = 2$, and $\gls{I} = 1000$.
+The test tree was compared to each of the grid trees using the tree kernel,
+with the meta-parameters set to $\gls{lambda} = 0.3$ and $\gls{sigma} = 4$,
+using the \software{treekernel} binary. The median kernel score was calculated
+for each grid value, and the scores were normalized such that the area under
+the curve was equal to 1. \del{The grid value with the highest median kernel
+score was taken as the point estimate for the test value.} \add{For all
+parameters except \gls{m}}, 50\% and 95\% highest denstity intervals wer
+obtained using the \software{hpd} function in the \software{TeachingDemos}
+package~\autocite{snow2013teachingdemos}. \add{Since the \software{hpd}
+function assumes a continuous distribution, we implemented our own version for
+discrete distributions to use for \gls{m}.}
 
 Each experiment of the type just described was repeated ten times with the same
 test value. Similar experiments were performed for each of the four \gls{BA}
 parameters, with several test values and trees of varying sizes. The variables
 are listed in \cref{tab:gridexpt}. A graphical schematic of the grid search
-experiments is shown in \cref{fig:gridexpt}. {\color{blue}\uline{We emphasize
-that these experiments were marginal in nature; that is, the each parameter was
-varied and estimated individually while holding the others at known, fixed
-values.}}
-
-%Spearman's correlation was used to test whether the number of tips in the tree
-%was correlated with the acccuracy of the point estimates. One-way \gls{ANOVA}
-%was used to test whether the accuracy of the point estimates were significantly
-%higher for any parameter values. If so, the distribution of errors was examined
-%to choose a suitable post hoc test. If there appeared to be a correlation
-%between the parameter value and the accuracy of the estimate, Spearman's
-%correlation was calculated. If there were one or more particular values which
-%appeared to have lower error, we used the Wilcoxon rank-sum test.
+experiments is shown in \cref{fig:gridexpt}. 
 
 \begin{figure}[ht]
-  \centering
-  \includegraphics[width=\textwidth]{gridsearch-expt}
-  \caption[Schematic of grid search experiment.]{
-    Graphical schematic of grid search experiments used to investigate \gls{BA}
-    model parameters. Trees were simulated along a narrowly spaced grid of
-    values of one parameter (``grid trees'') {\color{blue}\uline{with all other
-    parameters fixed to known values}}. Separate trees were simulated for a
-    small subset of the grid values (``test trees''), {\color{blue}\uline{also
-    holding the other parameters fixed}}. Each test tree was
-    compared to every grid tree using the tree kernel, and the resulting kernel
-    scores were normalized to resemble a probability density from which the
-    mode and 95\% highest density interval were calculated.
-  }
-  \label{fig:gridexpt}
+    \centering
+    \includegraphics[width=\textwidth]{gridsearch-expt}
+    \caption[
+        Schematic of grid search experiment to further investigate
+        identifiability of BA model parameters from tree shapes.
+    ]{
+        Schematic of grid search experiment to further investigate
+        identifiability of BA model parameters from tree shapes. Trees were
+        simulated along a narrowly spaced grid of values of one parameter
+        (``grid trees'') \add{with all other parameters fixed to known values}.
+        Separate trees were simulated for a small subset of the grid values
+        (``test trees''), \add{also holding the other parameters fixed}. Each
+        test tree was compared to every grid tree using the tree kernel, and
+        the resulting kernel scores were normalized to resemble a probability
+        density from which the mode and 95\% highest density interval were
+        calculated.
+    }
+    \label{fig:gridexpt}
 \end{figure}
 
 \subsubsection*{Approximate Bayesian computation}
 
-{\color{blue}\uline{
-Our final simulation-based experiment was designed to test the full
+\add{Our final synthetic data experiment was designed to test the full
 \gls{ABC}-\gls{SMC} algorithm by jointly estimating the four parameters of the
-\gls{BA} model. In contrast to the previous two experiments, we did not inform
-the algorithm of any of the true parameter values.  }}
+\gls{BA} model. We used the standard validation approach of simulating
+transmission trees under the model with known parameter values and attempting
+to recover those values with \software{netabc}. The algorithm was not informed
+of any of the true parameter values for the main set of simulations. Despite
+the fact that the parameter values used to generate the simulated transmission
+trees were known, the true posterior distributions on the \gls{BA} parameters
+were unknown. Therefore, any apparent errors or biases in the estimates could
+be due to either poor performance of our method, or to real features of the
+posterior distribution. The latter type of error reflects on the suitability of
+the model, but does not invalidate the use of our method in cases where the
+parameters are more identifiable. Two retrospective experiments were peformed
+to disambiguate some of the observed errors: one where we ran a simulation with
+increased computational power to test for an increase in accuracy, and a second
+where we estimated parameters marginally to remove confounding from the other
+parameters in the joint posterior.}
 
-We simulated three trees each under a variety of parameter values and ran the
-\software{netabc} program to estimate posterior distributions for the
-parameters. The parameter values and priors used are listed in
-\cref{tab:abcexpt}. The tree kernel meta-parameters were set to $\lambda = 0.3$
-and $\sigma = 4$. The \gls{SMC} algorithm was run with 1000 particles, five
-sampled datasets per particle, and the $\alpha_{\ESS}$ parameter (not to be
-confused with the \gls{BA} preferential attachment parameter, see
-\cref{subsec:adaptsmc}) set to 0.95. The algorithm was stopped when the
+\del{We simulated three trees each under a variety of parameter values and ran
+the \software{netabc} program to estimate posterior distributions for the
+parameters.} The parameter values and priors used are listed in
+\cref{tab:abcexpt}. The tree kernel meta-parameters were set to $\gls{lambda} =
+0.3$ and $\gls{sigma} = 4$. The \gls{SMC} algorithm was run with 1000
+particles, five sampled datasets per particle, and \gls{alphaess} \del{(not to
+be confused with the \gls{BA} preferential attachment parameter, see
+\cref{subsec:adaptsmc})} set to 0.95. The algorithm was stopped when the
 acceptance rate of the \gls{MH} kernel dropped below 1.5\%, the same criterion
-used by \citeauthor{del2012adaptive}. Approximate marginal posterior densities
-for each parameter were calculated using the \software{density} function in
-\software{R} applied to the final weighted population of particles.
-{\color{red}\sout{Credible intervals were obtained for each parameter using the
-\software{HPDinterval} function in the \software{coda}
-package~\autocite{plummer2006coda}.}} {\color{blue}\uline{Posterior means
-obtained for each parameter using the \software{wtd.mean} function in the
-\software{Hmisc} package~\autocite{harrell2016hmisc}. Credible intervals were
-obtained using the \software{hpd} function in the \software{TeachingDemos}
-package~\autocite{snow2013teachingdemos}.}}
+used by \textcite{del2012adaptive}. \add{For visualization,} approximate
+marginal posterior densities for each parameter were calculated using the
+\software{density} function in \software{R} applied to the final weighted
+population of particles. \del{Credible intervals were obtained for each
+parameter using the \software{HPDinterval} function in the \software{coda}
+package~\autocite{plummer2006coda}.} \add{Posterior means obtained for each
+parameter using the \software{wtd.mean} function in the \software{Hmisc}
+package~\autocite{harrell2016hmisc}. Credible intervals were obtained using the
+\software{hpd} function in the \software{TeachingDemos}
+package~\autocite{snow2013teachingdemos} for \gls{alpha} \gls{I}, and \gls{N}, 
+and using our own implementation for discrete distributions for \gls{m}.}
 
 \begin{table}[ht]
-  \centering
-  \input{\tablepath/abc-expt}
-  \caption[Variables used in grid search experiments]
-  {
-    Variables and \gls{BA} parameter values used for \gls{ABC} validation
-    experiments. Trees were simulated under the test values, and
-    \gls{ABC} was used to re-estimate posterior distributions for the
-    \gls{BA} parameters without training.
-  }
-  \label{tab:abcexpt}
+    \centering
+    \input{\tablepath/abc-expt}
+    \caption[
+        Parameter values used in simulation experiments to test accuracy of
+        \gls{BA} model fitting with \software{netabc}.
+    ]{
+        Parameter values used in simulation experiments to test accuracy of
+        \gls{BA} model fitting with \software{netabc}. Trees were simulated
+        under the test values, and \software{netabc} was used to estimate
+        posterior distributions on the \gls{BA} parameters for each simulated
+        tree. \software{Netabc} was na\"ive to the true parameter values.
+    }
+    \label{tab:abcexpt}
 \end{table}
 
-{\color{blue}\uline{
-To evaluate the effects of the true parameter values on the accuracy of the
-posterior mean estimates, we analysed the \gls{alpha} and \gls{I} parameters
-individually using \glspl{GLM}. The response variable was the error of the
-point estimate, and the predictor variables were the true values of
+\add{To evaluate the effects of the true parameter values on the accuracy of
+the posterior mean estimates, we analysed the \gls{alpha} and \gls{I}
+parameters individually using \glspl{GLM}. The response variable was the error
+of the point estimate, and the predictor variables were the true values of
 \gls{alpha}, \gls{I}, and \gls{m}. We did not test for differences across true
 values of \gls{N}, because \gls{N} was not varied in these simulations. The
 distribution family and link function for the \glspl{GLM} were chosen as
@@ -952,51 +982,23 @@ Gaussian and inverse, respectively, by examination of residual plots and
 \gls{AIC}. The $p$-values of the estimated \glspl{GLM} coefficients were
 corrected using Holm-Bonferroni correction~\autocite{holm1979simple} with $n =
 6$ (two \glspl{GLM} with three predictors each). Because there was clearly
-little to no identifiability of the \gls{N} and \gls{m} parameters with
-\gls{ABC} (see Results in next section), we did not construct \glspl{GLM} for
-those parameters. }}
+little to no identifiability of \gls{N} and \gls{m} with \gls{ABC} (see results
+in next section), we did not construct \glspl{GLM} for those parameters.}
 
-%\subsubsection*{Characterization of power-law exponent in Barab\'asi-Albert networks}
-%
-%Most studies of social network or transmission network
-%parameters~\autocite[e.g.][]{liljeros2001web, jones2003assessment,
-%schneeberger2004scale, brown2011transmission} report the coefficient
-%\gls{gamma} of the power law degree distribution. To make our results
-%comparable to previous work, we used simulated networks to investigate the
-%relationship between the \gls{BA} model parameters and \gls{gamma}. A network
-%was simulated for each combination of parameters listed in
-%\cref{tab:gammaexpt}. A power law distribution was fitted to the degree
-%distribution of each simulated network using the \software{fit\_power\_law}
-%function in \software{igraph} with the `R.mle' implementation. We fitted a
-%\gls{GLM} with Gamma-distributed errors and a log link function to the observed
-%distribution of \gls{gamma} values, with \gls{alpha}, \gls{m}, \gls{N}, and all
-%possible interaction terms as predictors.
-%
-%\begin{table}
-%  \centering
-%  \input{\tablepath/gamma-expt}
-%  \caption[\gls{BA} parameters used as input \gls{GLM} predicting $\gamma$]
-%  {
-%    \gls{BA} model parameters used as input to \gls{GLM} predicting power law
-%    exponent $\gamma$. One network was simulated with each combination of
-%    parameters, and $\gamma$ was calculated for each network. A \gls{GLM} with
-%    Gamma-distributed errors and a log link function was fit to the $\gamma$
-%    values with all parameters and interaction terms as predictors.
-%  }
-%  \label{tab:gammaexpt}
-%\end{table}
+Two additional simulations were performed to address \del{potential sources of error}
+\add{the possible impact of two types of model misspecification}. To consider
+the effect of heterogeneity among nodes, we generated a network where half the
+nodes were attached with power $\gls{alpha} = 0.5$ and the other half with power
+$\gls{alpha} = 1.5$. The other parameters for this network were $\gls{N} = 5000$,
+$\gls{I} = 1000$, and $\gls{m} = 2$. To investigate the effects of potential
+sampling bias~\autocite{karcher2016quantifying}, we simulated a transmission
+tree where the tips were sampled in a peer-driven fashion, rather than at
+random. That is, the probability to sample a node was twice as high if any of
+that node's network peers had already been sampled. The parameters of this
+network were $\gls{N} = 5000$, $\gls{I} = 2000$, $\gls{m} = 2$, and
+$\gls{alpha} = 0.5$.
 
-Two further experiments were performed to address potential sources of error.
-To evaluate the effect of model misspecification in the case of heterogeneity
-among nodes, we generated a network where half the nodes were attached with
-power $\alpha$ = 0.5 and the other half with power $\alpha$ = 1.5. The other
-parameters for this network were $N$ = 5000, $I$ = 1000, and $m$ = 2. To
-investigate the effects of potential sampling
-bias~\autocite{karcher2016quantifying}, we simulated a transmission tree where
-the tips were sampled in a peer-driven fashion, rather than at random. That is,
-the probability to sample a node was twice as high if any of that node's
-network peers had already been sampled. The parameters of this network were $N$
-= 5000, $I$ = 2000, $m$ = 2, and $\alpha$ = 0.5.
+\end{document}
 
 \subsection{Results}
 

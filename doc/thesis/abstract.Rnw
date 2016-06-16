@@ -46,13 +46,9 @@ non-identifiable with ABC.
 Finally, the Barab\'{a}si-Albert model was fit to \del{six}\add{eleven} real
 world HIV datasets, and substantial heterogeneity in the parameter estimates
 was observed. \del{Point estimates} \add{Posterior means} for the preferential
-attachment power \add{were all sub-linear} and ranged from \del{0.06 to 1.05}
-\add{ 
-    \Sexpr{d[parameter == "alpha", round(min(mean), 2)]}
-to
-    \Sexpr{d[parameter == "alpha", round(max(mean), 2)]}.
-Point estimates of the strength of preferential attachment were higher in
-injection drug user populations, potentially indicating that high-degree
-``hub'' nodes may play a role in epidemics among this risk group.} Our results
-underscore the importance of considering contact structures when
+attachment power \add{were all sub-linear, consistent with literature results.
+We found that the strength of preferential attachment was higher in injection
+drug user populations, potentially indicating that high-degree
+``superspreader'' nodes may play a role in epidemics among this risk group.}
+Our results underscore the importance of considering contact structures when
 \del{performing phylodynamic inference}\add{investigating viral outbreaks.}
