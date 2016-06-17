@@ -7,20 +7,23 @@ Steps:
         Extension: tsv
         Parameters:
             m_min: [1, 2]
-            nparticle: 1000
+            nparticle: 10000
             dataset: ["bctree", "cuevas2009", "wang2015", "novitsky2014",
-                      "niculescu2015", "li2015"]
+                      "niculescu2015", "li2015", "kao2011", "zetterberg2004",
+                      "little2014", "grabowski2014", "mccormack2002"]
+            agg_gene: ["gag", "env"]
         Interpreter: R --silent --vanilla
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
             m <- collect.metadata("{dataset}/abc/*")
             if ("{dataset}" == "bctree") {{
                 trace <- rownames(m)[m$m_min == {m_min} & m$nparticle == {nparticle} & m$cluster == 0]
+            }} else if ("{dataset}" %in% c("zetterberg2004", "grabowski2014", "mccormack2002")) {{
+                trace <- rownames(m)[m$m_min == {m_min} & m$nparticle == {nparticle} & m$gene == "{agg_gene}"]
             }} else {{
                 trace <- rownames(m)[m$m_min == {m_min} & m$nparticle == {nparticle}]
             }}
             d <- fread(trace)[iter == max(iter),]
-            #d <- d[sample(1:nrow(d), prob=weight, replace=TRUE)]
             m <- c(as.list(collect.metadata(trace)), dataset="{dataset}")
             yaml <- sub("^", "{{", sub(", $", "}}", gsub("\n", ", ", as.yaml(m))))
             cat(paste0("#", yaml, "\n"), file="{abc}")
@@ -31,21 +34,35 @@ Steps:
         Parameters:
             m_min: [1, 2]
             dataset: ["bctree", "cuevas2009", "wang2015", "novitsky2014",
-                      "niculescu2015", "li2015", "shiino2014"]
+                      "niculescu2015", "li2015", "kao2011", "zetterberg2004",
+                      "little2014", "grabowski2014", "mccormack2002"]
+            agg_gene: ["gag", "env"]
         Interpreter: R --silent --vanilla
-        Startup: suppressPackageStartupMessages(library(netabc))
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(RSQLite))
         Rule: |
-            tree <- read.tree(Sys.glob("{dataset}/subtree/*"))
+            # I forgot to put YAML in the trees but I don't want to redo it
+            con <- dbConnect(SQLite(), dbname="{dataset}.sqlite")
+            if ("{dataset}" == "bctree") {{
+                tree.file <- dbGetQuery(con, "SELECT path FROM data WHERE step == 'subtree' AND parameter == 'cluster' AND value == 0;" )[1,1]
+            }} else if ("{dataset}" %in% c("zetterberg2004", "grabowski2014", "mccormack2002")) {{
+                tree.file <- dbGetQuery(con, "SELECT path FROM data WHERE step == 'subtree' AND parameter == 'gene' AND value == '{agg_gene}';" )[1,1]
+            }} else {{
+                tree.file <- Sys.glob("{dataset}/subtree/*")
+            }}
+            tree <- read.tree(tree.file)
             cat("#{{dataset: {dataset}}}\n", file="{tree}")
             write.tree(tree, file="{tree}", append=TRUE)
 
     hpd:
         Extension: tsv
         Parameters:
+            agg_gene: ["gag", "env"]
             decay_factor: 0.3
             rbf_variance: 4
             nltt: 0
-            nparticle: 1000
+            nparticle: 10000
             nsample: 5
             quality: 0.95
             m_min: [1, 2]
@@ -70,17 +87,11 @@ Steps:
             d <- subset(d, m_min == {m_min})
 
             d <- melt(d, measure.vars=c("alpha", "I", "N", "m"), variable.name="parameter")
-            get.hpd <- function (x, wt) {{
-                cdf <- setDT(wtd.Ecdf(x, wt))
-                setkey(cdf, x)
-                cdf <- unique(cdf)
-                icdf <- cdf[,splinefun(ecdf, x)]
-                hpd(icdf)
-            }}
-            #d[,map := density(value)$x[which.max(density(value)$y)], by=list(parameter, dataset)]
             d[,mean := wtd.mean(value, weight), by=list(parameter, dataset)]
-            d[,hpd.min := get.hpd(value, weight)[1], by=list(parameter, dataset)]
-            d[,hpd.max := get.hpd(value, weight)[2], by=list(parameter, dataset)]
+            d[,hpd.min.95 := as.numeric(wtd.hpd(value, weight, conf=0.95)[1]), by=list(parameter, dataset)]
+            d[,hpd.max.95 := as.numeric(wtd.hpd(value, weight, conf=0.95)[2]), by=list(parameter, dataset)]
+            d[,hpd.min.50 := as.numeric(wtd.hpd(value, weight, conf=0.50)[1]), by=list(parameter, dataset)]
+            d[,hpd.max.50 := as.numeric(wtd.hpd(value, weight, conf=0.50)[2]), by=list(parameter, dataset)]
             setkey(d, parameter, dataset)
             cat("#{yaml}\n", file="{hpd}")
             write.tsv(unique(d), "{hpd}", append=TRUE)
@@ -88,10 +99,11 @@ Steps:
     hpd-plot:
         Extension: pdf
         Parameters:
+            agg_gene: "gag"
             decay_factor: 0.3
             rbf_variance: 4
             nltt: 0
-            nparticle: 1000
+            nparticle: 10000
             nsample: 5
             quality: 0.95
             m_min: [1, 2]
@@ -109,12 +121,17 @@ Steps:
         Rule: |
             d <- fread("{hpd}")
             ds.names <- list(
-                novitsky2014="HET/Botswana (Novitsky et al. 2013 & 2014)",
                 cuevas2009="mixed/Spain (Cuevas et al. 2009)",
-                li2015="MSM/China (Li et al. 2015)",
-                wang2015="MSM/China (Wang et al. 2015)",
+                li2015="MSM/Shanghai (Li et al. 2015)",
+                little2014="MSM/USA (Little et al. 2014)",
+                kao2011="MSM/Taiwan (Kao et al. 2011)",
+                wang2015="MSM/Beijing (Wang et al. 2015)",
+                grabowski2014="HET/Uganda (Grabowski et al. 2014)",
+                mccormack2002="HET/Malawi (McCormack et al. 2002)",
+                novitsky2014="HET/Botswana (Novitsky et al. 2013 & 2014)",
+                bctree="IDU/Canada (unpublished)",
                 niculescu2015="IDU/Romania (Niculescu et al. 2015)",
-                bctree="IDU/Canada (unpublished)"
+                zetterberg2004="IDU/Estonia (Zetterberg et al. 2004)"
             )
             if ({bctree} == 0) {{
                 d <- d[dataset != "bctree",]
@@ -132,8 +149,7 @@ Steps:
                 leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
                 tmp$grobs[[leg]]
             }}
-            plot.aes <- aes(x=mean, xmax=hpd.max, xmin=hpd.min, y=dataset,
-                            color=dataset, shape=dataset)
+            plot.aes <- aes(x=mean, y=dataset, color=dataset, fill=dataset, shape=dataset)
             plot.theme <- theme(legend.position="none",
                                 axis.text.y=element_blank(), 
                                 axis.ticks.y=element_blank(),
@@ -141,44 +157,173 @@ Steps:
                                 plot.margin=unit(c(0, 0.5, 0, 0.5), "line"),
                                 text=element_text(size=14))
             palpha <- ggplot(d[parameter == 'alpha'], plot.aes) + 
-                        geom_point(size=3) + geom_errorbarh(height=0.2) + theme_bw() +
+                        geom_point(size=3) + 
+                        geom_errorbarh(height=0, aes(xmax=hpd.max.95, xmin=hpd.min.95)) + 
+                        geom_errorbarh(height=0.8, aes(xmax=hpd.max.50, xmin=hpd.min.50)) + 
+                        theme_bw() +
                         labs(y=expression(alpha), x="") +
-                        xlim({alpha_min}, {alpha_max}) + plot.theme
+                        xlim({alpha_min}, {alpha_max}) + plot.theme +
+                        scale_shape_manual(values=c(21, 22, 23, 24, 25, 1, 0, 5, 2, 6, 4))
             pI <- ggplot(d[parameter == 'I'], plot.aes) +
-                    geom_point(size=3) + geom_errorbarh(height=0.2) + theme_bw() +
+                    geom_point(size=3) + 
+                    geom_errorbarh(height=0, aes(xmax=hpd.max.95, xmin=hpd.min.95)) + 
+                    geom_errorbarh(height=0.8, aes(xmax=hpd.max.50, xmin=hpd.min.50)) + 
+                    theme_bw() +
                     labs(y="I", x="") + xlim(d[,min(ntip)], {I_max}) +
+                    scale_shape_manual(values=c(21, 22, 23, 24, 25, 1, 0, 5, 2, 6, 4)) +
                     plot.theme
             pm <- ggplot(d[parameter == 'm'], plot.aes) +
-                    geom_point(size=3) + geom_errorbarh(height=0.2) +
+                    geom_point(size=3) + 
+                    geom_errorbarh(height=0, aes(xmax=hpd.max.95, xmin=hpd.min.95)) + 
+                    geom_errorbarh(height=0.8, aes(xmax=hpd.max.50, xmin=hpd.min.50)) + 
                     theme_bw() +
                     labs(y="m", x="") + xlim({m_min}, {m_max}) +
+                    scale_color_discrete(guide = guide_legend(reverse=TRUE)) +
+                    scale_shape_manual(values=c(21, 22, 23, 24, 25, 1, 0, 5, 2, 6, 4),
+                                       guide = guide_legend(reverse=TRUE)) +
+                    scale_fill_discrete(guide = guide_legend(reverse=TRUE)) +
                     theme(axis.text.y=element_blank(), 
                           axis.ticks.y=element_blank(),
                           axis.title.y=element_text(angle=0),
-                          text=element_text(size=14)) +
-                    scale_color_discrete(guide = guide_legend(reverse=TRUE)) +
-                    scale_shape_discrete(guide = guide_legend(reverse=TRUE))
+                          text=element_text(size=14),
+                          legend.title=element_blank())
             pN <- ggplot(d[parameter == 'N'], plot.aes) +
-                    geom_point(size=3) + geom_errorbarh(height=0.2) + theme_bw() +
+                    geom_point(size=3) +
+                    geom_errorbarh(height=0, aes(xmax=hpd.max.95, xmin=hpd.min.95)) + 
+                    geom_errorbarh(height=0.8, aes(xmax=hpd.max.50, xmin=hpd.min.50)) + 
+                    scale_shape_manual(values=c(21, 22, 23, 24, 25, 1, 0, 5, 2, 6, 4)) +
+                    theme_bw() +
                     labs(y="N", x="") + xlim(d[,min(ntip)], {N_max}) +
                     plot.theme
-            layout <- rbind(c(1,1,2,2), c(3,3,4,4), c(5,5,5,5))
+            layout <- rbind(c(1,1,5,5), c(2,2,5,5), c(3,3,5,5), c(4,4,5,5))
             g <- arrangeGrob(palpha, pI, pm + theme(legend.position="none"),
                  pN, g_legend(pm), layout_matrix=layout)
-            ggsave(g, file="{hpd-plot}", width=6, height=5)
+            ggsave(g, file="{hpd-plot}", width=7, height=7)
+
+    gene-plot:
+        Extension: pdf
+        Parameters:
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+            nparticle: 10000
+            nsample: 5
+            quality: 0.95
+            m_min: 1
+            m_max: 5
+            N_max: 10000
+            I_max: 10000
+            alpha_min: 0
+            alpha_max: 2
+        Depends: hpd
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            d <- setDT(collect.data(strsplit("{hpd}", " ")[[1]]))
+            ds.names <- list(
+                mccormack2002="HET/Malawi (McCormack et al. 2002)",
+                zetterberg2004="IDU/Estonia (Zetterberg et al. 2004)",
+                grabowski2014="HET/Uganda (Grabowski et al. 2014)"
+            )
+            genes <- c("gag", "env")
+
+            d <- d[dataset %in% names(ds.names) & m_min == {m_min}]
+
+            label <- apply(expand.grid(genes, names(ds.names)), 1, paste, collapse="")
+            d[,y := factor(d[,paste0(gene, dataset)], levels=label, ordered=TRUE)]
+
+            ds <- factor(d[,dataset], levels=names(ds.names), ordered=TRUE)
+            levels(ds) <- unlist(ds.names[levels(ds)])
+            d[,dataset := ds]
+            d[parameter == "m", mean := round(mean)]
+
+            # https://github.com/hadley/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
+            g_legend <- function(a.gplot) {{
+                tmp <- ggplot_gtable(ggplot_build(a.gplot))
+                leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+                tmp$grobs[[leg]]
+            }}
+
+            # http://stackoverflow.com/questions/8197559/emulate-ggplot2-default-color-palette
+            gg_color_hue <- function(n) {{
+                hues = seq(15, 375, length = n + 1)
+                hcl(h = hues, l = 65, c = 100)[1:n]
+            }}
+            plot.aes <- aes(x=mean, y=y, color=gene, fill=gene, shape=dataset)
+            plot.theme <- theme(legend.position="none",
+                                axis.text.y=element_blank(), 
+                                axis.ticks.y=element_blank(),
+                                axis.title.y=element_text(angle=0),
+                                plot.margin=unit(c(0, 0.5, 0, 0.5), "line"),
+                                text=element_text(size=14))
+            palpha <- ggplot(d[parameter == 'alpha'], plot.aes) + 
+                        geom_point(size=3) + 
+                        geom_errorbarh(height=0, aes(xmax=hpd.max.95, xmin=hpd.min.95)) + 
+                        geom_errorbarh(height=0.8, aes(xmax=hpd.max.50, xmin=hpd.min.50)) + 
+                        theme_bw() +
+                        labs(y=expression(alpha), x="") +
+                        xlim({alpha_min}, {alpha_max}) + plot.theme +
+                        scale_shape_manual(values=c(21, 22, 23)) +
+                        scale_fill_manual(values=c(NA, gg_color_hue(2)[2]))
+            pI <- ggplot(d[parameter == 'I'], plot.aes) +
+                    geom_point(size=3) + 
+                    geom_errorbarh(height=0, aes(xmax=hpd.max.95, xmin=hpd.min.95)) + 
+                    geom_errorbarh(height=0.8, aes(xmax=hpd.max.50, xmin=hpd.min.50)) + 
+                    theme_bw() +
+                    labs(y="I", x="") + xlim(d[,min(ntip)], {I_max}) +
+                    scale_shape_manual(values=c(21, 22, 23)) +
+                    scale_fill_manual(values=c(NA, gg_color_hue(2)[2])) +
+                    plot.theme
+            pm <- ggplot(d[parameter == 'm'], plot.aes) +
+                    geom_point(size=3) + 
+                    geom_errorbarh(height=0, aes(xmax=hpd.max.95, xmin=hpd.min.95)) + 
+                    geom_errorbarh(height=0.8, aes(xmax=hpd.max.50, xmin=hpd.min.50)) + 
+                    theme_bw() +
+                    labs(y="m", x="") + xlim({m_min}, {m_max}) +
+                    scale_shape_manual(values=c(21, 22, 23),
+                                      guide = guide_legend(reverse=TRUE)) +
+                    scale_color_discrete(guide = guide_legend()) +
+                    guides(fill = guide_legend(override.aes = list(shape = 21))) +
+                    scale_fill_manual(values=c(NA, gg_color_hue(2)[2]),
+                                      guide = guide_legend()) +
+                    theme(axis.text.y=element_blank(), 
+                          axis.ticks.y=element_blank(),
+                          axis.title.y=element_text(angle=0),
+                          text=element_text(size=14))
+            pN <- ggplot(d[parameter == 'N'], plot.aes) +
+                    geom_point(size=3) +
+                    geom_errorbarh(height=0, aes(xmax=hpd.max.95, xmin=hpd.min.95)) + 
+                    geom_errorbarh(height=0.8, aes(xmax=hpd.max.50, xmin=hpd.min.50)) + 
+                    scale_shape_manual(values=c(21, 22, 23)) +
+                    scale_fill_manual(values=c(NA, gg_color_hue(2)[2])) +
+                    theme_bw() +
+                    labs(y="N", x="") + xlim(d[,min(ntip)], {N_max}) +
+                    plot.theme
+            layout <- rbind(c(1,1,5,5), c(2,2,5,5), c(3,3,5,5), c(4,4,5,5))
+            g <- arrangeGrob(palpha, pI, pm + theme(legend.position="none"),
+                 pN, g_legend(pm), layout_matrix=layout)
+            ggsave(g, file="{gene-plot}", width=7, height=6)
 
     gamma:
         Extension: tsv
         Parameters:
-            m_min: 1
-            nparticle: 1000
+            m_min: [1, 2]
+            nparticle: 10000
             dataset: ["bctree", "cuevas2009", "wang2015", "novitsky2014",
-                      "niculescu2015", "li2015"]
+                      "niculescu2015", "li2015", "kao2011", "zetterberg2004",
+                      "little2014", "grabowski2014", "mccormack2002"]
+            agg_gene: "gag"
         Interpreter: R --silent --vanilla
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
             m <- collect.metadata("{dataset}/gamma/*")
-            file <- rownames(m)[m$m_min == {m_min} & m$nparticle == {nparticle}]
+            if ("{dataset}" == "bctree") {{
+                file <- rownames(m)[m$m_min == {m_min} & m$nparticle == {nparticle} & m$cluster == 0]
+            }} else if ("{dataset}" %in% c("zetterberg2004", "grabowski2014", "mccormack2002")) {{
+                file <- rownames(m)[m$m_min == {m_min} & m$nparticle == {nparticle} & m$gene == "{agg_gene}"]
+            }} else {{
+                file <- rownames(m)[m$m_min == {m_min} & m$nparticle == {nparticle}]
+            }}
             d <- setDT(read.table(file, header=TRUE))
             cat(paste0("#", "{yaml}", "\n"), file="{gamma}")
             write.tsv(d, file="{gamma}", append=TRUE)
@@ -187,7 +332,7 @@ Steps:
         Extension: tsv
         Parameters:
             m_min: 1
-            nparticle: 1000
+            nparticle: 10000
         Depends: gamma
         Interpreter: R --silent --vanilla
         Startup: |
@@ -195,17 +340,22 @@ Steps:
             suppressPackageStartupMessages(library(xtable))
         Rule: |
             d <- setDT(collect.data(strsplit("{gamma}", " ")[[1]]))
-            d <- d[,list(gamma = median(gamma)), by=dataset]
+            d <- d[,list(gamma = median(gamma.all)), by=dataset]
             ds.names <- list(
-                novitsky2014="HET/Botswana (Novitsky et al. 2013 \\& 2014)",
                 cuevas2009="mixed/Spain (Cuevas et al. 2009)",
-                li2015="MSM/China (Li et al. 2015)",
-                wang2015="MSM/China (Wang et al. 2015)",
+                li2015="MSM/Shanghai (Li et al. 2015)",
+                little2014="MSM/USA (Little et al. 2014)",
+                kao2011="MSM/Taiwan (Kao et al. 2011)",
+                wang2015="MSM/Beijing (Wang et al. 2015)",
+                grabowski2014="HET/Uganda (Grabowski et al. 2014)",
+                mccormack2002="HET/Malawi (McCormack et al. 2002)",
+                novitsky2014="HET/Botswana (Novitsky et al. 2013 & 2014)",
+                bctree="IDU/Canada (unpublished)",
                 niculescu2015="IDU/Romania (Niculescu et al. 2015)",
-                bctree="IDU/Canada (unpublished)"
+                zetterberg2004="IDU/Estonia (Zetterberg et al. 2004)"
             )
             d[,dataset := ds.names[dataset]]
-            setnames(d, c("Dataset", "Estimated $\\gamma$"))
+            setnames(d, c("Dataset", "$\\gamma$"))
             options(digits=2)
             xtab <- xtable(d, align=c("l", "l", "r"))
             print(xtab, floating=FALSE, file="{gamma-table}",
@@ -351,30 +501,11 @@ Steps:
         Extension: tsv
         Parameters:
             parameter: ["alpha", "m", "N", "I"]
-            plot_ntip: 500
-            replicate: 0
         Interpreter: R --silent --vanilla
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
-            m <- collect.metadata("gridsearch-{parameter}/kernel/*")
-            m <- subset(m, ntip == {plot_ntip} & test_replicate == {replicate})
-            d <- collect.data(rownames(m), header=FALSE, col.names=c("tree", "score"))
-            setDT(d)
-
-            mtrain <- collect.metadata("gridsearch-{parameter}/train-tree/*")
-            mtrain$tree <- rownames(mtrain)
-            setDT(mtrain)
-
-            setkey(mtrain, tree)
-            setkey(d, tree)
-            d <- mtrain[d]
-
-            setnames(d, c("{parameter}", "true_{parameter}"), 
-                        c("value", "true_value"))
-            setkey(d, true_value, value)
-
-            normconst <- function (x, y) integrate(splinefun(x, y), min(x), max(x), subdivisions=1000)$value
-            d[,score := score / normconst(value, score), by=true_value]
+            d <- fread(Sys.glob("gridsearch-{parameter}/point-estimate/*"))
+            setnames(d, c("ntip", "true_{parameter}"), c("tips", "true_value"))
 
             cat("#{yaml}\n", file="{gridsearch}")
             write.tsv(d, file="{gridsearch}", append=TRUE)
@@ -389,27 +520,41 @@ Steps:
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
             d <- setDT(collect.data(strsplit("{gridsearch}", " ")[[1]]))
+            d <- subset(d, tips == {plot_ntip} & test_replicate == {replicate})
 
-            plot.aes <- aes(x=true_value, y=point.est, ymin=lower, ymax=upper) 
+            plot.aes <- aes(x=true_value, lower=lower.50, upper=upper.50,
+                            y=point.est, middle=point.est, ymin=lower.95, ymax=upper.95)
             plot.theme <- theme(text=element_text(size=14))
             palpha <- ggplot(d[parameter == "alpha"], plot.aes) + 
-                geom_pointrange() + theme_bw() + 
+                geom_point() +
+                geom_linerange(aes(ymin=lower.95, ymax=upper.95)) +
+                geom_errorbar(aes(ymin=lower.50, ymax=upper.50), width=0.125) +
+                theme_bw() +
                 labs(y=expression(paste("estimated ", alpha)),
                      x=expression(paste("true ", alpha))) +
                 geom_abline(slope=1, intercept=0, linetype="dashed") +
                 plot.theme
             pI <- ggplot(d[parameter == "I"], plot.aes) + 
-                geom_pointrange() + theme_bw() +
+                geom_point() +
+                geom_linerange(aes(ymin=lower.95, ymax=upper.95)) +
+                geom_errorbar(aes(ymin=lower.50, ymax=upper.50), width=250) +
+                theme_bw() +
                 labs(y="estimated I", x="true I") +
                 geom_abline(slope=1, intercept=0, linetype="dashed") +
                 plot.theme
             pm <- ggplot(d[parameter == "m"], plot.aes) + 
-                geom_pointrange() + theme_bw() +
+                geom_point() +
+                geom_linerange(aes(ymin=lower.95, ymax=upper.95)) +
+                geom_errorbar(aes(ymin=lower.50, ymax=upper.50), width=1/3) +
+                theme_bw() +
                 labs(y="estimated m", x="true m") +
                 geom_abline(slope=1, intercept=0, linetype="dashed") +
                 plot.theme
             pN <- ggplot(d[parameter == "N"], plot.aes) + 
-                geom_pointrange() + theme_bw() +
+                geom_point() +
+                geom_linerange(aes(ymin=lower.95, ymax=upper.95)) +
+                geom_errorbar(aes(ymin=lower.50, ymax=upper.50), width=1000) +
+                theme_bw() +
                 labs(y="estimated N", x="true N") +
                 geom_abline(slope=1, intercept=0, linetype="dashed") +
                 plot.theme

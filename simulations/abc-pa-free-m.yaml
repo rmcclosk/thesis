@@ -249,6 +249,84 @@ Steps:
                     true_N={true_N}, show.mean=TRUE)
             ggsave(p, file="{posterior-plot}", height=5, width=6)
 
+    posterior-plot-2d:
+        Extension: pdf
+        Walltime: 00:05:00
+        Parameters:
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+            nparticle: 1000
+            true_N: 5000
+            true_m: [2, 3, 4]
+            true_alpha: [0.0, 0.5, 1.0, 1.5]
+            true_I: [1000, 2000]
+            N_min: 500
+            N_max: 15000
+            I_min: 500
+            I_max: 5000
+            m_min: 1
+            m_max: 5
+            alpha_min: 0
+            alpha_max: 2
+            replicate: "range(3)"
+        Depends: abc
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(ks))
+        Rule: |
+            d <- fread("bzcat {abc} | head -n -1")[iter == max(iter)]
+
+            do.plot <- function (x, y, wt, labs, xlim, ylim, truth, est) {{
+                dens <- kde(cbind(x, y), w=wt/sum(wt))
+                pd <- do.call(expand.grid, dens$eval.points)
+                pd <- cbind(pd, c(dens$estimate))
+                setDT(pd)
+                setnames(pd, c("x", "y", "z"))
+                ggplot(pd, aes(x=x, y=y, z=z)) + 
+                    stat_contour(geom="polygon", aes(fill=..level..)) + 
+                    scale_fill_distiller(palette="Spectral", name="density") + 
+                    theme_bw() +
+                    theme(legend.position="none") +
+                    labs(x=labs[1], y=labs[2]) +
+                    xlim(xlim[1], xlim[2]) +
+                    ylim(ylim[1], ylim[2]) +
+                    geom_point(x=truth[1], y=truth[2], shape=19, color="black", size=3) +
+                    geom_point(x=truth[1], y=truth[2], shape=20, color="white", size=3) +
+                    geom_point(x=est[1], y=est[2], shape=18, color="black", size=5) +
+                    geom_point(x=est[1], y=est[2], shape=18, color="magenta", size=3)
+            }}
+            params <- c("alpha", "I", "N", "m")
+            pairs <- combn(params, 2)
+            last <- which(pairs == "m", arr.ind=TRUE)[,2]
+            first <- setdiff(1:6, last)
+            pairs <- pairs[,c(first, last)]
+
+            limits <- data.table(parameter=params,
+                                 min=c({alpha_min}, {I_min}, {N_min}, {m_min}-0.5),
+                                 max=c({alpha_max}, {I_max}, {N_max}, {m_max}+0.5))
+            truth <- data.table(parameter=params,
+                                value=c({true_alpha}, {true_I}, {true_N}, {true_m}))
+            pmean <- melt(d[,c(params, "weight"), with=F], id.vars="weight", 
+                          variable.name="parameter", value.name="value")
+            pmean <- pmean[,list(mean=wtd.mean(value, weight)), by=parameter]
+            setkey(limits, parameter)
+            setkey(truth, parameter)
+            setkey(pmean, parameter)
+
+            plots <- apply(pairs, 2, function(p) 
+                do.plot(d[[p[1]]], d[[p[2]]], d[,weight], 
+                        labs=ifelse(p == "alpha", expression(alpha), p),
+                        xlim=limits[p[1], c(min, max)],
+                        ylim=limits[p[2], c(min, max)],
+                        truth=truth[p, value],
+                        est=pmean[p, mean]))
+
+            pdf("{posterior-plot-2d}", height=5)
+            grid.arrange(grobs=plots, nrow=2)
+            dev.off()
+
     hpd-table:
         Extension: txt
         Parameters:
@@ -295,3 +373,30 @@ Steps:
             xtab <- xtable(tbl, align=c("l", "l", "r", rep(">{{\\raggedleft\\arraybackslash}}p{{2.5cm}}", 3)))
             print(xtab, floating=FALSE, file="{hpd-table}",
                   sanitize.text.function=identity, include.rownames=FALSE)
+
+    gamma:
+        Extension: tsv
+        Parameters:
+            placeholder: 0
+        Depends: network
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(stats4))
+            suppressPackageStartupMessages(library(dgof))
+        Rule: |
+            net.files <- strsplit("{network}", " ")[[1]]
+            nets <- lapply(net.files, read_graph, format="gml")
+            nets <- lapply(nets, as.undirected, "mutual")
+            d <- setDT(collect.metadata(net.files))
+            get.values <- function (g) {{
+                gamma.all <- coef(fit_power_law(degree(g), implementation="R.mle"))
+                fit <- fit_power_law(degree(g))
+                gamma.tail <- fit$alpha
+                xmin <- fit$xmin
+                ks.p <- fit$KS.p
+                data.frame(gamma.all=gamma.all, gamma.tail=gamma.tail, xmin=xmin, ks.p=ks.p)
+            }}
+            d <- cbind(d, do.call(rbind, lapply(nets, get.values)))
+            cat("#{yaml}\n", file="{gamma}")
+            write.tsv(d, file="{gamma}", append=TRUE)

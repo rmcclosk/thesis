@@ -11,7 +11,7 @@ endef
 .PHONY: bulbasaur breezy.westgrid.ca jasper.westgrid.ca local
 
 all: bctree novitsky2014 cuevas2009 li2015 wang2015 niculescu2015 \
-	abc-pa-free-m abc-pa-mixed-alpha abc-pa-peerdriven \
+	kao2011 abc-pa-free-m abc-pa-mixed-alpha abc-pa-peerdriven \
 	kernel-alpha kernel-I kernel-m kernel-N \
 	gridsearch-alpha gridsearch-I gridsearch-m gridsearch-n \
 	aggregates
@@ -43,6 +43,10 @@ abc-pa-peerdriven: jasper.westgrid.ca
 	$(call FETCH,$^,$@)
 	$(call RUN,$@)
 
+abc-marginal: jasper.westgrid.ca
+	$(call FETCH,$^,$@)
+	$(call RUN,$@)
+
 # real data
 
 bctree: bulbasaur
@@ -66,6 +70,26 @@ wang2015: jasper.westgrid.ca
 	$(call RUN,$@)
 
 niculescu2015: jasper.westgrid.ca
+	$(call FETCH,$^,$@)
+	$(call RUN,$@)
+
+kao2011: jasper.westgrid.ca
+	$(call FETCH,$^,$@)
+	$(call RUN,$@)
+
+little2014: jasper.westgrid.ca
+	$(call FETCH,$^,$@)
+	$(call RUN,$@)
+
+grabowski2014: jasper.westgrid.ca
+	$(call FETCH,$^,$@)
+	$(call RUN,$@)
+
+mccormack2002: jasper.westgrid.ca
+	$(call FETCH,$^,$@)
+	$(call RUN,$@)
+
+zetterberg2004: jasper.westgrid.ca
 	$(call FETCH,$^,$@)
 	$(call RUN,$@)
 
