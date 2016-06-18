@@ -9,3 +9,11 @@
 \contentsline {table}{\numberline {2.2}{\ignorespaces Values of parameters and meta-parameters used in grid search experiments to further investigate identifiability of BA model parameters. }}{43}{table.2.2}
 \defcounter {refsection}{0}\relax 
 \contentsline {table}{\numberline {2.3}{\ignorespaces Parameter values used in simulation experiments to test accuracy of \gls {BA} model fitting with \textit {netabc}. }}{46}{table.2.3}
+\defcounter {refsection}{0}\relax 
+\contentsline {table}{\numberline {2.4}{\ignorespaces Average posterior mean point estimates and 95\% \glspl {HDI} interval widths for \gls {BA} model parameter estimates obtained with \textit {netabc} on simulated data. }}{51}{table.2.4}
+\defcounter {refsection}{0}\relax 
+\contentsline {table}{\numberline {2.5}{\ignorespaces Parameters of a fitted \gls {GLM} relating error in estimated \gls {alpha} to true values of \gls {BA} parameters.}}{53}{table.2.5}
+\defcounter {refsection}{0}\relax 
+\contentsline {table}{\numberline {2.6}{\ignorespaces Parameters of a fitted \gls {GLM} relating error in estimated \gls {I} to true values of \gls {BA} parameters.}}{53}{table.2.6}
+\defcounter {refsection}{0}\relax 
+\contentsline {table}{\numberline {2.7}{\ignorespaces Characteristics of published \gls {HIV} datasets analyzed with \textit {netabc}. }}{58}{table.2.7}
