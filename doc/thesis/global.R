@@ -3,6 +3,7 @@
 library(netabc)
 library(Hmisc)
 library(xtable)
+library(qdap)
 
 pp <- function (p, eq=FALSE, thres=1e-5) {
     if (!is.na(thres) & p < thres) {
