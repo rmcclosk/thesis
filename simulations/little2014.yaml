@@ -1,4 +1,4 @@
-Name: niculescu2015
+Name: little2014
 Processes: 1
 Sleep: 5
 Memory: 256m
@@ -6,7 +6,7 @@ Steps:
     raw-fasta:
         Extension: fasta
         Parameters:
-            pmid: 25369079
+            pmid: 24901437
         Interpreter: python3
         Startup: |
             from Bio import Entrez
@@ -27,9 +27,6 @@ Steps:
             headers = []
             seqs = []
             for record in Entrez.parse(handle):
-                # drug users only
-                if not "DU" in record["GBSeq_definition"]:
-                    continue
                 header = None
                 for qual in record["GBSeq_feature-table"][0]["GBFeature_quals"]:
                     if qual["GBQualifier_name"] == "collection_date":
@@ -66,26 +63,44 @@ Steps:
         Rule: |
             UNROOTED=`mktemp`
             ROOTED=`mktemp`
-            RTTJAR=`locate RLRootToTip.jar | head -n 1`
-            fasttreeMP -nt -gtr -quiet -nosupport < {align} | nw_reroot - > $UNROOTED
+            #RTTJAR=`locate RLRootToTip.jar | head -n 1`
+            RTTJAR=/home/rmcclosk/bin/RLRootToTip.jar
+            FastTreeMP -nt -gtr -quiet -nosupport < {align} | nw_reroot - > $UNROOTED
             java -jar $RTTJAR -writetree $ROOTED -newick $UNROOTED
-            python3 -c "from Bio import Phylo; Phylo.convert('$ROOTED', 'nexus', '{tree}', 'newick')"
+            python3 -c "from Bio import Phylo; Phylo.convert('$ROOTED', 'nexus', '{subtree}', 'newick')"
             rm $ROOTED $UNROOTED
+
+    cluster:
+        Extension: tsv
+        Parameters:
+            target: 200
+        Depends: tree
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            t <- read.tree("{tree}")
+            st <- subtrees(t)
+            st <- st[[which.min(abs(sapply(st, Ntip) - {target}))]]
+            cl.nodes <- st$tip.label
+            write.table(cl.nodes, "{cluster}", col.names=F, row.names=F, quote=F)
 
     subtree:
         Extension: nwk
         Parameters:
-            cutoff: 0.02
-        Depends: align
+            cutoff: 0.14
+        Depends: cluster align
         Interpreter: bash
         Rule: |
+            SUBSET=`mktemp`
             UNROOTED=`mktemp`
             ROOTED=`mktemp`
-            RTTJAR=`locate RLRootToTip.jar | head -n 1`
-            fasttreeMP -nt -gtr -quiet -nosupport < {align} | nw_reroot - > $UNROOTED
+            #RTTJAR=`locate RLRootToTip.jar | head -n 1`
+            RTTJAR=/home/rmcclosk/bin/RLRootToTip.jar
+            filter_by_name -l {cluster} {align} > $SUBSET
+            FastTreeMP -nt -gtr -quiet < $SUBSET | nw_reroot - > $UNROOTED
             java -jar $RTTJAR -timetree $ROOTED -newick $UNROOTED
             python3 -c "from Bio import Phylo; Phylo.convert('$ROOTED', 'nexus', '{subtree}', 'newick')"
-            rm $ROOTED $UNROOTED
+            rm $SUBSET $ROOTED $UNROOTED
 
     abc-config:
         Extension: yaml
@@ -173,45 +188,9 @@ Steps:
             d <- fread("{abc}")[iter == max(iter)]
             p <- posterior.plot.pa(d, alpha_min={alpha_min}, 
                     alpha_max={alpha_max}, I_min=ntip, I_max={I_max},
-                    N_min=ntip, N_max={N_max}, m_min={m_min}, m_max={m_max})
+                    N_min=ntip, N_max={N_max}, m_min={m_min}, m_max={m_max},
+                    show.map=FALSE, show.mean=TRUE)
             ggsave(p, file="{posterior-plot}", height=5, width=6)
-
-    gamma:
-        Extension: tsv
-        Walltime: 00:30:00
-        Parameters:
-            decay_factor: 0.3
-            rbf_variance: 4
-            nltt: 0
-            nparticle: 10000
-            nsample: 5
-            quality: 0.95
-            final_epsilon: 0.0
-            final_accept: 0.015
-            m_min: [1, 2]
-            m_max: 5
-            N_max: 10000
-            I_max: 10000
-            alpha_min: 0
-            alpha_max: 2
-        Depends: abc
-        Interpreter: R --vanilla --silent
-        Startup: suppressPackageStartupMessages(library(netabc))
-        Rule: |
-            d <- fread("{abc}")[iter == max(iter)]
-            d <- d[sample(1:nrow(d), prob=weight, replace=TRUE)]
-            map <- function (x) {{ dens <- density(x); dens$x[which.max(dens$y)] }}
-            alpha <- d[,map(alpha)]
-            m <- d[,round(map(m))]
-            N <- d[,round(map(N))]
-
-            get.gamma <- function () {{
-                g <- sample_pa(N, m=m, power=alpha, directed=FALSE)
-                attr(fit_power_law(degree(g), implementation="R.mle"), "coef")
-            }}
-            gamma <- data.frame(gamma=replicate(100, get.gamma()))
-            cat("#{yaml}\n", file="{gamma}")
-            write.tsv(gamma, file="{gamma}", append=TRUE)
 
     gamma:
         Extension: tsv

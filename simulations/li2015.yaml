@@ -133,7 +133,7 @@ Steps:
             decay_factor: 0.3
             rbf_variance: 4
             nltt: 0
-            nparticle: [1000, 10000]
+            nparticle: 10000
             nsample: 5
             quality: 0.95
             final_epsilon: 0.0
@@ -167,7 +167,7 @@ Steps:
             decay_factor: 0.3
             rbf_variance: 4
             nltt: 0
-            nparticle: [1000, 10000]
+            nparticle: 10000
             nsample: 5
             quality: 0.95
             final_epsilon: 0.0
@@ -198,7 +198,7 @@ Steps:
             decay_factor: 0.3
             rbf_variance: 4
             nltt: 0
-            nparticle: [1000, 10000]
+            nparticle: 10000
             nsample: 5
             quality: 0.95
             final_epsilon: 0.0
@@ -214,16 +214,23 @@ Steps:
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
             d <- fread("{abc}")[iter == max(iter)]
-            d <- d[sample(1:nrow(d), prob=weight, replace=TRUE)]
-            map <- function (x) {{ dens <- density(x); dens$x[which.max(dens$y)] }}
-            alpha <- d[,map(alpha)]
-            m <- d[,round(map(m))]
-            N <- d[,round(map(N))]
+            alpha <- d[,wtd.mean(alpha, weight)]
+            m <- d[,floor(wtd.mean(m, weight))]
+            N <- d[,floor(wtd.mean(N, weight))]
+            I <- d[,floor(wtd.mean(I, weight))]
 
-            get.gamma <- function () {{
+            get.gamma <- function (i) {{
                 g <- sample_pa(N, m=m, power=alpha, directed=FALSE)
-                attr(fit_power_law(degree(g), implementation="R.mle"), "coef")
+                gamma.all <- coef(fit_power_law(degree(g), implementation="R.mle"))
+                fit <- fit_power_law(degree(g))
+
+                g.I <- sample_pa(I, m=m, power=alpha, directed=FALSE)
+                gamma.all.I <- coef(fit_power_law(degree(g.I), implementation="R.mle"))
+                fit.I <- fit_power_law(degree(g.I))
+
+                data.table(gamma.all=gamma.all, xmin=fit$xmin, gamma.tail=fit$alpha, ks.p=fit$KS.p,
+                           gamma.all.I=gamma.all.I, xmin.I=fit.I$xmin, gamma.tail.I=fit.I$alpha, ks.p.I=fit.I$KS.p)
             }}
-            gamma <- data.frame(gamma=replicate(100, get.gamma()))
+            d <- rbindlist(lapply(1:100, get.gamma))
             cat("#{yaml}\n", file="{gamma}")
-            write.tsv(gamma, file="{gamma}", append=TRUE)
+            write.tsv(d, file="{gamma}", append=TRUE)
