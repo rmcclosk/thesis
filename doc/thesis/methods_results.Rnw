@@ -189,7 +189,7 @@ straightforward and would only obfuscate the pseudocode.}
     \caption{Simulation of an epidemic and transmission tree over a contact network}
     \begin{algorithmic}
         \State infect a node $v$ at random, updating \gls{gS}, \gls{gI},
-                 \gls{gD}, \gls{beta}, and \gls{gamma}
+                 \gls{gD}, \gls{beta}, and \gls{nu}
         \State $\gls{T} \gets$ a single node with label $1$
         \State $\tip[v] \gets 1$
         \State $\gls{t} \gets 0$
@@ -465,6 +465,7 @@ are they as easily parallelizable as \gls{SMC}.}
 \glsreset{BA}
 
 \subsection{Why study the \acrlong{BA} model?}
+\label{subsec:whyba}
 
 \add{We developed \software{netabc} with the objective of extracting useful,
 quantitative information about network structures from viral phylogenies. An
@@ -1010,9 +1011,7 @@ approximation, we performed marginal estimation for one set of parameter
 values. Each combination of 1, 2, or 3 model parameters (14 combinations total)
 was fixed to their known values, and the remaining parameters were estimated
 with \software{netabc}. The parameter values were $\gls{alpha} = 0.0$, $\gls{m}
-= 2$, $\gls{I} = 2000$, and $\gls{N} = 5000$. These values were chosen because
-they had the highest error rate of all combinations tested when estimated
-jointly (see results in next section).}
+= 2$, $\gls{I} = 2000$, and $\gls{N} = 5000$.}
 
 \subsection{Results}
 
@@ -1885,10 +1884,24 @@ Both of these results were in line with estimates obtained on other simulated
 datasets (\cref{tab:abchpd}), although the estimate of peer-driven sampling for
 \gls{alpha} was somewhat lower than typical.
 
+\add{\Cref{fig:marginal} shows the effect of performing marginal \gls{ABC}
+estimation of each of the \gls{BA} parameters on the same simulated
+transmission tree. The estimates of \gls{m} are apparently unaffected by
+marginalizing out the other parameters, coroborating the prevous experiments'
+findings that \gls{m} is not an identifiable parameter from scaled tree shapes.
+The estimates of \gls{alpha} and \gls{N} were weakly improved in marginal
+estimation, which is consistent with the result from grid search that all
+\gls{N} values and \gls{alpha} values below 0.5 are weakly identifiable. On the
+other hand, both the accuracy and precision (\ie width of the \gls{HPD}
+intervals) of the estimates of \gls{I} were substantially improved when \gls{N}
+and at least one other variable were marginalized out. Neither the accuracy nor
+the precision of any parameter estimates appeared to improve when more
+computing power was used for \gls{SMC} (\cref{fig:moresmc}).}
+
 \section{Application to real world HIV data}
 \label{sec:hiv}
 
-\subsection{Identification of suitable datasets}
+\subsection{Methods}
 
 Because the \gls{BA} model assumes a single connected contact network, it is
 most appropriate to apply to groups of individuals who are epidemiologically
@@ -1936,17 +1949,15 @@ group and location of origin in the text. For example, the
   \label{tab:data}
 \end{table}
 
-\subsection{Methods}
-
 We downloaded all sequences associated with each published study from GenBank.
 \add{For the IDU/Romania data, only sequences from \gls{IDU} (whose sequence
 identifiers included the letters ``DU'') were included in the analysis.
-\textcite{kao2011surveillance} (MSM/Taiwan) found a very strong association in
-their study population between subtype and risk group - subtype B was almost
-always associated with \gls{MSM}, whereas \gls{IDU} were usually infected with
-a circulating recombinant form. Since there were many more subtype B sequences
-in their data than sequences of other subtypes, we restricted our analysis to
-the subtype B sequences and labelled this dataset as \gls{MSM}. Three datasets
+\textcite{kao2011surveillance} (MSM/Taiwan) found a strong association in their
+study population between subtype and risk group - subtype B was most often
+associated with \gls{MSM}, whereas \gls{IDU} were usually infected with a
+circulating recombinant form. Since there were many more subtype B sequences in
+their data than sequences of other subtypes, we restricted our analysis to the
+subtype B sequences and labelled this dataset as \gls{MSM}. Three datasets
 (IDU/Estonia, HET/Uganda, and HET/Malawi) included both \textit{env} and
 \textit{gag} sequences. Each gene was analyzed separately to assess the
 robustness of \software{netabc} to the particular \gls{HIV} gene sequence used
@@ -1993,16 +2004,23 @@ that we used 10000 particles instead of 1000 to increase the accuracy of the
 estimated posterior. This was computationally feasible due to the small number
 of runs required for this analysis.
 
+
 Empirical studies of contact networks often report the exponent \gls{gamma} of
-the power law degree distribution. To compare our results to the literature, we
-simulated 100 networks each according to the posterior mean parameter estimates
-obtained for each investigated dataset. \add{Although the \gls{BA} model does
-not produce power law networks except when $\gls{alpha} = 1$, simulations show
-that the power law fit still captures the slope of the degree distribution
-reasonably well (\cref{fig:powerlaw}).} \gls{gamma} was calculated for each
-network using the \software{fit\_power\_law} function in \software{igraph},
-with the `R.mle' implementation. The median of the 100 \gls{gamma} values was
-taken as a point estimate for the associated dataset.
+the power law degree distribution~\autocite{colgate1989risk, liljeros2001web,
+schneeberger2004scale, clemenccon2015statistical, rothenberg2007large,
+brown2011transmission}. Although the \gls{BA} model does not produce networks
+with true power law degree distributions except when $\gls{alpha} = 1$, the
+power law still provides a reasonable approximation to the slope when
+$\gls{alpha} \neq 1$ (\cref{fig:powerlaw}).  To compare our results to
+\add{existing network} literature we simulated 100 networks each according to
+the posterior mean parameter estimates obtained for each investigated dataset.
+\add{Although the \gls{BA} model does not produce power law networks except
+when $\gls{alpha} = 1$, simulations show that the power law fit still captures
+the slope of the degree distribution reasonably well (\cref{fig:powerlaw}).}
+\gls{gamma} was calculated for each network using the
+\software{fit\_power\_law} function in \software{igraph}, with the `R.mle'
+implementation. The median of the 100 \gls{gamma} values was taken as a point
+estimate for the associated dataset.
 
 \subsection{Results}
 
@@ -2044,6 +2062,12 @@ taken as a point estimate for the associated dataset.
 
   stopifnot(pmean1[,dataset[which.max(alpha)]] == "zetterberg2004")
   stopifnot(pmean1[,dataset[which.min(alpha)]] == "cuevas2009")
+
+  stopifnot(pmean1[,dataset[which.max(I)]] == "zetterberg2004")
+  stopifnot(pmean1[,dataset[which.min(I)]] == "novitsky2014")
+  stopifnot(pmean1[dataset != "novitsky2014", dataset[which.min(I)]] == "bctree")
+
+  stopifnot(pmean1[,cor.test(ntip, I)$p.value, method="spearman"] > 0.05)
 @
 
 \del{We applied \software{netabc} to five published HIV datasets (\cref{tab:data}).
@@ -2065,10 +2089,10 @@ all results discussed henceforth are for the prior $\gls{m} \sim
         \gls{BA} network model, fitted to eleven
         \gls{HIV} datasets with \software{netabc}.
     ]{
-        Posterior means (points), 50\% (notches), and 95\% (lines) \gls{HPD}
-        intervals for parameters of the \gls{BA} network model, fitted to
-        eleven \gls{HIV} datasets with \software{netabc}. Legend labels
-        indicate risk group and country of origin. Abbreviations:
+        Posterior means (points), 50\% \gls{HPD} intervals (notches), and 95\%
+        (lines) \gls{HPD} intervals for parameters of the \gls{BA} network
+        model, fitted to eleven \gls{HIV} datasets with \software{netabc}.
+        Legend labels indicate risk group and country of origin. Abbreviations:
         \acrshort{IDU}, \acrlong{IDU}; \acrshort{MSM}, \acrlong{MSM}; HET,
         heterosexual. Note that posterior means can fall outside of \glspl{HPD} 
         if the distribution is diffuse.
@@ -2120,7 +2144,7 @@ However, the confidence interval was much wider when $m = 1$ was allowed
     \Sexpr{up2["novitsky2014", round(alpha, 2)]}] for $m \geq 2$).}
 
 \add{Posterior mean point estimates for the \acrlong{PA} power \gls{alpha}
-ranged from 
+were all sub-linear, ranging from 
     \Sexpr{pmean1["zetterberg2004", round(alpha, 2)]}
 for the \gls{IDU}/Estonia data to
     \Sexpr{pmean1["cuevas2009", round(alpha, 2)]}
@@ -2140,22 +2164,26 @@ entire range from 0 to 1 (\cref{fig:abchpd}). For all the datasets except
 HET/Malawi and MSM/Beijing, the posterior mean was either outside, or very
 close to the border of, the 50\% \gls{HPD}. This indicates that the posterior
 distributions were diffuse with heavy tails, rather than having most of their
-mass around the mode.}
+mass around the mode. When the value $\gls{m} = 1$ was disallowed by the prior, 
+TODO}
 
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{realdata-genes}
     \caption[
-        TODO
+        Posterior means and 50\%/95\% \gls{HPD} intervals for parameters of the
+        \gls{BA} network model, fitted to three \gls{HIV} datasets where both
+        \textit{gag} and \textit{env} genes were sequenced.
     ]{
-        TODO
+        Posterior means (points) 50\% \gls{HPD} intervals (notches), and 95\%
+        \gls{HPD} intervals (lines) for parameters of the \gls{BA} network model,
+        fitted to three \gls{HIV} datasets where both \textit{gag} and
+        \textit{env} genes were sequenced.
     }
     \label{fig:genes}
 \end{figure}
 
-\end{document}
-
-{\color{red}\sout{For all the datasets except \citeauthor{novitsky2014impact},
+\del{For all the datasets except \citeauthor{novitsky2014impact},
 estimated values of $I$ were below 2000 when $m = 1$ was allowed, with
 relatively narrow HPD intervals compared to the nonzero prior density region
   (\citeauthor{cuevas2009hiv}, \Sexpr{pmean1["cuevas2009", floor(I)]} 
@@ -2177,9 +2205,32 @@ estimated $I$, and HPD interval spanning almost the entire prior region
    \Sexpr{up1["novitsky2014", floor(I)]}]).
 The $I$ estimates and HPD intervals were generally robust to the choice of
 prior on $m$, with slightly narrower HPD intervals (compare
-\cref{fig:abchpd,fig:abchpdm2}).}}
+\cref{fig:abchpd,fig:abchpdm2}).}
 
-The posterior mean of $m$ was equal to 1 for all but the
+\add{For all but the HET/Botswana data, the posterior mean estimates for
+the prevalence \gls{I} were between
+    \Sexpr{pmean1["zetterberg2004", round(I)]}
+(IDU/Estonia) and
+    \Sexpr{pmean1["bctree", round(I)]}
+(IDU/Canada). The HET/Botswana data had a much higher estimated \gls{I} value
+    (\Sexpr{pmean1["novitsky2014", round(I)]})
+than the other datasets, with a very wide 95\% \gls{HPD} interval covering
+almost the entire prior region (\cref{fig:abchpd}). There was no significant
+correlation between the number of sequences in the tree and the estimated
+prevalence (Spearman correlation, 
+    $p \Sexpr{pp(pmean1[,cor.test(ntip, I)[["p.value"]], method="spearman"], eq=TRUE)}$).
+This indicates that the higher prevalence estimates were not simply due to
+increased sampling density. When both \textit{gag} and \textit{env} sequences
+were analyzed, the estimates from the \textit{env} data were substantially
+higher (\cref{fig:genes}). The ratios of terminal to internal branch lengths
+were higher for the \textit{env} trees than the \textit{gag} trees (average X
+for \textit{env} and X for \textit{gag}). As with \gls{alpha}, many of the
+posterior means were outside the 50\% \gls{HPD} intervals, suggesting diffuse
+posterior distributions. The values of \gls{I} were largely robust to
+restricting the prior to $\gls{m} > 1$ (compare
+\cref{fig:abchpd,fig:abchdpm2}), although TODO}
+
+\del{The posterior mean of $m$ was equal to 1 for all but the
 \citeauthor{novitsky2014impact} data, when this value was allowed. However, the
 upper bound of the HPD interval was different for each dataset
   (\citeauthor{niculescu2015recent}, \Sexpr{up1["niculescu2015", round(m)]};
@@ -2193,14 +2244,33 @@ almost all posterior mean estimates greater than 7500 and HPD intervals
 spanning almost the entire nonzero prior density region. The only exception was
 the \citeauthor{li2015hiv} data, for which the estimate was lower 
   (\Sexpr{pmean1["li2015", floor(N)]})
-when $m = 1$ was allowed.
+when $m = 1$ was allowed.}
 
-To make our analyses comparable to the existing network literature, we
-estimated values of the power law exponent $\gamma$ for each of the datasets 
-investigated, using the posterior median estimates with the prior allowing
-\gls{m} = 1. The results are summarized in \cref{tab:gamma}. All of the
-estimated exponents were in the range $2 \leq \gamma \leq 2.5$, which is on the
-lower end of the range $2 \leq \gamma \leq 4$ reported in the literature.
+\add{The posterior means of \gls{m} were equal to one for 
+  \Sexpr{replace_number(pmean1[,sum(m == 1)])}
+of the datasets analysed. The widths of the 95\% \gls{HPD} varied from 0 (all
+the mass on the estimated value) to 5 (the entire prior region). When the value
+$\gls{m} = 1$ was disallowed by the prior, TODO.}
+
+\add{Estimates of \gls{N} were  mostly uninformative, with very similar estimates
+for all datasets (mean
+    \Sexpr{pmean1[,round(mean(N))]},
+range
+    \Sexpr{pmean1[,round(min(N))]} - \Sexpr{pmean1[,round(max(N))]}).
+This was similar to the pattern observed for the synthetic data, where the
+posterior mean always fell around the upper two-thirds mark of the region
+allowed by the prior. The results did not change appreciably (TODO) when the
+value $\gls{m} = 1$ was assigned zero prior probability.}
+
+To compare our results to the existing network literature, we estimated
+values of the power law exponent \gls{gamma} for each of the datasets
+investigated, using the posterior median estimates \del{with the prior allowing
+$\gls{m} = 1$}. Because the estimates of \gls{N} were uninformative, we
+simulated another set of networks with the estimated \gls{I} value, rather than
+\gls{N}, as the number of nodes. The results are summarized in
+\cref{tab:gamma}. All of the estimated exponents were in the range $2 \leq
+\gls{gamma} \leq 2.5$, which is on the lower end of the range $2 \leq
+\gls{gamma} \leq 4$ reported in the literature.
 
 \begin{table}
     \centering
