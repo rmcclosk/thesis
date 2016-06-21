@@ -731,11 +731,11 @@ In our case, due to the intractable likelihood, we will need to consider an
 approximation to the posterior (see \cref{sec:abc}). However, for now, nothing
 is lost by assuming that our target distribution is the posterior itself.}
 
-\add{Here we describe an algorithm called the \gls{SMC} sampler, developed by
-\textcite{del2006sequential}, which forms the basis of the adaptive
-\gls{ABC}-\gls{SMC} algorithm we apply toward the main objective of this work.
-We begin by describing \gls{SIS}, which is a precursor to \gls{SMC} that
-samples from a sequence of distributions defined on spaces of increasing
+\add{In this section, we review an algorithm called the \gls{SMC} sampler,
+developed by \textcite{del2006sequential}, which forms the basis of the
+adaptive \gls{ABC}-\gls{SMC} algorithm we apply toward the main objective of
+this work. We begin by describing \gls{SIS}, which is a precursor to \gls{SMC}
+that samples from a sequence of distributions defined on spaces of increasing
 dimension. We then describe \gls{SMC} itself, which extends \gls{SIS} with a
 resampling step to fight particle degeneracy. Finally, we outline the \gls{SMC}
 sampler, which allows \gls{SMC} to be applied to sequences of distributions all
@@ -1443,12 +1443,13 @@ sequence data. These estimated trees form the input data for our method.}
 \add{The desired output of our method is a posterior distribution of the
 parameters of a contact network model. Rather than assuming a homogeneously
 mixed population, as most epidemiological models do, network models take the
-more realistic view that human populations are structured. That is, contacts
-which allow for transmission may occur in a nonrandom way, rather than between
-every pair of individuals in the population. A network model parameterizes this
-structure. In particular, our second research objective is to characterize our
-ability to fit the \gls{BA} model, which incorporates preferential attachment
-to generate networks with realistic degree distributions.}
+more realistic view that human populations are structured. For example,
+contacts may tend to occur more often between ``like'' individuals (with
+respect to geometry, socioeconomic status, or other factors) than at random. A
+network model provides a formal representation of this structure. In
+particular, our second research objective is to characterize our ability to fit
+the \gls{BA} model, which incorporates preferential attachment to generate
+networks with realistic degree distributions.}
 
 \add{To fit these models, our method will apply \gls{ABC}, a simulation-based
 approach. Simulating a transmission tree according to a network model is
@@ -1470,7 +1471,7 @@ each parameter.}
 
 \add{Thus, our method integrates four research topics: phylogenetics, contact
 networks, \acrlong{SMC}, and \acrlong{ABC}. The first two topics together form
-the problem domain. Phylogenetic data is the input to our method, while
+the problem domain. Phylogenetic data are the input to our method, while
 estimates of the parameters of contact network models are the desired output.
 The latter two topics define the algorithm and statistical framework that our
 inference method will use.}

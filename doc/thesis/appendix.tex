@@ -3,16 +3,18 @@
 \chapter{Mathematical models, likelihood, and Bayesian inference}
 \label[appendix]{chp:prelim}
 
-A \defn{mathematical model} is a formal description of a hypothesized
-relationship between some observed data, $x$ and outcomes $y$. A
-\defn{parametric} model defines a family of possible relationships between data
-and outcomes, parameterized by one or more numeric parameters $\theta$. A
-\defn{statistical} model describes the relationship between data and outcomes
-in terms of probabilities. Statistical models define, either explicitly or
-implicitly, the probability of observing $y$ given $x$ and, if the model is
-parametric, $\theta$. Note that it is entirely possible to have no data $x$,
-only observed outcomes $y$. In this case, a model would describe the process by
-which $y$ is generated.
+\add{This appendix reviews some fundamental statistical concepts that are
+referred to throughout the body of this thesis.} A \defn{mathematical model} is
+a formal description of a hypothesized relationship between some observed data,
+\del{$x$ and outcomes $y$} \add{$y$ and covariates $x$}. A \defn{parametric}
+model defines a family of possible relationships between data and outcomes,
+parameterized by one or more numeric parameters $\theta$. A \defn{statistical}
+model describes the relationship between data and outcomes in terms of
+probabilities. Statistical models define, either explicitly or implicitly, the
+probability of observing $y$ given $x$ and, if the model is parametric,
+$\theta$. Note that it is entirely possible to have no data $x$, only observed
+outcomes $y$. In this case, a model would describe the process by which $y$ is
+generated.
 
 To illustrate these concepts, consider the well-known linear model. For
 clarity, we will restrict our attention to the case of one-dimensional data and
@@ -28,12 +30,12 @@ normally distributed with variance $\sigma$. In mathematical terms, $y_i \sim
 \beta x_i + \N(0, \sigma^2)$, where ``$\sim$'' means ``is distributed as''. We
 can see from this formulation that the model is parametric, with parameters
 $\theta$ = ($\beta$, $\sigma$). Moreover, we can write down the probability
-density $\pi$ of observing outcome $y_i$ given the parameters,
+density \lik of observing outcome $y_i$ given the parameters,
 \[
-  \pi(y \mid \beta, \sigma) = 
-  \prod_{i=1}^n f_{\N(0, \sigma^2)} (y_i - \beta x_i),
+  \lik(y \mid \beta, \sigma) = 
+  \prod_{i=1}^n \lik_{\N(0, \sigma^2)} (y_i - \beta x_i),
 \]
-where $f_{\N(0, \sigma^2)}$ is the probability density of the normal
+where $\lik_{\N(0, \sigma^2)}$ is the probability density of the normal
 distribution with mean zero and variance $\sigma^2$. Note that we are treating
 the $x_i$ as fixed quantities and therefore have not conditioned the
 probability density on $x$. Also, we have assumed that all the $y_i$ are
@@ -41,7 +43,7 @@ independent.
 
 For a general model, the probability density of $y$ given the parameters
 $\theta$ is also known as the \defn{likelihood}, written $\L$, of $\theta$.
-That is, $\L(\theta \mid y) = f(y \mid \theta)$ for the model's \gls{pdf} $f$.
+That is, $\L(\theta \mid y) = \lik(y \mid \theta)$ for the model's \gls{pdf} $f$.
 The higher the value of the likelihood, the more likely the observations $y$
 are under the model. Thus, the likelihood provides a natural criterion for
 fitting the model parameters: we want to pick $\theta$ such that the
@@ -66,43 +68,42 @@ to measure the outcomes may have a well-known margin of error, or the sign of
 the slope may be obvious from previous experiments. The Bayesian approach to
 model fitting makes use of this information by codifying the investigator's
 beliefs as a \defn{prior distribution} on the parameters, denoted
-$\pi(\theta)$. Instead of considering only the likelihood, Bayesian inference
-focuses on the product of the likelihood and the prior, $f(y \mid \theta)
-\pi(\theta)$. Bayes' theorem tells us that this product is related to the
+$\prior(\theta)$. Instead of considering only the likelihood, Bayesian inference
+focuses on the product of the likelihood and the prior, $\lik(y \mid \theta)
+\prior(\theta)$. Bayes' theorem tells us that this product is related to the
 \textit{posterior distribution} on $\theta$,
 \begin{align}
-  f(\theta \mid y) 
-    = \frac{f(y \mid \theta) \pi(\theta)}
-           {\int f(y \mid \theta) \pi(\theta) \d \theta}.
+  \post(\theta \mid y) 
+    = \frac{\lik(y \mid \theta) \prior(\theta)}
+           {\int \lik(y \mid \theta) \prior(\theta) \d \theta}.
   \label{eq:bayes}
 \end{align}
-In principle, $f(y \mid \theta) \pi(\theta)$ can be optimized numerically just
-like $\L(\theta \mid y)$, which would also optimize the posterior distribution.
-The resulting optimal parameters are called the \gls{MAP} estimates. However,
-from a Bayesian perspective, $\theta$ is not a fixed quantity to be estimated,
-but rather a random variable with an associated distribution (the posterior).
-Therefore, the \gls{MAP} estimate by itself is of limited value without
-associated statistics about the posterior distribution, such as the mean or
-credible intervals. Unfortunately, to calculate such statistics, it is
-necessary to evaluate the normalizing constant in the denominator of
-\cref{eq:bayes}, which is almost always an intractable integral.
+In principle, $\post(y \mid \theta) \prior(\theta)$ can be optimized
+numerically just like $\L(\theta \mid y)$, which would also optimize the
+posterior distribution. The resulting optimal parameters are called the
+\gls{MAP} estimates. However, from a Bayesian perspective, $\theta$ is not a
+fixed quantity to be estimated, but rather a random variable with an associated
+distribution (the posterior). Therefore, the \gls{MAP} estimate by itself is of
+limited value without associated statistics about the posterior distribution,
+such as the mean or credible intervals. Unfortunately, to calculate such
+statistics, it is necessary to evaluate the normalizing constant in the
+denominator of \cref{eq:bayes}, which is almost always an intractable integral.
 
 A popular method for circumventing the normalizing constant is the use of
 \gls{MCMC} to obtain a sample from the posterior distribution. \Gls{MCMC} works
-by defining a Markov chain {\color{red}\sout{whose states are indexed by
-possible model parameters. The transition probability from state $\theta_1$ to
-state $\theta_2$ is taken to be}} {\color{blue}\uline{on the space of possible
-model parameters. The transition density from parameters $\theta_1$ to
-$\theta_2$ is taken to be}}
+by defining a Markov chain \del{whose states are indexed by possible model
+parameters. The transition probability from state $\theta_1$ to state
+$\theta_2$ is taken to be} \add{on the space of possible model parameters. The
+transition density from parameters $\theta_1$ to $\theta_2$ is taken to be}
 \[
-  \min\left(1, \frac{f(y \mid \theta_2) \pi(\theta_2) q(\theta_2, \theta_1)}
-                    {f(y \mid \theta_1) \pi(\theta_2) q(\theta_1, \theta_2)} \right),
+  \min\left(1, \frac{\lik(y \mid \theta_2) \prior(\theta_2) q(\theta_2, \theta_1)}
+                    {\lik(y \mid \theta_1) \prior(\theta_2) q(\theta_1, \theta_2)} \right),
 \]
 where $q(\theta, \theta')$ is a symmetric \defn{proposal distribution} used in
 the algorithm to generate the chain. The stationary distribution of this Markov
 chain is equal to the posterior distribution on $\theta$. Therefore, if a long
 enough random walk is performed on the chain, the distribution of states
-visited will be a Monte Carlo approximation of $f(\theta \mid y)$, from
+visited will be a Monte Carlo approximation of $\post(\theta \mid y)$, from
 which we can calculate statistics of interest. Actually performing this random
 walk is straightforward and can be accomplished via the Metropolis-Hastings
 algorithm~\autocite{metropolis1953equation,hastings1970monte} (\cref{alg:mh}).
@@ -110,19 +111,18 @@ algorithm~\autocite{metropolis1953equation,hastings1970monte} (\cref{alg:mh}).
 \begin{algorithm}
   \caption{Metropolis-Hastings algorithm for Markov chain Monte Carlo.}
   \begin{algorithmic}
-    \State Draw $\theta$ according to the prior $\pi(\theta)$
+    \State Draw $\theta$ according to the prior $\prior(\theta)$
     \Loop
       \State Propose $\theta'$ according to $q(\theta, \theta')$
       \State Accept $\theta \gets \theta'$ with probability
       $\min \left( 1, 
-       \dfrac{f(y \mid \theta') \pi(\theta') q(\theta', \theta)}
-             {f(y \mid \theta\phantom{'}) \pi(\theta\phantom{'}) q(\theta, \theta')}
+       \dfrac{\lik(y \mid \theta') \prior(\theta') q(\theta', \theta)}
+             {\lik(y \mid \theta\phantom{'}) \prior(\theta\phantom{'}) q(\theta, \theta')}
        \right)$
     \EndLoop
   \end{algorithmic}
   \label{alg:mh}
 \end{algorithm}
-
 
 \chapter{Additional plots}
 
@@ -178,336 +178,356 @@ algorithm~\autocite{metropolis1953equation,hastings1970monte} (\cref{alg:mh}).
 \end{figure}
 
 \begin{figure}[ht]
-  \centering
-  \includegraphics[width=\textwidth]{kernel-I-tree.pdf}
-  \caption[Simulated transmission trees under three different values of BA parameter $I$]{
-    Simulated transmission trees under three different values of BA parameter
-    $I$. Epidemics were simulated on \gls{BA} networks with parameters $\alpha$
-    = 1.0, $m = 2$, and $N = 5000$. Epidemics were simulated until $I = 500$,
-    1000, or 2000 nodes were infected. Transmission trees were created by
-    sampling 500 infected nodes. For higher \gls{I} values, the network was
-    closer to saturation at the time of sampling, resulting in longer terminal
-    branches as the waiting time until the next transmission increased.
-  }
-  \label{fig:Itrees}
+    \centering
+    \includegraphics[width=\textwidth]{kernel-I-tree.pdf}
+    \caption[
+        Simulated transmission trees under three different values of \gls{BA}
+        parameter \gls{I}
+    ]{
+        Simulated transmission trees under three different values of \gls{BA}
+        parameter \gls{I}. Epidemics were simulated on \gls{BA} networks with
+        parameters $\gls{alpha} = 1.0$, $\gls{m} = 2$, and $\gls{N} = 5000$.
+        Epidemics were simulated until $\gls{I} = 500$, 1000, or 2000 nodes
+        were infected. Transmission trees were created by sampling 500 infected
+        nodes. For higher \gls{I} values, the network was closer to saturation
+        at the time of sampling, resulting in longer terminal branches as the
+        waiting time until the next transmission increased.
+    }
+    \label{fig:Itrees}
 \end{figure}
 
 \begin{figure}[ht]
-  \centering
-  \includegraphics[width=\textwidth]{kernel-m-tree.pdf}
-  \caption[Simulated transmission trees under three different values of BA parameter $m$]{
-    Simulated transmission trees under three different values of BA parameter
-    $m$. Epidemics were simulated on \gls{BA} networks with parameters $\alpha$
-    = 1.0, $N = 5000$, and $m$ = 2, 3, or 4. Epidemics were simulated until $I
-    = 1000$ nodes were infected. Transmission trees were created by sampling
-    500 infected nodes.
-  }
-  \label{fig:mtrees}
+    \centering
+    \includegraphics[width=\textwidth]{kernel-m-tree.pdf}
+    \caption[
+        Simulated transmission trees under three different values of \gls{BA}
+        parameter \gls{m}
+    ]{
+        Simulated transmission trees under three different values of \gls{BA}
+        parameter \gls{m}. Epidemics were simulated on \gls{BA} networks with
+        parameters $\gls{alpha} = 1.0$, $\gls{n} = 5000$, and $\gls{m} = 2$, 3,
+        or 4. Epidemics were simulated until $\gls{I} = 1000$ nodes were
+        infected. Transmission trees were created by sampling 500 infected
+        nodes.
+    }
+    \label{fig:mtrees}
 \end{figure}
 
 \begin{figure}[ht]
-  \centering
-  \includegraphics[width=\textwidth]{kernel-N-tree.pdf}
-  \caption[Simulated transmission trees under three different values of BA parameter $N$]{
-    Simulated transmission trees under three different values of BA parameter
-    $N$. Epidemics were simulated on \gls{BA} networks with parameters $\alpha$
-    = 1.0, $m = 2$, and $N$ = 3000, 5000, or 8000. Epidemics were simulated
-    until $I = 1000$ nodes were infected. Transmission trees were created by
-    sampling 500 infected nodes. For lower $N$ values, the network was closer
-    to saturation at the time of sampling, resulting in longer waiting times
-    until the next transmission and longer terminal branch lengths.
-  }
-  \label{fig:Ntrees}
+    \centering
+    \includegraphics[width=\textwidth]{kernel-N-tree.pdf}
+    \caption[
+        Simulated transmission trees under three different values of \gls{BA}
+        parameter \gls{N}
+    ]{
+        Simulated transmission trees under three different values of BA
+        parameter \gls{N}. Epidemics were simulated on \gls{BA} networks with
+        parameters $\gls{alpha} = 1.0$, $\gls{m} = 2$, and $\gls{N}$ = 3000,
+        5000, or 8000. Epidemics were simulated until $I = 1000$ nodes were
+        infected. Transmission trees were created by sampling 500 infected
+        nodes. For lower $N$ values, the network was closer to saturation at
+        the time of sampling, resulting in longer waiting times until the next
+        transmission and longer terminal branch lengths.
+    }
+    \label{fig:Ntrees}
 \end{figure}
 
 \begin{figure}[ht]
-  \centering
-  \includegraphics{kernel-alpha-crossv.pdf}
-  \caption[Cross validation accuracy of classifiers for \gls{BA} model parameter
-    \gls{alpha} for eight epidemic scenarios.]
-  {
-    Cross validation accuracy of classifiers for \gls{BA} model parameter
-    \gls{alpha} for eight epidemic scenarios. Solid lines and points are
-    $R^2$ of tree kernel \gls{kSVR} under various kernel meta-parameters.
-    Dashed and dotted lines are $R^2$ of linear regression against Sackin's
-    index, and \gls{SVR} using \gls{nltt}.
-  }
-  \label{fig:alphacrossv}
+    \centering
+    \includegraphics{kernel-alpha-crossv.pdf}
+    \caption[
+        Cross validation accuracy of classifiers for \gls{BA} model parameter
+        \gls{alpha} for eight epidemic scenarios.
+    ]{
+        Cross validation accuracy of classifiers for \gls{BA} model parameter
+        \gls{alpha} for eight epidemic scenarios. Solid lines and points are
+        $R^2$ of tree kernel \gls{kSVR} under various kernel meta-parameters.
+        Dashed and dotted lines are $R^2$ of linear regression against Sackin's
+        index, and \gls{SVR} using \gls{nltt}.
+    }
+    \label{fig:alphacrossv}
 \end{figure}
 
 \begin{figure}[ht]
-  \centering
-  \includegraphics{kernel-I-crossv.pdf}
-  \caption[Cross validation accuracy of classifiers for \gls{BA} model parameter
-    \gls{I} for eight epidemic scenarios.]
-  {
-    Cross validation accuracy of classifiers for \gls{BA} model parameter
-    \gls{I} for eight epidemic scenarios. Solid lines and points are $R^2$ of
-    tree kernel \gls{kSVR} under various kernel meta-parameters. Dashed and
-    dotted lines are $R^2$ of linear regression against Sackin's index, and
-    \gls{SVR} using \gls{nltt}.
-  }
-  \label{fig:Icrossv}
+    \centering
+    \includegraphics{kernel-I-crossv.pdf}
+    \caption[
+        Cross validation accuracy of classifiers for \gls{BA} model parameter
+        \gls{I} for eight epidemic scenarios.
+    ]{
+        Cross validation accuracy of classifiers for \gls{BA} model parameter
+        \gls{I} for eight epidemic scenarios. Solid lines and points are $R^2$
+        of tree kernel \gls{kSVR} under various kernel meta-parameters. Dashed
+        and dotted lines are $R^2$ of linear regression against Sackin's index,
+        and \gls{SVR} using \gls{nltt}.
+    }
+    \label{fig:Icrossv}
 \end{figure}
 
 \begin{figure}[ht]
-  \centering
-  \includegraphics{kernel-m-crossv.pdf}
-  \caption[Cross validation accuracy of classifiers for \gls{BA} model parameter
-    \gls{m} for eight epidemic scenarios.]
-  {
-    Cross validation accuracy of classifiers for \gls{BA} model parameter
-    \gls{m} for eight epidemic scenarios. Solid lines and points are $R^2$ of
-    tree kernel \gls{kSVR} under various kernel meta-parameters. Dashed and
-    dotted lines are $R^2$ of linear regression against Sackin's index, and
-    \gls{SVR} using \gls{nltt}.
-  }
-  \label{fig:mcrossv}
+    \centering
+    \includegraphics{kernel-m-crossv.pdf}
+    \caption[
+        Cross validation accuracy of classifiers for \gls{BA} model parameter
+        \gls{m} for eight epidemic scenarios.
+    ]{
+        Cross validation accuracy of classifiers for \gls{BA} model parameter
+        \gls{m} for eight epidemic scenarios. Solid lines and points are $R^2$
+        of tree kernel \gls{kSVR} under various kernel meta-parameters. Dashed
+        and dotted lines are $R^2$ of linear regression against Sackin's index,
+        and \gls{SVR} using \gls{nltt}.
+    }
+    \label{fig:mcrossv}
 \end{figure}
 
 \begin{figure}[ht]
-  \centering
-  \includegraphics{kernel-N-crossv.pdf}
-  \caption[Cross validation accuracy of classifiers for \gls{BA} model parameter
-    \gls{N} for eight epidemic scenarios.]
-  {
-    Cross validation accuracy of classifiers for \gls{BA} model parameter
-    \gls{N} for eight epidemic scenarios. Solid lines and points are $R^2$ of
-    tree kernel \gls{kSVR} under various kernel meta-parameters. Dashed and
-    dotted lines are $R^2$ of linear regression against Sackin's index, and
-    \gls{SVR} using \gls{nltt}.
-  }
-  \label{fig:Ncrossv}
-\end{figure}
-
-\clearpage
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics{kernel-alpha-kpca.pdf}
-  \caption{
-    Kernel principal components projection of trees simulated under three
-    different values of \gls{BA} parameter \gls{alpha}, for eight epidemic
-    scenarios.
-  }
-  \label{fig:alphakpca}
-\end{figure}
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics{kernel-I-kpca.pdf}
-  \caption{
-    Kernel principal components projection of trees simulated under three
-    different values of \gls{BA} parameter \gls{I}, for eight epidemic
-    scenarios.
-  }
-  \label{fig:Ikpca}
-\end{figure}
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics{kernel-m-kpca.pdf}
-  \caption{
-    Kernel principal components projection of trees simulated under three
-    different values of \gls{BA} parameter \gls{m}, for eight epidemic
-    scenarios.
-  }
-  \label{fig:mkpca}
-\end{figure}
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics{kernel-N-kpca.pdf}
-  \caption{
-    Kernel principal components projection of trees simulated under three
-    different values of \gls{BA} parameter \gls{N}, for eight epidemic
-    scenarios.
-  }
-  \label{fig:Nkpca}
+    \centering
+    \includegraphics{kernel-N-crossv.pdf}
+    \caption[
+        Cross validation accuracy of classifiers for \gls{BA} model parameter
+        \gls{N} for eight epidemic scenarios.
+    ]{
+        Cross validation accuracy of classifiers for \gls{BA} model parameter
+        \gls{N} for eight epidemic scenarios. Solid lines and points are $R^2$
+        of tree kernel \gls{kSVR} under various kernel meta-parameters. Dashed
+        and dotted lines are $R^2$ of linear regression against Sackin's index,
+        and \gls{SVR} using \gls{nltt}.
+    }
+    \label{fig:Ncrossv}
 \end{figure}
 
 \clearpage
 
 \begin{figure}[ht]
-  \centering
-  \includegraphics{gridsearch-alpha-kernel.pdf}
-  \caption{                                              
-    Grid search kernel scores for testing trees simulated under various             
-    \gls{alpha} values. The other \gls{BA} parameters were fixed at \gls{I} =
-    1000, \gls{N} = 5000, and \gls{m} = 2. 
-  }        
-  \label{fig:gridalpha}
+    \centering
+    \includegraphics{kernel-alpha-kpca.pdf}
+    \caption{
+        Kernel principal components projection of trees simulated under three
+        different values of \gls{BA} parameter \gls{alpha}, for eight epidemic
+        scenarios.
+    }
+    \label{fig:alphakpca}
 \end{figure}
 
 \begin{figure}[ht]
-  \centering
-  \includegraphics{gridsearch-I-kernel.pdf}
-  \caption{                                              
-    Grid search kernel scores for testing trees simulated under various             
-    \gls{I} values. The other \gls{BA} parameters were fixed at \gls{alpha} =
-    1.0, \gls{N} = 5000, and \gls{m} = 2. 
-  }        
-  \label{fig:gridI}
+    \centering
+    \includegraphics{kernel-I-kpca.pdf}
+    \caption{
+        Kernel principal components projection of trees simulated under three
+        different values of \gls{BA} parameter \gls{I}, for eight epidemic
+        scenarios.
+    }
+    \label{fig:Ikpca}
 \end{figure}
 
 \begin{figure}[ht]
-  \centering
-  \includegraphics{gridsearch-m-kernel.pdf}
-  \caption{                                              
-    Grid search kernel scores for testing trees simulated under various             
-    \gls{m} values. The other \gls{BA} parameters were fixed at \gls{alpha} =
-    1.0, \gls{I} = 1000, and \gls{N} = 5000.
-  }        
-  \label{fig:gridm}
+    \centering
+    \includegraphics{kernel-m-kpca.pdf}
+    \caption{
+        Kernel principal components projection of trees simulated under three
+        different values of \gls{BA} parameter \gls{m}, for eight epidemic
+        scenarios.
+    }
+    \label{fig:mkpca}
 \end{figure}
 
 \begin{figure}[ht]
-  \centering
-  \includegraphics{gridsearch-N-kernel.pdf}
-  \caption{                                              
-    Grid search kernel scores for testing trees simulated under various             
-    \gls{N} values. The other \gls{BA} parameters were fixed at \gls{alpha} =
-    1.0, \gls{I} = 1000, and \gls{m} = 2.
-  }        
-  \label{fig:gridN}
-\end{figure}
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics{gridsearch-alpha-point-estimate.pdf}
-  \caption[
-      Point estimates of preferential attachment power \gls{alpha} of
-      \acrlong{BA} network model, obtained on simulated trees with
-      kernel-score-based grid search.]
-  {
-      Point estimates of preferential attachment power \gls{alpha} of
-      \acrlong{BA} network model, obtained on simulated trees with
-      kernel-score-based grid search. Test trees were simulated according to
-      several values of \gls{alpha} ($x$-axis) with other model parameters
-      fixed at \gls{m} = 2, \gls{N} = 5000, and \gls{I} = 1000. The test trees
-      were compared to trees simulated along a narrowly spaced grid of
-      \gls{alpha} values using the tree kernel, with the same values of the
-      other parameters. The grid value with the highest median kernel score was
-      taken as a point estimate for \gls{alpha} ($y$-axis).
-  }
-  \label{fig:gridptalpha}
-\end{figure}
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics{gridsearch-I-point-estimate.pdf}
-  \caption[ Point estimates of prevalence at time of sampling \gls{I} of
-      \acrlong{BA} network model, obtained on simulated trees with
-      kernel-score-based grid search. ]
-  {
-      Point estimates of prevalence at time of sampling \gls{I} of \acrlong{BA}
-      network model, obtained on simulated trees with kernel-score-based grid
-      search. Test trees were simulated according to several values of \gls{I}
-      ($x$-axis) with other model parameters fixed at \gls{alpha} = 1, \gls{m}
-      = 2, and \gls{N} = 5000. The test trees were compared to trees simulated
-      along a narrowly spaced grid of \gls{I} values using the tree kernel,
-      with the same values of the other parameters. The grid value with the
-      highest median kernel score was taken as a point estimate for \gls{I}
-      ($y$-axis).
-  }
-  \label{fig:gridptI}
-\end{figure}
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics{gridsearch-m-point-estimate.pdf}
-  \caption[
-      Point estimates of number of edges per vertex \gls{m} of \acrlong{BA}
-      network model, obtained on simulated trees with kernel-score-based grid
-      search.
-  ]
-  {
-      Point estimates of number of edges per vertex \gls{m} of \acrlong{BA}
-      network model, obtained on simulated trees with kernel-score-based grid
-      search. Test trees were simulated according to several values of \gls{m}
-      ($x$-axis) with other model parameters fixed at \gls{alpha} = 1, \gls{I}
-      = 1000, and \gls{N} = 5000. The test trees were compared to trees
-      simulated along a narrowly spaced grid of \gls{m} values using the tree
-      kernel, with the same values of the other parameters. The grid value with
-      the highest median kernel score was taken as a point estimate for \gls{m}
-      ($y$-axis).
-  }
-  \label{fig:gridptm}
-\end{figure}
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics{gridsearch-N-point-estimate.pdf}
-  \caption[
-      Point estimates of number of edges per vertex \gls{N} of \acrlong{BA}
-      network model, obtained on simulated trees with kernel-score-based grid
-      search.
-  ]{
-      Point estimates of number of edges per vertex \gls{N} of \acrlong{BA}
-      network model, obtained on simulated trees with kernel-score-based grid
-      search. Test trees were simulated according to several values of \gls{N}
-      ($x$-axis) with other model parameters fixed at \gls{alpha} = 1, \gls{m}
-      = 2, and \gls{I} = 1000. The test trees were compared to trees simulated
-      along a narrowly spaced grid of \gls{N} values using the tree kernel,
-      with the same values of the other parameters. The grid value with the
-      highest median kernel score was taken as a point estimate for \gls{m}
-      ($y$-axis).
-  }
-  \label{fig:gridptN}
+    \centering
+    \includegraphics{kernel-N-kpca.pdf}
+    \caption{
+        Kernel principal components projection of trees simulated under three
+        different values of \gls{BA} parameter \gls{N}, for eight epidemic
+        scenarios.
+    }
+    \label{fig:Nkpca}
 \end{figure}
 
 \clearpage
 
 \begin{figure}[ht]
-  \centering
-  \includegraphics{abc-point-estimate-m3.pdf}
-  \caption[
-    \Acrlong{MAP} point estimates for \gls{BA} model parameters obtained by
-    running \software{netabc} on simulated data, for simulations with \gls{m} = 3.
-  ]{
-    \Acrlong{MAP} point estimates for \gls{BA} model parameters obtained by
-    running \software{netabc} on simulated data, for simulations with \gls{m} = 3.
-    Dashed lines indicate true values. (A) Estimates of \gls{alpha} and \gls{I}
-    which were varied in these simulations against known values. (B) Estimates
-    of \gls{m} and \gls{N} which were held fixed in these simulations at the
-    values \gls{m} = 3 and \gls{N} = 5000.
-  }        
-  \label{fig:abcptm3}
+    \centering
+    \includegraphics{gridsearch-alpha-kernel.pdf}
+    \caption{                                              
+        Grid search kernel scores for testing trees simulated under various
+        \gls{alpha} values. The other \gls{BA} parameters were fixed at \gls{I}
+        = 1000, \gls{N} = 5000, and \gls{m} = 2. 
+    }        
+    \label{fig:gridalpha}
 \end{figure}
 
 \begin{figure}[ht]
-  \centering
-  \includegraphics{abc-point-estimate-m4.pdf}
-  \caption[
-    \Acrlong{MAP} point estimates for \gls{BA} model parameters obtained by
-    running \software{netabc} on simulated data, for simulations with \gls{m} = 3.
-  ]{
-    \Acrlong{MAP} point estimates for \gls{BA} model parameters obtained by
-    running \software{netabc} on simulated data, for simulations with \gls{m} = 4.
-    Dashed lines indicate true values. (A) Estimates of \gls{alpha} and \gls{I}
-    which were varied in these simulations against known values. (B) Estimates
-    of \gls{m} and \gls{N} which were held fixed in these simulations at the
-    values \gls{m} = 4 and \gls{N} = 5000.
-  }        
-  \label{fig:abcptm4}
+    \centering
+    \includegraphics{gridsearch-I-kernel.pdf}
+    \caption{                                              
+        Grid search kernel scores for testing trees simulated under various
+        \gls{I} values. The other \gls{BA} parameters were fixed at \gls{alpha}
+        = 1.0, \gls{N} = 5000, and \gls{m} = 2. 
+    }        
+    \label{fig:gridI}
 \end{figure}
 
 \begin{figure}[ht]
-  \centering
-  \includegraphics{alpha-gamma.pdf}
-  \caption{
-      Relationship between preferential attachment power parameter $\alpha$
-      and power law exponent $\gamma$ for networks simulated under the BA
-      network model with $N$ = 5000 and $m$ = 2.
-  }
-  \label{fig:gamma}
+    \centering
+    \includegraphics{gridsearch-m-kernel.pdf}
+    \caption{                                              
+        Grid search kernel scores for testing trees simulated under various
+        \gls{m} values. The other \gls{BA} parameters were fixed at \gls{alpha}
+        = 1.0, \gls{I} = 1000, and \gls{N} = 5000.
+    }        
+    \label{fig:gridm}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics{gridsearch-N-kernel.pdf}
+    \caption{                                              
+        Grid search kernel scores for testing trees simulated under various
+        \gls{N} values. The other \gls{BA} parameters were fixed at \gls{alpha}
+        = 1.0, \gls{I} = 1000, and \gls{m} = 2.
+    }        
+    \label{fig:gridN}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics{gridsearch-alpha-point-estimate.pdf}
+    \caption[
+        Point estimates of preferential attachment power \gls{alpha} of
+        \gls{BA} network model, obtained on simulated trees with
+        kernel-score-based grid search.
+    ]{
+        Point estimates of preferential attachment power \gls{alpha} of
+        \acrlong{BA} network model, obtained on simulated trees with
+        kernel-score-based grid search. Test trees were simulated according to
+        several values of \gls{alpha} ($x$-axis) with other model parameters
+        fixed at \gls{m} = 2, \gls{N} = 5000, and \gls{I} = 1000. The test
+        trees were compared to trees simulated along a narrowly spaced grid of
+        \gls{alpha} values using the tree kernel, with the same values of the
+        other parameters. The grid value with the highest median kernel score
+        was taken as a point estimate for \gls{alpha} ($y$-axis).
+    }
+    \label{fig:gridptalpha}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics{gridsearch-I-point-estimate.pdf}
+    \caption[ 
+        Point estimates of prevalence at time of sampling \gls{I} of
+        \gls{BA} network model, obtained on simulated trees with
+        kernel-score-based grid search.
+    ]{
+        Point estimates of prevalence at time of sampling \gls{I} of
+        \gls{BA} network model, obtained on simulated trees with
+        kernel-score-based grid search. Test trees were simulated according to
+        several values of \gls{I} ($x$-axis) with other model parameters fixed
+        at \gls{alpha} = 1, \gls{m} = 2, and \gls{N} = 5000. The test trees
+        were compared to trees simulated along a narrowly spaced grid of
+        \gls{I} values using the tree kernel, with the same values of the other
+        parameters. The grid value with the highest median kernel score was
+        taken as a point estimate for \gls{I} ($y$-axis).
+    }
+    \label{fig:gridptI}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics{gridsearch-m-point-estimate.pdf}
+    \caption[
+        Point estimates of number of edges per vertex \gls{m} of \gls{BA}
+        network model, obtained on simulated trees with kernel-score-based grid
+        search.
+    ]{
+        Point estimates of number of edges per vertex \gls{m} of \gls{BA}
+        network model, obtained on simulated trees with kernel-score-based grid
+        search. Test trees were simulated according to several values of
+        \gls{m} ($x$-axis) with other model parameters fixed at \gls{alpha} =
+        1, \gls{I} = 1000, and \gls{N} = 5000. The test trees were compared to
+        trees simulated along a narrowly spaced grid of \gls{m} values using
+        the tree kernel, with the same values of the other parameters. The grid
+        value with the highest median kernel score was taken as a point
+        estimate for \gls{m} ($y$-axis).
+    }
+    \label{fig:gridptm}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics{gridsearch-N-point-estimate.pdf}
+    \caption[
+        Point estimates of number of edges per vertex \gls{N} of \gls{BA}
+        network model, obtained on simulated trees with kernel-score-based grid
+        search.
+    ]{
+        Point estimates of number of edges per vertex \gls{N} of \gls{BA}
+        network model, obtained on simulated trees with kernel-score-based grid
+        search. Test trees were simulated according to several values of
+        \gls{N} ($x$-axis) with other model parameters fixed at \gls{alpha} =
+        1, \gls{m} = 2, and \gls{I} = 1000. The test trees were compared to
+        trees simulated along a narrowly spaced grid of \gls{N} values using
+        the tree kernel, with the same values of the other parameters. The grid
+        value with the highest median kernel score was taken as a point
+        estimate for \gls{m} ($y$-axis).
+    }
+    \label{fig:gridptN}
+\end{figure}
+
+\clearpage
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics{abc-point-estimate-m3.pdf}
+    \caption[
+        Posterior mean point estimates for \gls{BA} model parameters obtained
+        by running \software{netabc} on simulated data, for simulations with
+        \gls{m} = 3. 
+    ]{
+        Posterior mean point estimates for \gls{BA} model parameters obtained
+        by running \software{netabc} on simulated data, for simulations with
+        \gls{m} = 3. Dashed lines indicate true values. (A) Estimates of
+        \gls{alpha} and \gls{I} which were varied in these simulations against
+        known values. (B) Estimates of \gls{m} and \gls{N} which were held
+        fixed in these simulations at the values \gls{m} = 3 and \gls{N} =
+        5000.
+    }        
+    \label{fig:abcptm3}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics{abc-point-estimate-m4.pdf}
+    \caption[
+        Posterior mean point estimates for \gls{BA} model parameters obtained
+        by running \software{netabc} on simulated data, for simulations with
+        \gls{m} = 3.
+    ]{
+        Posterior mean point estimates for \gls{BA} model parameters obtained
+        by running \software{netabc} on simulated data, for simulations with
+        \gls{m} = 4. Dashed lines indicate true values. (A) Estimates of
+        \gls{alpha} and \gls{I} which were varied in these simulations against
+        known values. (B) Estimates of \gls{m} and \gls{N} which were held
+        fixed in these simulations at the values \gls{m} = 4 and \gls{N} =
+        5000.
+    }        
+    \label{fig:abcptm4}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics{alpha-gamma.pdf}
+    \caption{
+        Relationship between preferential attachment power parameter
+        \gls{alpha} and fitted power law exponent \gls{gamma} for networks
+        simulated under the \gls{BA} network model with $\gls{N} = 5000$ and
+        $\gls{m} = 2$.
+    }
+    \label{fig:gamma}
 \end{figure}
 
 \begin{figure}[ht]
     \centering
     \includegraphics{powerlaw.pdf}
-    \caption
-    {
+    \caption{
         Best fit power law and stretched exponential curves for degree
         distributions of simulated \acrlong{BA} networks for several values of
         \gls{alpha} and \gls{m}.
@@ -518,17 +538,19 @@ algorithm~\autocite{metropolis1953equation,hastings1970monte} (\cref{alg:mh}).
 \begin{figure}[ht]
     \centering
     \includegraphics{mixed-posterior}
-    \caption[Approximate marginal posterior distributions of BA model
-        parameters obtained using kernel-assisted ABC for a network with heterogeneous
-        node behaviour.]
-    {
-        Approximate marginal posterior distributions of Barab\'asi-Albert
-        model parameters obtained using kernel-assisted ABC for a network with
+    \caption[
+        Approximate marginal posterior distributions of \gls{BA} model
+        parameters obtained with \software{netabc} for a network with
+        heterogeneous node behaviour.
+    ]{
+        Approximate marginal posterior distributions of \gls{BA} model
+        parameters obtained with \software{netabc} for a network with
         heterogeneous node behaviour. Half of the nodes were attached with
-        $\alpha = 0.5$, and the other half with $\alpha = 1.5$ (vertical
-        dashed lines, top left). Other parameter values were $m = 2$, $I =
-        1000$, and $N = 5000$ (vertical dashed lines, other than top left).
-        Shaded areas indicate 95\% highest posterior density intervals.
+        $\gls{alpha} = 0.5$, and the other half with $\gls{alpha} = 1.5$
+        (vertical dashed lines, top left). Other parameter values were $m = 2$,
+        $\gls{I} = 1000$, and $\gls{N} = 5000$ (vertical dashed lines, other
+        than top left). Shaded areas indicate 95\% highest posterior density
+        intervals.
     }
     \label{fig:mixed}
 \end{figure}
@@ -536,12 +558,13 @@ algorithm~\autocite{metropolis1953equation,hastings1970monte} (\cref{alg:mh}).
 \begin{figure}[ht]
     \centering
     \includegraphics{peerdriven-posterior}
-    \caption[Approximate marginal posterior distributions of Barab\'asi-Albert
-        model parameters obtained using kernel-assisted ABC for a network with
-        peer-driven sampling.]
-    {
-        Approximate marginal posterior distributions of Barab\'asi-Albert
-        model parameters obtained using kernel-assisted ABC for a network with
+    \caption[
+        Approximate marginal posterior distributions of \gls{BA}
+        model parameters obtained with \software{netabc} for a network with
+        peer-driven sampling.
+    ]{
+        Approximate marginal posterior distributions of \gls{BA}
+        model parameters obtained with \software{netabc} for a network with
         peer-driven sampling. An epidemic was simulated in the usual fashion,
         but rather than being sampled at random, infected nodes were sampled
         with a probability two times higher if they had any sampled neighbours
@@ -553,352 +576,199 @@ algorithm~\autocite{metropolis1953equation,hastings1970monte} (\cref{alg:mh}).
 \end{figure}
 
 \begin{figure}[ht]
-  \includegraphics{realdata-hpd-bc-m2}
-  \vspace{8pt}
-  \caption[
-      Maximum \textit{a posteriori} point estimates and 95\% HPD intervals for
-      parameters of the BA network model, fitted to five published HIV datasets
-      with \software{netabc} using the prior $m \sim DiscreteUniform(2, 5)$.
-  ]{
-      Maximum \textit{a posteriori} point estimates and 95\% HPD intervals for
-      parameters of the BA network model, fitted to five published HIV datasets
-      with \software{netabc} using the prior $m \sim$ DiscreteUniform(2, 5).
-      $x$-axes indicate regions of nonzero prior density. In particular, the
-      prior on $m$ was DiscreteUniform(2, 5).
-  }
-  \label{fig:abchpdm2}
+    \includegraphics{realdata-hpd-bc-m2}
+    \caption[
+        Posterior mean point estimates and 95\% \gls{HPD} intervals for
+        parameters of the \gls{BA} network model, fitted to eleven \gls{HIV}
+        datasets with \software{netabc} using the prior $\gls{m} \sim
+        \DiscreteUniform(2, 5)$.
+    ]{
+        Posterior mean point estimates and 95\% \gls{HPD} intervals for
+        parameters of the \gls{BA} network model, fitted to five published
+        \gls{HIV} datasets with \software{netabc} using the prior $\gls{m}
+        \sim \DiscreteUniform(2, 5)$. $x$-axes indicate regions of nonzero
+        prior density. 
+    }
+    \label{fig:abchpdm2}
 \end{figure}
 
 \clearpage
 
 \begin{figure}[ht]
-  \includegraphics{bctree-posterior}
-  \caption[
-      Approximate marginal posterior distributions of BA model parameters for
-      BC data.
-  ]
-  {
-      Approximate marginal posterior distributions of BA model parameters for
-      BC data. Vertical lines indicate maximum \textit{a posteriori} estimates,
-      and shaded areas are 95\% highest posterior density intervals. $x$-axis
-      indicates regions of nonzero prior density.
-  }
-  \label{fig:bctree}
+    \includegraphics{bctree-posterior}
+    \caption
+    [
+        Approximate marginal posterior distributions of \gls{BA} model
+        parameters fitted to IDU/Canada data with \software{netabc}.
+    ]{
+        Approximate marginal posterior distributions of \gls{BA} model
+        parameters fitted to IDU/Canada data with \software{netabc}. Vertical
+        lines indicate posterior means, and shaded areas are 95\% \gls{HPD}
+        intervals. $x$-axis indicates regions of nonzero prior density.
+    }
+    \label{fig:bctree}
 \end{figure}
 
 \begin{figure}[ht]
-  \includegraphics{cuevas2009-posterior}
-  \caption[
-      Approximate marginal posterior distributions of BA model parameters for
-      \textcite{cuevas2009hiv} data. 
-  ]{
-      Approximate marginal posterior distributions of BA model parameters for
-      \textcite{cuevas2009hiv} data. Vertical lines indicate maximum \textit{a
-      posteriori} estimates, and shaded areas are 95\% highest posterior
-      density intervals. $x$-axis indicates regions of nonzero prior density.
-  }
-  \label{fig:cuevas}
+    \includegraphics{cuevas2009-posterior}
+    \caption[
+        Approximate marginal posterior distributions of \gls{BA} model
+        parameters fitted to mixed/Spain data with \software{netabc}.
+    ]{
+        Approximate marginal posterior distributions of \gls{BA} model
+        parameters fitted to mixed/Spain data with \software{netabc}. Vertical
+        lines indicate posterior means, and shaded areas are 95\% \gls{HPD}
+        intervals. $x$-axis indicates regions of nonzero prior density.
+    }
+    \label{fig:cuevas}
 \end{figure}
 
 \begin{figure}[ht]
-  \includegraphics{li2015-posterior}
-  \caption[
-      Approximate marginal posterior distributions of BA model parameters for
-      \textcite{li2015hiv} data. 
-  ]{
-      Approximate marginal posterior distributions of BA model parameters for
-      \textcite{li2015hiv} data. Vertical lines indicate maximum \textit{a
-      posteriori} estimates, and shaded areas are 95\% highest posterior
-      density intervals. $x$-axis indicates regions of nonzero prior density.
-  }
-  \label{fig:li}
+    \includegraphics{grabowski2014-posterior}
+    \caption[
+        Approximate marginal posterior distributions of \gls{BA} model
+        parameters fitted to HET/Uganda data with \software{netabc}.
+    ]{
+        Approximate marginal posterior distributions of \gls{BA} model
+        parameters fitted to HET/Uganda data with \software{netabc}. Vertical
+        lines indicate posterior means, and shaded areas are 95\% \gls{HPD}
+        intervals. $x$-axis indicates regions of nonzero prior density.
+    }
+    \label{fig:grabowski}
 \end{figure}
 
 \begin{figure}[ht]
-  \includegraphics{niculescu2015-posterior}
-  \caption[
-      Approximate marginal posterior distributions of BA model parameters for
-      \textcite{niculescu2015recent} data.
-  ]{
-      Approximate marginal posterior distributions of BA model parameters for
-      \textcite{niculescu2015recent} data. Vertical lines indicate maximum
-      \textit{a posteriori} estimates, and shaded areas are 95\% highest
-      posterior density intervals. $x$-axis indicates regions of nonzero prior
-      density.
-  }
-  \label{fig:niculescu}
+    \includegraphics{kao2011-posterior}
+    \caption[
+        Approximate marginal posterior distributions of \gls{BA} model
+        parameters fitted to MSM/Taiwan data with \software{netabc}.
+    ]{
+        Approximate marginal posterior distributions of \gls{BA} model
+        parameters fitted to MSM/Taiwan data with \software{netabc}. Vertical
+        lines indicate posterior means, and shaded areas are 95\% \gls{HPD}
+        intervals. $x$-axis indicates regions of nonzero prior density.
+    }
+    \label{fig:kao}
 \end{figure}
 
 \begin{figure}[ht]
-  \includegraphics{novitsky2014-posterior}
-  \caption[
-      Approximate marginal posterior distributions of BA model parameters for
-      \textcite{novitsky2013phylogenetic, novitsky2014impact} data.
-  ]{
-      Approximate marginal posterior distributions of BA model parameters for
-      \textcite{novitsky2013phylogenetic, novitsky2014impact} data. Vertical
-      lines indicate maximum \textit{a posteriori} estimates, and shaded areas
-      are 95\% highest posterior density intervals. $x$-axis indicates regions
-      of nonzero prior density.
-  }
-  \label{fig:novitsky}
+    \includegraphics{li2015-posterior}
+    \caption[
+        Approximate marginal posterior distributions of \gls{BA} model
+        parameters fitted to MSM/Shanghai data with \software{netabc}.
+    ]{
+        Approximate marginal posterior distributions of \gls{BA} model
+        parameters fitted to MSM/Shanghai data with \software{netabc}. Vertical
+        lines indicate posterior means, and shaded areas are 95\% \gls{HPD}
+        intervals. $x$-axis indicates regions of nonzero prior density. 
+    }
+    \label{fig:li}
 \end{figure}
 
 \begin{figure}[ht]
-  \includegraphics{wang2015-posterior}
-  \caption[
-      Approximate marginal posterior distributions of BA model parameters for
-      \textcite{wang2015targeting} data.
-  ]{
-      Approximate marginal posterior distributions of BA model parameters for
-      \textcite{wang2015targeting} data. Vertical lines indicate maximum
-      \textit{a posteriori} estimates, and shaded areas are 95\% highest
-      posterior density intervals. $x$-axis indicates regions of nonzero prior
-      density.
-  }
-  \label{fig:wang}
+    \includegraphics{little2014-posterior}
+    \caption[
+        Approximate marginal posterior distributions of \gls{BA} model
+        parameters fitted to MSM/USA data with \software{netabc}.
+    ]{
+        Approximate marginal posterior distributions of \gls{BA} model
+        parameters fitted to MSM/USA data with \software{netabc}. Vertical
+        lines indicate posterior means, and shaded areas are 95\% \gls{HPD}
+        intervals. $x$-axis indicates regions of nonzero prior density. 
+    }
+    \label{fig:little}
 \end{figure}
-
-\clearpage
 
 \begin{figure}[ht]
-\centering
-\includegraphics{{abc-posterior/0.0_1000_2_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.0, $I$ = 1000, $m$ = 2, and $N$ = 5000.]{
-Approximate marginal posterior distributions of BA model parameters obtained by applying \software{netabc} to a simulated transmission tree with BA parameter values $\alpha$ = 0.0, $I$ = 1000, $m$ = 2, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
-}
-\label{fig:0.0-1000-2-5000-0}
+    \includegraphics{mccormack2002-posterior}
+    \caption[
+        Approximate marginal posterior distributions of \gls{BA} model
+        parameters fitted to HET/Malawi data with \software{netabc}.
+    ]{
+        Approximate marginal posterior distributions of \gls{BA} model
+        parameters fitted to HET/Malawi data with \software{netabc}. Vertical
+        lines indicate posterior means, and shaded areas are 95\% \gls{HPD}
+        intervals. $x$-axis indicates regions of nonzero prior density. 
+    }
+    \label{fig:mccormack}
 \end{figure}
-\clearpage
 
 \begin{figure}[ht]
-\centering
-\includegraphics{{abc-posterior/0.5_1000_2_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.5, $I$ = 1000, $m$ = 2, and $N$ = 5000.]{
-Approximate marginal posterior distributions of BA model parameters obtained by applying \software{netabc} to a simulated transmission tree with BA parameter values $\alpha$ = 0.5, $I$ = 1000, $m$ = 2, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
-}
-\label{fig:0.5-1000-2-5000-0}
+    \includegraphics{niculescu2015-posterior}
+    \caption[
+        Approximate marginal posterior distributions of \gls{BA} model
+        parameters fitted to IDU/Romania data with \software{netabc}.
+    ]{
+        Approximate marginal posterior distributions of \gls{BA} model
+        parameters fitted to IDU/Romania data with \software{netabc}. Vertical
+        lines indicate posterior means, and shaded areas are 95\% \gls{HPD}
+        intervals. $x$-axis indicates regions of nonzero prior density.
+    }
+    \label{fig:niculescu}
 \end{figure}
-\clearpage
 
 \begin{figure}[ht]
-\centering
-\includegraphics{{abc-posterior/1.0_1000_2_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.0, $I$ = 1000, $m$ = 2, and $N$ = 5000.]{
-Approximate marginal posterior distributions of BA model parameters obtained by applying \software{netabc} to a simulated transmission tree with BA parameter values $\alpha$ = 1.0, $I$ = 1000, $m$ = 2, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
-}
-\label{fig:1.0-1000-2-5000-0}
+    \includegraphics{novitsky2014-posterior}
+    \caption[
+        Approximate marginal posterior distributions of \gls{BA} model
+        parameters fitted to HET/Botswana data with \software{netabc}.
+    ]{
+        Approximate marginal posterior distributions of \gls{BA} model
+        parameters fitted to HET/Botswana data with \software{netabc}. Vertical
+        lines indicate posterior means, and shaded areas are 95\% \gls{HPD}
+        intervals. $x$-axis indicates regions of nonzero prior density.
+    }
+    \label{fig:novitsky}
 \end{figure}
-\clearpage
 
 \begin{figure}[ht]
-\centering
-\includegraphics{{abc-posterior/1.5_1000_2_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.5, $I$ = 1000, $m$ = 2, and $N$ = 5000.]{
-Approximate marginal posterior distributions of BA model parameters obtained by applying \software{netabc} to a simulated transmission tree with BA parameter values $\alpha$ = 1.5, $I$ = 1000, $m$ = 2, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
-}
-\label{fig:1.5-1000-2-5000-0}
+    \includegraphics{wang2015-posterior}
+    \caption[
+        Approximate marginal posterior distributions of \gls{BA} model
+        parameters fitted to MSM/Beijing data with \software{netabc}.
+    ]{
+        Approximate marginal posterior distributions of \gls{BA} model
+        parameters fitted to MSM/Beijing data with \software{netabc}. Vertical
+        lines indicate posterior means, and shaded areas are 95\% highest
+        posterior density intervals. $x$-axis indicates regions of nonzero
+        prior density.
+    }
+    \label{fig:wang}
 \end{figure}
-\clearpage
 
 \begin{figure}[ht]
-\centering
-\includegraphics{{abc-posterior/0.0_2000_2_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.0, $I$ = 2000, $m$ = 2, and $N$ = 5000.]{
-Approximate marginal posterior distributions of BA model parameters obtained by applying \software{netabc} to a simulated transmission tree with BA parameter values $\alpha$ = 0.0, $I$ = 2000, $m$ = 2, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
-}
-\label{fig:0.0-2000-2-5000-0}
+    \includegraphics{zetterberg2004-posterior}
+    \caption[
+        Approximate marginal posterior distributions of \gls{BA} model
+        parameters fitted to IDU/Estonia data with \software{netabc}.
+    ]{
+        Approximate marginal posterior distributions of \gls{BA} model
+        parameters fitted to IDU/Estonia data with \software{netabc}. Vertical
+        lines indicate posterior means, and shaded areas are 95\% highest
+        posterior density intervals. $x$-axis indicates regions of nonzero
+        prior density.
+    }
+    \label{fig:zetterberg}
 \end{figure}
-\clearpage
 
-\begin{figure}[ht]
-\centering
-\includegraphics{{abc-posterior/0.5_2000_2_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.5, $I$ = 2000, $m$ = 2, and $N$ = 5000.]{
-Approximate marginal posterior distributions of BA model parameters obtained by applying \software{netabc} to a simulated transmission tree with BA parameter values $\alpha$ = 0.5, $I$ = 2000, $m$ = 2, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
-}
-\label{fig:0.5-2000-2-5000-0}
-\end{figure}
-\clearpage
-
-\begin{figure}[ht]
-\centering
-\includegraphics{{abc-posterior/1.0_2000_2_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.0, $I$ = 2000, $m$ = 2, and $N$ = 5000.]{
-Approximate marginal posterior distributions of BA model parameters obtained by applying \software{netabc} to a simulated transmission tree with BA parameter values $\alpha$ = 1.0, $I$ = 2000, $m$ = 2, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
-}
-\label{fig:1.0-2000-2-5000-0}
-\end{figure}
-\clearpage
-
-\begin{figure}[ht]
-\centering
-\includegraphics{{abc-posterior/1.5_2000_2_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.5, $I$ = 2000, $m$ = 2, and $N$ = 5000.]{
-Approximate marginal posterior distributions of BA model parameters obtained by applying \software{netabc} to a simulated transmission tree with BA parameter values $\alpha$ = 1.5, $I$ = 2000, $m$ = 2, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
-}
-\label{fig:1.5-2000-2-5000-0}
-\end{figure}
-\clearpage
-
-\begin{figure}[ht]
-\centering
-\includegraphics{{abc-posterior/0.0_1000_3_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.0, $I$ = 1000, $m$ = 3, and $N$ = 5000.]{
-Approximate marginal posterior distributions of BA model parameters obtained by applying \software{netabc} to a simulated transmission tree with BA parameter values $\alpha$ = 0.0, $I$ = 1000, $m$ = 3, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
-}
-\label{fig:0.0-1000-3-5000-0}
-\end{figure}
-\clearpage
-
-\begin{figure}[ht]
-\centering
-\includegraphics{{abc-posterior/0.5_1000_3_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.5, $I$ = 1000, $m$ = 3, and $N$ = 5000.]{
-Approximate marginal posterior distributions of BA model parameters obtained by applying \software{netabc} to a simulated transmission tree with BA parameter values $\alpha$ = 0.5, $I$ = 1000, $m$ = 3, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
-}
-\label{fig:0.5-1000-3-5000-0}
-\end{figure}
-\clearpage
-
-\begin{figure}[ht]
-\centering
-\includegraphics{{abc-posterior/1.0_1000_3_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.0, $I$ = 1000, $m$ = 3, and $N$ = 5000.]{
-Approximate marginal posterior distributions of BA model parameters obtained by applying \software{netabc} to a simulated transmission tree with BA parameter values $\alpha$ = 1.0, $I$ = 1000, $m$ = 3, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
-}
-\label{fig:1.0-1000-3-5000-0}
-\end{figure}
-\clearpage
-
-\begin{figure}[ht]
-\centering
-\includegraphics{{abc-posterior/1.5_1000_3_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.5, $I$ = 1000, $m$ = 3, and $N$ = 5000.]{
-Approximate marginal posterior distributions of BA model parameters obtained by applying \software{netabc} to a simulated transmission tree with BA parameter values $\alpha$ = 1.5, $I$ = 1000, $m$ = 3, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
-}
-\label{fig:1.5-1000-3-5000-0}
-\end{figure}
-\clearpage
-
-\begin{figure}[ht]
-\centering
-\includegraphics{{abc-posterior/0.0_2000_3_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.0, $I$ = 2000, $m$ = 3, and $N$ = 5000.]{
-Approximate marginal posterior distributions of BA model parameters obtained by applying \software{netabc} to a simulated transmission tree with BA parameter values $\alpha$ = 0.0, $I$ = 2000, $m$ = 3, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
-}
-\label{fig:0.0-2000-3-5000-0}
-\end{figure}
-\clearpage
-
-\begin{figure}[ht]
-\centering
-\includegraphics{{abc-posterior/0.5_2000_3_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.5, $I$ = 2000, $m$ = 3, and $N$ = 5000.]{
-Approximate marginal posterior distributions of BA model parameters obtained by applying \software{netabc} to a simulated transmission tree with BA parameter values $\alpha$ = 0.5, $I$ = 2000, $m$ = 3, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
-}
-\label{fig:0.5-2000-3-5000-0}
-\end{figure}
-\clearpage
-
-\begin{figure}[ht]
-\centering
-\includegraphics{{abc-posterior/1.0_2000_3_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.0, $I$ = 2000, $m$ = 3, and $N$ = 5000.]{
-Approximate marginal posterior distributions of BA model parameters obtained by applying \software{netabc} to a simulated transmission tree with BA parameter values $\alpha$ = 1.0, $I$ = 2000, $m$ = 3, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
-}
-\label{fig:1.0-2000-3-5000-0}
-\end{figure}
-\clearpage
-
-\begin{figure}[ht]
-\centering
-\includegraphics{{abc-posterior/1.5_2000_3_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.5, $I$ = 2000, $m$ = 3, and $N$ = 5000.]{
-Approximate marginal posterior distributions of BA model parameters obtained by applying \software{netabc} to a simulated transmission tree with BA parameter values $\alpha$ = 1.5, $I$ = 2000, $m$ = 3, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
-}
-\label{fig:1.5-2000-3-5000-0}
-\end{figure}
-\clearpage
-
-\begin{figure}[ht]
-\centering
-\includegraphics{{abc-posterior/0.0_1000_4_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.0, $I$ = 1000, $m$ = 4, and $N$ = 5000.]{
-Approximate marginal posterior distributions of BA model parameters obtained by applying \software{netabc} to a simulated transmission tree with BA parameter values $\alpha$ = 0.0, $I$ = 1000, $m$ = 4, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
-}
-\label{fig:0.0-1000-4-5000-0}
-\end{figure}
-\clearpage
-
-\begin{figure}[ht]
-\centering
-\includegraphics{{abc-posterior/0.5_1000_4_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.5, $I$ = 1000, $m$ = 4, and $N$ = 5000.]{
-Approximate marginal posterior distributions of BA model parameters obtained by applying \software{netabc} to a simulated transmission tree with BA parameter values $\alpha$ = 0.5, $I$ = 1000, $m$ = 4, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
-}
-\label{fig:0.5-1000-4-5000-0}
-\end{figure}
-\clearpage
-
-\begin{figure}[ht]
-\centering
-\includegraphics{{abc-posterior/1.0_1000_4_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.0, $I$ = 1000, $m$ = 4, and $N$ = 5000.]{
-Approximate marginal posterior distributions of BA model parameters obtained by applying \software{netabc} to a simulated transmission tree with BA parameter values $\alpha$ = 1.0, $I$ = 1000, $m$ = 4, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
-}
-\label{fig:1.0-1000-4-5000-0}
-\end{figure}
-\clearpage
-
-\begin{figure}[ht]
-\centering
-\includegraphics{{abc-posterior/1.5_1000_4_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.5, $I$ = 1000, $m$ = 4, and $N$ = 5000.]{
-Approximate marginal posterior distributions of BA model parameters obtained by applying \software{netabc} to a simulated transmission tree with BA parameter values $\alpha$ = 1.5, $I$ = 1000, $m$ = 4, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
-}
-\label{fig:1.5-1000-4-5000-0}
-\end{figure}
-\clearpage
-
-\begin{figure}[ht]
-\centering
-\includegraphics{{abc-posterior/0.0_2000_4_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.0, $I$ = 2000, $m$ = 4, and $N$ = 5000.]{
-Approximate marginal posterior distributions of BA model parameters obtained by applying \software{netabc} to a simulated transmission tree with BA parameter values $\alpha$ = 0.0, $I$ = 2000, $m$ = 4, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
-}
-\label{fig:0.0-2000-4-5000-0}
-\end{figure}
-\clearpage
-
-\begin{figure}[ht]
-\centering
-\includegraphics{{abc-posterior/0.5_2000_4_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 0.5, $I$ = 2000, $m$ = 4, and $N$ = 5000.]{
-Approximate marginal posterior distributions of BA model parameters obtained by applying \software{netabc} to a simulated transmission tree with BA parameter values $\alpha$ = 0.5, $I$ = 2000, $m$ = 4, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
-}
-\label{fig:0.5-2000-4-5000-0}
-\end{figure}
-\clearpage
-
-\begin{figure}[ht]
-\centering
-\includegraphics{{abc-posterior/1.0_2000_4_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.0, $I$ = 2000, $m$ = 4, and $N$ = 5000.]{
-Approximate marginal posterior distributions of BA model parameters obtained by applying \software{netabc} to a simulated transmission tree with BA parameter values $\alpha$ = 1.0, $I$ = 2000, $m$ = 4, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
-}
-\label{fig:1.0-2000-4-5000-0}
-\end{figure}
-\clearpage
-
-\begin{figure}[ht]
-\centering
-\includegraphics{{abc-posterior/1.5_2000_4_5000_0}.pdf}
-\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\alpha$ = 1.5, $I$ = 2000, $m$ = 4, and $N$ = 5000.]{
-Approximate marginal posterior distributions of BA model parameters obtained by applying \software{netabc} to a simulated transmission tree with BA parameter values $\alpha$ = 1.5, $I$ = 2000, $m$ = 4, and $N$ = 5000. Vertical dashed lines indicate true values. Shaded areas are 95\% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.
-}
-\label{fig:1.5-2000-4-5000-0}
-\end{figure}
-\clearpage
-
-
+%<<abc_posterior, echo=FALSE, results="asis">>=
+%    N <- 5000
+%    replicate <- 0
+%    for (m in c(2, 3, 4)) {
+%    for (I in c(1000, 2000)) {
+%    for (alpha in c(0, 0.5, 1, 1.5)) {
+%        fn <- sprintf("{abc-posterior/%.1f_%d_%d_%d_%d}.pdf", alpha, I, m, N, replicate)
+%        lab <- sprintf("fig:%.1f-%d-%d-%d-%d", alpha, I, m, N, replicate)
+%        cat("\\begin{figure}[ht]\n")
+%        cat("\\centering\n")
+%        cat(paste0("\\includegraphics{", fn, "}\n"))
+%        cat(sprintf("\\caption[Approximate marginal posterior distributions of BA model parameters for a simulated transmission tree with $\\alpha$ = %.1f, $I$ = %d, $m$ = %d, and $N$ = %d.]{\n", alpha, I, m, N))
+%        cat(sprintf("Approximate marginal posterior distributions of BA model parameters obtained by applying \\software{netabc} to a simulated transmission tree with BA parameter values $\\alpha$ = %.1f, $I$ = %d, $m$ = %d, and $N$ = %d. Vertical dashed lines indicate true values. Shaded areas are 95\\%% highest posterior density intervals. $x$-axes indicate regions of nonzero prior density.\n", alpha, I, m, N))
+%        cat("}\n")
+%        cat(paste0("\\label{", lab, "}\n"))
+%        cat("\\end{figure}\n")
+%        cat("\\clearpage\n\n")
+%    }
+%    }
+%    }
+%@

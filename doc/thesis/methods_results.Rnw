@@ -1459,14 +1459,6 @@ value \gls{alpha} = 1.25.}
                             d[true_I == 2000, I_error])
     alpha.m.test <- wilcox.test(d[true_alpha == 0 | true_alpha == 1, m_error],
                                 d[true_alpha == 0.5 | true_alpha == 1.5, m_error])
-    #stopifnot(alpha.av["factor(true_m)", "Pr(>F)"] <= 0.05)
-    #stopifnot(alpha.av["factor(true_I)", "Pr(>F)"] > 0.05)
-    #stopifnot(I.I.test$p.value < 1e-5)
-    #stopifnot(I.av["factor(true_m)", "Pr(>F)"] > 0.05)
-    #stopifnot(m.av["factor(true_m)", "Pr(>F)"] > 0.05)
-    #stopifnot(m.av["factor(true_I)", "Pr(>F)"] > 0.05)
-    #stopifnot(m.av["factor(true_alpha)", "Pr(>F)"] > 0.05)
-    #stopifnot(min(N.av[1:3,"Pr(>F)"]) > 0.05)
 
     # one-way ANOVAs
     stopifnot(anova(lm(alpha_error~true_m, d))[1, "Pr(>F)"] > 0.05)
@@ -1894,9 +1886,41 @@ estimation, which is consistent with the result from grid search that all
 \gls{N} values and \gls{alpha} values below 0.5 are weakly identifiable. On the
 other hand, both the accuracy and precision (\ie width of the \gls{HPD}
 intervals) of the estimates of \gls{I} were substantially improved when \gls{N}
-and at least one other variable were marginalized out. Neither the accuracy nor
-the precision of any parameter estimates appeared to improve when more
-computing power was used for \gls{SMC} (\cref{fig:moresmc}).}
+was marginalized out. Neither the accuracy nor the precision of any parameter
+estimates appeared to improve when more computing power was used for \gls{SMC}
+(\cref{fig:moresmc}).}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{abc-marginal.pdf}
+    \caption[
+        Marginal posterior mean estimates and 50\%/95\% \gls{HPD} intervals of
+        \gls{BA} model parameters when some parameters were fixed.
+    ]{
+        Marginal posterior mean estimates (points), 50\% \gls{HPD} intervals
+        (notches), and 95\% \gls{HPD} intervals (lines) of \gls{BA} model
+        parameters when some parameters ($x$-axis) were fixed. Parameters were
+        fixed by specifying a Dirac-delta prior at the true value. True values
+        are indicated by horizontal dashed lines.
+    }
+    \label{fig:marginal}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics{stock/missing}
+    \caption[
+        Comparsion of \gls{BA} parameter estimates obtained with
+        \software{netabc} on the same dataset with different \gls{SMC}
+        settings.
+    ]{
+        Comparsion of \gls{BA} parameter estimates obtained with
+        \software{netabc} on the same dataset with different \gls{SMC}
+        settings. Points are posterior means, notches are 50\% \gls{HPD}
+        intervals, and lines are 95\% \gls{HPD} intervals.
+    }
+    \label{fig:moresmc}
+\end{figure}
 
 \section{Application to real world HIV data}
 \label{sec:hiv}
@@ -2060,14 +2084,24 @@ estimate for the associated dataset.
   setkey(up2.env, dataset)
   setkey(low2.env, dataset)
 
+  setkey(d1, dataset)
+  setkey(d2, dataset)
+  setkey(d1.env, dataset)
+  setkey(d2.env, dataset)
+
+  pmean1 <- unique(d1)[,.(dataset, ntip)][pmean1]
+  pmean2 <- unique(d2)[,.(dataset, ntip)][pmean2]
+  pmean1.env <- unique(d1.env)[,.(dataset, ntip)][pmean1.env]
+  pmean2.env <- unique(d2.env)[,.(dataset, ntip)][pmean2.env]
+
   stopifnot(pmean1[,dataset[which.max(alpha)]] == "zetterberg2004")
   stopifnot(pmean1[,dataset[which.min(alpha)]] == "cuevas2009")
 
-  stopifnot(pmean1[,dataset[which.max(I)]] == "zetterberg2004")
-  stopifnot(pmean1[,dataset[which.min(I)]] == "novitsky2014")
-  stopifnot(pmean1[dataset != "novitsky2014", dataset[which.min(I)]] == "bctree")
+  stopifnot(pmean1[,dataset[which.min(I)]] == "zetterberg2004")
+  stopifnot(pmean1[,dataset[which.max(I)]] == "novitsky2014")
+  stopifnot(pmean1[dataset != "novitsky2014", dataset[which.max(I)]] == "bctree")
 
-  stopifnot(pmean1[,cor.test(ntip, I)$p.value, method="spearman"] > 0.05)
+  stopifnot(pmean1[,cor.test(ntip, I, method="spearman")$p.value] > 0.05)
 @
 
 \del{We applied \software{netabc} to five published HIV datasets (\cref{tab:data}).
@@ -2165,7 +2199,14 @@ HET/Malawi and MSM/Beijing, the posterior mean was either outside, or very
 close to the border of, the 50\% \gls{HPD}. This indicates that the posterior
 distributions were diffuse with heavy tails, rather than having most of their
 mass around the mode. When the value $\gls{m} = 1$ was disallowed by the prior, 
-TODO}
+the separation between the \gls{IDU} datasets and the others became more
+striking (\cref{fig:abchpdm2}). All three \gls{IDU} datasets had estimated
+\gls{alpha} values at or above
+    \Sexpr{pmean2[c("zetterberg2004", "niculescu2015", "bctree"), round(min(alpha), 2)]}.
+The estimate for the MSM/Beijing data was slightly lower
+    (\Sexpr{pmean2["wang2015", round(alpha, 2)]}) and
+the estimates for the seven remaining non-\gls{IDU} datasets were bounded above by
+    \Sexpr{pmean2[c("novitsky2014", "mccormack2002", "grabowski2014", "kao2011", "little2014", "li2015", "cuevas2009"), round(max(alpha), 2)]}.}
 
 \begin{figure}
     \centering
@@ -2207,6 +2248,23 @@ The $I$ estimates and HPD intervals were generally robust to the choice of
 prior on $m$, with slightly narrower HPD intervals (compare
 \cref{fig:abchpd,fig:abchpdm2}).}
 
+<<genetrees, include=FALSE>>=
+    datasets <- c("grabowski2014", "zetterberg2004", "mccormack2002")
+    paths <- paste0("../../simulations/", datasets, "/subtree/*")
+    paths <- sapply(paths, Sys.glob)
+    trees <- lapply(paths, read.tree)
+    get.ratio <- function (t) {
+        int <- t$edge.length[t$edge[,2] > Ntip(t)]
+        tip <- t$edge.length[t$edge[,2] <= Ntip(t)]
+        mean(int) / mean(tip)
+    }
+    ratios <- data.table(dataset=rep(datasets, each=2),
+                         gene=rep(c("env", "gag"), 3),
+                         ratio=sapply(trees, get.ratio))
+    stopifnot(ratios[gene == "env", mean(ratio)] <
+              ratios[gene == "gag", mean(ratio)])
+@
+
 \add{For all but the HET/Botswana data, the posterior mean estimates for
 the prevalence \gls{I} were between
     \Sexpr{pmean1["zetterberg2004", round(I)]}
@@ -2218,17 +2276,24 @@ than the other datasets, with a very wide 95\% \gls{HPD} interval covering
 almost the entire prior region (\cref{fig:abchpd}). There was no significant
 correlation between the number of sequences in the tree and the estimated
 prevalence (Spearman correlation, 
-    $p \Sexpr{pp(pmean1[,cor.test(ntip, I)[["p.value"]], method="spearman"], eq=TRUE)}$).
-This indicates that the higher prevalence estimates were not simply due to
+    $p \Sexpr{pp(pmean1[,cor.test(ntip, I, method="spearman")[["p.value"]]], eq=TRUE)}$),
+indicating that the higher prevalence estimates were not simply due to
 increased sampling density. When both \textit{gag} and \textit{env} sequences
 were analyzed, the estimates from the \textit{env} data were substantially
-higher (\cref{fig:genes}). The ratios of terminal to internal branch lengths
-were higher for the \textit{env} trees than the \textit{gag} trees (average X
-for \textit{env} and X for \textit{gag}). As with \gls{alpha}, many of the
-posterior means were outside the 50\% \gls{HPD} intervals, suggesting diffuse
-posterior distributions. The values of \gls{I} were largely robust to
-restricting the prior to $\gls{m} > 1$ (compare
-\cref{fig:abchpd,fig:abchdpm2}), although TODO}
+higher (\cref{fig:genes}). The ratios of internal to terminal branch lengths
+were lower for the \textit{env} trees than the \textit{gag} trees (average 
+    \Sexpr{ratios[gene == "env", round(mean(ratio), 2)]}
+for \textit{env} and 
+    \Sexpr{ratios[gene == "gag", round(mean(ratio), 2)]}
+for \textit{gag}). As with \gls{alpha}, many of the posterior means were
+outside the 50\% \gls{HPD} intervals, suggesting diffuse posterior
+distributions. The values of \gls{I} were fairly robust to restricting the
+prior to $\gls{m} \geq 2$ (compare \cref{fig:abchpd,fig:abchdpm2}), although 
+the 95\% \gls{HPD} intervals were slightly narrower (average width
+    \Sexpr{round(mean(up1[,I] - low1[,I]))}
+for $\gls{m} \geq 1$ and
+    \Sexpr{round(mean(up2[,I] - low2[,I]))}
+for $\gls{m} \geq 2$).}
 
 \del{The posterior mean of $m$ was equal to 1 for all but the
 \citeauthor{novitsky2014impact} data, when this value was allowed. However, the
@@ -2248,9 +2313,15 @@ when $m = 1$ was allowed.}
 
 \add{The posterior means of \gls{m} were equal to one for 
   \Sexpr{replace_number(pmean1[,sum(m == 1)])}
-of the datasets analysed. The widths of the 95\% \gls{HPD} varied from 0 (all
-the mass on the estimated value) to 5 (the entire prior region). When the value
-$\gls{m} = 1$ was disallowed by the prior, TODO.}
+of the datasets analysed. The widths of the 95\% \gls{HPD} intervals varied
+from 0 (all the mass on the estimated value) to 5 (the entire prior region).
+When the value $\gls{m} = 1$ was disallowed by the prior, the posterior means
+for all but the HET/Botswana data took on the value 3, with the \gls{HPD}
+intervals spanning the entire prior region. This is very similar to the results 
+observed for \gls{m} on simulated data (\cref{fig:abcptm2,tab:abchpd}), and
+suggests that \gls{m} is not identifiable from these data with this prior. On
+the other hand, the estimate and 95\% \gls{HPD} interval for the HET/Botswana
+data (4 [2-5]) was the same for both priors.}
 
 \add{Estimates of \gls{N} were  mostly uninformative, with very similar estimates
 for all datasets (mean
@@ -2259,32 +2330,33 @@ range
     \Sexpr{pmean1[,round(min(N))]} - \Sexpr{pmean1[,round(max(N))]}).
 This was similar to the pattern observed for the synthetic data, where the
 posterior mean always fell around the upper two-thirds mark of the region
-allowed by the prior. The results did not change appreciably (TODO) when the
-value $\gls{m} = 1$ was assigned zero prior probability.}
+allowed by the prior. The results did not change appreciably when the value
+$\gls{m} = 1$ was assigned zero prior probability.}
 
 To compare our results to the existing network literature, we estimated
 values of the power law exponent \gls{gamma} for each of the datasets
 investigated, using the posterior median estimates \del{with the prior allowing
-$\gls{m} = 1$}. Because the estimates of \gls{N} were uninformative, we
+$\gls{m} = 1$}. The results are summarized in \cref{tab:gamma}. All of the
+estimated exponents were in the range $2 \leq \gls{gamma} \leq 2.5$, which is
+on the lower end of the range $2 \leq \gls{gamma} \leq 4$ reported in the
+literature. \add{Because the estimates of \gls{N} were uninformative, we also
 simulated another set of networks with the estimated \gls{I} value, rather than
-\gls{N}, as the number of nodes. The results are summarized in
-\cref{tab:gamma}. All of the estimated exponents were in the range $2 \leq
-\gls{gamma} \leq 2.5$, which is on the lower end of the range $2 \leq
-\gls{gamma} \leq 4$ reported in the literature.
+\gls{N}, as the number of nodes. However, none of the estimated \gls{gamma}
+values were changed by this operation (not shown).}
 
 \begin{table}
     \centering
     \input{\tablepath/realdata-gamma.tex}
     \caption[
-        Estimated power law exponents for six HIV datasets based on maximum
-        \textit{a priori} estimates of BA model parameters.
+        Estimated power law exponents for six \gls{HIV} datasets based on
+        posterior mean point estimates of \gls{BA} model parameters.
     ]{
-        Estimated power law exponents for six HIV datasets based on maximum
-        \textit{a priori} estimates of BA model parameters. 100 networks were
-        simulated using posterior mean parameter estimates obtained with
-        \software{netabc}. The power law exponent $\gamma$ was estimated for
-        each, and the median of those estimates was used as a point estimate
-        for the corresponding dataset.
+        Estimated power law exponents for six \gls{HIV} datasets based on
+        posterior mean point estimates of \gls{BA} model parameters. 100
+        networks were simulated using posterior mean parameter estimates
+        obtained with \software{netabc}. The power law exponent \gls{gamma}
+        was estimated for each, and the median of those estimates was used as a
+        point estimate for the corresponding dataset.
     }
     \label{tab:gamma}
 \end{table}

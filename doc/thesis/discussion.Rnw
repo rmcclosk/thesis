@@ -1,6 +1,6 @@
-%<<setup, include=FALSE>>=
-%    source("global.R")
-%@
+<<setup, include=FALSE>>=
+    source("global.R")
+@
 
 \label{sec:disc}
 
@@ -118,12 +118,12 @@ relationship between \gls{alpha} and the power law exponent \gls{gamma}
 a power law for $\gls{alpha} \neq 1$, the fitted exponent still captures the
 slope of the degree distribution reasonably well (\cref{fig:powerlaw}), and 
 distributions with similar fitted \gls{gamma} values appear qualitatively
-similar in other respects.} The \gls{gamma} values fitted to \gls{alpha} = 0
-and \gls{alpha} = 0.5 are nearly identical (about 2.28 for \gls{alpha} = 0 and
-2.33 for \gls{alpha} = 0.5 with \gls{N} = 5000 and \gls{m} = 2). In other
-words, the degree distributions of networks with \gls{alpha} $< 1$ are similar
-to each other, which may result in similarity of corresponding transmission
-trees as well. 
+similar in other respects.} The \gls{gamma} values fitted to $\gls{alpha} = 0$
+and $\gls{alpha} = 0.5$ are nearly identical (about $2.28 for \gls{alpha} = 0$
+and $2.33 for \gls{alpha} = 0.5$ with $\gls{N} = 5000$ and $\gls{m} = 2$). In
+other words, the degree distributions of networks with \gls{alpha} $< 1$ are
+similar to each other, which may result in similarity of corresponding
+transmission trees as well. 
 
 The \gls{I} parameter, representing the prevalence at the time of sampling, was
 also generally identifiable, although it was slightly over-estimated for both
@@ -201,17 +201,16 @@ true, both parameters will tend to be overestimated due to being less
 identifiable within their own band. However, when \gls{N} is fixed at 5000, the
 derivatives vary substantially along the \gls{I}-axis, which explains why
 the grid search estimates of \gls{I} were accurate and unbiased
-(\cref{fig:gridptI}). \add{We also note the resemblance of the contour surface
-of \cref{fig:derivs} to the two-dimensional marginal posterior distributions on
-\gls{I} and \gls{N} obtained with simulated data
-(\cref{fig:abclow2,fig:abchigh2}). However, while fixing \gls{N} and any other
-parameter resulted in much more accurate estimates of \gls{I}, fixing \gls{N}
-alone did not (\cref{fig:marginal}). Therefore, there may be more complex
-parameter dependence in the \gls{BA} model which we have not considered here.}
+(\cref{fig:gridest,fig:gridptI}). \add{We also note the resemblance of the
+contour surface of \cref{fig:derivs} to the two-dimensional marginal posterior
+distributions on \gls{I} and \gls{N} obtained with simulated data
+(\cref{fig:abclow2,fig:abchigh2}). In addition, both the accuracy and precision
+of the \gls{ABC} estimates of \gls{I} improved substantially when \gls{N} was
+marginalized out (\cref{fig:marginal}).}
 
 \begin{figure}[ht]
   \centering
-  %\includegraphics{derivatives.pdf}
+  \includegraphics{derivatives.pdf}
   \caption[
     First and second time derivatives of epidemic growth curves at time of
     sampling for various values of $I$ and $N$.
@@ -364,8 +363,6 @@ Although the MAP estimate of $\alpha$ was almost unchanged when the value $m =
     d2 <- d[m_min == 2]
 @
 
-\end{document}
-
 \subsubsection{Preferential attachment power is sub-linear and higher for \gls{IDU}}
 
 \add{For all datasets we examined, the posterior mean estimates for \gls{alpha}
@@ -376,12 +373,12 @@ to
 The sub-linearity is consistent with the results of
 \textcite{de2007preferential}, who developed a statistical inference method to
 estimate the parameters of a more sophisticated \acrlong{PA} model
-incorporating heterogeneous node behaviour. They found \gls{alpha} values
-ranging from 0.26 to 0.62, depending on the gender and time period considered. 
-Our estimates of \gls{alpha} for the \textcite{niculescu2015recent} was above
-this range under both priors, as were the estimates for the
-\textcite{wang2015targeting} data and the BC data when $\gls{m} = 1$ was
-disallowed by the prior. The dataset investigated by
+incorporating heterogeneous node behaviour. When used to analyse
+population-level longitudinal partner count data, they found \gls{alpha} values
+ranging from 0.26 to 0.62 depending on the gender and time period considered.
+Our estimates of \gls{alpha} for the IDU/Romania was above this range under
+both priors, as were the estimates for the MSM/Beijing data and the BC data
+when $\gls{m} = 1$ was disallowed by the prior. The dataset investigated by
 \textcite{de2007preferential} was derived from a survey of a random sample of
 the Norwegian population, whereas our investigation focused on datasets from
 known phylogenetic or geographic clusters of \gls{HIV} infected persons. It is
@@ -393,7 +390,7 @@ is plausible that \gls{HIV}-positive individuals are more likely to be highly
 connected in their sexual networks, as the odds of acquiring \gls{HIV} increase
 with the number of unprotected sexual contacts.}
 
-Both \textcite{de2007preferential} and \textcite{novitsky2014impact} studied
+\add{Both \textcite{de2007preferential} and the HET/Botswana data studied
 populations whose primary risk factor for \gls{HIV} infection was heterosexual
 contact. \citeauthor{de2007preferential} explicitly excluded reported
 homosexual contacts; \citeauthor{novitsky2014impact} did not, but noted that
@@ -402,19 +399,19 @@ study was done. In the first of the two papers describing the Botswana
 study~\autocite{novitsky2013phylogenetic}, the authors noted that their sample
 was gender-biased, being composed of approximately 75\% women. Our estimate of
 \gls{alpha} for these data was 
-    X%\S%expr{d[m_min == 1 & dataset == "novitsky2014" & parameter == "alpha", round(mean, 2)]}
+    \Sexpr{d[m_min == 1 & dataset == "novitsky2014" & parameter == "alpha", round(mean, 2)]}
         or 
-    X%\S%expr{d[m_min == 2 & dataset == "novitsky2014" & parameter == "alpha", round(mean, 2)]},
-depending on the prior on \gls{m}; \textcite{de2007preferential} estimated
-0.54, 0.57, and 0.29 for 3-year, 5-year, and lifetime partnership networks
-respectively for the female portion of their sample.
+    \Sexpr{d[m_min == 2 & dataset == "novitsky2014" & parameter == "alpha", round(mean, 2)]},
+depending on the prior on \gls{m}. Similarly, \textcite{de2007preferential}
+estimated 0.54, 0.57, and 0.29 for 3-year, 5-year, and lifetime partnership
+networks respectively for the female portion of their sample.}
 
-For both choices of prior on \gls{m}, the datasets derived from \gls{IDU}
+\add{For both choices of prior on \gls{m}, the datasets derived from \gls{IDU}
 populations had a higher estimated \acrlong{PA} power than the other datasets
 (\cref{fig:abchpd,fig:abchpdm2}). This finding is in line with
 \textcite{dombrowski2013topological}, who reanalyzed a network of \glspl{IDU}
 in Brooklyn, USA, collected between 1991 and
-1993~\autocite{friedman2006social}. They found that the the \gls{IDU} network 
+1993~\autocite{friedman2006social}. They found that the \gls{IDU} network
 resembled a \gls{BA} network much more closely than other social and sexual 
 networks, and offered sociological explanations for the apparent \acrlong{PA}
 dynamics in this population. Importantly, from a public health perspective,
@@ -423,7 +420,7 @@ the authors asserted that the removal of \emph{random} individuals from
 epidemic susceptibility. When low-degree nodes are removed, as would occur
 during a police crackdown, their network neighbours may turn to well-known
 community members for advice or supplies, thus increasing the connectivity of
-these high-degree nodes.
+these high-degree nodes.}
 
 \add{Unfortunately, the sub-linear region for \gls{alpha} identified by both
 \textcite{de2007preferential} and \software{netabc} is also the region of
@@ -441,17 +438,9 @@ informative priors on the other \gls{BA} parameters. We argued informally in
 estimated by standard epidemiological methods, although the difficulty may
 depend on the specific epidemic under consideration.}
 
-%One somewhat surprising result was the difference between parameter estimates 
-%for the \textcite{li2015hiv} and \textcite{wang2015targeting} datasets. Both
-%groups studied cohorts of acutely infected \gls{MSM} in major Chinese cities
-%%(Shanghai and Beijing respectively); yet, the \citeauthor{li2015hiv} data was 
-%estimated to have a lower \acrlong{PA} power and larger infected population
-%than the \textcite{wang2015targeting} data\ldots
+\subsubsection{Power law exponent is within reported range, but hard to interpret}
 
-\subsubsection{Power law exponent}
-
-% for discussion
-In order to compare our results to existing literature on networks and
+\add{In order to compare our results to existing literature on networks and
 distributions of partner counts, we have reported estimated values for the
 power law exponent \gls{gamma} of the real data sets we evaluated. However, the
 posterior means for \gls{alpha} for all six datasets were less than one; the
@@ -468,15 +457,22 @@ presented it here, $A_k = k^{\alpha} + 1$. Taking $A_k$ as any asymptotically
 linear function will result in a power law distribution, with the exponent
 \gls{gamma} determined by the properties of $A_k$. Implementing such a model
 would be straightforward and seems a natural next step toward improving the
-realism of the \gls{BA} model.
+realism of the \gls{BA} model.}
 
-\cref{tab:litgamma} shows some estimated \gls{gamma} values reported in the
-network literature.  The values mainly fall between 2 and 4, although
-substantial variation within this range exists for networks with apparently
-similar demographics. Some of these differences are likely due to the differing
-time intervals considered in each study -- some investigate the distribution of
-lifetime partners, while others consider only recent partnerships, such as in
-the past year. TODO
+\add{\Cref{tab:litgamma} shows some estimated \gls{gamma} values reported in the
+network literature.  Our estimates are most similar to those of
+\textcite{liljeros2001web, rothenberg2007large}, but interpretation of the
+exact values is challenging. Estimates from the literature mainly fall between
+2 and 4, although substantial variation within this range exists, even for
+networks with apparently similar demographics. For example,
+\textcite{schneeberger2004scale} estimate higher \gls{gamma} values for
+heterosexual females than heterosexual males, while
+\textcite{clemenccon2015statistical} find the opposite. Some of these
+differences are likely due to the differing time intervals considered in each
+study -- some investigate the distribution of lifetime partners, while others
+consider only recent partnerships, such as in the past year. However, the
+effect of the time period on \gls{gamma} is not readily obvious from the
+available estimates.}
 
 \begin{table}[ht]
     \centering
@@ -488,30 +484,17 @@ the past year. TODO
         Values of power law exponent \gls{gamma} previously reported in the
         literature. In the risk group column, ``mixed sexual'' indicates
         participants were not selected on the basis of sexual orientation;
-        these values can be assumed to reflect primarily heterosexual dynamics.
+        these values likely reflect primarily heterosexual dynamics.
         \textcite{brown2011transmission} studied a phylogenetically estimated
         transmission network, rather than a contact network.
         The values presented by \textcite{jones2003assessment} were in the
         context of arguing that the power law distribution is not suitable for
         use with network data.
     }
-    \label{tab:kernelexpt}
+    \label{tab:litgamma}
 \end{table}
 
-%For both priors, the estimated prevalence was extremely high, in fact higher
-%than the estimated HIV prevalence in the sampled region. The authors indicated
-%that the source of the samples was a town in close proximity to the country's
-%capital city, and suggested that there may have been a high degree of migration
-%and partner interchange between the two locations. It is possible that the
-%contact network underlying the subtree we investigated includes a much larger
-%group based in the capital city, which would explain the high estimate of $I$.
-%There is no clear explanation for the discrepancy between the two priors for
-%the \textcite{li2015hiv} data, as the subset we analyzed formed a phylogenetic
-%cluster and therefore was a good candidate for the BA model. However, nearly
-%all the posterior density was assigned to $m = 1$ when this value was allowed,
-%indicating that the network was more likely to have an acyclic tree structure.
-
-\subsubsection{HIV prevalence}
+\subsubsection{HIV prevalence estimates are often discordant with epidemiological information}
 
 \add{The true \gls{HIV} prevalence in a population can be
 difficult to estimate for several reasons. \gls{HIV}-infected individuals may
@@ -534,24 +517,26 @@ cannot be taken as absolute ``ground truth''. Discrepancies between our results
 and the available data may indicate that the estimates produced by
 \software{netabc} are inaccurate, but they may also indicate that the available
 epidemiological data was not sufficient to estimate the true prevalence. Since
-the estimates of the prevalence \gls{I} were largely robust to the choice of
-prior on \gls{m} (\cref{fig:abchpd,fig:abchpdm2}), we discuss here only the
-results obtained with the prior $\gls{m} \sim \DiscreteUniform(1, 5)$.}
+the estimates of \gls{I} were largely robust to the choice of prior on \gls{m}
+(\cref{fig:abchpd,fig:abchpdm2}), we discuss here only the results obtained
+with the prior $\gls{m} \sim \DiscreteUniform(1, 5)$.}
 
 \add{The prevalence estimates for two \gls{IDU} epidemics in Eastern Europe,
-IDU/Estonia and IDU/Romania, were similar 
-    (X and X), 
-although the confidence interval around the \textcite{niculescu2015recent} data
-was wider. \textcite{niculescu2015recent} reported that 494 new \gls{HIV}
-infections were diagnosed among the studied population (\glspl{IDU} in
-Bucharest) during the study period, and this value was contained in our 95\%
-\gls{HPD} 
-    (X-X). 
-On the other hand, \textcite{zetterberg2004two} collected samples from several
-locations throughout Estonia; using their reported incidence estimates, there
-were approximately 2000 new infections in the country during the study period.
-This value was outside our 95\% \gls{HPD} 
-    (X-X). 
+IDU/Romania and IDU/Estonia, were 
+    \Sexpr{d1[dataset == "niculescu2015" & parameter == "I", round(mean)]} and 
+    \Sexpr{d1[dataset == "zetterberg2004" & parameter == "I", round(mean)]}.
+The authors of the IDU/Romania study~\autocite{niculescu2015recent} reported
+that 494 new \gls{HIV} infections were diagnosed among the studied population
+(\glspl{IDU} in Bucharest) during the study period, and this value was
+contained in our 95\% \gls{HPD} interval
+    (\Sexpr{d1[dataset == "niculescu2015" & parameter == "I", round(hpd.min.95)]} -
+    \Sexpr{d1[dataset == "niculescu2015" & parameter == "I", round(hpd.max.95)]}).
+On the other hand, the IDU/Estonia data were collected from several locations
+in the country. Using their reported incidence estimates, there were
+approximately 2000 new infections in the country during the study period, a
+value outside our 95\% \gls{HPD} interval
+    (\Sexpr{d1[dataset == "zetterberg2004" & parameter == "I", round(hpd.min.95)]} -
+    \Sexpr{d1[dataset == "zetterberg2004" & parameter == "I", round(hpd.max.95)]}).
 The authors indicated that their sample was ``convenience based''; it is
 possible that other, harder-to-reach individuals had no contacts with those
 sampled, reducing the apparent network size. In contrast, the IDU/Canada data
@@ -560,26 +545,34 @@ population that has been intensively targeted by public health interventions.
 Combined with the routine clinical genotyping performed in British Columbia for
 all new \gls{HIV} infections, it is not unreasonable to suppose that the
 sampled individuals (399) comprise the majority of \gls{HIV}-positive network
-members. TODO}
+members. This value was the lower bound of our estimated 95\% \gls{HPD}
+interval
+    (\Sexpr{d1[dataset == "bctree" & parameter == "I", round(hpd.min.95)]} -
+    \Sexpr{d1[dataset == "bctree" & parameter == "I", round(hpd.max.95)]}),
+but it seems likely that the posterior mean of
+    \Sexpr{d1[dataset == "bctree" & parameter == "I", round(mean)]}
+is an overestimate.}
 
-\add{Surprisingly, the prevalence estimates for two \gls{MSM} populations major
-Chinese cities (MSM/Shanghai and MSM/Beijing) were quite different
-    (X and X).
+\add{The prevalence estimates for two \gls{MSM} populations in major Chinese
+cities (MSM/Beijing and MSM/Shanghai) were 
+    \Sexpr{d1[dataset == "wang2015" & parameter == "I", round(mean)]} and
+    \Sexpr{d1[dataset == "li2015" & parameter == "I", round(mean)]}.
 The individuals sampled for the MSM/Beijing study were recruited by following a
 prospective cohort of size 2000. 179 new infections were identified in the
 cohort during the study period, which is much lower than the estimated
-prevalence obtained with \software{netabc}
-    (X).
-However, the authors did not claim to have sampled the entire sexual network.
-In a nationwide survey, \textcite{wu2013hiv} estimated that there were 24,198
-\gls{MSM} living in Beijing, of whom 5.7\%, or 1379, were \gls{HIV}-infected,
-which is within the 95\% confidence interval of our estimate of \gls{I}
-    (X-X).
+prevalence obtained with \software{netabc}. However, the authors did not claim
+to have sampled the entire sexual network. In a nationwide survey,
+\textcite{wu2013hiv} estimated that there were 24,198 \gls{MSM} living in
+Beijing, of whom 5.7\%, or 1379, were \gls{HIV}-infected, which is close to the
+upper limit of the 95\% confidence interval of our estimate of \gls{I}
+    (\Sexpr{d1[dataset == "wang2015" & parameter == "I", round(hpd.min.95)]} -
+    \Sexpr{d1[dataset == "wang2015" & parameter == "I", round(hpd.max.95)]}).
 The same survey estimated the size of the \gls{MSM} population in Shanghai
 14,511, with an \gls{HIV} prevalence of 6.8\% or approximately 987 individuals.
 This was within the 95\% confidence interval of the estimate obtained with
 \software{netabc} for the MSM/Shanghai data
-    (X-X). 
+    (\Sexpr{d1[dataset == "li2015" & parameter == "I", round(hpd.min.95)]} -
+    \Sexpr{d1[dataset == "li2015" & parameter == "I", round(hpd.max.95)]}).
 It is worth noting that the authors of the IDU/Shanghai
 study~\autocite{li2015hiv} claimed that there were 80,000 \gls{MSM} living in
 Shanghai, which is a significantly different estimate than that obtained by
@@ -587,65 +580,65 @@ Shanghai, which is a significantly different estimate than that obtained by
 study~\autocite{kao2011surveillance} stated that there were 18,378
 \gls{HIV}-infected individuals in Taiwan, of which approximately 44\% (8086
 individuals) were \gls{MSM}. This value is well outside of our 95\% \gls{HPD} 
-    (X-X),
+    (\Sexpr{d1[dataset == "kao2011" & parameter == "I", round(hpd.min.95)]} -
+    \Sexpr{d1[dataset == "kao2011" & parameter == "I", round(hpd.max.95)]}),
 suggesting that the entire \gls{MSM} population does not comprise a single
 network. In fact, our estimate of \gls{I} for these data
-    (X)
-was closer to the number of \gls{MSM} enrolled in the study, 301. The study
-focused exclusively on newly diagnosed individuals; perhaps chronically
-infected \gls{MSM} were no longer part of the same network. On the other hand,
-our estimated prevalence for the MSM/USA data
-    (X)
+    (\Sexpr{d1[dataset == "kao2011" & parameter == "I", round(mean)]}),
+was closer to the number of \gls{MSM} enrolled in the study (301) than to the
+epidemiologically estimated prevalence. The study focused exclusively on newly
+diagnosed individuals. On the other hand, our estimated prevalence for the
+MSM/USA data
+    (\Sexpr{d1[dataset == "little2014" & parameter == "I", round(mean)]})
 was clearly an underestimate. The study enrolled almost 648 \gls{HIV} infected 
 individuals, which should have been a lower bound on \gls{I}, although the
 value was contained in the 95\% \gls{HPD} interval
-    (X-X).}
+    (\Sexpr{d1[dataset == "little2014" & parameter == "I", round(hpd.min.95)]} -
+    \Sexpr{d1[dataset == "little2014" & parameter == "I", round(hpd.max.95)]}).}
 
 \add{The HET/Uganda, HET/Malawi, and HET/Botswana data all originated from
 populations in sub-Saharan Africa, where the dominant mode of transmission is
 believed to be heterosexual. The HET/Uganda study population included
 1434 seropositive individuals. Since the majority of inhabitants of the study
 district were enrolled in the study, it is likely that this number represents
-the majority of \gls{HIV} infected persons. Our estimate was slightly (TODO:
-lower/higher)
-    (X),
+the majority of \gls{HIV} infected persons. Our estimate was slightly lower
+    (\Sexpr{d1[dataset == "grabowski2014" & parameter == "I", round(mean)]}),
 but the value 1434 was contained ith the 95\% \gls{HPD} interval
-    (X-X).
+    (\Sexpr{d1[dataset == "grabowski2014" & parameter == "I", round(hpd.min.95)]} -
+    \Sexpr{d1[dataset == "grabowski2014" & parameter == "I", round(hpd.max.95)]}).
 The HET/Malawi data represents possibly the oldest population-level \gls{HIV}
 sequencing effort, carried out on samples collected for other purposes between
 1981 and 1989. Every individual in the study district was sampled; among these,
 a total of 200 were \gls{HIV}-positive. Although the HET/Malawi data had the
-lowest estimated \gls{I} value among the heterosexual datasets, and 200 was
-contained within the 95\% \gls{HPD} interval
-    (X-X),
-the estimated prevalence was much higher than this value (X). Due to the
-thorough population-level screening, it is most likely that the posterior mean
-represents an overestimate, especially considering the observed upward bias of
-\gls{ABC} estimates of \gls{I} observed on simulated data (\cref{fig:abcptm2}).
-However, it is also possible that the true sexual network extended outside the
-study's geographic area to include a larger number of infected individuals.
-The authors of the HET/Botswana data~\autocite{novitsky2013phylogenetic, 
+lowest estimated \gls{I} value among the heterosexual datasets, 
+the posterior mean
+    (\Sexpr{d1[dataset == "mccormack2002" & parameter == "I", round(mean)]}),
+was much higher than this value. Due to the thorough population-level
+screening, it is most likely that the posterior mean represents an
+overestimate, especially considering the observed upward bias of \gls{ABC}
+estimates of \gls{I} observed on simulated data (\cref{fig:abcptm2}).
+It is also possible that the true sexual network extended outside the study's
+geographic area to include a larger number of infected individuals. The authors
+of the HET/Botswana data~\autocite{novitsky2013phylogenetic,
 novitsky2014impact} estimated that there were 1731 \gls{HIV}-positive
 individuals in the study area. \gls{HIV} sequences were obtained from
 approximately 70\% of these individuals. The estimated prevalence we obtained
 was much higher 
-    (X), 
-with a 95\% \gls{HPD} interval spanning nearly the entire prior region. Since
-the total population of the study area was approximately 15,000, this value of
-\gls{I} seems unlikely to be accurate. However, the authors noted that the town
-where the study took place was located proximally to the country's capital
-city, and suggested that frequent travel between the two locations may have
-facilitated linking of their sexual networks. Thus, the high estimate of
-\gls{I} we obtained for these data may include a larger network component based
-in the capital city.}
+    (\Sexpr{d1[dataset == "novitsky2014" & parameter == "I", round(mean)]}),
+with a 95\% \gls{HPD} interval spanning nearly the entire prior region. The
+authors noted that the town where the study took place was located proximally
+to the country's capital city, and suggested that frequent travel between the
+two locations may have facilitated linking of their sexual networks. Thus, the
+high estimate of \gls{I} we obtained for these data may include a larger
+network component based in the capital city.}
 
 \add{\textcite{cuevas2009hiv} reported that 620 newly infected and 1500
 chronically infected patients had been sampled during the study period, for a
 total of 2120. This is substantially greater than the point estimate of 
-    X 
+    \Sexpr{d1[dataset == "cuevas2009" & parameter == "I", round(mean)]}
 we obtained with \gls{ABC}. This error may in part be due to model
 misspecification -- it is highly unlikely that a mixed risk group population 
-would form a single, highly-connected contact network of the type generated by
+would form a single, well-connected contact network of the type generated by
 the \gls{BA} model.}
 
 \subsubsection{Modelling assumptions}
@@ -668,4 +661,3 @@ misspecification, our estimates of the power law exponent $\gamma$ were within
 the range of values reported in the literature (\cref{tab:gamma}), \add{and our
 estimates of \gls{alpha} were in rough agreement with a previous study using
 survey-based epidemiology~\autocite{de2007preferential}.}
-
