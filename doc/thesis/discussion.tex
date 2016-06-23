@@ -278,9 +278,9 @@ As noted by \textcite{lintusaari2016identifiability}, uniform priors on model
 parameters may translate to highly informative priors on quantities of
 interest. We observed a non-linear relationship between the preferential
 attachment power \gls{alpha} and the fitted power law exponent \gls{gamma}
-(\cref{fig:gamma}, although see the discussion in \cref{TODO}). Therefore,
-placing a uniform prior on \gls{alpha} between 0 and 2 is equivalent to placing an
-informative prior that \gls{gamma} is close to 2. If we were primarily
+(\cref{fig:gamma}, although see the discussion in \cref{subsec:pa}). Therefore,
+placing a uniform prior on \gls{alpha} between 0 and 2 is equivalent to placing
+an informative prior that \gls{gamma} is close to 2. If we were primarily
 interested in \gls{gamma} rather than \gls{alpha}, a more sensible choice of
 prior might have a shape informed by \cref{fig:gamma} and be bounded above by
 approximately $\gls{alpha} = 1.5$. This would bound \gls{gamma} in the region
@@ -324,7 +324,7 @@ incorporating heterogeneity in node behaviour, are likely to provide a better
 fit to these data.
 
 \del{With respect to the preferential attachment power $\alpha$, the six
-datasets analysed fell into two categories (\cref{fig:abchpd}). First, we
+datasets analyzed fell into two categories (\cref{fig:abchpd}). First, we
 estimated a preferential attachment power close to 1, indicating linear
 preferential attachment, for the BC data and the outbreaks studied by
 \textcite{niculescu2015recent} and \textcite{wang2015targeting}. These
@@ -365,12 +365,12 @@ to
 The sub-linearity is consistent with the results of
 \textcite{de2007preferential}, who developed a statistical inference method to
 estimate the parameters of a more sophisticated \acrlong{PA} model
-incorporating heterogeneous node behaviour. They found \gls{alpha} values
-ranging from 0.26 to 0.62, depending on the gender and time period considered. 
-Our estimates of \gls{alpha} for the \textcite{niculescu2015recent} was above
-this range under both priors, as were the estimates for the
-\textcite{wang2015targeting} data and the BC data when $\gls{m} = 1$ was
-disallowed by the prior. The dataset investigated by
+incorporating heterogeneous node behaviour. When used to analyze
+population-level longitudinal partner count data, they found \gls{alpha} values
+ranging from 0.26 to 0.62 depending on the gender and time period considered.
+Our estimates of \gls{alpha} for the IDU/Romania was above this range under
+both priors, as were the estimates for the MSM/Beijing data and the BC data
+when $\gls{m} = 1$ was disallowed by the prior. The dataset investigated by
 \textcite{de2007preferential} was derived from a survey of a random sample of
 the Norwegian population, whereas our investigation focused on datasets from
 known phylogenetic or geographic clusters of \gls{HIV} infected persons. It is
@@ -382,7 +382,7 @@ is plausible that \gls{HIV}-positive individuals are more likely to be highly
 connected in their sexual networks, as the odds of acquiring \gls{HIV} increase
 with the number of unprotected sexual contacts.}
 
-\add{Both \textcite{de2007preferential} and \textcite{novitsky2014impact} studied
+\add{Both \textcite{de2007preferential} and the HET/Botswana data studied
 populations whose primary risk factor for \gls{HIV} infection was heterosexual
 contact. \citeauthor{de2007preferential} explicitly excluded reported
 homosexual contacts; \citeauthor{novitsky2014impact} did not, but noted that
@@ -391,19 +391,19 @@ study was done. In the first of the two papers describing the Botswana
 study~\autocite{novitsky2013phylogenetic}, the authors noted that their sample
 was gender-biased, being composed of approximately 75\% women. Our estimate of
 \gls{alpha} for these data was 
-    X%\S%expr{d[m_min == 1 & dataset == "novitsky2014" & parameter == "alpha", round(mean, 2)]}
+    0.55
         or 
-    X%\S%expr{d[m_min == 2 & dataset == "novitsky2014" & parameter == "alpha", round(mean, 2)]},
-depending on the prior on \gls{m}; \textcite{de2007preferential} estimated
-0.54, 0.57, and 0.29 for 3-year, 5-year, and lifetime partnership networks
-respectively for the female portion of their sample.}
+    0.53,
+depending on the prior on \gls{m}. Similarly, \textcite{de2007preferential}
+estimated 0.54, 0.57, and 0.29 for 3-year, 5-year, and lifetime partnership
+networks respectively for the female portion of their sample.}
 
 \add{For both choices of prior on \gls{m}, the datasets derived from \gls{IDU}
 populations had a higher estimated \acrlong{PA} power than the other datasets
 (\cref{fig:abchpd,fig:abchpdm2}). This finding is in line with
 \textcite{dombrowski2013topological}, who reanalyzed a network of \glspl{IDU}
 in Brooklyn, USA, collected between 1991 and
-1993~\autocite{friedman2006social}. They found that the the \gls{IDU} network 
+1993~\autocite{friedman2006social}. They found that the \gls{IDU} network
 resembled a \gls{BA} network much more closely than other social and sexual 
 networks, and offered sociological explanations for the apparent \acrlong{PA}
 dynamics in this population. Importantly, from a public health perspective,
@@ -423,10 +423,10 @@ intervals covering the majority of the range [0, 1]. The value $\gls{alpha} =
 consequently, it is not possible to say with high confidence that any of the
 \gls{alpha} values are different from each other. In synthetic data, the
 confidence intervals around \gls{alpha} narrowed when other parameters were
-marginalized out (\cref{fig:maginal}). Thus, it is possible that estimates of
+marginalized out (\cref{fig:marginal}). Thus, it is possible that estimates of
 \gls{alpha} could be made more precise by specifying either exact values or
 informative priors on the other \gls{BA} parameters. We argued informally in
-\cref{subsec: whyba} that \gls{I}, \gls{m}, and \gls{N} can sometimes be
+\cref{subsec:whyba} that \gls{I}, \gls{m}, and \gls{N} can sometimes be
 estimated by standard epidemiological methods, although the difficulty may
 depend on the specific epidemic under consideration.}
 
@@ -493,7 +493,7 @@ difficult to estimate for several reasons. \gls{HIV}-infected individuals may
 be asymptomatic for months or years, possibly delaying their awareness of their
 status. In many contexts, the risk factors for acquisition of \gls{HIV} are
 illegal or stigmatized, which may represent a barrier to testing, treatment,
-and/or disclosure of status. Several of the studies whose data we analysed
+and/or disclosure of status. Several of the studies whose data we analyzed
 report the number of new infections over the study period. We expect these
 numbers to be lower, perhaps substantially, than the true prevalence. We also
 note that our simulation study showed that the estimates of \gls{I} obtained
@@ -503,7 +503,7 @@ that the identifiability of \gls{I} decreases with the number of sampled tips
 (\cref{fig:Icrossv,fig:Ikpca}). In real world studies, the proportion of
 infected individuals sampled is usually low, which may impede our ability to
 estimate \gls{I}. In the following, we discuss any information available about
-the \gls{HIV} prevalence in the analysed study populations, and relate this to
+the \gls{HIV} prevalence in the analyzed study populations, and relate this to
 our estimates. However, due to the aforementioned challenges, this information
 cannot be taken as absolute ``ground truth''. Discrepancies between our results
 and the available data may indicate that the estimates produced by
@@ -595,7 +595,7 @@ believed to be heterosexual. The HET/Uganda study population included
 district were enrolled in the study, it is likely that this number represents
 the majority of \gls{HIV} infected persons. Our estimate was slightly lower
     (939),
-but the value 1434 was contained ith the 95\% \gls{HPD} interval
+but the value 1434 was contained within the 95\% \gls{HPD} interval
     (226 -
     2661).
 The HET/Malawi data represents possibly the oldest population-level \gls{HIV}

@@ -9,7 +9,7 @@ clean:
 
 check: main.tex preamble.tex abstract.Rnw preface.tex intro.tex objective.tex methods_results.Rnw appendix.Rnw discussion.Rnw conclusion.tex
 	for FILE in $^; do \
-		aspell check $$FILE --add-tex-command="autocite op" --add-tex-command="textcite op" \
+		aspell check $$FILE --add-tex-command="autocite op" --add-tex-command="textcite op"; \
 	done
 
 outline.pdf: outline.md outline.sty

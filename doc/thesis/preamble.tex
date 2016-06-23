@@ -49,30 +49,34 @@
 \newcommand{\lik}{f}
 \newcommand{\post}{\pi}
 
-\let\mref\cref
-\let\Mref\Cref
-\let\mtextcite\textcite
-\let\mautocite\autocite
-\let\mciteauthor\citeauthor
-\renewcommand{\cref}[1]{\mbox{\mref{#1}}}
-\renewcommand{\Cref}[1]{\mbox{\Mref{#1}}}
-\renewcommandtwoopt{\textcite}[3][][]{\mbox{\mtextcite[#1][#2]{#3}}}
-\renewcommandtwoopt{\autocite}[3][][]{\mbox{\mautocite[#1][#2]{#3}}}
-\renewcommand{\citeauthor}[1]{\mbox{\mciteauthor{#1}}}
-\newcommand{\add}[1]{\color{blue}\uline{#1} \color{black}}
-\newcommand{\madd}[1]{\color{blue}\underline{#1} \color{black}}
-\newcommand{\del}[1]{\color{red}\sout{#1} \color{black}}
-% http://tex.stackexchange.com/a/20612/60841
-\newsavebox\CBox
-\newcommand\mdel[1]{%
-  \color{red}%
-  \ifmmode\sbox\CBox{$#1$}\else\sbox\CBox{#1}\fi%
-  \makebox[0pt][l]{\usebox\CBox}%
-  \rule[0.5\ht\CBox-0.25pt]{\wd\CBox}{0.5pt}
-  \color{black}%
-}
+%\let\mref\cref
+%\let\Mref\Cref
+%\let\mtextcite\textcite
+%\let\mautocite\autocite
+%\let\mciteauthor\citeauthor
+%\renewcommand{\cref}[1]{\mbox{\mref{#1}}}
+%\renewcommand{\Cref}[1]{\mbox{\Mref{#1}}}
+%\renewcommandtwoopt{\textcite}[3][][]{\mbox{\mtextcite[#1][#2]{#3}}}
+%\renewcommandtwoopt{\autocite}[3][][]{\mbox{\mautocite[#1][#2]{#3}}}
+%\renewcommand{\citeauthor}[1]{\mbox{\mciteauthor{#1}}}
+%\newcommand{\add}[1]{\color{blue}\uline{#1} \color{black}}
+%\newcommand{\madd}[1]{\color{blue}\underline{#1} \color{black}}
+%\newcommand{\del}[1]{\color{red}\sout{#1} \color{black}}
+%% http://tex.stackexchange.com/a/20612/60841
+%\newsavebox\CBox
+%\newcommand\mdel[1]{%
+%  \color{red}%
+%  \ifmmode\sbox\CBox{$#1$}\else\sbox\CBox{#1}\fi%
+%  \makebox[0pt][l]{\usebox\CBox}%
+%  \rule[0.5\ht\CBox-0.25pt]{\wd\CBox}{0.5pt}
+%  \color{black}%
+%}
 %TC:macro \del [ignore]
 %TC:macro \mdel [ignore]
+\newcommand{\add}[1]{#1 }
+\newcommand{\madd}[1]{#1}
+\newcommand{\del}[1]{}
+\newcommand{\mdel}[1]{}
 
 \DeclareMathAlphabet{\mathcal}{OMS}{cmsy}{m}{n}
 \newcommand{\N}{\mathcal{N}}
@@ -242,8 +246,8 @@
 }
 \newglossaryentry{R0}{
   name=\ensuremath{R_0},
-  description=basic reproductive number; number of infections ultimately caused
-              by one infected individual
+  description=basic reproductive number; average number of infections
+  ultimately caused by one infected individual
 }
 
 \graphicspath{{../figures/}}

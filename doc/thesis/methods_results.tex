@@ -45,7 +45,7 @@ didelot2014bayesian, hall2015epidemic}. We variously refer to this estimated
 transmission tree as the observed tree, input tree, or true tree.
 
 As described in \cref{sec:smc}, \software{netabc} keeps track of a population
-of particles $x^{(k)}$ indexed by an integere $k$, each of which contains
+of particles $x^{(k)}$ indexed by an integer $k$, each of which contains
 particular parameter values $\theta^{(k)}$ for the \add{contact network} model
 we are trying to fit \add{to the input tree}. A small number \gls{M} of contact
 networks $z^{(k,i)}$, $1 \leq i \leq \gls{M}$, are generated under the model
@@ -349,7 +349,7 @@ the posterior distribution on the model's parameters given our data,}
 \add{For all but the simplest models, the normalizing constant in the
 denominator is an intractable integral. What we shall argue here is that, in
 contrast to most commonly studied mathematical models, the likelihood
-$\lik(\gls{T} \mid \theta)$ is also likely to be intractible in our case.}
+$\lik(\gls{T} \mid \theta)$ is also likely to be intractable in our case.}
 
 \begin{figure}
     \centering
@@ -441,9 +441,9 @@ still has at least $O(2^{|\gls{T}|^2})$ terms.}
 \mid \theta) \prior(\theta) \d\theta$ and the likelihood $\lik(T \mid \theta)$
 are likely computationally prohibitive to calculate. If this is the case, the
 problem of fitting contact network models to phylogenies seems to be of the
-\emph{doubly-intractible} type~\autocite{murray2012mcmc}, which would imply that
+\emph{doubly-intractable} type~\autocite{murray2012mcmc}, which would imply that
 these models are not amenable to neither \gls{ML} nor Bayesian inference
-techniques. Although both methods are able to cope with an intractible
+techniques. Although both methods are able to cope with an intractable
 normalizing constant (for example, by local search for \gls{ML} or Bayesian
 \gls{MCMC}), neither can avoid the intractable likelihood calculations. This
 justifies the use of \gls{ABC}, which is a likelihood-free method.}
@@ -507,21 +507,21 @@ The prevalence \gls{I} can be used to estimate the resources required to combat
 an ongoing epidemic, while total susceptible population size \gls{N} provides a
 similar metric for preventative measures. The average degree of the network, in
 this case $2\gls{m}$, is directly related to \gls{R0}, the basic reproductive
-number~\autocite{britton2002bayesian}. \gls{R0} quantifies the number of
-secondary infections ultimately caused by one infected individual; higher
+number~\autocite{britton2002bayesian}. \gls{R0} quantifies the average number
+of secondary infections ultimately caused by one infected individual; higher
 \gls{R0} generally indicates faster epidemic growth and/or larger eventual
 epidemic size~\autocite{anderson1992infectious}. In a homogeneously mixed
-population, the proportion of the population which must be vaccinated to
-control an epidemic can be expressed in terms of
-\gls{R0}~\autocite{anderson1982directly}. Although optimal vaccination
-strategies may differ in heterogeneous contact
+population, the theoretically expected proportion of the population which must
+be vaccinated to control an epidemic (the \defn{vaccination threshold}) can be
+expressed in terms of \gls{R0}~\autocite{anderson1982directly}. Although
+optimal vaccination strategies may differ in heterogeneous contact
 structures~\autocite{ma2013importance}, it is reasonable to suppose that there
 would still be a relationship between \gls{m}, \gls{R0}, and the vaccination
 threshold. The preferential attachment power \gls{alpha} quantifies the degree
 to which high-degree nodes, also called
 superspreaders~\autocite{kemper1980identification}, characterize the network
-structure. Superspreaders have been hypothesized to play a greater-than-average
-role in the spread of several diseases~\autocite{stadler2013uncovering,
+structure. Superspreaders have been hypothesized to play a disproportionately
+greater role in the spread of several diseases~\autocite{stadler2013uncovering,
 shen2004superspreading}. If so, network-based
 interventions~\autocite{little2014using, wang2015targeting} may be worth
 considering as part of an epidemic control strategy. \gls{alpha} can also offer
@@ -529,32 +529,35 @@ some insight into how the network would react to the removal of nodes.
 \textcite{dombrowski2013topological} found evidence of preferential attachment
 in \gls{IDU} networks, and suggested that as a consequence of this
 characteristic, the removal of random nodes (such as through a police
-crackdown) might inadventently make it easier for epidemics to spread. When
+crackdown) might inadvertently make it easier for epidemics to spread. When
 individuals with only one or two connections lose them, they might tend to seek
 out well-known (that is, high-degree) members of the community, thus increasing
-those individuals' connectivity even further.}
+those individuals' connectivity even further. Although we do not consider a 
+dynamic network in this work, it is not unreasonable that the network could be
+close to static over short periods of time, and this static structure might be
+informative of future dynamic behaviour.}
 
-\add{All four \gls{BA} parameters can be estimated using more conventional
-approaches, but this estimation may be challenging depending on characteristics
-of the epidemic under consideration. In theory, any network parameter can be
-estimated by explicitly constructing the contact network, although this is
-highly resource intensive and is hampered by misreporting and other
-challenges~\autocite{eames2015six}. All parameters become more difficult to
-estimate when the infected population is ``hidden'' due to illegal or
-stigmatized behaviour, as is sometimes the case with \gls{HIV} outbreaks among
-\gls{IDU}, \gls{MSM}, or sex workers. Of course, phylodynamic methods are
-equally ineffective when the population is completely hidden, since we must at
-least be able to sample viral sequences from its members. If a population is
-accessible, \gls{N} and \gls{I} may be estimable by surveying and/or testing
-each member of the population for the disease. However, this will not tell us
-if there are large compartments of the population that we simply have not
-sampled. Our hope is that estimating \gls{N} and \gls{I} phylogenetically might
-provide this additional information. The average degree of the network,
-$2\gls{m}$, is also estimable by a survey, although individuals may be
-unwilling or unable to disclose how many contacts they have had. The estimation
-of \gls{alpha} is more complex, as this parameter is most strongly reflected in
-the connectivity of very high degree nodes, who are rare in the population.
-Locating them might require contact tracing, or respondent-driven
+\add{Though it is theoretically possible to estimate all four \gls{BA}
+parameters using more conventional approaches, the cost of doing so may be
+high, in addition to other situation-specific challenges. In theory, any
+network parameter can be estimated by explicitly constructing the contact
+network, although this is highly resource intensive and is hampered by
+misreporting and other challenges~\autocite{eames2015six}. All parameters
+become more difficult to estimate when the infected population is ``hidden''
+due to illegal or stigmatized behaviour, as is sometimes the case with
+\gls{HIV} outbreaks among \gls{IDU}, \gls{MSM}, or sex workers. In such cases,
+phylodynamic methods may offer the advantage of providing information about the
+whole population from only a small sample. A survey, for example, will not tell
+us if there are large groups of the population that we simply have not sampled.
+Our hope is that estimating \gls{N} and \gls{I} phylogenetically might provide
+this additional information. The average degree of the network, $2\gls{m}$, is
+also estimable by a survey, although individuals may be unwilling or unable to
+disclose how many contacts they have had. Sequence data also provide an
+advantage in this respect -- they are objective and do not share the same
+biases as self-reported partner counts. The estimation of \gls{alpha} is more
+complex, as this parameter is most strongly reflected in the connectivity of
+very high degree nodes, who are rare in the population. Locating them might
+require contact tracing, or respondent-driven
 sampling~\autocite{heckathorn1997respondent}. Even if the full degree
 distribution of a network is available, there are models other than
 preferential attachment which can produce scale-free
@@ -611,7 +614,7 @@ trees on a one-dimensional grid of values of one \gls{BA} parameter, to obtain
 a ``distribution'' of kernel score values. From this distribution, estimates
 and credible intervals of the parameter could be calculated. Repeating this
 experiment with trees located throughout the parameter space allowed us to
-beter quantify the identifiability. Furthermore, doing marginal estimation
+better quantify the identifiability. Furthermore, doing marginal estimation
 (that is, estimating one parameter with all others fixed) can provide insight
 into any biases observed when doing joint estimation with \gls{ABC}. If grid
 search is inaccurate, it indicates a lack of parameter identifiability.
@@ -645,7 +648,7 @@ sources of error.}
 
 \add{The Monte Carlo approximation error is fairly easily quantified by simply
 increasing the computing power used for \gls{SMC}. We ran one simulation using
-a larger number of pakticles, more simulated datasets per particle, and a
+a larger number of particles, more simulated datasets per particle, and a
 higher value for \gls{alphaess}. A substantial improvement in accuracy
 resulting from these changes would likely indicate a high Monte Carlo error
 with the lower settings. The second issue, the resemblance of the \gls{ABC}
@@ -733,7 +736,7 @@ topology. The other statistic we considered was the
 \gls{nltt}~\autocite{janzen2015approximate}, which compares two trees based on
 normalized distributions of their branching times (see
 \cref{subsec:treeshape}). In contrast with Sackin's index, the \gls{nltt} does
-not explicity consider the trees' topologies, but it does use their normalized
+not explicitly consider the trees' topologies, but it does use their normalized
 branch lengths. While the \gls{nltt} is a newly developed statistic not yet in
 widespread use, the unnormalized \gls{ltt}~\autocite{nee1992tempo} was the
 basis of seminal early work extracting epidemiological information from
@@ -880,7 +883,7 @@ using the \software{treekernel} binary. The median kernel score was calculated
 for each grid value, and the scores were normalized such that the area under
 the curve was equal to 1. \del{The grid value with the highest median kernel
 score was taken as the point estimate for the test value.} \add{For all
-parameters except \gls{m}}, 50\% and 95\% highest denstity intervals wer
+parameters except \gls{m}}, 50\% and 95\% highest density intervals were
 obtained using the \software{hpd} function in the \software{TeachingDemos}
 package~\autocite{snow2013teachingdemos}. \add{Since the \software{hpd}
 function assumes a continuous distribution, we implemented our own version for
@@ -927,7 +930,7 @@ were unknown. Therefore, any apparent errors or biases in the estimates could
 be due to either poor performance of our method, or to real features of the
 posterior distribution. The latter type of error reflects on the suitability of
 the model, but does not invalidate the use of our method in cases where the
-parameters are more identifiable. Two retrospective experiments were peformed
+parameters are more identifiable. Two retrospective experiments were performed
 to disambiguate some of the observed errors: one where we ran a simulation with
 increased computational power to test for an increase in accuracy, and a second
 where we estimated parameters marginally to remove confounding from the other
@@ -971,7 +974,7 @@ and using our own implementation for discrete distributions for \gls{m}.}
 \end{table}
 
 \add{To evaluate the effects of the true parameter values on the accuracy of
-the posterior mean estimates, we analysed the \gls{alpha} and \gls{I}
+the posterior mean estimates, we analyzed the \gls{alpha} and \gls{I}
 parameters individually using \glspl{GLM}. The response variable was the error
 of the point estimate, and the predictor variables were the true values of
 \gls{alpha}, \gls{I}, and \gls{m}. We did not test for differences across true
@@ -1109,8 +1112,8 @@ although accuracy varied between different epidemic and sampling scenarios
 (\cref{fig:alphacrossv,fig:mcrossv,fig:Icrossv,fig:Ncrossv}). \add{For all
 parameters except \gls{m}, the absolute number of tips in the tree had a much
 greater impact on accuracy than the proportion of infected individuals these
-tips represented. However, \gls{m}, both the number and proportion of sampled
-tips had a strong impact or the accuracy of the \gls{kSVR}
+tips represented. However, for \gls{m}, both the number and proportion of
+sampled tips had a strong impact or the accuracy of the \gls{kSVR}
 (\cref{fig:mcrossv}).}
 
 \begin{figure}[ht]
@@ -1137,7 +1140,7 @@ tips had a strong impact or the accuracy of the \gls{kSVR}
 \end{figure}
 
 The \gls{kSVR} classifier for \gls{alpha} had an average $R^2$ of 
-    0.92,
+    0.98,
 compared to 
     0.56
 for the \gls{nltt}-based SVR, and
@@ -1247,7 +1250,7 @@ representing
     $17$\%
 of the respective grids. For \gls{I} and \gls{N}, relative errors may be more
 appropriate to consider. An overestimate of 100 individuals would be very
-misleading if the true population was only of size 100, but almost negligable
+misleading if the true population was only of size 100, but almost negligible
 in a population of size 5000. The mean relative errors for \gls{I} and \gls{N}
 respectively were
     $18$\% and 
@@ -1322,7 +1325,6 @@ intervals are given in \cref{tab:abchpd}.
 \begin{figure}[ht]
     \centering
     \includegraphics[width=\textwidth]{abc-point-estimate-m2}
-    \vspace{6pt}
     \caption[
         Posterior mean point estimates for \gls{BA} model parameters obtained
         by running \software{netabc} on simulated data, for simulations with
@@ -1415,7 +1417,7 @@ and
     9489])
 regardless of the true values of any of the \gls{BA} parameters.}
 
-\add{To analyse the effects of the true parameter values on the
+\add{To analyze the effects of the true parameter values on the
 accuracy our estimates of \gls{alpha} and \gls{I}, we fitted one \glspl{GLM}
 for each of these two parameters, with error rate as the dependent variable and
 the true parameter values as independent variables. Since the estimates of
@@ -1439,7 +1441,7 @@ increases.}
 
 
 % latex table generated in R 3.2.3 by xtable 1.8-2 package
-% Mon Jun 20 17:18:05 2016
+% Thu Jun 23 15:40:35 2016
 \begin{table}[ht]
 \centering
 \begin{tabular}{llll}
@@ -1456,7 +1458,7 @@ Parameter & Estimate & Standard error & $p$-value \\
 \label{tab:glmalpha}
 \end{table}
 % latex table generated in R 3.2.3 by xtable 1.8-2 package
-% Mon Jun 20 17:18:05 2016
+% Thu Jun 23 15:40:35 2016
 \begin{table}[ht]
 \centering
 \begin{tabular}{llll}
@@ -1479,7 +1481,7 @@ Parameter & Estimate & Standard error & $p$-value \\
     ($p {<}10^{-5}$)
 and \gls{m}
     ($p =0.01$)
-but was not significatly affected by \gls{I} (\cref{tab:glmalpha}).
+but was not significantly affected by \gls{I} (\cref{tab:glmalpha}).
 Qualitatively, \gls{alpha} seemed to be only weakly identifiable between the
 values of 0 and 0.5 (\cref{fig:abcptm2}). The error in the estimated prevalence
 \gls{I} was slightly lower for smaller values of \gls{alpha}
@@ -1533,19 +1535,18 @@ between the parameters (\cref{tab:abchpd}). \gls{HPD} intervals around
 prior density, whereas the intervals for \gls{m} and \gls{N} were more widely
 dispersed. \Cref{fig:abclow1,fig:abclow2} \del{shows the distributions for one
 simulation.} \add{show one- and two-dimensional marginal distributions for a
-simulation with relatively low error, where the errors in \gls{alpha} and
-\gls{I} were each below the 25\% quantiles. The parameters for this simulation
-were 
-    $\gls{alpha} = 1$,
+simulation with relatively low error. Each parameter was chosen based on its
+mean error rate across all simulations. The parameters for this simulation were 
+    $\gls{alpha} = 1.5$,
     $\gls{I} = 1000$,
-    $\gls{m} = 2$, and
+    $\gls{m} = 4$, and
     $\gls{N} = 5000$.
-\Cref{fig:abchigh1,abchigh2} show the equivalent marginals for a different
-simulation with relatively high error rates above the 75\% quantiles. The
+\Cref{fig:abchigh1,fig:abchigh2} show the equivalent marginals for a different
+simulation with relatively high error rates for each individual parameter. The
 parameters were
-    $\gls{alpha} = 1$,
+    $\gls{alpha} = 0$,
     $\gls{I} = 2000$,
-    $\gls{m} = 3$, and
+    $\gls{m} = 2$, and
     $\gls{N} = 5000$.
 The two-dimensional marginals some dependence between pairs of parameters,
 particularly \gls{I} and \gls{N} which show a diagonally shaped region of high
@@ -1553,7 +1554,7 @@ posterior density.}
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=\textwidth]{{abc-posterior/1.0_1000_2_5000_0}.pdf}
+    \includegraphics[width=\textwidth]{{abc-posterior/1.5_1000_4_5000_0}.pdf}
     \caption[
         One-dimensional marginal posterior distributions of \gls{BA} model
         parameters estimated with low error by \software{netabc} from a
@@ -1570,7 +1571,7 @@ posterior density.}
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=\textwidth]{{abc-posterior-2d/1.0_1000_2_5000_0}.pdf}
+    \includegraphics[width=\textwidth]{{abc-posterior-2d/1.5_1000_4_5000_0}.pdf}
     \caption[
         Two-dimensional marginal posterior distributions of \gls{BA} model
         parameters estimated with low error by \software{netabc} from a
@@ -1586,7 +1587,7 @@ posterior density.}
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=\textwidth]{{abc-posterior/1.0_2000_3_5000_0}.pdf}
+    \includegraphics[width=\textwidth]{{abc-posterior/0.0_2000_2_5000_0}.pdf}
     \caption[
         One-dimensional marginal posterior distributions of \gls{BA} model
         parameters estimated with high error by \software{netabc} from a
@@ -1603,7 +1604,7 @@ posterior density.}
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=\textwidth]{{abc-posterior-2d/1.0_2000_3_5000_0}.pdf}
+    \includegraphics[width=\textwidth]{{abc-posterior-2d/0.0_2000_2_5000_0}.pdf}
     \caption[
         Two-dimensional marginal posterior distributions of \gls{BA} model
         parameters estimated with high error by \software{netabc} from a
@@ -1669,7 +1670,7 @@ datasets (\cref{tab:abchpd}), although the estimate of peer-driven sampling for
 \add{\Cref{fig:marginal} shows the effect of performing marginal \gls{ABC}
 estimation of each of the \gls{BA} parameters on the same simulated
 transmission tree. The estimates of \gls{m} are apparently unaffected by
-marginalizing out the other parameters, coroborating the prevous experiments'
+marginalizing out the other parameters, corroborating the previous experiments'
 findings that \gls{m} is not an identifiable parameter from scaled tree shapes.
 The estimates of \gls{alpha} and \gls{N} were weakly improved in marginal
 estimation, which is consistent with the result from grid search that all
@@ -1700,11 +1701,11 @@ estimates appeared to improve when more computing power was used for \gls{SMC}
     \centering
     \includegraphics{stock/missing}
     \caption[
-        Comparsion of \gls{BA} parameter estimates obtained with
+        Comparison of \gls{BA} parameter estimates obtained with
         \software{netabc} on the same dataset with different \gls{SMC}
         settings.
     ]{
-        Comparsion of \gls{BA} parameter estimates obtained with
+        Comparison of \gls{BA} parameter estimates obtained with
         \software{netabc} on the same dataset with different \gls{SMC}
         settings. Points are posterior means, notches are 50\% \gls{HPD}
         intervals, and lines are 95\% \gls{HPD} intervals.
@@ -1738,7 +1739,7 @@ revisited, and those without sampling time annotation in GenBank were excluded.
 We also excluded studies where all sequences were sampled at the same
 timepoint, which was necessary because the method we used to time scale the
 tree requires non-contemporaneous tips.} The datasets are summarized in
-\cref{tab:data}. In addition \add{to the published data}, we analysed an
+\cref{tab:data}. In addition \add{to the published data}, we analyzed an
 in-house dataset sampled from \gls{HIV}-positive individuals in British
 Columbia, Canada. \add{For clarity, we will refer to each dataset by its risk
 group and location of origin in the text. For example, the
@@ -1792,17 +1793,17 @@ modified version of Path-O-Gen (distributed as part of
 BEAST~\autocite{drummond2007beast}) as described
 previously~\autocite{poon2015phylodynamic}. 
 
-\del{Three} \add{Six} of the datasets (MSM/Shanghai, HET/Botswana, HET/Uganda, 
+\del{Three} \add{Four} of the datasets (MSM/Shanghai, HET/Botswana, HET/Uganda, 
 and MSM/USA) were initially larger than the others, containing 1265, 1299,
 1026/915 (\textit{env}/\textit{gag}), and 648 sequences respectively. To ensure
 that the analyses were comparable, we reduced these to a number of sequences
 similar to the smaller datasets. For the MSM/Shanghai dataset, we detected a
-cluster of size 280 using a patristic distance cutoff of 0.02 as described
+cluster of size 280 using a patriotic distance cutoff of 0.02 as described
 previously~\autocite{poon2015impact}. Only sequences within this cluster were
 carried forward. For the HET/Uganda, HET/Botswana, and MSM/USA datasets, no
-large clusters were detected using the same cutoff, so we analysed subsets of
+large clusters were detected using the same cutoff, so we analyzed subsets of
 size 225, 180, and 180 respectively. \add{The subset of the HET/Uganda data was
-chosen by eye such that the individuals were monophyletic in both the
+chosen by eye such that the individuals were monopolistic in both the
 \textit{gag} and \textit{env} trees. The other subsets were arbitrarily chosen
 subtrees from phylogenies of the complete datasets.}
 
@@ -1817,7 +1818,6 @@ the SMC algorithm were the same as used for the simulation experiments, except
 that we used 10000 particles instead of 1000 to increase the accuracy of the
 estimated posterior. This was computationally feasible due to the small number
 of runs required for this analysis.
-
 
 Empirical studies of contact networks often report the exponent \gls{gamma} of
 the power law degree distribution~\autocite{colgate1989risk, liljeros2001web,
@@ -2009,7 +2009,7 @@ for \textit{env} and
 for \textit{gag}). As with \gls{alpha}, many of the posterior means were
 outside the 50\% \gls{HPD} intervals, suggesting diffuse posterior
 distributions. The values of \gls{I} were fairly robust to restricting the
-prior to $\gls{m} \geq 2$ (compare \cref{fig:abchpd,fig:abchdpm2}), although 
+prior to $\gls{m} \geq 2$ (compare \cref{fig:abchpd,fig:abchpdm2}), although 
 the 95\% \gls{HPD} intervals were slightly narrower (average width
     2183
 for $\gls{m} \geq 1$ and
@@ -2034,7 +2034,7 @@ when $m = 1$ was allowed.}
 
 \add{The posterior means of \gls{m} were equal to one for 
   zero
-of the datasets analysed. The widths of the 95\% \gls{HPD} intervals varied
+of the datasets analyzed. The widths of the 95\% \gls{HPD} intervals varied
 from 0 (all the mass on the estimated value) to 5 (the entire prior region).
 When the value $\gls{m} = 1$ was disallowed by the prior, the posterior means
 for all but the HET/Botswana data took on the value 3, with the \gls{HPD}

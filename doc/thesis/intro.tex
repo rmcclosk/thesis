@@ -206,58 +206,6 @@ Bayesian method to jointly estimate a transmission tree and viral phylogeny by
 combining models of agent-based transmission, within-host population dynamics,
 and sequence evolution.
 
-%Although phylodynamics is quite new, these phenomena have been studied in
-%evolutionary biology for some time. Viral phylogenies are a specific version of
-%a more general class of trees called \defn{gene trees}, which represent the
-%evolutionary history of a section of genetic material. Transmission trees, on
-%the other hand, are highly analogous to \defn{species trees}, whose tips are
-%species and internal nodes are common ancestors. This analogy derives from the
-%functional similarity between transmission and allopatric speciation. Hence,
-%the potential discordance between transmission trees and viral phylogenies is
-%the similar to that between gene and species trees, which is called
-%\defn{incomplete lineage sorting}. 
-
-%What we have just discussed is a two-step procedure for estimating the
-%transmission tree. First, a viral phylogeny is constructed from genetic
-%sequence data, and then it is rooted and time-scaled into a transmission tree.
-%This approach is straightforward, frequently used, and has the advantage of
-%leveraging tried-and-true tools for phylogenetic inference. However, it also
-%has drawbacks, perhaps the most obvious being the multiplication of errors
-%produced by the separate steps. One commonly used alternative method is to
-%directly estimate a time-scaled phylogeny by simultaneously inferring the tree
-%topology, its root and branch lengths, and the parameters of a \defn{molecular
-%clock} model. A molecular clock is a hypothesis about the evolutionary rates
-%along the branches of the tree, such as that they are all equal (a \defn{strict
-%clock}) or that they are \gls{iid} from a common distribution (a \defn{relaxed
-%clock}). This inference is usually done in a Bayesian framework using
-%\gls{MCMC}, so that prior information (including the tip dates) can be included
-%in the analysis, and the so-called nuisance parameters of the molecular clock
-%model can be marginalized out. Software packages for performing these analyses
-%include BEAST~\autocite{bouckaert2014beast} and
-%MrBayes~\autocite{ronquist2012mrbayes}.
-
-%Other methods are tailor-made for inferring transmission trees.
-%\textcite{didelot2014bayesian} develop a Bayesian approach which allows
-%transmissions to occur anywhere along the
-%branches of a transmission tree, rather than being constrained to the branching
-%points in the viral phylogeny. The method requires sampling of every infected
-%individual, although the authors indicate that it could be extended to relax
-%this assumption. \textcite{cottam2008integrating} describe a likelihood-based
-%method which enumerates all transmission trees consistent with an established
-%phylogeny, assigning each a likelihood based on other epidemiological data.
-%This approach is novel in its integration of data from multiple sources,
-%however because it enumerates a large portion of the tree space, it is unlikely
-%to scale to larger epidemics. \textcite{ypma2012unravelling} develop a joint
-%likelihood function integrating temporal, geographic, and genetic observations,
-%and use Bayesian \gls{MCMC} to estimate both the tree and the parameters of the
-%likelihood function. Their approach can handle missing data and produces high
-%resolution transmission trees when multiple types of data are available. A
-%different approach is undertaken by \textcite{jombart2011reconstructing}, who
-%describe a method to build transmission trees directly from sequence data,
-%contingent on the common ancestors also being sampled. This makes the method
-%attractive for slow-evolving pathogens, but less practical for viral outbreaks
-%where samples from common ancestors are unlikely to be available.
-
 \subsection{Tree shapes}
 \label{subsec:treeshape}
 
@@ -304,7 +252,7 @@ objects is defined as
 \]
 that is, the inner product of the objects' representations in the feature
 space. Computing $\varphi(x)$ may be computationally prohibitive due to the
-dimension of $\F$. The utility of a kernel function $K$ is that it is
+dimension of $\F$. The utility of a kernel function is that it is
 constructed in such a way that it can compute the inner product without
 explicitly computing $\varphi(x)$. The kernel function developed in
 \autocite{poon2013mapping} will henceforth be referred to as the \defn{tree
@@ -912,7 +860,7 @@ weights after all $d$ sequential steps, \add{a problem known as \defn{particle
 degeneracy}. To mitigate this problem, \textcite{gordon1993novel} introduced
 technique they called the \defn{bootstrap filter}, which involves a resampling
 of the population of particles after each sequential step in accordance with
-their importance weights. A similar idea, termed \defn{particle rejuvination},
+their importance weights. A similar idea, termed \defn{particle rejuvenation},
 was proposed by \textcite{liu1995blind}. These approaches cause particles with
 high importance weights to be replicated in the population, while particles
 with low weights may be removed. After each resampling step, the importance
@@ -1151,7 +1099,7 @@ can be evaluated up to a normalizing constant $Z$, that is, $\pi(x) = \gamma(x)
 \gls{SMC} sampler, a similar ratio is required to calculate the importance
 weights. In the context of Bayesian inference, this ratio contains a likelihood
 ratio, which must be calculated by computing the individual likelihoods and
-dividing them. If the likeilhood is intractible, this is clearly not a viable
+dividing them. If the likelihood is intractable, this is clearly not a viable
 approach.}
 
 \add{\Gls{ABC}~\autocite{rubin1984bayesianly, tavare1997inferring,
