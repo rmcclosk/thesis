@@ -1,19 +1,37 @@
 \documentclass[12pt]{article}
 \usepackage[T1]{fontenc}
 \usepackage{mathptmx}
-\usepackage[backend=biber]{biblatex}
+\usepackage[backend=biber, style=numeric-comp, sorting=none]{biblatex}
 \usepackage{fullpage}
 \usepackage{array}
 \usepackage{multirow}
 \usepackage{setspace}
 \usepackage{cleveref}
+\usepackage[normalem]{ulem}
+\usepackage{color}
+\usepackage{amsmath}
 
 \addbibresource{papers.bib}
-\begin{document}
-\onehalfspacing
+
+% beginning of diff stuff
+\usepackage{twoopt}
+
+\let\mtextcite\textcite
+\let\mautocite\autocite
+\let\mciteauthor\citeauthor
+\renewcommandtwoopt{\textcite}[3][][]{\mbox{\mtextcite[#1][#2]{#3}}}
+\renewcommandtwoopt{\autocite}[3][][]{\mbox{\mautocite[#1][#2]{#3}}}
+\renewcommand{\citeauthor}[1]{\mbox{\mciteauthor{#1}}}
+
+\newcommand{\add}[1]{\color{blue} \uline{#1} \color{black}}
+\newcommand{\del}[1]{\color{red} \sout{#1} \color{black}}
+% end of diff stuff
 
 \newcommand{\tablepath}{../tables}
 \graphicspath{{../figures/}}
+
+\begin{document}
+\onehalfspacing
 
 \title{Reconstructing contact network parameters from viral phylogenies}
 \author{Rosemary M. McCloskey$^1$, Richard H. Liang$^1$, and Art F.Y. Poon$^{1,2}$ \\
@@ -55,7 +73,7 @@ contact networks have been explored as tools for curtailing epidemic spread, by
 way of interventions targeted to well-connected
 nodes~\autocite{wang2015targeting}. True contact networks are a challenging
 type of data to collect, requiring extensive epidemiological
-investigation~\autocite{welch2011statistical}.
+investigation~\autocite{welch2011statistical, eames2015six}.
 
 Viral sequence data, on the other hand, has become relatively inexpensive and
 straightforward to collect on a population level. Due to the high mutation rate
@@ -79,11 +97,12 @@ villandre2016assessment}, suggesting that such statistical inference might be
 possible~\autocite{welch2011statistical}.
 
 Survey-based studies of sexual networks~\autocite{colgate1989risk,
-liljeros2001web, schneeberger2004scale} have found that these networks tend to
-have a degree distribution which follows a power law \autocite[although there
-has been some disagreement, see][]{handcock2004likelihood}. That is, the number
-of nodes of degree $k$ is proportional to $k^{-\gamma}$ for some constant
-$\gamma$. These networks are also referred to as
+liljeros2001web, schneeberger2004scale, latora2006network, rothenberg2007large,
+clemenccon2015statistical} have found that these networks tend to have a degree
+distribution which follows a power law \autocite[although there has been some
+disagreement, see][]{handcock2004likelihood}. That is, the number of nodes of
+degree $k$ is proportional to $k^{-\gamma}$ for some constant $\gamma$. These
+networks are also referred to as
 ``scale-free''~\autocite{barabasi1999emergence}. One process by which
 scale-free networks can be generated is preferential attachment, where nodes
 with a high number of contacts attract new connections at an elevated rate. The
@@ -96,6 +115,10 @@ probability proportional to $k$, so that nodes of high degree tend to attract
 more connections. \citeauthor{barabasi1999emergence} suggested an extension
 where the probability of attaching to a node of degree $k$ is $k^\alpha$ for
 some non-negative constant $\alpha$, and we use this extension in this work.
+\add{When $\alpha \neq 1$, the degree distribution is no longer a power law:
+for $\alpha < 1$, the distribution is a stretched exponential, while for
+$\alpha > 1$, it is a ``gelation'' type distribution where one or a few hub
+nodes are connected to nearly every other node in the graph.}
 
 Previous work offers precedent for the possibility of statistical inference of
 structural network parameters. \textcite{britton2002bayesian} develop a Bayesian
@@ -139,27 +162,30 @@ observed data, the posterior distribution $f(\theta \mid D)$ on model
 parameters $\theta$ is replaced as the target of statistical inference by
 $f(\theta \mid \rho(\hat{D}, D) < \varepsilon)$, where $\rho$ is a distance
 function, $\hat{D}$ is a simulated dataset according to $\theta$, and
-$\varepsilon$ is a small tolerance~\autocite{sunnaaker2013approximate}. In the
-specific case when $\rho$ is a kernel function, the approach is known as
-kernel-ABC~\autocite{nakagome2013kernel, poon2015phylodynamic}.
+$\varepsilon$ is a small tolerance~\autocite{sunnaaker2013approximate}. \del{In
+the specific case when $\rho$ is a kernel function, the approach is known as
+ABC~\autocite{nakagome2013kernel, poon2015phylodynamic}.} \add{Our
+group~\autocite{poon2015phylodynamic} and others~\autocite{park2015k2} have
+demonstrated that taking $\rho$ to be kernel function TODO}
 
-Here, we develop a method using kernel-ABC to estimate the parameters of
-contact network models from observed phylogenetic data. The distance function
-we use is the tree kernel developed by \textcite{poon2013mapping}, which computes
-a weighted dot product of the trees' representations in the space of all
-possible subset trees. We apply the method to investigate the parameters of the
-BA network model on a variety of simulated and real datasets. Our results show
+Here, we develop a method using ABC to estimate the parameters of contact
+network models from observed phylogenetic data. The distance function we use is
+the tree kernel developed by \textcite{poon2013mapping}, which computes a
+weighted dot product of the trees' representations in the space of all possible
+subset trees. We apply the method to investigate the parameters of the BA
+network model on a variety of simulated and real datasets. Our results show
 that some network parameters can be inferred with reasonable accuracy, while
-others have a minimal detectable impact on tree shape and therefore cannot be
-estimated accurately. We also find that these parameters can vary considerably
-between real epidemics from different settings.
+others \del{have a minimal detectable impact on tree shape and therefore cannot
+be estimated accurately}\add{are weakly- or non-identifiable with ABC}. We also
+find that these parameters can vary considerably between real epidemics from
+different settings. \add{TODO: something about sub-linear PA and IDU}
 
 \section*{Methods}
 
 \subsection*{\textit{Netabc}: phylogenetic inference of contact network
-parameters with kernel-ABC}
+parameters with ABC}
 
-We have developed a kernel-ABC-based method to perform statistical inference of
+We have developed an ABC-based method to perform statistical inference of
 contact network parameters from a transmission tree estimated from an observed
 viral phylogeny. We implemented the adaptive sequential Monte Carlo (SMC)
 algorithm for ABC developed by \textcite{del2012adaptive}. The SMC algorithm
@@ -182,8 +208,20 @@ particle is dropped from the population, and eventually replaced by a resampled
 particle with a higher weight. As the algorithm progresses, the population
 converges to a Monte Carlo approximation of the ABC target distribution, which
 is assumed to approximate the desired posterior~\autocite{del2012adaptive,
-sunnaaker2013approximate}. A computer program implementing our method is freely
-available at \url{https://github.com/rmcclosk/netabc} (last accessed \today).
+sunnaaker2013approximate}. 
+
+\add{In the original formulation of ABC-SMC~\autocite{sisson2007sequential,
+beaumont2009adaptive}, the user is required to specify a decreasing sequence of
+tolerances $\lbrace\varepsilon_i\rbrace$. At iteration $i$, particles with no
+associated simulated datasets within distance $\varepsilon_i$ of the observed
+data are removed from the population. In the adaptive version of
+\textcite{del2012adaptive}, the sequence of tolerances is determined
+automatically by fixing the decay rate of the population's expected sample size
+(ESS) to a user-defined value. \citeauthor{del2012adaptive} call this value
+$\alpha$, but we will refer to it here as $\alpha_{\text{ESS}}$ to avoid
+confusion with the preferential attachment power parameter of the BA model. A
+computer program implementing our method is freely available at
+\url{https://github.com/rmcclosk/netabc} (last accessed \today).}
 
 To check that our implementation of Gillespie simulation was correct, we
 reproduced Figure 1A of \textcite{leventhal2012inferring} (our
@@ -204,68 +242,136 @@ implementation of the BA model~\autocite{csardi2006igraph} to generate the
 graphs. The analyses were run on Westgrid (\url{https://www.westgrid.ca/}) and
 a local computer cluster.
 
-\subsection*{Kernel classifiers}
+\subsection*{\del{Kernel classifiers}\add{Classifiers for BA model parameters from tree shapes}}
+
+\add{We considered four parameters related to the BA model, denoted $N$, $m$,
+$alpha$, and $I$. The first three of these parameterize the network structure,
+while $I$ is related to the simulation of transmission trees over the network.
+However, we will refer to all four as BA parameters. $N$ denotes the total
+number of nodes in the network, or equivalently, susceptible individuals in the
+population. $m$ is the number of new undirected edges added for each new
+vertex, or equivalently one-half of the average degree. $\alpha$ is the power
+of preferential attachment -- new nodes are attached to existing nodes of
+degree $d$ with probability proportional to $d^{\alpha} + 1$. Finally, $I$ is
+the number of infected individuals at the time when sampling occurs. The
+$\alpha$ parameter is unitless, while $m$ has units of edges or connections per
+vertex, and $N$ and $I$ both have units of nodes or individuals.}
+
+\add{Before proceeding with a full validation of \textit{netabc} on simulated
+data, we undertook two experiments designed to assess the identifiability of
+the BA parameters. These experiments only investigated one parameter of the
+BA model at a time while holding all others fixed, a strategy commonly used
+when performing sensitivity analyses of mathematical models. This allowed us to
+perform a fast preliminary analysis without dealing with the ``curse of
+dimensionality'' of the full parameter space. We simulated trees under three
+different values of each parameter, and asked how well we could tell the
+different trees apart. The better we are able to distinguish the trees, the
+more identifiability we might expect for the corresponding parameter when we
+attempt to estimate it with ABC.}
+
+\add{This experiment also had the secondary purpose of validating our choice of
+the tree kernel as a distance measure in ABC. To tell the trees apart, we used
+a classifier based on the tree kernel, but we also tested two other tree shape
+statistics. Sackin's index~\autocite{shao1990tree} is a measure of tree
+imbalance which not take branch lengths into account, considering only the
+topology. The normalized lineages-through-time
+\autocite[nLTT,][]{janzen2015approximate} compares two trees based on normalized
+distributions of their branching times, and does not explicitly consider the
+topology. In addition, the tree kernel can be tuned by adjusting the values of
+the meta-parameters $\lambda$ and $\sigma$ (the ``decay factor'' and ``radial
+basis function variance'', see \textcite{poon2013mapping}). The results of this
+experiment were used to select values for these meta-parameters to carry
+forward based on their accuracy in distinguishing the different trees.}
   
-We used the phylogenetic kernel developed by \textcite{poon2013mapping} to test
-whether the parameters of the BA model had an effect on tree shape. 100
-networks were simulated under each of three different values of $\alpha$: 0.5,
-1.0, and 1.5 (300 networks total). The other parameters were fixed to the
-following values: $N$ = 5000, $I$ = 1000, and $m$ = 2. A transmission tree with
-500 tips was simulated over each network (300 transmission trees total). The
-300 trees were compared pairwise with the tree kernel to form a $300 \times
-300$ kernel matrix. The kernel meta-parameters $\lambda$ (the ``decay
-factor''), and $\sigma$ (the ``radial basis function
-variance'')~\autocite[see][]{poon2013mapping}, were set to 0.3 and 4 respectively.
-We constructed a kSVR classifier for $\alpha$ using the \textit{kernlab}
-package~\autocite{zeileis2004kernlab}, and evaluated its accuracy with 1000
-two-fold cross-validations.
+\del{We used the phylogenetic kernel developed by \textcite{poon2013mapping}}
+To test whether the parameters of the BA model had a \add{measurable} effect on
+tree shape, 100 networks were simulated under each of three different values of
+$\alpha$: 0.5, 1.0, and 1.5 (300 networks total). The other parameters were
+fixed to the following values: $N = 5000$, $I = 1000$, and $m = 2$. A
+transmission tree with 500 tips was simulated over each network (300
+transmission trees total). The 300 trees were compared pairwise with the tree
+kernel to form a $300 \times 300$ kernel matrix. The kernel meta-parameters
+$\lambda$ \del{(the ``decay factor''),} and $\sigma$ \del{(the ``radial basis
+function variance'')~\autocite[see][]{poon2013mapping},} were set to 0.3 and 4
+respectively. \add{We also computed a $300 \times 300$ matrix of pairwise nLTT
+values, and a $1 \times 300$ vector of Sackin's index values.} We constructed 
+\add{three classifiers for $\alpha$:} a kernel support vector regression (kSVR)
+\add{from the kernel matrix} with the \textit{kernlab}
+package~\autocite{zeileis2004kernlab}, an ordinary SVR \add{from the nLTT
+matrix} with the e1071 package~\autocite{meyer2015e1071}, and a linear
+regression from the Sackin's index values. The accuracy of each classifier was 
+evaluated with 1000 two-fold cross validations.
   
 Three similar experiments were performed for the other BA model parameters (one
 experiment per parameter). $m$ was varied between 2, 3, and 4; $I$ between 500,
 1000, and 2000; and $N$ between 3000, 5000, and 8000. The parameters not being
 tested were fixed at the values $N$ = 5000, $I$ = 1000, $m$ = 2, and $\alpha$ =
-1. Thus, we performed a total of four kSVR cross-validations, one for each of
-the BA model parameters $\alpha$, $I$, $m$, and $N$. We repeated these four
-cross-validations with different values of $\lambda$ (0.2, 0.3, and 0.4) and
-$\sigma$ ($2^{-3}$, $2^{-2}$, \ldots, $2^3$), as well as on trees with
-differing numbers of tips (100, 500, and 1000) and in epidemics of differing
-size (500, 1000, and 2000). The combination of the number of sampled
-individuals (\textit{i.e.} the number of tips) and the epidemic size
-(\textit{i.e.} $I$) will be referred to as an ``epidemic scenario''. When
-evaluating the classifier for $I$, we did not consider trees with 1000 tips,
-because one of the tested $I$ values was 500, and the number of tips cannot be
-larger than $I$.
-  
-For each of the four parameters, we also tested a linear regression against
+1. Thus, we performed a total of four cross-validations \add{for each
+classifier}, one for each of the BA model parameters $\alpha$, $I$, $m$, and
+$N$. We repeated these four cross-validations with different values of
+$\lambda$ (0.2, 0.3, and 0.4) and $\sigma$ ($2^{-3}$, $2^{-2}$, \ldots, $2^3$),
+as well as on trees with differing numbers of tips (100, 500, and 1000).
+\add{For the structural parameters $\alpha$, $m$, and $N$, the experiments were
+repeated with three different values of $I$ (500, 1000, and 2000).} \del{and in
+epidemics of differing size (500, 1000, and 2000).} The combination of the
+number of sampled individuals (\textit{i.e.} the number of tips) and the
+epidemic size (\textit{i.e.} $I$) will be referred to as an ``epidemic
+scenario''. When evaluating the classifier for $I$, we did not consider trees
+with 1000 tips, because one of the tested $I$ values was 500, and the number of
+tips cannot be larger than $I$.
+
+\del{For each of the four parameters, we also tested a linear regression against
 Sackin's index~\autocite{shao1990tree} and an ordinary SVR based on the normalized
-lineages-through-time (nLTT) statistic~\autocite{janzen2015approximate}.
-  
+lineages-through-time (nLTT) statistic~\autocite{janzen2015approximate}.}
+
 \subsection*{ABC simulations}
   
-We simulated three transmission trees, each with 500 tips, under every element
-of the Cartesian product of these parameter values: $N$ = 5000, $I$ =
-\{1000, 2000\}, $m$ = \{2, 3, 4\}, and $\alpha$ = \{0.0, 0.5, 1,
-1.5\}. This produced a total of 24 parameter combinations $\times$ three trees
-per combination = 72 trees total. The adaptive ABC algorithm was applied to
-each tree with these priors: $m \sim$ DiscreteUniform(1, 5), $\alpha \sim$
-Uniform(0, 2), and $(N, I)$ jointly uniform on the region \{$500 \leq N \leq
-15000$, $500 \leq I \leq 5000$, $I \leq N$\}. Proposals for $\alpha$, $N$, and
-$I$ were Gaussian, while proposals for $m$ were Poisson. Following
-\textcite{del2012adaptive} and \textcite{beaumont2009adaptive}, the variance of
-all proposals was equal to the empirical variance of the particles.
+\add{We tested \textit{netabc} by jointly estimating the four parameters of the
+BA model. We used the standard validation approach of simulating transmission
+trees under the model with known parameter values and attempting to recover
+those values with \textit{netabc}. The algorithm was not informed of any of
+the true parameter values for the main set of simulations.} We simulated three
+transmission trees, each with 500 tips, under every element of the Cartesian
+product of these parameter values: $N$ = 5000, $I$ = \{1000, 2000\}, $m$ = \{2,
+3, 4\}, and $\alpha$ = \{0.0, 0.5, 1, 1.5\}. This produced a total of 24
+parameter combinations $\times$ three trees per combination = 72 trees total.
+The adaptive ABC algorithm was applied to each tree with these priors: $m \sim$
+DiscreteUniform(1, 5), $\alpha \sim$ Uniform(0, 2), and $(N, I)$ jointly
+uniform on the region \{$500 \leq N \leq 15000$, $500 \leq I \leq 5000$, $I
+\leq N$\}. Proposals for $\alpha$, $N$, and $I$ were Gaussian, while proposals
+for $m$ were Poisson. Following \textcite{del2012adaptive} and
+\textcite{beaumont2009adaptive}, the variance of all proposals was equal to the
+empirical variance of the particles.
 
-The algorithm was run with 1000 particles, 5 simulated datasets per particle,
-and the ``quality'' parameter controlling the decay rate of the tolerance
-$\varepsilon$ set to 0.95. We used the same stopping criterion as
-\citeauthor{del2012adaptive}, namely when the MCMC acceptance rate dropped
-below 1.5\%. Point estimates for the parameters were obtained by taking the
-highest point of an estimated kernel density on the final set of particles,
-calculated using the \textit{density} function with the default parameters in
-\textit{R}. Highest posterior density (HPD) intervals were calculated with the
+The SMC settings used were 1000 particles, 5 simulated datasets per particle,
+and \del{the ``quality'' parameter controlling the decay rate of the tolerance
+$\varepsilon$ set to}\add{$\alpha_{\text{ESS}} =  0.95$}. We used the same
+stopping criterion as \citeauthor{del2012adaptive}, namely when the MCMC
+acceptance rate dropped below 1.5\%. \del{Point estimates for the parameters
+were obtained by taking the highest point of an estimated kernel density on the
+final set of particles, calculated using the \textit{density} function with the
+default parameters in \textit{R}.} \add{Approximate posterior means for the
+parameters were obtained by taking the weighted average of the final set of
+particles.} Highest posterior density (HPD) intervals were calculated with the
 \textit{HPDinterval} function from the \textit{R} package
 \textit{coda}~\autocite{plummer2006coda}.
-  
-Two further analyses were performed to address potential sources of error. To
+
+\add{To evaluate the effects of the true parameter values on the accuracy of
+the posterior mean estimates, we analyzed the $\alpha$ and $I$ parameters
+individually using generalized linear models (GLMs) The response variable was
+the error of the point estimate, and the predictor variables were the true
+values of $\alpha$, $I$, and $m$. We did not test for differences across true
+values of $N$, because $N$ was not varied in these simulations. The
+distribution family and link function for the GLMs were Gaussian and inverse,
+respectively, chosen by examination of residual plots and Akaike information
+criteria (AIC). The $p$-values of the estimated GLM coefficients were corrected
+using Holm-Bonferroni correction~\autocite{holm1979simple} with $n =
+6$ (two GLMs with three predictors each). Because there was clearly little to
+no identifiability of $N$ and $m$ with ABC (see results in next section), we
+did not construct GLMs for those parameters.}
+
+Two further simulations were performed to address \del{potential sources of
+error} \add{the possible impact of two types of model misspecification}. To
 evaluate the effect of model misspecification in the case of heterogeneity
 among nodes, we generated a network where half the nodes were attached with
 power $\alpha$ = 0.5, and the other half with power $\alpha$ = 1.5. The other
@@ -274,53 +380,95 @@ investigate the effects of potential sampling bias, we simulated a transmission
 tree where the tips were sampled in a peer-driven fashion, rather than at
 random. That is, the probability to sample a node was twice as high if any of
 that node's network peers had already been sampled. The parameters of this
-network were $N$ = 5000, $I$ = 2000, $m$ = 2, and $\alpha$ = 0.5.
+network were $N= 5000$, $I = 2000$, $m = 2$, and $\alpha = 0.5$.
+
+\add{Despite the fact that the parameter values used to generate the simulated
+transmission trees were known, the true posterior distributions of the BA
+parameters were unknown. Therefore, any apparent errors or biases in the
+estimates could be due to either poor performance of our method, or to real
+features of the posterior distribution. Two retrospective experiments were
+performed to disambiguate some of the observed errors. To assess the impact of
+the SMC settings on \textit{netabc}'s accuracy, we ran \textit{netabc}
+twice on the same simulated transmission tree. For the first run, the SMC
+settings were the same as in the other simulations: 1000 particles, 5 simulated
+transmission trees per particle, and $\alpha_{\text{ESS}} = 0.95$. The second
+run was performed with 2000 particles, 10 simulated transmission trees per
+particle, and $\alpha_{\text{ESS}} = 0.99$. To investigate the extent to which
+errors in the estimated BA parameters were due to true features of the
+posterior, rather than an inaccurate ABC approximation, we performed marginal
+estimation for one set of parameter values. Each combination of 1, 2, or 3
+model parameters (14 combinations total) was fixed to their known values, and
+the remaining parameters were estimated with \textit{netabc}. The parameter
+values were $\alpha = 0.0$, $m = 2$, $I = 2000$, and $N = 5000$.}
   
 \subsection*{Investigation of published data}
   
-We applied our kernel-ABC method to several published HIV datasets. Because the
-BA model generates networks with a single connected component, we
-specifically searched for datasets which originated from existing clusters,
-either phylogenetically or geographically defined. Characteristics of the
-datasets we investigated are given in \cref{tab:data}.
-  
+We applied our ABC method to ten published HIV datasets. Because the BA model
+generates networks with a single connected component, we specifically searched
+for datasets which originated from existing clusters, either phylogenetically
+or geographically defined. Characteristics of the datasets we investigated are
+given in \cref{tab:data}. \add{For clarity, we will refer to each dataset by
+its risk group and location of origin in the text. For example, the
+\textcite{zetterberg2004two} data will be referred to as IDU/Estonia.}
+
 \begin{table*}[!t]
   \centering
   \input{\tablepath/realdata}
   \caption{
-    Characteristics of published datasets investigated with kernel-ABC.
+    Characteristics of published datasets investigated with ABC.
     Acronyms: MSM, men who have sex with men; IDU, injection drug users; HET,
-    heterosexual. The \textcite{novitsky2013phylogenetic, novitsky2014impact}
-    data was sampled from a primarily heterosexual risk environment, but did
-    not explicitly exclude other risk groups.
+    heterosexual. The HET data were sampled from a primarily heterosexual risk
+    environment, but did not explicitly exclude other risk factors. The number
+    of sequences column indicates how many sequences were included in our
+    analysis; there may have been additional sequences linked to the study
+    which we excluded for various reasons (see methods).
   }
   \label{tab:data}
 \end{table*}
 
-We downloaded all sequences associated with each study from GenBank. For the
-\textcite{novitsky2014impact} data, each sequence was aligned pairwise to the HXB2
-reference sequence (Genbank accession number K03455) and the hypervariable
-regions were clipped out with \textit{BioPython} version
-1.66+~\autocite{cock2009biopython}. Sequences were multiply aligned using
-\textit{MUSCLE} version 3.8.31 \autocite{edgar2004muscle}, and alignments were
-manually inspected with \textit{Seaview} version 4.4.2
-\autocite{gouy2010seaview}. Phylogenies were constructed from the nucleotide
-alignments by approximate maximum likelihood using \textit{FastTree2} version
-2.1.7 \autocite{price2010fasttree} with the generalized time-reversible model.
-Transmission trees were estimated by rooting and time-scaling the phylogenies
-by root-to-tip regression, using a modified version of Path-O-Gen (distributed
-as part of BEAST~\autocite{drummond2007beast}) as described
+We downloaded all sequences associated with each published study from GenBank.
+\add{For the IDU/Romania data, only sequences from injection drug users (IDU,
+whose sequence identifiers included the letters ``DU'') were included in the
+analysis. \textcite{kao2011surveillance} (MSM/Taiwan) found a strong
+association in their study population between subtype and risk group - subtype
+B was most often associated with men who have sex with men (MSM), whereas IDU
+were usually infected with a circulating recombinant form. Since there were
+many more subtype B sequences in their data than sequences of other subtypes,
+we restricted our analysis to the subtype B sequences and labelled this dataset
+as MSM. Three datasets (IDU/Estonia, HET/Uganda, and HET/Malawi) included both
+\textit{env} and \textit{gag} sequences. Each gene was analyzed separately to
+assess the robustness of \textit{netabc} to the particular HIV gene sequence
+used to estimate a transmission tree.}
+
+\del{For the \textcite{novitsky2014impact} data,} Each \textit{env} sequence
+was aligned pairwise to the HXB2 reference sequence (GenBank accession number
+K03455), and the hypervariable regions were clipped out with
+\textit{BioPython} version 1.66+~\autocite{cock2009biopython}. Sequences were
+multiply aligned using \textit{MUSCLE} version 3.8.31
+\autocite{edgar2004muscle}, and alignments were manually inspected with
+\textit{Seaview} version 4.4.2 \autocite{gouy2010seaview}. Phylogenies were
+constructed from the nucleotide alignments by approximate maximum likelihood
+using \textit{FastTree2} version 2.1.7 \autocite{price2010fasttree} with the
+generalized time-reversible (GTR) model~\autocite{tavare1986some}. Transmission
+trees were estimated by rooting and time-scaling the phylogenies by root-to-tip
+regression, using a modified version of Path-O-Gen (distributed as part of
+BEAST~\autocite{drummond2007beast}) as described
 previously~\autocite{poon2015phylodynamic}. 
 
-Two of the datasets \autocite{li2015hiv,novitsky2014impact} were initially much
-larger than the others, containing 1265 and 1299 sequences respectively. To
+\del{Two} \add{Four} of the datasets \del{\autocite{li2015hiv,novitsky2014impact}}
+(MSM/Shanghai, HET/Botswana, HET/Uganda, and MSM/USA)
+were initially much larger than the others, containing 1265, 1299,
+\add{1026/915 (\textit{env}/\textit{gag}), and 648} sequences respectively. To
 ensure that the analyses were comparable, we reduced these to a number of
-sequences similar to the smaller datasets. For the \textcite{li2015hiv} data,
-we detected a cluster of size 280 using a patristic distance cutoff of 0.02 as
+sequences similar to the smaller datasets. For the MSM/Shanghai data, we
+detected a cluster of size 280 using a patristic distance cutoff of 0.02 as
 described previously~\autocite{poon2015impact}. Only sequences within this
-cluster were carried forward. For the \textcite{novitsky2014impact} data, no
-large clusters were detected using the same cutoff, so we analysed a subtree of
-size 180 chosen arbitrarily.
+cluster were carried forward. For the HET/Uganda, HET/Botswana, and MSM/USA
+data, no large clusters were detected using the same cutoff, so we analysed
+\del{a subtree} subsets of sizes 255, 180, and 180 respectively. \add{The
+subset of the HET/Uganda data was chosen by eye such that the individuals were
+monopolistic in both the \textit{gag} and \textit{env} trees. The other subsets
+were arbitrarily chosen subtrees from phylogenies of the complete datasets.}
 
 For all datasets, we used the priors $\alpha$ $\sim$ Uniform(0, 2) and $N$ and
 $I$ jointly uniform on the region \{$n \leq N \leq 10000$, $n \leq I \leq
@@ -328,11 +476,14 @@ $I$ jointly uniform on the region \{$n \leq N \leq 10000$, $n \leq I \leq
 value $m = 1$ produces networks with no cycles, which we considered fairly
 implausible, we ran one analysis with the prior $m \sim$ DiscreteUniform(1, 5),
 and one with the prior $m \sim$ DiscreteUniform(2, 5). The other parameters to
-the SMC algorithm were the same as used for the simulation experiments.
+the SMC algorithm were the same as used for the simulation experiments,
+\add{except that we used 10000 particles instead of 1000 to increase the
+accuracy of the estimated posterior. This was computationally feasible due to
+the small number of runs required for this analysis.}
 
 \section*{Results}
 
-\subsection*{Kernel classifiers}
+\subsection*{\del{Kernel classifiers}\add{Classifiers for BA model parameters from tree shapes}}
 
 <<classifiers, include=FALSE>>=
     get.kernel.data <- function (param, step) {
@@ -368,84 +519,114 @@ the SMC algorithm were the same as used for the simulation experiments.
     nltt.N <- get.kernel.data('N', 'nltt-classifier')
 @
 
-We investigated the parameters of the BA network
-model~\autocite{barabasi1999emergence}. In addition to $m$ and $\alpha$ (see
-Introduction), we considered $N$, which denotes the total number of nodes in
-the network, and $I$, which is the number of infected nodes at which to stop
-the simulation and sample the transmission tree. To examine the effect of these
-parameters on tree shape, we simulated transmission trees under different
+We investigated the \add{identifiability of four} parameters of the BA network
+model~\autocite{barabasi1999emergence}: the number of nodes $N$, the
+preferential attachment power $\alpha$, the number of edges added per vertex
+$m$, and the number of infected nodes $I$. \del{In addition to $m$ and $\alpha$
+(see Introduction), we considered $N$, which denotes the total number of nodes
+in the network, and $I$, which is the number of infected nodes at which to stop
+the simulation and sample the transmission tree.} To examine the effect of
+these parameters on tree shape, we simulated transmission trees under different
 parameter values, calculated pairwise tree kernel scores between them, and
 attempted to classify the trees using a kernel support vector machine (kSVR).
 We also tested classifiers based on Sackin's index~\autocite{shao1990tree} and
 the normalized lineages-through-time (nLTT)
-statistic~\autocite{janzen2015approximate}. Accuracy of the kSVRs varied based
-on the parameter being tested (\cref{fig:rsquared}, left). Classifiers based on
-two other tree statistics, the nLTT and Sackin's index, generally exhibited
-worse performance than the tree kernel, although the magnitude of the disparity
-varied between the parameters (\cref{fig:rsquared}, centre and right). The
-results were largely robust to variations in the tree kernel meta-parameters
-$\lambda$ and $\sigma$ (\cref{fig:alphacrossv,fig:mcrossv,fig:Ncrossv,fig:Icrossv}).
+statistic~\autocite{janzen2015approximate}. The accuracy of each classifier
+\add{on all BA parameters is shown in} \del{varied based on the parameter
+being tested} \cref{fig:rsquared}. Classifiers based on \del{two other tree
+statistics,} the nLTT and Sackin's index generally exhibited worse performance
+than the tree kernel, although the magnitude of the disparity varied between
+the parameters (\cref{fig:rsquared}, centre and right). The results were
+largely robust to variations in the tree kernel meta-parameters $\lambda$ and
+$\sigma$, \add{although accuracy varied between different epidemic and sampling
+scenarios} (\cref{fig:alphacrossv,fig:mcrossv,fig:Ncrossv,fig:Icrossv}).
+\add{For all parameters except $m$, the absolute number of tips in the tree had
+a much greater impact on accuracy than the proportion of infected individuals
+these tips represented. However, for $m$, both the number and proportion of
+sampled tips had a strong impact or the accuracy of the kSVR
+(\cref{fig:mcrossv}).}
 
-When classifying $\alpha$, the kernel-SVR classifier had an average $R^2$ of 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{kernel-rsquared.pdf}
+    \caption[
+        Cross-validation accuracy of kernel-SVR, nLTT-based SVR, and Sackin's
+        index regression classifiers for BA model parameters.
+    ]{
+        Cross-validation accuracy of kernel-SVR classifier (left), SVR
+        classifier using nLTT (centre), and linear regression using
+        Sackin's index (right) for BA model parameters. Kernel meta-parameters
+        were set to $\lambda = 0.3$ and $\sigma = 4$. Each point was calculated
+        based on 300 simulated transmission trees over networks with three
+        different values of the parameter being tested, assuming perfect
+        knowledge of the other parameters. Vertical lines are empirical 95\%
+        confidence intervals based on 1000 two-fold cross-validations. \add{The
+        classifiers for $I$ were not evaluated with 1000-tip trees, because one
+        of the tested $I$ values was 500, and it is not possible to sample a
+        tree of size 1000 from 500 infected individuals.}
+    }
+    \label{fig:rsquared}
+\end{figure}
+
+\add{The accuracy of each classifier on all BA parameters is shown in
+\cref{fig:rsquared}. Classifiers based on the nLTT and Sackin's index generally
+exhibited worse performance than the tree kernel, although the magnitude of the
+disparity varied between the parameters (\cref{fig:rsquared}, centre and
+right). The results were largely robust to variations in the tree kernel
+meta-parameters $\lambda$ and $\sigma$, although accuracy varied between
+different epidemic and sampling scenarios
+(\cref{fig:alphacrossv,fig:mcrossv,fig:Icrossv,fig:Ncrossv}). For all
+parameters except $m$, the absolute number of tips in the tree had a much
+greater impact on accuracy than the proportion of infected individuals these
+tips represented. However, for $m$, both the number and proportion of sampled
+tips had a strong impact or the accuracy of the kSVR (\cref{fig:mcrossv}).}
+
+\end{document}
+
+The \gls{kSVR} classifier for \gls{alpha} had an average $R^2$ of 
     \Sexpr{kernel.alpha[,round(mean(rsquared), 2)]},
 compared to 
-    \Sexpr{nltt.alpha[,round(mean(rsquared), 2)]}
+    %\S%expr{nltt.alpha[,round(mean(rsquared), 2)]}
 for the nLTT-based SVR, and
-    \Sexpr{sackin.alpha[,round(mean(rsquared), 2)]}
+    %\S%expr{sackin.alpha[,round(mean(rsquared), 2)]}
 for the linear regression against Sackin's index. There was little variation
 about the mean for different tree and epidemic sizes. No classifier could
 accurately identify the $m$ parameter in any epidemic scenario, with average
 $R^2$ values of 
-  \Sexpr{kernel.m[,round(mean(rsquared), 2)]} for kSVR,
-  \Sexpr{nltt.m[,round(mean(rsquared), 2)]} for the nLTT, and
-  \Sexpr{sackin.m[,round(mean(rsquared), 2)]}
+  %\S%expr{kernel.m[,round(mean(rsquared), 2)]} for kSVR,
+  %\S%expr{nltt.m[,round(mean(rsquared), 2)]} for the nLTT, and
+  %\S%expr{sackin.m[,round(mean(rsquared), 2)]}
 for Sackin's index. Again, there was little variation in accuracy between
 epidemic scenarios, although the accuracy of the kSVR was slightly higher
 on 1000-tip trees (\cref{fig:rsquared}, left).
 
 The accuracy of classifiers for $I$ varied significantly with the number of
 tips in the tree. For 100-tip trees, the average $R^2$ values were
-  \Sexpr{kernel.I[ntip == 100, round(mean(rsquared), 2)]},
-  \Sexpr{nltt.I[ntip == 100, round(mean(rsquared), 2)]}, and
-  \Sexpr{sackin.I[ntip == 100, round(mean(rsquared), 2)]}
+  %\S%expr{kernel.I[ntip == 100, round(mean(rsquared), 2)]},
+  %\S%expr{nltt.I[ntip == 100, round(mean(rsquared), 2)]}, and
+  %\S%expr{sackin.I[ntip == 100, round(mean(rsquared), 2)]}
 for the tree kernel, nLTT, and Sackin's index respectively. For 500-tip
 trees, the values increased to
-  \Sexpr{kernel.I[ntip == 500, round(mean(rsquared), 2)]},
-  \Sexpr{nltt.I[ntip == 500, round(mean(rsquared), 2)]}, and
-  \Sexpr{sackin.I[ntip == 500, round(mean(rsquared), 2)]}.
+  %\S%expr{kernel.I[ntip == 500, round(mean(rsquared), 2)]},
+  %\S%expr{nltt.I[ntip == 500, round(mean(rsquared), 2)]}, and
+  %\S%expr{sackin.I[ntip == 500, round(mean(rsquared), 2)]}.
 Finally, the performance of classifiers for $N$ depended heavily on the
 epidemic scenario. The $R^2$ of the kSVR classifier ranged from
-  \Sexpr{kernel.N[,round(min(rsquared), 2)]}
+  %\S%expr{kernel.N[,round(min(rsquared), 2)]}
 for the smallest epidemic and smallest sample size, to
-  \Sexpr{kernel.N[,round(max(rsquared), 2)]}
+  %\S%expr{kernel.N[,round(max(rsquared), 2)]}
 for the largest. Likewise, $R^2$ for the nLTT-based SVR ranged from 
-  \Sexpr{nltt.N[,round(min(rsquared), 2)]}
+  %\S%expr{nltt.N[,round(min(rsquared), 2)]}
 to
-  \Sexpr{nltt.N[,round(max(rsquared), 2)]}.
+  %\S%expr{nltt.N[,round(max(rsquared), 2)]}.
 Sackin's index did not accurately classify $N$ in any scenario, with an average
 $R^2$ of
-  \Sexpr{sackin.N[,round(mean(rsquared), 2)]}
+  %\S%expr{sackin.N[,round(mean(rsquared), 2)]}
 and little variation between scenarios.
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics[width=\textwidth]{kernel-rsquared}
-  \vspace{6pt}
-  \caption{
-      Cross-validation accuracy of kernel-SVR classifier (left), SVR classifier
-      using nLTT (centre), and linear regression using Sackin's index
-      (right) for BA model parameters. Kernel meta-parameters were set to
-      $\lambda = 0.3$ and $\sigma = 4$. Each point was calculated based on 300
-      simulated transmission trees over networks with three different values of
-      the parameter being tested. Vertical lines are empirical 95\% confidence
-      intervals based on 1000 two-fold cross-validations.
-  }
-  \label{fig:rsquared}
-\end{figure}
 
 \subsection*{ABC simulations}
 
-<<point_est, include=FALSE>>=
+<<point_est, include=FALSE, eval=FALSE>>=
     f <- Sys.glob("../../simulations/abc-pa-free-m/point-estimate/*")
     d <- fread(f)
     d[,m := floor(m)]
@@ -481,45 +662,45 @@ and little variation between scenarios.
 @
 
 \Cref{fig:abcpt} shows maximum \textit{a posteriori} (MAP) point
-estimates of the BA model parameters obtained with kernel-ABC on simulated
+estimates of the BA model parameters obtained with ABC on simulated
 data. The estimates shown correspond only to the simulations where the $m$
 parameter was set to 2, however the results for $m = 3$ and $m = 4$ were
 similar (\cref{fig:abcptm3,fig:abcptm4}). Average boundaries of 95\% HPD
 intervals are given in \cref{tab:abchpd}.
 
-The accuracy of the parameter estimates obtained with kernel-ABC
+The accuracy of the parameter estimates obtained with ABC
 paralleled the results from the kSVR classifier. Of the four parameters,
 $\alpha$ was the most accurately estimated, with point estimates having a
 median [IQR] absolute error of 
-    \Sexpr{d[,round(median(alpha_error), 2)]} 
-    [\Sexpr{d[,round(quantile(alpha_error, 0.25), 2)]} - 
-    \Sexpr{d[,round(quantile(alpha_error, 0.75), 2)]}].
+    %\S%expr{d[,round(median(alpha_error), 2)]} 
+    [%\S%expr{d[,round(quantile(alpha_error, 0.25), 2)]} - 
+    %\S%expr{d[,round(quantile(alpha_error, 0.75), 2)]}].
 The errors when the true value of $\alpha$ was zero were significantly greater
 than those for the other values 
-    (Wilcoxon rank-sum test, $p$ = $\Sexpr{latexSN(round(zero.alpha.test$p.value, 4))}$).
+    (Wilcoxon rank-sum test, $p$ = %\S%expr{latexSN(round(zero.alpha.test$p.value, 4))}$).
 Errors in estimating $\alpha$ also varied with the true value of $m$ just at
 the threshold of statistical significance
-    ($p \Sexpr{pp(alpha.av["factor(true_m)", "Pr(>F)"])}$),
+    ($p$ %\S%expr{pp(alpha.av["factor(true_m)", "Pr(>F)"])}$),
 but did not vary across the true values of $N$ or $I$ (both one-way ANOVA).
 Estimates for $I$ were relatively accurate, with point estimate errors of
-    \Sexpr{d[,round(median(I_error))]} 
-    [\Sexpr{d[,round(quantile(I_error, 0.25))]} - 
-    \Sexpr{d[,round(quantile(I_error, 0.75))]}] individuals.
+    %\S%expr{d[,round(median(I_error))]} 
+    [%\S%expr{d[,round(quantile(I_error, 0.25))]} - 
+    %\S%expr{d[,round(quantile(I_error, 0.75))]}] individuals.
 These errors were significantly higher when the true value of $\alpha$ was
 at least 1
-    (Wilcoxon rank-sum test, $p$ = $\Sexpr{latexSN(round(alpha.I.test$p.value, 4))}$)
+    (Wilcoxon rank-sum test, $p$ = %\S%expr{latexSN(round(alpha.I.test$p.value, 4))}$)
 and when the true value of $I$ was 2000 ($p < 10^{-5}$). The true value of $m$
 did not affect the estimates of $I$ (one-way ANOVA).
 
 The $m$ parameter was estimated correctly in only
-    \Sexpr{as.integer(m.tbl[1] * 100)} \%
+    %\S%expr{as.integer(m.tbl[1] * 100)} \%
 of simulations, barely better than random guessing. The true values of the
 other parameters did not significantly affect the estimates of $m$ (both
 one-way ANOVA). Finally, the total number of nodes $N$ was consistently
 over-estimated by about a factor of two
-    (error \Sexpr{d[,round(median(N_error))]} 
-    [\Sexpr{d[,round(quantile(N_error, 0.25))]} - 
-     \Sexpr{d[,round(quantile(N_error, 0.75))]}] individuals).
+    (error %\S%expr{d[,round(median(N_error))]} 
+    [%\S%expr{d[,round(quantile(N_error, 0.25))]} - 
+     %\S%expr{d[,round(quantile(N_error, 0.75))]}] individuals).
 No parameters influenced the accuracy of the $N$ estimates (all one-way ANOVA).
 
 \begin{figure}[ht]
@@ -527,7 +708,7 @@ No parameters influenced the accuracy of the $N$ estimates (all one-way ANOVA).
   \includegraphics[width=\textwidth]{abc-point-estimate-m2}
   \vspace{6pt}
   \caption{
-    Point estimates of BA model parameters obtained by running kernel-ABC
+    Point estimates of BA model parameters obtained by running ABC
     on simulated phylogenies without training, for simulations with $m = 2$.
     Dotted lines indicate true values, and limits of the $y$-axes are regions
     of uniform prior density. (A) Estimates for $\alpha$ and $I$ against their
@@ -543,14 +724,14 @@ No parameters influenced the accuracy of the $N$ estimates (all one-way ANOVA).
   \caption{
       Average maximum \textit{a posteriori} point estimates and 95\% highest
       posterior density (HPD) interval widths for BA model parameter estimates
-      obtained with kernel-ABC. Three transmission trees were simulated under
+      obtained with ABC. Three transmission trees were simulated under
       each combination of the listed parameter values, and the parameters were
-      estimated with kernel-ABC without training.
+      estimated with ABC without training.
   }
   \label{tab:abchpd}
 \end{table*}
 
-<<supp_labels, echo=FALSE, results="asis">>=
+<<supp_labels, echo=FALSE, results="asis", eval=FALSE>>=
     N <- 5000
     replicate <- 0
     lab <- NULL
@@ -569,7 +750,7 @@ the parameters, with narrower HPD intervals for the parameters with more
 accurate point estimates (\cref{tab:abchpd}). \Cref{fig:abcex} shows
 the distributions for for one simulation. Equivalent plots for one replicate
 simulation with each studied parameter combination can be found in
-\cref{\Sexpr{lab}}. HPD intervals around $\alpha$ and $I$ were often narrow
+\cref{%\S%expr{lab}}. HPD intervals around $\alpha$ and $I$ were often narrow
 relative to the region of nonzero prior density, whereas the intervals for $m$
 and $N$ were more widely dispersed.
 
@@ -579,13 +760,13 @@ and $N$ were more widely dispersed.
   \vspace{6pt}
   \caption{
     Marginal posterior distributions of BA model parameters estimated
-    with kernel-ABC for a single simulated transmission tree. Dotted
+    with ABC for a single simulated transmission tree. Dotted
     lines and shaded polygon indicate true values.
   }
   \label{fig:abcex}
 \end{figure}
 
-<<mixed_peerdriven, include=FALSE>>=
+<<mixed_peerdriven, include=FALSE, eval=FALSE>>=
   library(coda)
   d <- fread("bzcat ../../simulations/abc-pa-mixed-alpha/abc/*")
   d <- d[iter == max(iter)]
@@ -623,21 +804,21 @@ the nodes exhibited heterogeneous preferential attachment power (half 0.5, the
 other half 1.5), with $m$ = 2, $N$ = 5000, and $I$ = 1000. The MAP [95\%
 HPD] estimates for each parameter were: 
 $\alpha$, 
-  \Sexpr{round(d["alpha", map], 2)} 
-  [\Sexpr{round(d["alpha", hpd.min], 2)} -
-   \Sexpr{round(d["alpha", hpd.max], 2)}];
+  %\S%expr{round(d["alpha", map], 2)} 
+  [%\S%expr{round(d["alpha", hpd.min], 2)} -
+   %\S%expr{round(d["alpha", hpd.max], 2)}];
 $I$,
-  \Sexpr{d["I", round(map)]} 
-  [\Sexpr{d["I", round(hpd.min)]} -
-   \Sexpr{d["I", round(hpd.max)]}];
+  %\S%expr{d["I", round(map)]} 
+  [%\S%expr{d["I", round(hpd.min)]} -
+   %\S%expr{d["I", round(hpd.max)]}];
 $m$,
-  \Sexpr{d["m", floor(map)]} 
-  [\Sexpr{d["m", floor(hpd.min)]} -
-   \Sexpr{d["m", floor(hpd.max)]}];
+  %\S%expr{d["m", floor(map)]} 
+  [%\S%expr{d["m", floor(hpd.min)]} -
+   %\S%expr{d["m", floor(hpd.max)]}];
 $N$,
-  \Sexpr{d["N", round(map)]} 
-  [\Sexpr{d["N", round(hpd.min)]}-
-   \Sexpr{d["N", round(hpd.max)]}].
+  %\S%expr{d["N", round(map)]} 
+  [%\S%expr{d["N", round(hpd.min)]}-
+   %\S%expr{d["N", round(hpd.max)]}].
 The approximate posterior distributions for this simulation are shown in
 \cref{fig:mixed}. To test the effect of sampling bias, we sampled one
 transmission tree in a peer-driven fashion, where the probability to sample a
@@ -645,21 +826,21 @@ node was twice as high if one of its peers had already been sampled. The
 parameters for this experiment were $N$ = 5000, $m$ = 2, $\alpha$ = 0.5, and
 $I$ = 2000. The estimated values were
 $\alpha$, 
-  \Sexpr{p["alpha", round(map, 2)]} 
-  [\Sexpr{p["alpha", round(hpd.min, 2)]} -
-   \Sexpr{p["alpha", round(hpd.max, 2)]}];
+  %\S%expr{p["alpha", round(map, 2)]} 
+  [%\S%expr{p["alpha", round(hpd.min, 2)]} -
+   %\S%expr{p["alpha", round(hpd.max, 2)]}];
 $I$,
-  \Sexpr{p["I", floor(map)]} 
-  [\Sexpr{p["I", floor(hpd.min)]} -
-   \Sexpr{p["I", floor(hpd.max)]}];
+  %\S%expr{p["I", floor(map)]} 
+  [%\S%expr{p["I", floor(hpd.min)]} -
+   %\S%expr{p["I", floor(hpd.max)]}];
 $m$,
-  \Sexpr{p["m", floor(map)]} 
-  [\Sexpr{p["m", floor(hpd.min)]} -
-   \Sexpr{p["m", floor(hpd.max)]}];
+  %\S%expr{p["m", floor(map)]} 
+  [%\S%expr{p["m", floor(hpd.min)]} -
+   %\S%expr{p["m", floor(hpd.max)]}];
 $N$,
-  \Sexpr{p["N", floor(map)]} 
-  [\Sexpr{p["N", floor(hpd.min)]} -
-   \Sexpr{p["N", floor(hpd.max)]}].
+  %\S%expr{p["N", floor(map)]} 
+  [%\S%expr{p["N", floor(hpd.min)]} -
+   %\S%expr{p["N", floor(hpd.max)]}].
 The approximate posterior distributions are shown in \cref{fig:peerdriven}. Both
 of these results were in line with estimates obtained on other simulated
 datasets (\cref{tab:abchpd}), although the estimate of peer-driven sampling for
@@ -667,7 +848,7 @@ $\alpha$ was somewhat lower than typical.
 
 \subsection*{Real data}
 
-<<realdata, include=FALSE>>=
+<<realdata, include=FALSE, eval=FALSE>>=
   m <- collect.metadata("../../simulations/aggregates/hpd/*")
   d1 <- fread(rownames(m)[m$m_min == 1])
   d2 <- fread(rownames(m)[m$m_min == 2])
@@ -687,7 +868,7 @@ $\alpha$ was somewhat lower than typical.
   setkey(low2, dataset)
 @
 
-We applied kernel-ABC to five published HIV datasets (\cref{tab:data}),
+We applied ABC to five published HIV datasets (\cref{tab:data}),
 and found substantial heterogeneity among the parameter estimates
 (\cref{fig:abchpd,fig:abchpdm2}). Plots of the marginal posterior distributions
 for each dataset are shown in
@@ -695,66 +876,66 @@ for each dataset are shown in
 Two of the datasets~\autocite{niculescu2015recent, wang2015targeting} had
 estimated $\alpha$ values near unity for the prior allowing $m = 1$ (MAP
 estimates [95\% HPD] 
-  \Sexpr{map1["niculescu2015", round(alpha, 2)]} 
-  [\Sexpr{low1["niculescu2015", round(alpha, 2)]} - 
-   \Sexpr{up1["niculescu2015", round(alpha, 2)]}]
+  %\S%expr{map1["niculescu2015", round(alpha, 2)]} 
+  [%\S%expr{low1["niculescu2015", round(alpha, 2)]} - 
+   %\S%expr{up1["niculescu2015", round(alpha, 2)]}]
 and
-  \Sexpr{map1["wang2015", round(alpha, 2)]} 
-  [\Sexpr{low1["wang2015", round(alpha, 2)]} -
-   \Sexpr{up1["wang2015", round(alpha, 2)]}] respectively).
+  %\S%expr{map1["wang2015", round(alpha, 2)]} 
+  [%\S%expr{low1["wang2015", round(alpha, 2)]} -
+   %\S%expr{up1["wang2015", round(alpha, 2)]}] respectively).
 The MAP estimates did not change appreciably when $m = 1$ was disallowed by the
 prior, although the credible interval of the \textcite{niculescu2015recent}
 data was narrower
-  (\Sexpr{low1["niculescu2015", round(alpha, 2)]} - 
-   \Sexpr{up1["niculescu2015", round(alpha, 2)]}).
+  (%\S%expr{low1["niculescu2015", round(alpha, 2)]} - 
+   %\S%expr{up1["niculescu2015", round(alpha, 2)]}).
 When $m = 1$ was permitted, the \textcite{li2015hiv, cuevas2009hiv} both had
 low estimated $\alpha$ values
-  (\Sexpr{map1["li2015", round(alpha, 2)]} 
-  [\Sexpr{low1["li2015", round(alpha, 2)]} - 
-  \Sexpr{up1["li2015", round(alpha, 2)]}]
+  (%\S%expr{map1["li2015", round(alpha, 2)]} 
+  [%\S%expr{low1["li2015", round(alpha, 2)]} - 
+  %\S%expr{up1["li2015", round(alpha, 2)]}]
 and
-  \Sexpr{map1["cuevas2009", round(alpha, 2)]} 
-  [\Sexpr{low1["cuevas2009", round(alpha, 2)]} -
-   \Sexpr{up1["cuevas2009", round(alpha, 2)]}]). 
+  %\S%expr{map1["cuevas2009", round(alpha, 2)]} 
+  [%\S%expr{low1["cuevas2009", round(alpha, 2)]} -
+   %\S%expr{up1["cuevas2009", round(alpha, 2)]}]). 
 However, the MAP estimates increased when $m = 1$ was not permitted, although
 the HPD intervals remained roughly the same
-  (\Sexpr{map2["li2015", round(alpha, 2)]} 
-  [\Sexpr{low2["li2015", round(alpha, 2)]} - 
-  \Sexpr{up2["li2015", round(alpha, 2)]}]
+  (%\S%expr{map2["li2015", round(alpha, 2)]} 
+  [%\S%expr{low2["li2015", round(alpha, 2)]} - 
+  %\S%expr{up2["li2015", round(alpha, 2)]}]
 and
-  \Sexpr{map2["cuevas2009", round(alpha, 2)]} 
-  [\Sexpr{low2["cuevas2009", round(alpha, 2)]} -
-   \Sexpr{up2["cuevas2009", round(alpha, 2)]}]).
+  %\S%expr{map2["cuevas2009", round(alpha, 2)]} 
+  [%\S%expr{low2["cuevas2009", round(alpha, 2)]} -
+   %\S%expr{up2["cuevas2009", round(alpha, 2)]}]).
 The \textcite{novitsky2014impact} data had a fairly low estimated $\alpha$
 for both priors on $m$
-  (\Sexpr{map1["novitsky2014", round(alpha, 2)]} for $m \geq 1$;
-   \Sexpr{map2["novitsky2014", round(alpha, 2)]} for $m \geq 2$).
+  (%\S%expr{map1["novitsky2014", round(alpha, 2)]} for $m \geq 1$;
+   %\S%expr{map2["novitsky2014", round(alpha, 2)]} for $m \geq 2$).
 However, the confidence interval was much wider when $m = 1$ was allowed
-  ([\Sexpr{low1["novitsky2014", round(alpha, 2)]} -
-    \Sexpr{up1["novitsky2014", round(alpha, 2)]}] for $m \geq 1$ vs.
-    \Sexpr{low2["novitsky2014", round(alpha, 2)]} -
-    \Sexpr{up2["novitsky2014", round(alpha, 2)]} for $m \geq 2$).
+  ([%\S%expr{low1["novitsky2014", round(alpha, 2)]} -
+    %\S%expr{up1["novitsky2014", round(alpha, 2)]}] for $m \geq 1$ vs.
+    %\S%expr{low2["novitsky2014", round(alpha, 2)]} -
+    %\S%expr{up2["novitsky2014", round(alpha, 2)]} for $m \geq 2$).
 
 For all the datasets except \citeauthor{novitsky2014impact}, estimated values
 of $I$ were below 2000 when $m = 1$ was allowed, with relatively narrow HPD
 intervals compared to the nonzero prior density region
-  (\citeauthor{cuevas2009hiv}, \Sexpr{map1["cuevas2009", floor(I)]} 
-  [\Sexpr{low1["cuevas2009", floor(I)]} -
-   \Sexpr{up1["cuevas2009", floor(I)]}];
-   \citeauthor{niculescu2015recent}, \Sexpr{map1["niculescu2015", floor(I)]}
-  [\Sexpr{low1["niculescu2015", floor(I)]} - 
-   \Sexpr{up1["niculescu2015", floor(I)]}];
-  \citeauthor{li2015hiv}, \Sexpr{map1["li2015", floor(I)]} 
-  [\Sexpr{low1["li2015", floor(I)]} -
-   \Sexpr{up1["li2015", floor(I)]}];
-   \citeauthor{wang2015targeting}, \Sexpr{map1["wang2015", floor(I)]}
-  [\Sexpr{low1["wang2015", floor(I)]} - 
-   \Sexpr{up1["wang2015", floor(I)]}]).
+  (\citeauthor{cuevas2009hiv}, %\S%expr{map1["cuevas2009", floor(I)]} 
+  [%\S%expr{low1["cuevas2009", floor(I)]} -
+   %\S%expr{up1["cuevas2009", floor(I)]}];
+   \citeauthor{niculescu2015recent}, %\S%expr{map1["niculescu2015", floor(I)]}
+  [%\S%expr{low1["niculescu2015", floor(I)]} - 
+   %\S%expr{up1["niculescu2015", floor(I)]}];
+  \citeauthor{li2015hiv}, %\S%expr{map1["li2015", floor(I)]} 
+  [%\S%expr{low1["li2015", floor(I)]} -
+   %\S%expr{up1["li2015", floor(I)]}];
+   \citeauthor{wang2015targeting}, %\S%expr{map1["wang2015", floor(I)]}
+  [%\S%expr{low1["wang2015", floor(I)]} - 
+   %\S%expr{up1["wang2015", floor(I)]}]).
 The \citeauthor{novitsky2014impact} data was the outlier, with a very high
 estimated $I$, and HPD interval spanning almost the entire prior region
-  (\Sexpr{map1["novitsky2014", floor(I)]} 
-  [\Sexpr{low1["novitsky2014", floor(I)]} -
-   \Sexpr{up1["novitsky2014", floor(I)]}]).
+  (%\S%expr{map1["novitsky2014", floor(I)]} 
+  [%\S%expr{low1["novitsky2014", floor(I)]} -
+   %\S%expr{up1["novitsky2014", floor(I)]}]).
 The $I$ estimates and HPD intervals were generally robust to the choice of
 prior on $m$, with slightly narrower HPD intervals (compare
 \cref{fig:abchpd,fig:abchpdm2}).
@@ -762,17 +943,17 @@ prior on $m$, with slightly narrower HPD intervals (compare
 The MAP estimate of $m$ was equal to 1 for all but the
 \citeauthor{novitsky2014impact} data, when this value was allowed. However, the
 upper bound of the HPD interval was different for each dataset
-  (\citeauthor{niculescu2015recent}, \Sexpr{up1["niculescu2015", round(m)]};
-   \citeauthor{wang2015targeting}, \Sexpr{up1["wang2015", round(m)]};
-   \citeauthor{li2015hiv}, \Sexpr{up1["li2015", round(m)]};
-   \citeauthor{cuevas2009hiv}, \Sexpr{up1["cuevas2009", round(m)]}).
+  (\citeauthor{niculescu2015recent}, %\S%expr{up1["niculescu2015", round(m)]};
+   \citeauthor{wang2015targeting}, %\S%expr{up1["wang2015", round(m)]};
+   \citeauthor{li2015hiv}, %\S%expr{up1["li2015", round(m)]};
+   \citeauthor{cuevas2009hiv}, %\S%expr{up1["cuevas2009", round(m)]}).
 When $m = 1$ was disallowed, the MAP for all datasets was either 2 or 3, with
 HPD intervals spanning the entire prior region. The estimates for the total
 number of nodes $N$ were largely uninformative for all samples, with almost all
 MAP estimates greater than 7500 and HPD intervals spanning almost the entire
 nonzero prior density region. The only exception was the \citeauthor{li2015hiv}
 data, for which the MAP estimate was lower 
-  (\Sexpr{map1["li2015", floor(N)]})
+  (%\S%expr{map1["li2015", floor(N)]})
 when $m = 1$ was allowed.
 
 \begin{figure}[ht]
@@ -782,7 +963,7 @@ when $m = 1$ was allowed.
   \caption{
       Maximum \textit{a posteriori} point estimates and 95\% HPD intervals for
       parameters of the BA network model, fitted to five published HIV datasets
-      with kernel-ABC. $x$-axes indicate regions of nonzero prior density. In
+      with ABC. $x$-axes indicate regions of nonzero prior density. In
       particular, the prior on $m$ was DiscreteUniform(1, 5).
   }
   \label{fig:abchpd}
@@ -800,7 +981,7 @@ related work]{groendyke2011bayesian, volz2008sir, brown2011transmission,
 leventhal2012inferring}. Kernel-ABC is a model-agnostic method which can be
 used to investigate any quantity that affects tree
 shape~\autocite{poon2015phylodynamic}. In this work, we developed a
-kernel-ABC-based method to infer the parameters of a contact network model. The
+ABC-based method to infer the parameters of a contact network model. The
 method is general, and could be applied to any model from which contact
 networks can be simulated. We demonstrated the method on the BA model, which is
 a simple preferential attachment model giving rise to the power law degree
@@ -809,14 +990,14 @@ distributions commonly observed in real-world networks.
 By training a kernel-SVR classifier, we found that the $\alpha$ and $I$
 parameters, representing preferential attachment power and number of infected
 nodes, had a strong influence on tree shape. This was reflected in the relative
-accuracy of the kernel-ABC estimates of these parameters. The total number of
+accuracy of the ABC estimates of these parameters. The total number of
 nodes $N$ had a weak influence on tree shape, which was most prominent when the
 epidemic size $I$ and number of sampled tips were both large. The $m$
 parameter, representing the number of edges created in the network per vertex,
 did not produce much variation in tree shape, resulting in in both poorly
-performing classifiers and uninformative kernel-ABC estimates.
+performing classifiers and uninformative ABC estimates.
 
-$N$ was almost always significantly over-estimated using kernel-ABC. Since the
+$N$ was almost always significantly over-estimated using ABC. Since the
 prior on $N$ and $I$ is jointly uniform on a non-rectangular region ($I \leq
 N$), there is more prior mass on high $N$ values. In retrospect, it is
 unreasonable to expect good estimation of $N$, because adding more nodes to a
@@ -940,7 +1121,7 @@ with the settings we described in the methods. Nevertheless, our method is
 potentially useful to epidemiological researchers interested in the general
 characteristics of the network structure underlying disease outbreaks. This
 work, and previous work by our group~\autocite{poon2015phylodynamic}, has
-demonstrated that kernel-ABC is a broadly applicable and effective framework in
+demonstrated that ABC is a broadly applicable and effective framework in
 which to perform phylodynamic inference.
 
 \section*{Acknowledgements}
@@ -1056,7 +1237,7 @@ Foundation.
   \centering
   \includegraphics{abc-point-estimate-m3.pdf}
   \caption{
-    Point estimates of BA model parameters obtained by running kernel-ABC
+    Point estimates of BA model parameters obtained by running ABC
     on simulated phylogenies without training, for simulations with $m = 3$.
     Dotted lines indicate true values, and limits of the $y$-axes are regions
     of uniform prior density. (A) Estimates for $\alpha$ and $I$ against their
@@ -1070,7 +1251,7 @@ Foundation.
   \centering
   \includegraphics{abc-point-estimate-m4.pdf}
   \caption{
-    Point estimates of BA model parameters obtained by running kernel-ABC
+    Point estimates of BA model parameters obtained by running ABC
     on simulated phylogenies without training, for simulations with $m = 4$.
     Dotted lines indicate true values, and limits of the $y$-axes are regions
     of uniform prior density. (A) Estimates for $\alpha$ and $I$ against their
@@ -1096,7 +1277,7 @@ Foundation.
     \includegraphics{mixed-posterior}
     \caption{
         Approximate marginal posterior distributions of Barab\'asi-Albert
-        model parameters obtained using kernel-ABC for a network with
+        model parameters obtained using ABC for a network with
         heterogeneous node behaviour. Half of the nodes were attached with
         $\alpha = 0.5$, and the other half with $\alpha = 1.5$ (vertical
         dashed lines, top right). Other parameter values were $m = 2$, $I =
@@ -1110,7 +1291,7 @@ Foundation.
     \centering
     \includegraphics{peerdriven-posterior}
     \caption{Approximate marginal posterior distributions of Barab\'asi-Albert
-        model parameters obtained using kernel-ABC for a network with
+        model parameters obtained using ABC for a network with
         peer-driven sampling. An epidemic was simulated in the usual fashion,
         but rather than being sampled at random, infected nodes were sampled
         with a probability two times higher if they had any sampled neighbours
@@ -1129,7 +1310,7 @@ Foundation.
   \caption{
       Maximum \textit{a posteriori} point estimates and 95\% HPD intervals for
       parameters of the BA network model, fitted to five published HIV datasets
-      with kernel-ABC. $x$-axes indicate regions of nonzero prior density. In
+      with ABC. $x$-axes indicate regions of nonzero prior density. In
       particular, the prior on $m$ was DiscreteUniform(2, 5).
   }
   \label{fig:abchpdm2}
@@ -1193,7 +1374,7 @@ Foundation.
   \label{fig:wang}
 \end{figure}
 
-<<abc_posterior, echo=FALSE, results="asis">>=
+<<abc_posterior, echo=FALSE, results="asis", eval=FALSE>>=
     N <- 5000
     replicate <- 0
     for (m in c(2, 3, 4)) {
@@ -1205,7 +1386,7 @@ Foundation.
         cat("\\centering\n")
         cat(paste0("\\includegraphics{", fn, "}\n"))
         cat("\\caption{\n")
-        cat(sprintf("Approximate marginal posterior distributions of Barab\\'asi-Albert model parameters obtained using kernel-ABC for one simulated transmission tree with parameter values $\\alpha = %.1f$, $I = %d$, $m = %d$, and $N = %d$. Dashed lines indicate true values, and shaded areas show 95\\%% highest posterior density intervals.\n", alpha, I, m, N))
+        cat(sprintf("Approximate marginal posterior distributions of Barab\\'asi-Albert model parameters obtained using ABC for one simulated transmission tree with parameter values $\\alpha = %.1f$, $I = %d$, $m = %d$, and $N = %d$. Dashed lines indicate true values, and shaded areas show 95\\%% highest posterior density intervals.\n", alpha, I, m, N))
         cat("}\n")
         cat(paste0("\\label{", lab, "}\n"))
         cat("\\end{figure}\n")

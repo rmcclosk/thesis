@@ -1,25 +1,31 @@
 .INTERMEDIATE: paper.tex
 
+#all: main.pdf supp.pdf coverletter.pdf
 all: paper.pdf
 
 clean:
 	rm -f *.aux *.pdf *.log *.acn *.bbl *.bcf *.blg *.glo *.idx *.ist *.xml *.bak *.dvi
 
-check: paper.Rnw mbe_submission.tex abstract.tex
+check: paper.Rnw abstract.tex
 	aspell check --mode=tex --add-tex-command="citep op" --add-tex-command="citet op" $(word 1,$^)
 	aspell check --mode=tex --add-tex-command="citep op" --add-tex-command="citet op" $(word 2,$^)
 	aspell check --mode=tex --add-tex-command="citep op" --add-tex-command="citet op" $(word 3,$^)
 
-mbe_submission.pdf: mbe_submission.tex abstract.tex
-	pdflatex --enable-write18 $^
+main.pdf: paper.pdf
+	$(eval last := $(shell echo `pdfgrep -n Supplementary $^ | cut -d ':' -f 1` - 1 | bc))
+	pdftk $^ cat 1-$(last) output $@
 
-paper.pdf: paper.tex papers.bib figures abstract.tex
+supp.pdf: paper.pdf
+	$(eval first := $(shell pdfgrep -n Supplementary $^ | cut -d ':' -f 1))
+	pdftk $^ cat $(first)-end output $@
+
+paper.pdf: paper.tex papers.bib abstract.tex
 	pdflatex $(word 1, $^)
 	biber $(patsubst %.tex,%,$(word 1, $^))
 	pdflatex $(word 1, $^)
 	pdflatex $(word 1, $^)
 
-supp-f1-9.pdf: supp-f1-9.tex supp-f1-9
+coverletter.pdf: coverletter.tex
 	pdflatex $^
 
 paper.tex: paper.Rnw
@@ -27,27 +33,3 @@ paper.tex: paper.Rnw
 
 papers.bib:
 	ln -s ../../reading/papers.bib .
-
-figures: kernel-rsquared.eps \
-	abc-point-estimate-m2.eps \
-	abc-posterior-example.eps \
-	realdata-hpd.eps
-
-supp-f1-9: leventhal2012fig1.pdf \
-	smc-test.pdf \
-	kernel-alpha-crossv.pdf \
-	kernel-m-crossv.pdf \
-	kernel-I-crossv.pdf \
-	kernel-N-crossv.pdf \
-	abc-point-estimate-m3.pdf \
-	abc-point-estimate-m4.pdf \
-	alpha-gamma.pdf
-
-supp-f10.pdf:
-	ln -s ../figures/abc-posterior.pdf $@
-
-%.eps:
-	ln -s ../figures/$@ .
-
-%.pdf:
-	ln -s ../figures/$@ .

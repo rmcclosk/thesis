@@ -4,20 +4,20 @@ homogeneously mixed compartments. However, human populations have complex
 structures formed by social contacts, which can have a significant influence on
 the rate of epidemic spread. Contact network models capture this structure by
 explicitly representing each contact which could possibly lead to a
-transmission. We developed a method based on kernel approximate Bayesian
-computation (kernel-ABC) for estimating structural parameters of the contact
-network underlying an observed viral phylogeny. The method combines adaptive
-sequential Monte Carlo for ABC, Gillespie simulation for propagating epidemics
-though networks, and a kernel-based tree similarity score. We used the method
-to fit the Barab\'{a}si-Albert network model to simulated transmission trees,
-and also applied it to viral phylogenies estimated from five published HIV
-sequence datasets. On simulated data, we found that the preferential attachment
-power and the number of infected nodes in the network can often be accurately
-estimated. On the other hand, the mean degree of the network, as well as the
-total number of nodes, were not estimable with kernel-ABC. We observed
+transmission. We developed a method based on approximate Bayesian
+computation (ABC) for estimating structural parameters of the contact network
+underlying an observed viral phylogeny. The method combines adaptive sequential
+Monte Carlo for ABC, Gillespie simulation for propagating epidemics though
+networks, and a kernel-based tree similarity score. We used the method to fit
+the Barab\'{a}si-Albert network model to simulated transmission trees, and also
+applied it to viral phylogenies estimated from \del{five}\add{ten} published
+HIV sequence datasets. On simulated data, we found that the preferential
+attachment power and the number of infected nodes in the network can often be
+accurately estimated. On the other hand, the mean degree of the network, as
+well as the total number of nodes, were not estimable with ABC. We observed
 substantial heterogeneity in the parameter estimates on real datasets, with
-point estimates for the preferential attachment power ranging from 0.06 to 1.05.
-These results underscore the importance of considering contact structures when
-performing phylodynamic inference. Our method offers the potential to
+point estimates for the preferential attachment power ranging from 0.06 to
+1.05. These results underscore the importance of considering contact structures
+when performing phylodynamic inference. Our method offers the potential to
 quantitatively investigate the contact network structure underlying viral
 epidemics.

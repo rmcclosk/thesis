@@ -107,7 +107,8 @@ ksvm.cv <- function (kmat, y, n.cv=1000,
           stats=stats, show.progress=show.progress, nthread=nthread)
 }
 
-#' Perform replicate 2-fold cross-validations on an SVM classifier.
+#' Perform replicate 2-fold cross-validations on an SVM classifier from a
+#' distance matrix.
 #'
 #' Returns a data.frame with the indicated statistics for each individual
 #' cross-validation. Currently the only supported statistics are "accuracy" for
@@ -131,6 +132,33 @@ dsvm.cv <- function (dmat, y, n.cv=1000,
     fit.model <- function(d, train.y) svm(d, train.y)
     predict <- predict
     do.cv(dmat, y, get.train, get.test, fit.model, predict, n.cv=n.cv,
+          stats=stats, show.progress=show.progress, nthread=nthread)
+}
+
+#' Perform replicate 2-fold cross-validations on an SVM classifier from data.
+#'
+#' Returns a data.frame with the indicated statistics for each individual
+#' cross-validation. Currently the only supported statistics are "accuracy" for
+#' categorical labels or "rsquared" for numeric labels.
+#'
+#' @param fmat data matrix
+#' @param y labels for data
+#' @param stats statistics to calculate
+#' @param show.progress whether to display a progress bar
+#' @param nthread number of threads to use
+#' @return A data.frame with the indicated statistics for each CV
+#' @seealso \url{http://stackoverflow.com/questions/1753299}
+#' @seealso \code{\link{kernlab::ksvm}}
+#' @export
+fsvm.cv <- function (fmat, y, n.cv=1000, 
+                    stats=ifelse(is.factor(y), "accuracy", "rsquared"),
+                    show.progress=TRUE, nthread=1)
+{
+    get.train <- function(d, holdout) d[-holdout,,drop=FALSE]
+    get.test <- function(d, holdout, m) d[holdout,,drop=FALSE]
+    fit.model <- function(d, train.y) svm(d, train.y)
+    predict <- predict
+    do.cv(fmat, y, get.train, get.test, fit.model, predict, n.cv=n.cv,
           stats=stats, show.progress=show.progress, nthread=nthread)
 }
 
