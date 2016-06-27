@@ -571,7 +571,7 @@ be estimated without phylodynamics, but there are sufficient difficulties that
 we believe an alternative method using sequence data is warranted.} 
 
 \subsection{Using synthetic data to investigate identifiability and sources of
-estimation error and bias}
+estimation error}
 
 \add{We have argued that the parameters of the \gls{BA} model are interesting
 and worth estimating with phylodynamic methods. However, these estimates will
@@ -1140,7 +1140,7 @@ sampled tips had a strong impact or the accuracy of the \gls{kSVR}
 \end{figure}
 
 The \gls{kSVR} classifier for \gls{alpha} had an average $R^2$ of 
-    0.98,
+    0.92,
 compared to 
     0.56
 for the \gls{nltt}-based SVR, and
@@ -1161,7 +1161,7 @@ on 1000-tip trees
      0.32
      for 100, 500, and 1000 tips respectively).
 
-The accuracy of classifiers for $I$ \del{varied significantly
+The accuracy of classifiers for \gls{I} \del{varied significantly
 with}\add{appeared to be strongly influenced by} the number of tips in the
 tree. For 100-tip trees, the average $R^2$ values were
   0.7,
@@ -1345,11 +1345,11 @@ intervals are given in \cref{tab:abchpd}.
     \centering
     \input{\tablepath/abc-hpd.tex}
     \caption[
-        Average posterior mean point estimates and 95\% \glspl{HDI} interval
+        Average posterior mean point estimates and 95\% \gls{HPD} interval
         widths for \gls{BA} model parameter estimates obtained with
         \software{netabc} on simulated data.
     ]{
-        Average posterior mean point estimates and 95\% \glspl{HDI} interval
+        Average posterior mean point estimates and 95\% \gls{HPD} interval
         widths for \gls{BA} model parameter estimates obtained with
         \software{netabc} on simulated data. Three transmission trees were
         simulated under each combination of the listed parameter values, and
@@ -1389,7 +1389,7 @@ and
     83\%
     [73 - 
     90\%].
-Average \gls{HPD} interval widths were
+Average 95\% \gls{HPD} interval widths were
     0.68,
     2454,
     3.01, and
@@ -1407,7 +1407,7 @@ out of
 simulations
     (96\%).
 The estimates for \gls{m} and \gls{N} were similar across all simulations
-(median [IQR] point estimates
+(median [\gls{IQR}] point estimates
     3
     [3 - 
     3]
@@ -1418,17 +1418,16 @@ and
 regardless of the true values of any of the \gls{BA} parameters.}
 
 \add{To analyze the effects of the true parameter values on the
-accuracy our estimates of \gls{alpha} and \gls{I}, we fitted one \glspl{GLM}
+accuracy our estimates of \gls{alpha} and \gls{I}, we fitted one \gls{GLM}
 for each of these two parameters, with error rate as the dependent variable and
 the true parameter values as independent variables. Since the estimates of
 \gls{m} and \gls{N} were roughly equal across all simulations
 (\cref{fig:abcptm2,fig:abcptm3,fig:abcptm4}), \glspl{GLM} were not fitted for
 these parameters. The estimated coefficients are shown in
-\cref{tab:glmalpha,tab:glmI}. For the parameters \gls{alpha}, \gls{I}, and
-\gls{N}, the \gls{GLM} were fitted using the inverse link function. That is, if
-$p$ is the true value of the parameter and $\hat{p}$ is a random variable
-representing our estimate of the parameter, the \gls{GLM} posits a relationship
-of the form}
+\cref{tab:glmalpha,tab:glmI}. The \gls{GLM} were fitted using the inverse link
+function. That is, if $p$ is the true value of the parameter and $\hat{p}$ is a
+random variable representing our estimate of the parameter, the \gls{GLM}
+posits a relationship of the form}
 \[
     \madd{\E(|p-\hat{p}|) = (\beta_0 + \beta_\alpha \alpha + \beta_I I + \beta_m m)^{-1}},
 \]
@@ -1441,7 +1440,7 @@ increases.}
 
 
 % latex table generated in R 3.2.3 by xtable 1.8-2 package
-% Thu Jun 23 15:40:35 2016
+% Mon Jun 27 14:24:46 2016
 \begin{table}[ht]
 \centering
 \begin{tabular}{llll}
@@ -1450,15 +1449,15 @@ Parameter & Estimate & Standard error & $p$-value \\
   \hline
 (Intercept) & $2$ & $0.6$ & $0.01$ \\ 
   $\alpha$ & $10$ & $2$ & ${<}10^{-5}$ \\ 
-  I & $-3\!\times\!10^{-4}$ & $2\!\times\!10^{-4}$ & $0.7$ \\ 
-  m & $0.5$ & $0.2$ & $0.01$ \\ 
+  $I$ & $-3\!\times\!10^{-4}$ & $2\!\times\!10^{-4}$ & $0.7$ \\ 
+  $m$ & $0.5$ & $0.2$ & $0.01$ \\ 
    \hline
 \end{tabular}
 \caption[Parameters of a fitted \gls{GLM} relating error in estimated \gls{alpha} to true values of \gls{BA} parameters.]{Parameters of a fitted \gls{GLM} relating error in estimated \gls{alpha} to true values of \gls{BA} parameters. \gls{GLM} was fitted with a Gaussian distribution and inverse link function. Coefficients are interpretable as additive effects on the inverse of the mean error.} 
 \label{tab:glmalpha}
 \end{table}
 % latex table generated in R 3.2.3 by xtable 1.8-2 package
-% Thu Jun 23 15:40:35 2016
+% Mon Jun 27 14:24:46 2016
 \begin{table}[ht]
 \centering
 \begin{tabular}{llll}
@@ -1467,8 +1466,8 @@ Parameter & Estimate & Standard error & $p$-value \\
   \hline
 (Intercept) & $0.004$ & $5\!\times\!10^{-4}$ & ${<}10^{-5}$ \\ 
   $\alpha$ & $-0.001$ & $2\!\times\!10^{-4}$ & ${<}10^{-5}$ \\ 
-  I & $-4\!\times\!10^{-7}$ & $2\!\times\!10^{-7}$ & $0.05$ \\ 
-  m & $-7\!\times\!10^{-5}$ & $8\!\times\!10^{-5}$ & $1$ \\ 
+  $I$ & $-4\!\times\!10^{-7}$ & $2\!\times\!10^{-7}$ & $0.05$ \\ 
+  $m$ & $-7\!\times\!10^{-5}$ & $8\!\times\!10^{-5}$ & $1$ \\ 
    \hline
 \end{tabular}
 \caption[Parameters of a fitted \gls{GLM} relating error in estimated \gls{I} to true values of \gls{BA} parameters.]{Parameters of a fitted \gls{GLM} relating error in estimated \gls{I} to true values of \gls{BA} parameters. GLM was fitted with a Gaussian distribution and inverse link function. Coefficients are interpretable as additive effects on the inverse of the mean error.} 
@@ -1548,9 +1547,9 @@ parameters were
     $\gls{I} = 2000$,
     $\gls{m} = 2$, and
     $\gls{N} = 5000$.
-The two-dimensional marginals some dependence between pairs of parameters,
-particularly \gls{I} and \gls{N} which show a diagonally shaped region of high
-posterior density.} 
+The two-dimensional marginals indicate some dependence between pairs of
+parameters, particularly \gls{I} and \gls{N} which show a diagonally shaped
+region of high posterior density.} 
 
 \begin{figure}[ht]
     \centering
@@ -1929,14 +1928,14 @@ for \gls{MSM}. These values were obtained with \textit{gag} for the datasets
 where both \textit{gag} and \textit{env} were sequenced, but the estimates for
 \gls{alpha} did not change appreciably between the two genes (\cref{fig:genes}).
 There was a large amount of uncertainty associated with these estimates. 95\%
-\gls{HPD} were very wide for most datasets, often encompassing almost the
-entire range from 0 to 1 (\cref{fig:abchpd}). For all the datasets except
+\gls{HPD} intervals were very wide for most datasets, often encompassing almost
+the entire range from 0 to 1 (\cref{fig:abchpd}). For all the datasets except
 HET/Malawi and MSM/Beijing, the posterior mean was either outside, or very
-close to the border of, the 50\% \gls{HPD}. This indicates that the posterior
-distributions were diffuse with heavy tails, rather than having most of their
-mass around the mode. When the value $\gls{m} = 1$ was disallowed by the prior, 
-the separation between the \gls{IDU} datasets and the others became more
-striking (\cref{fig:abchpdm2}). All three \gls{IDU} datasets had estimated
+close to the border of, the 50\% \gls{HPD} intervals. This indicates that the
+posterior distributions were diffuse with heavy tails, rather than having most
+of their mass around the mode. When the value $\gls{m} = 1$ was disallowed by
+the prior, the separation between the \gls{IDU} datasets and the others became
+more striking (\cref{fig:abchpdm2}). All three \gls{IDU} datasets had estimated
 \gls{alpha} values at or above
     0.9.
 The estimate for the MSM/Beijing data was slightly lower
@@ -1952,7 +1951,7 @@ the estimates for the seven remaining non-\gls{IDU} datasets were bounded above 
         \gls{BA} network model, fitted to three \gls{HIV} datasets where both
         \textit{gag} and \textit{env} genes were sequenced.
     ]{
-        Posterior means (points) 50\% \gls{HPD} intervals (notches), and 95\%
+        Posterior means (points), 50\% \gls{HPD} intervals (notches), and 95\%
         \gls{HPD} intervals (lines) for parameters of the \gls{BA} network model,
         fitted to three \gls{HIV} datasets where both \textit{gag} and
         \textit{env} genes were sequenced.

@@ -12,7 +12,7 @@ sf2 <- stepfun(c(0, 1/3, 2/3), c(0, 1/3, 2/3, 1))
 af1 <- approxfun(c(0, 0.5, 1), c(0, 0.5, 1))
 af2 <- approxfun(c(0, 1/3, 2/3, 1), c(0, 1/3, 2/3, 1))
 
-pdf("nltt.pdf", family="Gillius ADF")
+pdf("nltt.pdf")
 par(mfrow=c(2, 2), lwd=3)
 old.mar <- par("mar")
 par(mar=c(0, 2, 4, 2) + 0.1)

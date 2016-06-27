@@ -13,7 +13,7 @@ g2.large <- sample_pa(5000, m=2, power=2, directed=FALSE)
 summary(degree(g0.large))
 summary(degree(g2.large))
 
-pdf("alpha-bounds.pdf", family="Gillius ADF", width=6, height=6)
+pdf("alpha-bounds.pdf", width=6, height=6)
 par(mfrow=c(2, 2))
 par(mar=c(2, 2, 2, 2) + 0.1)
 

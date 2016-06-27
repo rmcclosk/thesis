@@ -10,7 +10,7 @@ br <- list(rep(1, t - 1), c(rep(1, t/2), rep(0.1, t/2)), c(1, rep(0.1, t-1)))
 tree <- lapply(mapply(rcoal, list(t), br=br, SIMPLIFY=FALSE), ladderize)
 net <- mapply(sample_pa, list(n), power=list(0, 1, 2), m=2, directed=FALSE, SIMPLIFY=FALSE)
 
-pdf("abc-idea.pdf", width=6, height=4, family="Gillius ADF")
+pdf("abc-idea.pdf", width=6, height=4)
 par(mfrow=c(4, 4), mar=c(0, 0, 0, 0))
 plot.new()
 text(0.5, 0.6, "sample", cex=2)

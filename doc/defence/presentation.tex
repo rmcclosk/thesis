@@ -6,7 +6,7 @@
 \usepackage{array}
 \usepackage{multirow}
 \usepackage{qrcode}
-\usepackage[backend=biber, style=authoryear, uniquelist=minyear, uniquename=false]{biblatex}
+\usepackage[backend=biber, style=numeric-comp, sorting=none]{biblatex}
 
 % http://tex.stackexchange.com/questions/12703/how-to-create-fixed-width-table-columns-with-text-raggedright-centered-raggedlef
 \newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
@@ -173,78 +173,72 @@
     }
     
     \uncover<9->{
-      \node (n5) at (-0.86, 0.5) [circle, fill=black] { };
-      \draw (n5) -- (n2);
-      \draw (n5) -- (n1);
+      \node (n6) at (-0.86, 0.5) [circle, fill=black] { };
+      \draw (n6) -- (n2);
+      \draw (n6) -- (n1);
     }
 
     \uncover<10->{
-      \node (n6) at (-1, 0) [circle, fill=black] { };
-      \draw (n6) -- (n3);
-      \draw (n6) -- (n4);
+      \node (n7) at (-1, 0) [circle, fill=black] { };
+      \draw (n7) -- (n3);
+      \draw (n7) -- (n4);
     }
 
     \uncover<11->{
-      \node (n7) at (-0.86, -0.5) [circle, fill=black] { };
-      \node (n8) at (-0.5, -0.86) [circle, fill=black] { };
-      \node (n9) at (0, -1) [circle, fill=black] { };
-      \node (n10) at (0.5, -0.86) [circle, fill=black] { };
-      \node (n11) at (0.86, -0.5) [circle, fill=black] { };
+      \node (n8) at (-0.86, -0.5) [circle, fill=black] { };
+      \node (n9) at (-0.5, -0.86) [circle, fill=black] { };
+      \node (n10) at (0, -1) [circle, fill=black] { };
+      \node (n11) at (0.5, -0.86) [circle, fill=black] { };
+      \node (n12) at (0.86, -0.5) [circle, fill=black] { };
 
-      \draw (n7) -- (n2);
-      \draw (n7) -- (n4);
       \draw (n8) -- (n2);
-      \draw (n8) -- (n1);
+      \draw (n8) -- (n4);
       \draw (n9) -- (n2);
-      \draw (n9) -- (n7);
-      \draw (n10) -- (n3);
+      \draw (n9) -- (n1);
+      \draw (n10) -- (n2);
       \draw (n10) -- (n8);
-      \draw (n11) -- (n2);
-      \draw (n11) -- (n7);
+      \draw (n11) -- (n3);
+      \draw (n11) -- (n9);
+      \draw (n12) -- (n2);
+      \draw (n12) -- (n8);
     }
+
+    \uncover<12->{
+      \node (n1) at (1, 0) [circle, fill=red] { };
+      \node (n2) at (0.86, 0.5) [circle, fill=red] { };
+      \node (n5) at (-0.86, 0.5) [circle, fill=red] { };
+      \node (n7) at (-0.86, -0.5) [circle, fill=red] { };
+      \node (n8) at (-0.5, -0.86) [circle, fill=red] { };
+
+      \draw [ultra thick, red] (n2) -- (n7);
+      \draw [ultra thick, red] (n2) -- (n1);
+      \draw [ultra thick, red] (n8) -- (n1);
+      \draw [ultra thick, red] (n5) -- (n2);
+    }
+
+    \only<11>{\node [below=of n10] {$N = 12$};}
+    \uncover<12->{\node [below=of n10] {$I = 5$};}
   \end{tikzpicture}
 
   \column{0.4\textwidth}
   \uncover<2->{
     $m$ = number of new edges per vertex \\
+    \hfill\\
   }
 
   \uncover<3->{
     $\alpha$ = preferential attachment power \\
+    \hfill\\
   }
 
   \uncover<11->{
-    $N$ = number of nodes
+    $N$ = number of nodes \\
+    \hfill\\
   }
-  \end{columns}
-\end{frame}
 
-\end{document}
-
-\begin{frame}{Barab\'asi-Albert model incorporates preferential attachment}
-  \begin{columns}
-    \begin{column}{0.5\textwidth}
-      \begin{minipage}[p][\textheight][t]{\textwidth}
-        \centering
-        \only<1>{\includegraphics[page=1, width=\textwidth]{pa.pdf}}
-        \only<2>{\includegraphics[page=2, width=\textwidth]{pa.pdf}}
-        \only<3>{\includegraphics[page=3, width=\textwidth]{pa.pdf}}
-        \only<4>{\includegraphics[page=4, width=\textwidth]{pa.pdf}}
-        \only<5>{\includegraphics[page=5, width=\textwidth]{pa.pdf}}
-        \only<6>{\includegraphics[page=6, width=\textwidth]{pa.pdf}}
-      \end{minipage}
-    \end{column}
-    \begin{column}{0.5\textwidth}
-      \begin{minipage}[t][\textheight][t]{\textwidth}
-      \begin{itemize}
-        \uncover<1->{ \item Start with a small number of connected nodes. }
-        \uncover<2->{ \item Attach new nodes with $m$ edges. }
-        \uncover<3->{ \item Other endpoints of degree $d$ are chosen with probability $\propto d^{\alpha} + 1$. }
-        \uncover<5->{ \item Continue until network has $N$ nodes. }
-        \uncover<6->{ \item Also consider the prevalence $I$. }
-      \end{itemize}
-      \end{minipage}
-    \end{column}
+  \uncover<12->{
+    $I$ = number of infected nodes (prevalence) 
+  }
   \end{columns}
 \end{frame}
 
@@ -288,6 +282,13 @@
 \end{frame}
 
 \begin{frame}{Phylogenetic methods may help fit network models}
+  \begin{itemize}
+    \item network models are difficult to fit with conventional epidemiological
+      methods (surveys etc.)
+    \item sequence data may be easier to collect and free from some biases
+      (misreporting etc.)
+    \item instead of asking the people, ask the virus! (some cartoon)
+  \end{itemize}
 \end{frame}
 
 \begin{frame}{Contact networks shape transmission trees}
@@ -366,90 +367,49 @@
 \end{frame}
 
 \begin{frame}{Transmission trees shape viral phylogenies}
+  some demo of viruses evolving and being transmitted at the same time
 \end{frame}
 
 \begin{frame}{Can we fit network models with viral phylogenies?}
+  \begin{center}
+  network $\to$ transmission tree $\to$ viral phylogeny \\
+  \hfill\\
+  network $\stackrel{\alert{?}}{\leftarrow}$ transmission tree $\leftarrow$ viral phylogeny \\
+  \end{center}
 \end{frame}
 
-\end{document}
-
-%\begin{frame}{Preferential attachment generates scale-free networks}
-%  \includegraphics[width=\textwidth]{pa-example}
-%  \begin{itemize}
-%    \item Sexual networks are often scale-free: degree distributions appear
-%      follow a power law ($\Pr(\text{degree} = d) \propto d^{-\gamma}$).
-%      \pause
-%    \item Preferential attachment models generate scale-free networks.
-%  \end{itemize}
-%\end{frame}
-
-
-\begin{frame}{Do network parameters measurably affect tree shape?}
-  \only<1>{
-    \includegraphics[height=1in, trim=0 2in 4in 0, clip]{kernel-idea}
-  }
-  \only<2>{
-    \includegraphics[height=1in, trim=0 2in 2in 0, clip]{kernel-idea}
-  }
-  \only<3->{
-    \includegraphics[height=1in, trim=0 2in 0 0, clip]{kernel-idea}
-  }
-  \begin{itemize}
-    \setlength{\itemsep}{0pt}
-    \item Generate networks under different parameter values (number of nodes
-      $N$, number of edges per vertex $m$, pereferential attachment power
-      $\alpha$).
-    \uncover<2->{
-    \item Simulate epidemic over each network until $I$ nodes are infected.
-    }
-    \uncover<3->{
-    \item Randomly subsample to form transmission trees.
-    }
-    \uncover<4->{
-    \item Compare trees pairwise using tree kernel\footfullcite{poon2013mapping}.
-    }
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Preferential attachment power $\alpha$ affects tree shape}
-  \begin{tikzpicture}[remember picture, overlay]
-    \node at (current page.south west) [anchor=south west] {\includegraphics[width=0.6\textwidth, trim=0.2in 2.7in 3.3in 0, clip]{kernel-kpca.pdf}};
-    \node (t) at (current page.north east) [anchor=north east, inner ysep=1.5cm, inner xsep=0.5cm] {\includegraphics[width=0.7\textwidth]{kernel-alpha-tree.pdf}};
-  \end{tikzpicture}
-\end{frame}
-
-\begin{frame}{Prevalence $I$ affects tree shape}
-  \begin{tikzpicture}[remember picture, overlay]
-    \node at (current page.south west) [anchor=south west] {\includegraphics[width=0.6\textwidth, trim=3.5in 2.7in 0in 0, clip]{kernel-kpca.pdf}};
-    \node (t) at (current page.north east) [anchor=north east, inner ysep=1.5cm, inner xsep=0.5cm] {\includegraphics[width=0.7\textwidth]{kernel-I-tree.pdf}};
-  \end{tikzpicture}
-\end{frame}
-
-\begin{frame}{Number of edges per vertex $m$ does not affect tree shape}
-  \begin{tikzpicture}[remember picture, overlay]
-    \node at (current page.south west) [anchor=south west] {\includegraphics[width=0.6\textwidth, trim=0.2in 0.3in 3.3in 2.2in, clip]{kernel-kpca.pdf}};
-    \node (t) at (current page.north east) [anchor=north east, inner ysep=1.5cm, inner xsep=0.5cm] {\includegraphics[width=0.7\textwidth]{kernel-m-tree.pdf}};
-  \end{tikzpicture}
-\end{frame}
-
-\begin{frame}{Number nodes $N$ modestly affects tree shape}
-  \begin{tikzpicture}[remember picture, overlay]
-    \node at (current page.south west) [anchor=south west] {\includegraphics[width=0.6\textwidth, trim=3.5in 0.3in 0 2.2in, clip]{kernel-kpca.pdf}};
-    \node (t) at (current page.north east) [anchor=north east, inner ysep=1.5cm, inner xsep=0.5cm] {\includegraphics[width=0.7\textwidth]{kernel-N-tree.pdf}};
-  \end{tikzpicture}
-\end{frame}
-
-\begin{frame}{Simulated trees can be used to fit a network model}
+\begin{frame}{Are network parameters identifiable from tree shape?}
   \begin{minipage}[p][\textheight][t]{\textwidth}
-    \only<1>{\includegraphics[width=0.9\textwidth, trim=0 3in 0 0, clip]{abc-idea.pdf}}
-    \only<2>{\includegraphics[width=0.9\textwidth, trim=0 1.8in 0 0, clip]{abc-idea.pdf}}
-    \only<3>{\includegraphics[width=0.9\textwidth, trim=0 1in 0 0, clip]{abc-idea.pdf}}
-    \uncover<4->{\includegraphics[width=0.9\textwidth, trim=0 0in 0 0, clip]{abc-idea.pdf}}
-    \uncover<5->{\vspace{0.5cm}\centerline{\textbf{kernel approximate Bayesian computation (kernel-ABC)}}}
+    \only<1>{\includegraphics[width=0.9\textwidth, trim=0 3in 0 0, clip]{kernel-idea.pdf}}
+    \only<2>{\includegraphics[width=0.9\textwidth, trim=0 1.7in 0 0, clip]{kernel-idea.pdf}}
+    \only<3>{\includegraphics[width=0.9\textwidth, trim=0 0.8in 0 0, clip]{kernel-idea.pdf}}
+    \only<4->{\includegraphics[width=0.9\textwidth, trim=0 0in 0 0, clip]{kernel-idea.pdf}}
   \end{minipage}
 \end{frame}
 
-\begin{frame}{Example simulation shows $\alpha$ and $I$ can be reconstructed}
+\begin{frame}{yes they do}
+  \centerline{\includegraphics[height=0.8\textheight]{kernel-kpca}}
+\end{frame}
+
+\begin{frame}{Simulated trees can be used to fit network models}
+  \centerline{\includegraphics[width=0.9\textwidth]{abc-smc}}
+
+  \centerline{animate this?}
+\end{frame}
+
+\begin{frame}{Posterior mean estimates are more accurate for $\alpha$ and $I$}
+  \begin{minipage}[p][\textheight][t]{\textwidth}
+    \vspace{-0.5cm}
+    preferential attachment power \hfill \uncover<2>{edges per vertex}
+
+    \hspace{0.75cm}\only<1>{\includegraphics[height=0.8\textheight, trim=0 0 3.4in 0, clip]{abc-point-estimate-m3.pdf}}
+    \only<2>{\includegraphics[height=0.8\textheight]{abc-point-estimate-m3.pdf}}
+
+    prevalence \hfill \uncover<2>{total nodes}
+  \end{minipage}
+\end{frame}
+
+\begin{frame}{Example simulation\ldots}
   \begin{minipage}[p][\textheight][t]{\textwidth}
     \begin{center}
     preferential attachment power \hfill prevalence
@@ -466,78 +426,34 @@
   \end{minipage}
 \end{frame}
 
-\begin{frame}{Maximum \textit{a posteriori} estimates are accurate for $\alpha$ and $I$}
-  \begin{minipage}[p][\textheight][t]{\textwidth}
-    \vspace{-0.5cm}
-    preferential attachment power \hfill \uncover<2>{edges per vertex}
-
-    \hspace{0.75cm}\only<1>{\includegraphics[height=0.8\textheight, trim=0 0 3.4in 0, clip]{abc-point-estimate-m2.pdf}}
-    \only<2>{\includegraphics[height=0.8\textheight]{abc-point-estimate-m2.pdf}}
-
-    prevalence \hfill \uncover<2>{total nodes}
-  \end{minipage}
+\begin{frame}{Example simulation continued, $N$ and $I$ confounded}
+  %\includegraphics[width=\textwidth]{{abc-posterior-2d/1.0_1000_3_5000_0}.pdf}
 \end{frame}
 
-\begin{frame}{Real world HIV datasets exhibit network heterogeneity}
-  \uncover<2->{
-    \centerline{\includegraphics[height=0.8\textheight]{realdata-hpd-bc}}
-  }
+\begin{frame}{Application to real world HIV datasets}
+  \centerline{\input{\tablepath/realdata-bc-short}}
+\end{frame}
 
-%  \scriptsize
-%    \begin{tabular}{ccccc}
-%      Reference & Sequences ($n$) & Location & Risk group & Gene \\
-%      \hline
-%      \color{magenta} \textcite{novitsky2013phylogenetic} &
-%        \color{magenta} \multirow{2}{*}{180} &
-%        \color{magenta} \multirow{2}{*}{Mochudi, Botswana} & 
-%        \color{magenta} \multirow{2}{*}{HET} &
-%        \color{magenta} \multirow{2}{*}{\textit{env}} \\ 
-%      \color{magenta} \textcite{novitsky2014impact} \\
-%      \color{blue} \textcite{cuevas2009hiv} & 
-%        \color{blue} 287 & 
-%        \color{blue} Basque Country, Spain & 
-%        \color{blue} mixed & 
-%        \color{blue} \textit{pol} \\
-%      \color{cyan} \textcite{li2015hiv} & 
-%        \color{cyan} 280 & 
-%        \color{cyan} Shanghai, China & 
-%        \color{cyan} MSM & 
-%        \color{cyan} \textit{pol} \\
-%      \color{green} unpublished & 
-%        \color{green} 399 & 
-%        \color{green} British Columbia, Canada & 
-%        \color{green} IDU & 
-%        \color{green} \textit{pol} \\
-%      \color{orange} \textcite{wang2015targeting} & 
-%        \color{orange} 173 & 
-%        \color{orange} Beijing, China & 
-%        \color{orange} MSM & 
-%        \color{orange} \textit{pol} \\
-%      \color{red} \textcite{niculescu2015recent} & 
-%        \color{red} 136 & 
-%        \color{red} Romaina & 
-%        \color{red} IDU & 
-%        \color{red} \textit{pol} \\
-%      \hline
-%    \end{tabular}
-%  \normalsize
+\begin{frame}{HIV networks have sub-linear preferential attachment}
+    Also, higher PA for IDU networks.
+
+    \includegraphics[trim=0 3.5in 3.3in 0, clip, width=0.5\textwidth]{realdata-hpd-bc}
+    \includegraphics[trim=3.4in 1.5in 0 2.0in, clip, width=0.5\textwidth]{realdata-hpd-bc}
 \end{frame}
 
 \begin{frame}{Conclusions}
   \begin{itemize}
-    \item Kernel-ABC is the first phylodynamic method to fit contact network
-      models to phylogenetic data.
+    \item We developed a phylodynamic method to fit contact network models to
+      phylogenetic data.
       \pause
     \item The preferential attachment power of the Barab\'asi-Albert network
       model, which is challenging to estimate by traditional epidemiological
-      methods, can be estimated with kernel-ABC.
+      methods, can be estimated with ABC.
       \pause
     \item The networks underlying real epidemics are heterogeneous,
       underscoring the importance of considering network structure in
       phylodynamic analyses.
-      \pause
   \end{itemize}
-  \centerline{\qrcode{github.com/rmcclosk/netabc} github.com/rmcclosk/netabc}
 \end{frame}
 
 \begin{frame}{Acknowledgements}
@@ -586,27 +502,5 @@
     \end{column}
   \end{columns}
 \end{frame}
-
-\begin{frame}{Classifiers for network parameters}
-  \vspace{-1cm}
-  \begin{itemize}
-    \item kSVR using tree kernel
-    \item SVR using normalized
-      lineages-through-time\footfullcite{janzen2015approximate}
-    \item linear regression using Sackin's index~\footfullcite{shao1990tree}
-  \end{itemize}
-
-  \includegraphics[width=\textwidth]{kernel-rsquared.pdf}
-\end{frame}
-
-\begin{frame}{Sequential Monte Carlo for ABC}
-  \begin{tikzpicture}
-    \only<1-2>{\node at (0, 0) [anchor=north west] {\includegraphics[height=0.7\textheight, trim=0 0in 4in 0, clip]{abc-smc.pdf}}};
-    \only<1>{\fill[white] (0.2,-6.5) rectangle (4,-3.5)};
-    \only<3>{\node at (0, 0) [anchor=north west] {\includegraphics[height=0.7\textheight, trim=0 0in 2in 0, clip]{abc-smc.pdf}}};
-    \only<4>{\node at (0, 0) [anchor=north west] {\includegraphics[height=0.7\textheight, trim=0 0in 0 0, clip]{abc-smc.pdf}}};
-  \end{tikzpicture}
-\end{frame}
-
 
 \end{document}

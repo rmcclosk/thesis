@@ -1,0 +1,105 @@
+\documentclass[landscape]{article}
+\usepackage{tikz}
+\usepackage[T1]{fontenc}
+\usepackage{mathptmx}
+\usepackage{fullpage}
+
+\usetikzlibrary{positioning}
+\usetikzlibrary{calc}
+\usetikzlibrary{arrows}
+\usetikzlibrary{automata}
+
+\graphicspath{{stock/}}
+
+\begin{document}
+\pagestyle{empty}
+
+\begin{tikzpicture}
+  [every node/.style = {inner sep=0pt},
+   every path/.style = {->, >=stealth, very thick},
+   label/.style = {anchor=south, color=white, inner sep=6pt},
+   time/.style = {anchor=north west, inner sep=2pt}]
+  \def\pht{1.5cm}
+  \def\pd{0.5cm}
+  \def\nd{1cm}
+
+  \node (abc) {\includegraphics[height=\pht]{person}};
+  \node at (abc.south) [label] {\huge a};
+
+  \node (ac) [below left=\pd of abc] {\includegraphics[height=\pht]{person}};
+  \node at (ac.south) [label] {\huge a};
+
+  \node (a) [below left=\pd of ac] {\includegraphics[height=\pht]{person}};
+  \node at (a.south) [label] {\huge a};
+  \node (b) [below right=\pd of abc] {\includegraphics[height=\pht]{person}};
+  \node at (b.south) [label] {\huge b};
+  \node (c) [below right=\pd of ac] {\includegraphics[height=\pht]{person}};
+  \node at (c.south) [label] {\huge c};
+
+  \draw [red] (abc) -- (b);
+  \draw [-, dashed] (abc) -- (ac);
+  \draw [blue] (ac) -- (c);
+  \draw [-, dashed] (ac) -- (a);
+
+  %\node (a) [left=7cm of abc] {\includegraphics[height=\pht]{person}};
+  %\node at (a.south) [label] {\huge a};
+  %\node (b) [below left=\nd of a] {\includegraphics[height=\pht]{person}};
+  %\node at (b.south) [label] {\huge b};
+  %\node (c) [below right=\nd of a] {\includegraphics[height=\pht]{person}};
+  %\node at (c.south) [label] {\huge c};
+  
+  %\draw [red] (a) -- (b);
+  %\draw [blue] (a) -- (c);
+
+  \node [below=6cm of abc] (abc) {\includegraphics[height=\pht]{person}};
+  \node at (abc.south) [label] {\huge b};
+
+  \node (ac) [below left=\pd of abc] {\includegraphics[height=\pht]{person}};
+  \node at (ac.south) [label] {\huge c};
+
+  \node (a) [below left=\pd of ac] {\includegraphics[height=\pht]{person}};
+  \node at (a.south) [label] {\huge a};
+  \node (b) [below right=\pd of abc] {\includegraphics[height=\pht]{person}};
+  \node at (b.south) [label] {\huge b};
+  \node (c) [below right=\pd of ac] {\includegraphics[height=\pht]{person}};
+  \node at (c.south) [label] {\huge c};
+
+  \draw [-, dashed] (abc) -- (b);
+  \draw [green!60!black] (abc) -- (ac);
+  \draw [-, dashed] (ac) -- (c);
+  \draw [cyan] (ac) -- (a);
+
+  %\node (a) [left=7cm of abc] {\includegraphics[height=\pht]{person}};
+  %\node at (a.south) [label] {\huge a};
+  %\node (b) [below left=\nd of a] {\includegraphics[height=\pht]{person}};
+  %\node at (b.south) [label] {\huge b};
+  %\node (c) [below right=\nd of a] {\includegraphics[height=\pht]{person}};
+  %\node at (c.south) [label] {\huge c};
+
+  %\draw [green!60!black] (b) -- (c);
+  %\draw [cyan] (c) -- (a);
+
+  \node [above left=2cm and 8cm of abc] (abc) {\includegraphics[height=\pht]{person}};
+  \node (ac) [below left=\pd of abc] {\includegraphics[height=\pht]{person}};
+
+  \node (a) [below left=\pd of ac] {\includegraphics[height=\pht]{person}};
+  \node at (a.south) [label] {\huge a};
+  \node (b) [below right=\pd of abc] {\includegraphics[height=\pht]{person}};
+  \node at (b.south) [label] {\huge b};
+  \node (c) [below right=\pd of ac] {\includegraphics[height=\pht]{person}};
+  \node at (c.south) [label] {\huge c};
+
+  \draw [-] (abc) -- (b);
+  \draw [-] (abc) -- (ac);
+  \draw [-] (ac) -- (c);
+  \draw [-] (ac) -- (a);
+
+  %\node (a) [left=7cm of abc] {\includegraphics[height=\pht]{person}};
+  %\node at (a.south) [label] {\huge a};
+  %\node (b) [below left=\nd of a] {\includegraphics[height=\pht]{person}};
+  %\node at (b.south) [label] {\huge b};
+  %\node (c) [below right=\nd of a] {\includegraphics[height=\pht]{person}};
+  %\node at (c.south) [label] {\huge c};
+
+\end{tikzpicture}
+\end{document}

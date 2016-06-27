@@ -25,7 +25,7 @@ lines <- data.frame(
     accurate=c("yes", "yes", "no", "no")
 )
 
-pdf("acc-prec.pdf", height=4, family="Gillius ADF")
+pdf("acc-prec.pdf", height=4)
 ggplot(d, aes(x=x, y=y, color=col)) + geom_line() + theme_bw() + xlim(-4, 4) +
     geom_vline(data=lines, aes(xintercept=v), lty=2) +
     facet_grid(precise~accurate, scales="free", labeller="label_both") +

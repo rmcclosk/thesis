@@ -22,7 +22,7 @@ y <- dens$y
 gradient <- colorRampPalette(c("blue", "white"))(length(x))
 true.x <- x[length(x)*0.4]
 true.x.col <- gradient[length(x)*0.4]
-pdf("tinykscore.pdf", family="Gillius ADF", width=3, height=0.8)
+pdf("tinykscore.pdf", width=3, height=0.8)
 par(mar=c(1, 1, 0, 0) + 0.1, mgp=c(0, 1, 0), cex=1.25)
 plot(x, y, type="p", xlim=c(-4, 4), main=NA, pch=16,
      xlab="training value", ylab="score", col=gradient, xaxt="n", yaxt="n")

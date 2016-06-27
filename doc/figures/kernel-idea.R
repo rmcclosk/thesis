@@ -2,73 +2,43 @@
 
 suppressPackageStartupMessages(library(netabc))
 library(RColorBrewer)
-library(grid)
 
-epidemic.mst <- function (g, nI) {
-    t <- mst(g)
-    I <- vcount(g)
-
-    while (I > nI) {
-        v <- which(degree(t) == 1)[1]
-        t <- delete_edges(t, E(t)[inc(v)])
-        I <- I - 1
-    }
-
-    inodes <- which(degree(t) > 0)
-    iedges <- get.edge.ids(g, c(t(as_edgelist(t))))
-    list(nodes=inodes, edges=iedges)
-}
-
+col <- as.list(brewer.pal(3, "Set1"))
 n <- 40
-t <- 12
-alpha <- c(0, 2)
-m <- 2
-
-br <- list(rep(1, t - 1), c(1, rep(0.1, t-1)))
+t <- 8
+br <- list(rep(1, t - 1), c(rep(1, t/2), rep(0.1, t/2)), c(1, rep(0.1, t-1)))
 tree <- lapply(mapply(rcoal, list(t), br=br, SIMPLIFY=FALSE), ladderize)
-net <- mapply(sample_pa, list(n), power=as.list(alpha), m=m, directed=FALSE, SIMPLIFY=FALSE)
+net <- mapply(sample_pa, list(n), power=list(0, 1, 2), m=2, directed=FALSE, SIMPLIFY=FALSE)
 
-epi <- lapply(net, epidemic.mst, t)
-inodes <- lapply(epi, "[[", "nodes")
-iedges <- lapply(epi, "[[", "edges")
-ecol <- mapply(rep, list(NA), lapply(net, ecount), SIMPLIFY=FALSE)
-ecol <- mapply(function (x, i) { x[i] <- "red"; x}, ecol, iedges, SIMPLIFY=FALSE)
-vcol <- mapply(rep, list("black"), lapply(net, ecount), SIMPLIFY=FALSE)
-vcol <- mapply(function (x, i) { x[i] <- "red"; x}, vcol, inodes, SIMPLIFY=FALSE)
+pdf("kernel-idea.pdf", width=6, height=4)
+par(mfrow=c(4, 4), mar=c(0, 0, 0, 0))
+plot.new()
+text(0.5, 0.625, "sample", cex=2)
+text(0.5, 0.4, "parameters", cex=2)
+plot.new()
+text(0.5, 0.5, expression(theta[1]), cex=4, col=col[[1]])
+plot.new()
+text(0.5, 0.5, expression(theta[2]), cex=4, col=col[[2]])
+plot.new()
+text(0.5, 0.5, expression(theta[3]), cex=4, col=col[[3]])
 
-ewidth <- mapply(rep, list(0), lapply(net, ecount), SIMPLIFY=FALSE)
-ewidth <- mapply(function (x, i) { x[i] <- 3; x}, ewidth, iedges, SIMPLIFY=FALSE)
-
-lay <- lapply(net, layout_nicely)
-
-pdf("kernel-idea.pdf", width=6, height=4, family="Gillius ADF")
-par(mfcol=c(2, 3), mar=c(0, 2, 0, 2))
-
-# plot networks
-mapply(plot, net, edge.color="gray", vertex.color="black", vertex.label=NA,
-       vertex.size=6, edge.width=3, layout=lay)
-
-# plot epidemics
-mapply(function (g, lay, ecol, ewidth, vcol) {
-    plot(g, edge.color="gray", vertex.color="black", vertex.label=NA,
-       vertex.size=6, edge.width=3, layout=lay)
-    plot(g, edge.color=ecol, vertex.color=vcol, vertex.frame.color=vcol, 
-         vertex.label=NA, vertex.size=6, edge.width=ewidth, layout=lay,
-         add=TRUE)
-}, net, lapply(net, layout_nicely), ecol, ewidth, vcol)
-
-# plot trees
-par(mar=c(2, 2, 2, 2))
-mapply(plot, tree, edge.color="red", direction="down", show.tip.label=FALSE,
+plot.new()
+text(0.5, 0.625, "simulate", cex=2)
+text(0.5, 0.4, "networks", cex=2)
+mapply(plot, net, edge.color=col, vertex.color=col, vertex.label=NA, 
+       vertex.size=6, edge.width=3)
+par(mar=c(1, 1, 1, 1))
+plot.new()
+text(0.5, 0.625, "simulate", cex=2)
+text(0.5, 0.325, "trees", cex=2)
+mapply(plot, tree, edge.color=col, direction="down", show.tip.label=FALSE,
        edge.width=3)
-
-# arrows
-grid.lines(x=unit(c(0.3, 0.37), "npc"), y=unit(c(0.25, 0.25), "npc"), 
-           arrow=arrow(), gp=gpar(lwd=3))
-grid.lines(x=unit(c(0.3, 0.37), "npc"), y=unit(c(0.75, 0.75), "npc"), 
-           arrow=arrow(), gp=gpar(lwd=3))
-grid.lines(x=unit(c(0.63, 0.7), "npc"), y=unit(c(0.25, 0.25), "npc"), 
-           arrow=arrow(), gp=gpar(lwd=3))
-grid.lines(x=unit(c(0.63, 0.7), "npc"), y=unit(c(0.75, 0.75), "npc"), 
-           arrow=arrow(), gp=gpar(lwd=3))
+plot.new()
+text(0.5, 0.625, "are the trees", cex=2)
+text(0.5, 0.325, "different?", cex=2)
+plot.new()
+plot.new()
+par(xpd=NA)
+text(0.5, 0.5, expression(K(phantom()%.%phantom(),phantom()%.%phantom())),
+     cex=3)
 dev.off()
