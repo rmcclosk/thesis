@@ -1,0 +1,171 @@
+\documentclass{beamer}
+\usepackage{tikz}
+\usepackage{gillius}
+\usepackage{abraces}
+\usepackage{etex}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage[backend=biber, style=numeric-comp, sorting=none]{biblatex}
+
+% http://tex.stackexchange.com/questions/12703/how-to-create-fixed-width-table-columns-with-text-raggedright-centered-raggedlef
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
+\usetikzlibrary{external}
+\usetikzlibrary{shapes}
+\usetikzlibrary{arrows}
+\usetikzlibrary{positioning}
+\usetikzlibrary{decorations.pathreplacing}
+\usetikzlibrary{calc}
+\usetikzlibrary{automata}
+
+\usetheme[everytitleformat=regular]{m}
+\setbeamertemplate{navigation symbols}{}
+
+\graphicspath{{../figures/}}
+\newcommand{\tablepath}{../tables}
+
+\title{Phylogenetic inference of contact network parameters with approximate Bayesian computation}
+\author[RMM \& AFYP]{Rosemary M McCloskey$^1$ \and Bioinformatics Training Program \\ Supervisor: Art FY Poon$^{1,2}$}
+\institute[UBC \& BCCfE]{$^1$BC Centre for Excellence in HIV/AIDS, Vancouver, Canada \\ $^2$Department of Medicine, University of British Columbia, Vancouver, Canada}
+\date{M.Sc. Defence, July 26, 2016}
+
+\newcommand{\dd}[2]{\frac{\text{d}\,#1}{\text{d}\,#2}}
+
+\addbibresource{papers.bib}
+
+\begin{document}
+\setbeamercolor{background canvas}{bg=white}
+\renewcommand{\footnotesize}{\tiny}
+\definecolor{red}{RGB}{228,26,28}
+\definecolor{blue}{RGB}{55,126,184}
+\definecolor{green}{RGB}{77,175,74}
+\definecolor{purple}{RGB}{152,78,163}
+
+\begin{frame}{Transmission trees shape viral phylogenies}
+  \begin{center}
+    \begin{tikzpicture}[
+        every node/.style = {inner sep=0pt},
+        every path/.style = {->, >=stealth, very thick},
+        label/.style = {anchor=south, color=white, inner sep=4pt}
+      ]
+      \def\pht{1cm}
+      \node (abcd) {\includegraphics[height=\pht]{stock/person}};
+      \node at (abcd.south) [label] {\Large a};
+
+      \uncover<2>{
+      \node (b) at (abcd.east) [anchor=west] {\includegraphics[height=\pht]{stock/person}};
+      \node at (b.south) [label] {\Large b};
+      \draw [red] (abcd.south) to [bend right=75] (b.south);
+      }
+
+      \uncover<3->{
+      \node (b) [below right=1 and 0.75 of abcd] {\includegraphics[height=\pht]{stock/person}};
+      \node at (b.south) [label] {\Large b};
+      \node (acd) [below left=1 and 0.5 of abcd] {\includegraphics[height=\pht]{stock/person}};
+      \node at (acd.south) [label] {\Large a};
+      \draw [red] (abcd) -- (b);
+      \draw [-, dashed] (abcd) -- (acd);
+      }
+
+      \uncover<4>{
+      \node (cd) at (acd.east) [anchor=west] {\includegraphics[height=\pht]{stock/person}};
+      \node at (cd.south) [label] {\Large c};
+      \draw [blue] (acd.south) to [bend right=75] (cd.south);
+      }
+      
+      \uncover<5->{
+      \node (cd) [below right=0.5 and 0.5 of acd] {\includegraphics[height=\pht]{stock/person}};
+      \node at (cd.south) [label] {\Large c};
+      \node (a) [below left=0.25 and 0.25 of acd] {\includegraphics[height=\pht]{stock/person}};
+      \node at (a.south) [label] {\Large a};
+      \draw [blue] (acd) -- (cd);
+      \draw [-, dashed] (acd) -- (a);
+      }
+
+      \uncover<6>{
+      \node (d) at (cd.east) [anchor=west] {\includegraphics[height=\pht]{stock/person}};
+      \node at (d.south) [label] {\Large d};
+      \draw [green] (cd.south) to [bend right=75] (d.south);
+      }
+
+      \uncover<7->{
+      \node (c) [below left=0.25 and 0.25 of cd] {\includegraphics[height=\pht]{stock/person}};
+      \node at (c.south) [label] {\Large c};
+      \node (d) [below right=0.4 and 0.4 of cd] {\includegraphics[height=\pht]{stock/person}};
+      \node at (d.south) [label] {\Large d};
+      \draw [-, dashed] (cd) -- (c);
+      \draw [green!80!black] (cd) -- (d);
+      }
+
+      \coordinate [below right=0.5 and 3 of b] (abcd);
+      \coordinate [below right=1 and 1 of abcd] (b);
+      \coordinate [above left=1 and 0.25 of abcd] (acd);
+      \coordinate [above left=1 and 0.25 of acd] (a);
+      \coordinate [right=of acd] (cd);
+      \coordinate [right=1.5 of cd] (c);
+      \coordinate [above right=of cd] (d);
+
+      \uncover<1-2>{
+      \node (x) at (abcd) {\includegraphics[height=\pht]{stock/virus}};
+      \node at (x.center) {\large a};
+      }
+
+      \uncover<2>{
+      \node (x) [below right=0.3 of abcd, anchor=north west] {\includegraphics[height=\pht]{stock/virus}}; 
+      \node at (x.center) {\large b};
+      }
+
+      \uncover<3-4>{
+      \node (x) [above=0 of acd, anchor=south] {\includegraphics[height=\pht]{stock/virus}}; 
+      \node at (x.center) {\large a};
+      }
+
+      \uncover<3->{
+      \node (x) [below right=-0.2 of b, anchor=north west] {\includegraphics[height=\pht]{stock/virus}}; 
+      \node at (x.center) {\large b};
+
+      \draw (abcd) -- (acd);
+      \draw (abcd) -- (b);
+      }
+
+      \uncover<4>{
+      \node (x) [right=0.3 of acd, anchor=west] {\includegraphics[height=\pht]{stock/virus}}; 
+      \node at (x.center) {\large c};
+      }
+
+      \uncover<5-6>{
+      \node (x) at (cd) [anchor=west] {\includegraphics[height=\pht]{stock/virus}};  
+      \node at (x.center) {\large c};
+      }
+      
+      \uncover<5->{
+      \node (x) at (a) [anchor=south] {\includegraphics[height=\pht]{stock/virus}};
+      \node at (x.center) {\large a};
+      
+      \draw (acd) -- (cd);
+      \draw (acd) -- (a);
+      }
+
+      \uncover<6>{
+      \node (x) [above right=0.4\pht and 0.4\pht of cd] [anchor=south west] {\includegraphics[height=\pht]{stock/virus}};
+      \node at (x.center) {\large d};
+      }
+
+      \uncover<7->{
+      \node (x) at (c) [anchor=west] {\includegraphics[height=\pht]{stock/virus}};
+      \node at (x.center) {\large c};
+
+      \node (x) at (d) [anchor=south west] {\includegraphics[height=\pht]{stock/virus}};
+      \node at (x.center) {\large d};
+      
+      \draw (cd) -- (c);
+      \draw (cd) -- (d);
+      }
+
+    \end{tikzpicture}
+  \end{center}
+\end{frame}
+
+\end{document}
