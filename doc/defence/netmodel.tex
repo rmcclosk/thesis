@@ -1,0 +1,35 @@
+\begin{frame}{Network models formally describe network structure}
+  \begin{columns}
+    \column{0.55\textwidth}
+    \begin{minipage}[c][.6\textheight][c]{\linewidth}
+      \begin{enumerate}
+        \setlength{\itemsep}{12pt}
+        \uncover<2->{
+        \item Start with \only<2-6>{10}\only<7->{\alert{$n$}} women and 
+          \only<2-6>{10}\only<7->{\alert{$n$}} men.
+        }
+        \uncover<3->{
+        \item Randomly form \only<3-6>{20}\only<7->{\alert{$p \times n$}} male-female partnerships.
+        }
+        \uncover<4->{
+        \item Randomly rewire each edge with \only<4-6>{10}\only<7->{\\\alert{$q$ }}\% probability.
+        }
+      \end{enumerate}
+    \end{minipage}
+    \column{0.5\textwidth}
+    \begin{minipage}[c][.6\textheight][c]{\linewidth}
+      \only<2>{\includegraphics[width=5cm, page=1]{homophily}}
+      \only<3>{\includegraphics[width=5cm, page=2]{homophily}}
+      \only<4>{\includegraphics[width=5cm, page=3]{homophily}}
+      \only<5->{\includegraphics[width=5cm, page=4]{homophily}}
+    \end{minipage}
+  \end{columns}
+
+  \vspace{0.5cm}
+  \begin{columns}
+    \column{0.55\textwidth}
+    \uncover<6->{\centerline{\large{network model}}}
+    \column{0.55\textwidth}
+    \uncover<6->{\centerline{\large{contact network}}}
+  \end{columns}
+\end{frame}

@@ -1,0 +1,61 @@
+\begin{frame}{Phylogenetic methods may help fit network models}
+  \begin{center}
+  \begin{tikzpicture}
+    [
+      label/.style = {anchor=south, color=white, inner sep=6pt},
+      every path/.style = {very thick}
+    ]
+    \def\pht{1cm}
+    \uncover<2-5>{
+    \node (a) {\includegraphics[height=\pht]{stock/person}};
+    \node (b) [below right=3 and 1.5 of a] {\includegraphics[height=\pht]{stock/person}};
+    \node (c) [below left=3 and 1.5 of a] {\includegraphics[height=\pht]{stock/person}};
+    }
+
+    \uncover<2-5>{
+    \draw (a) -- ++ (-1, 0);
+    \draw (a) -- ++ (-0.86, -0.5);
+    }
+
+    \uncover<3-5>{
+    \draw (a) -- ++ (-0.5, -0.86) node [anchor=north east] {\alert{?}};
+    \draw (a) -- ++ (0, -1) node [anchor=north] {\alert{?}};
+    \draw (a) -- ++ (0.5, -0.86) node [anchor=north west] {\alert{?}};
+    \draw (a) -- ++ (0.86, -0.5) node [anchor=west] {\alert{?}};
+    \draw (a) -- ++ (1, 0) node [anchor=west] {\alert{?}};
+    }
+
+    \uncover<4-5>{
+    \draw [->, >=stealth] (b) to [bend right] (c);
+    \draw [->, >=stealth] (c) to [bend right] node 
+      [-, red, forbidden sign, draw=red, inner sep=6pt] {} (b);
+    \node [below=3.3 of a] {\Large \alert{?}};
+    }
+
+    \uncover<5>{
+    \node (d) [below right=0 and 2 of a] {\includegraphics[height=\pht]{stock/person}};
+    \node (e) [below left=0 and 2 of a] {\includegraphics[height=\pht]{stock/person}};
+    \node at (d.south) [label] {\Large \alert{?}};
+    \node at (e.south) [label] {\Large \alert{?}};
+    }
+
+    \uncover<6->{
+    \node (a) [opacity=0.3] {\includegraphics[height=\pht]{stock/person}};
+    \node (b) [opacity=0.3, below right=3 and 1.5 of a] {\includegraphics[height=\pht]{stock/person}};
+    \node (c) [opacity=0.3, below left=3 and 1.5 of a] {\includegraphics[height=\pht]{stock/person}};
+
+    \node (va) at (a) [anchor=north] {\includegraphics[height=\pht]{stock/virus}};
+    \node (vb) at (b) [anchor=east] {\includegraphics[height=\pht]{stock/virus}};
+    \node (vc) at (c) [anchor=west] {\includegraphics[height=\pht]{stock/virus}};
+    }
+
+    \uncover<7->{
+    \node (e) [opacity=0.3, below left=0 and 2 of a] {\includegraphics[height=\pht]{stock/person}};
+    \coordinate [below=2 of a] (mid);
+    \draw (va.south) -- (mid) -- (vb.north west);
+    \draw (vc.north) -- (e.east) -- (mid);
+    \draw [dashed] (va.south east) -- (vb.north);
+    }
+  \end{tikzpicture}
+  \end{center}
+\end{frame}

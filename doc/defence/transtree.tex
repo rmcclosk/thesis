@@ -1,0 +1,92 @@
+\begin{frame}{Contact networks shape transmission trees}
+  \vspace{-1cm}
+  \begin{center}
+    \begin{tikzpicture}
+      [every node/.style = {inner sep=0pt},
+       every path/.style = {->, >=stealth, very thick},
+       label/.style = {anchor=south, color=white, inner sep=4pt},
+       time/.style = {anchor=north west, inner sep=2pt}]
+      \def\pht{1cm}
+      \node (a) {\includegraphics[height=\pht]{stock/person}};
+      \node at (a.south) [label] {\Large a};
+      \node [below left=0.75 of a] (b) {\includegraphics[height=\pht]{stock/person}};
+      \node at (b.south) [label] {\Large b};
+      \node [below=0.75 of b] (e) {\includegraphics[height=\pht]{stock/person}};
+      \node at (e.south) [label] {\Large e};
+      \node [below right=0.75 of a] (c) {\includegraphics[height=\pht]{stock/person}};
+      \node at (c.south) [label] {\Large c};
+      \node [below=0.75 of c] (d) {\includegraphics[height=\pht]{stock/person}};
+      \node at (d.south) [label] {\Large d};
+    
+      \fill [shade, opacity=0.2] (a.east) -- (c.north) -- (c.north west) -- (a.south east) -- cycle;
+      \fill [shade, opacity=0.2] (a.west) -- (b.north) -- (b.north east) -- (a.south west) -- cycle;
+      \fill [shade, opacity=0.2] (a.south) -- (a.south west) -- (e.north) -- (e.north east) -- cycle;
+      \fill [shade, opacity=0.2] (b.south west) -- (b.south) -- (e.north) -- (e.north west) -- cycle;
+      \fill [shade, opacity=0.2] ($(c.south) + (-8pt, 0)$) -- ++(16pt, 0) -- ($(d.north) + (8pt, 0)$) -- ++(-16pt, 0) -- cycle;
+      \fill [shade, opacity=0.2] (b.east) -- (b.south east) -- (d.west) -- (d.north west) -- cycle;
+      \uncover<2->{
+      \draw [red] ($(a.west) + (0, -12pt)$) -- ($(b.north) + (8pt, 0)$);
+      }
+      \uncover<4->{
+      \draw [blue] ($(a.east) + (0, -12pt)$) -- ($(c.north) + (-8pt, 0)$);
+      }
+      \uncover<6->{
+      \draw [green!80!black] (c) -- (d);
+      }
+
+      \node (abcd) [above right=0 and 5cm of a] {\includegraphics[height=\pht]{stock/person}};
+      \node at (abcd.south) [label] {\Large a};
+
+      \uncover<2>{
+      \node (b) at (abcd.east) [anchor=west] {\includegraphics[height=\pht]{stock/person}};
+      \node at (b.south) [label] {\Large b};
+      \draw [red] (abcd.south) to [bend right=75] (b.south);
+      }
+
+      \uncover<3->{
+      \node (b) [below right=1 and 0.75 of abcd] {\includegraphics[height=\pht]{stock/person}};
+      \node at (b.south) [label] {\Large b};
+      \node (acd) [below left=1 and 0.5 of abcd] {\includegraphics[height=\pht]{stock/person}};
+      \node at (acd.south) [label] {\Large a};
+      \draw [red] (abcd) -- (b);
+      \draw [-, dashed] (abcd) -- (acd);
+      }
+
+      \uncover<4>{
+      \node (cd) at (acd.east) [anchor=west] {\includegraphics[height=\pht]{stock/person}};
+      \node at (cd.south) [label] {\Large c};
+      \draw [blue] (acd.south) to [bend right=75] (cd.south);
+      }
+      
+      \uncover<5->{
+      \node (cd) [below right=0.5 and 0.5 of acd] {\includegraphics[height=\pht]{stock/person}};
+      \node at (cd.south) [label] {\Large c};
+      \node (a) [below left=0.25 and 0.25 of acd] {\includegraphics[height=\pht]{stock/person}};
+      \node at (a.south) [label] {\Large a};
+      \draw [blue] (acd) -- (cd);
+      \draw [-, dashed] (acd) -- (a);
+      }
+
+      \uncover<6>{
+      \node (d) at (cd.east) [anchor=west] {\includegraphics[height=\pht]{stock/person}};
+      \node at (d.south) [label] {\Large d};
+      \draw [green] (cd.south) to [bend right=75] (d.south);
+      }
+
+      \uncover<7->{
+      \node (c) [below left=0.25 and 0.25 of cd] {\includegraphics[height=\pht]{stock/person}};
+      \node at (c.south) [label] {\Large c};
+      \node (d) [below right=0.4 and 0.4 of cd] {\includegraphics[height=\pht]{stock/person}};
+      \node at (d.south) [label] {\Large d};
+      \draw [-, dashed] (cd) -- (c);
+      \draw [green!80!black] (cd) -- (d);
+      }
+
+      \coordinate [above right=0 and 2.5cm of abcd] (top);
+      \draw (top) -- ++ (0, -6cm) node [anchor=west, inner xsep=4pt] {time};
+
+    \end{tikzpicture}
+
+  $\qquad$contact network \hfill transmission tree$\qquad$
+  \end{center}
+\end{frame}
