@@ -79,10 +79,12 @@ nodes~\autocite{wang2015targeting}. True contact networks are a challenging
 type of data to collect, requiring extensive epidemiological
 investigation~\autocite{welch2011statistical, eames2015six}.
 
-Viral sequence data, on the other hand, has become relatively inexpensive and
-straightforward to collect on a population level. Due to the high mutation rate
-of RNA viruses, epidemiological processes impact the course of viral evolution,
-thereby shaping the inter-host viral
+Viral sequence data, on the other hand, has become \del{relatively inexpensive
+and straightforward to collect on a population level.} \add{easier to collect
+as the cost of sequencing has declined. In the case of HIV, genotyping has
+become part of routine clinical care in several health regions.'' Due to the
+high mutation rate of RNA viruses, epidemiological processes impact the course
+of viral evolution, thereby shaping the inter-host viral
 phylogeny~\autocite{drummond2003measurably}. The term ``phylodynamics'' was
 coined to describe this interaction, as well as the growing family of inference
 methods to estimate epidemiological parameters from viral
@@ -98,7 +100,11 @@ date been limited. However, it has been shown that network structure has a
 tangible impact on phylogeny shape~\autocite{leventhal2012inferring,
 colijn2014phylogenetic, goodreau2006assessing, robinson2013dynamics,
 villandre2016assessment}, suggesting that such statistical inference might be
-possible~\autocite{welch2011statistical}.
+possible~\autocite{welch2011statistical}. \add{In the context of networks,
+sequence data have the advantage of being objective, in that they are not
+affected by misreporting. However, just as with survey data, it is important to
+collect a representative sample from the population to perform accurate
+inference~\autocite{novitsky2014impact}.}
 
 Survey-based studies of sexual networks~\autocite{colgate1989risk,
 liljeros2001web, schneeberger2004scale, latora2006network, rothenberg2007large,
@@ -201,12 +207,14 @@ First, a contact network is simulated according to the network model being fit.
 Second, a transmission tree is simulated over that network with a Gillespie
 simulation algorithm~\autocite{gillespie1976general}, in the same fashion as
 several previous studies \autocite[\textit{e.g.}][]{robinson2013dynamics,
-leventhal2012inferring}. The particles are weighted according to the similarity
-between their associated simulated trees and the observed tree. To quantify
-this similarity, we used the tree kernel developed by
-\textcite{poon2013mapping}. Particles are iteratively perturbed by applying a
-Metropolis-Hastings kernel and, if the move is accepted, simulating new
-datasets under the new parameters. When a particle's weight drops to zero,
+leventhal2012inferring}. \add{Tips of the simulated transmission tree are
+randomly removed until the simulated tree has the same number of tips as the
+input tree.} The particles are weighted according to the similarity between
+their associated simulated trees and the observed tree. To quantify this
+similarity, we used the tree kernel developed by \textcite{poon2013mapping}.
+Particles are iteratively perturbed by applying a Metropolis-Hastings kernel
+and, if the move is accepted, simulating new datasets under the new parameters.
+When a particle's weight drops to zero,
 because its simulated trees are too dissimilar to the observed tree, the
 particle is dropped from the population, and eventually replaced by a resampled
 particle with a higher weight. As the algorithm progresses, the population
@@ -281,11 +289,13 @@ imbalance which not take branch lengths into account, considering only the
 topology. The normalized lineages-through-time
 \autocite[nLTT,][]{janzen2015approximate} compares two trees based on normalized
 distributions of their branching times, and does not explicitly consider the
-topology. In addition, the tree kernel can be tuned by adjusting the values of
-the meta-parameters $\lambda$ and $\sigma$ (the ``decay factor'' and ``radial
-basis function variance'', see \textcite{poon2013mapping}). The results of this
-experiment were used to select values for these meta-parameters to carry
-forward based on their accuracy in distinguishing the different trees.}
+topology. Since the tree kernel incorporates both of these sources of
+information, we expected it to outperform the other two statistics. Finally,
+the tree kernel can be tuned by adjusting the values of the meta-parameters
+$\lambda$ and $\sigma$ (the ``decay factor'' and ``radial basis function
+variance'', see \textcite{poon2013mapping}). The results of this experiment
+were used to select values for these meta-parameters to carry forward based on
+their accuracy in distinguishing the different trees.}
   
 \del{We used the phylogenetic kernel developed by \textcite{poon2013mapping}}
 To test whether the parameters of the BA model had a \add{measurable} effect on
@@ -304,7 +314,7 @@ values, and a $1 \times 300$ vector of Sackin's index values.} We constructed
 package~\autocite{zeileis2004kernlab}, an ordinary SVR \add{from the nLTT
 matrix} with the e1071 package~\autocite{meyer2015e1071}, and a linear
 regression from the Sackin's index values. The accuracy of each classifier was 
-evaluated with 1000 two-fold cross validations.
+evaluated with 1000 two-fold cross validations \add{with equally-sized folds}.
   
 Three similar experiments were performed for the other BA model parameters (one
 experiment per parameter). $m$ was varied between 2, 3, and 4; $I$ between 500,
@@ -316,9 +326,9 @@ $N$. We repeated these four cross-validations with different values of
 $\lambda$ (0.2, 0.3, and 0.4) and $\sigma$ ($2^{-3}$, $2^{-2}$, \ldots, $2^3$),
 as well as on trees with differing numbers of tips (100, 500, and 1000).
 \add{For the structural parameters $\alpha$, $m$, and $N$, the experiments were
-repeated with three different values of $I$ (500, 1000, and 2000).} \del{and in
-epidemics of differing size (500, 1000, and 2000).} The combination of the
-number of sampled individuals (\textit{i.e.} the number of tips) and the
+repeated with three different fixed values of $I$ (500, 1000, and 2000).}
+\del{and in epidemics of differing size (500, 1000, and 2000).} The combination
+of the number of sampled individuals (\textit{i.e.} the number of tips) and the
 epidemic size (\textit{i.e.} $I$) will be referred to as an ``epidemic
 scenario''. When evaluating the classifier for $I$, we did not consider trees
 with 1000 tips, because one of the tested $I$ values was 500, and the number of
@@ -450,14 +460,16 @@ K03455), and the hypervariable regions were clipped out with
 \textit{BioPython} version 1.66+~\autocite{cock2009biopython}. Sequences were
 multiply aligned using \textit{MUSCLE} version 3.8.31
 \autocite{edgar2004muscle}, and alignments were manually inspected with
-\textit{Seaview} version 4.4.2 \autocite{gouy2010seaview}. Phylogenies were
-constructed from the nucleotide alignments by approximate maximum likelihood
-using \textit{FastTree2} version 2.1.7 \autocite{price2010fasttree} with the
+\textit{Seaview} version 4.4.2 \autocite{gouy2010seaview}. \add{Duplicated
+sequences were removed with BioPython.} Phylogenies were constructed from the
+nucleotide alignments by approximate maximum likelihood using
+\textit{FastTree2} version 2.1.7 \autocite{price2010fasttree} with the
 generalized time-reversible (GTR) model~\autocite{tavare1986some}. Transmission
 trees were estimated by rooting and time-scaling the phylogenies by root-to-tip
 regression, using a modified version of Path-O-Gen (distributed as part of
 BEAST~\autocite{drummond2007beast}) as described
-previously~\autocite{poon2015phylodynamic}. 
+previously~\autocite{poon2015phylodynamic}. \add{Due to the removal of
+duplicated sequences, all estimated transmission trees were fully binary.}
 
 \del{Two} \add{Four} of the datasets \del{\autocite{li2015hiv,novitsky2014impact}}
 (MSM/Shanghai, HET/Botswana, HET/Uganda, and MSM/USA)
@@ -851,8 +863,8 @@ and $m$
     ($p \Sexpr{pp(alpha.glm[Parameter == "m", p], eq=TRUE)}$)
 but was not significantly affected by $I$. Qualitatively, $\alpha$ seemed to be
 only weakly identifiable between the values of 0 and 0.5 (\cref{fig:abcptm2}).
-The error in the estimated prevalence $I$ was slightly lower for smaller values
-of $\alpha$
+The error in the estimated $I$ value was slightly lower for smaller values of
+$\alpha$
     ($p \Sexpr{pp(I.glm[Parameter == "alpha", p], eq=TRUE)}$)
 and $I$
     ($p \Sexpr{pp(I.glm[Parameter == "I", p], eq=TRUE)}$),
@@ -1211,7 +1223,7 @@ prior on $m$, with slightly narrower HPD intervals (compare
 @
 
 \add{For all but the HET/Botswana data, the posterior mean estimates for
-the prevalence $I$ were between
+$I$ were between
     \Sexpr{pmean1["zetterberg2004", round(I)]}
 (IDU/Estonia) and
     \Sexpr{pmean1["bctree", round(I)]}
@@ -1219,14 +1231,14 @@ the prevalence $I$ were between
     (\Sexpr{pmean1["novitsky2014", round(I)]})
 than the other datasets, with a very wide 95\% HPD interval covering almost the
 entire prior region (\cref{fig:abchpd}). There was no significant correlation
-between the number of sequences in the tree and the estimated prevalence
+between the number of sequences in the tree and the estimated $I$ value
 (Spearman correlation, 
     $p \Sexpr{pp(pmean1[,cor.test(ntip, I, method="spearman")[["p.value"]]], eq=TRUE)}$),
-indicating that the higher prevalence estimates were not simply due to
-increased sampling density. When both \textit{gag} and \textit{env} sequences
-were analyzed, the estimates from the \textit{env} data were substantially
-higher (\cref{fig:genes}). The ratios of internal to terminal branch lengths
-were lower for the \textit{env} trees than the \textit{gag} trees (average 
+indicating that the higher estimates were not simply due to increased sampling
+density. When both \textit{gag} and \textit{env} sequences were analyzed, the
+estimates from the \textit{env} data were substantially higher
+(\cref{fig:genes}). The ratios of internal to terminal branch lengths were
+lower for the \textit{env} trees than the \textit{gag} trees (average 
     \Sexpr{ratios[gene == "env", round(mean(ratio), 2)]}
 for \textit{env} and 
     \Sexpr{ratios[gene == "gag", round(mean(ratio), 2)]}
@@ -1389,7 +1401,7 @@ preferential attachment dynamics. The dataset studied by
 where the predominant risk factor was believed to be heterosexual exposure.
 Although the MAP estimate of $\alpha$ was almost unchanged when the value $m =
 1$ was excluded from the prior, the confidence interval shrank significantly.
-For both priors, the estimated prevalence was extremely high, in fact higher
+For both priors, the estimated $I$ value was extremely high, in fact higher
 than the estimated HIV prevalence in the sampled region. The authors indicated
 that the source of the samples was a town in close proximity to the country's
 capital city, and suggested that there may have been a high degree of migration
@@ -1402,83 +1414,79 @@ cluster and therefore was a good candidate for the BA model. However, nearly
 all the posterior density was assigned to $m = 1$ when this value was allowed,
 indicating that the network was more likely to have an acyclic tree structure.}
 
-\subsubsection{Preferential attachment power is sub-linear and higher for \gls{IDU}}
+\subsubsection{Preferential attachment power is sub-linear and higher for IDU networks}
 
-\add{For all datasets we examined, the posterior mean estimates for \gls{alpha}
+\add{For all datasets we examined, the posterior mean estimates for $\alpha$
 were sub-linear, ranging from 
     \Sexpr{d[m_min == 1 & parameter == "alpha", round(min(mean), 2)]}
 to 
     \Sexpr{d[m_min == 1 & parameter == "alpha", round(max(mean), 2)]}.
 The sub-linearity is consistent with the results of
 \textcite{de2007preferential}, who developed a statistical inference method to
-estimate the parameters of a more sophisticated \acrlong{PA} model
+estimate the parameters of a more sophisticated preferential attachment model
 incorporating heterogeneous node behaviour. When used to analyze
-population-level longitudinal partner count data, they found \gls{alpha} values
+population-level longitudinal partner count data, they found $\alpha$ values
 ranging from 0.26 to 0.62 depending on the gender and time period considered.
-Our estimates of \gls{alpha} for the IDU/Romania was above this range under
-both priors, as were the estimates for the MSM/Beijing data and the BC data
-when $\gls{m} = 1$ was disallowed by the prior. The dataset investigated by
+Our estimates of $\alpha$ for the IDU/Romania was above this range under both
+priors, as were the estimates for the MSM/Beijing data and the BC data when $m
+= 1$ was disallowed by the prior. The dataset investigated by
 \textcite{de2007preferential} was derived from a survey of a random sample of
 the Norwegian population, whereas our investigation focused on datasets from
-known phylogenetic or geographic clusters of \gls{HIV} infected persons. It is
-therefore unsurprising that we detected stronger \acrlong{PA} dynamics in some
-cases. For instance, random sampling is much less likely to discover the
-high-degree nodes characterizing the tail of the degree distribution, simply
-because those individuals are rare in the general population. In addition, it
-is plausible that \gls{HIV}-positive individuals are more likely to be highly
-connected in their sexual networks, as the odds of acquiring \gls{HIV} increase
-with the number of unprotected sexual contacts.}
+known phylogenetic or geographic clusters of HIV-infected persons. It is
+therefore unsurprising that we detected stronger preferential attachment
+dynamics in some cases. For instance, random sampling is much less likely to
+discover the high-degree nodes characterizing the tail of the degree
+distribution, simply because those individuals are rare in the general
+population. In addition, it is plausible that HIV-positive individuals are more
+likely to be highly connected in their sexual networks, as the odds of
+acquiring HIV increase with the number of unprotected sexual contacts.}
 
 \add{Both \textcite{de2007preferential} and the HET/Botswana data studied
-populations whose primary risk factor for \gls{HIV} infection was heterosexual
+populations whose primary risk factor for HIV infection was heterosexual
 contact. \citeauthor{de2007preferential} explicitly excluded reported
 homosexual contacts; \citeauthor{novitsky2014impact} did not, but noted that
 heterosexual contact is the primary mode of transmission in Botswana where the
 study was done. In the first of the two papers describing the Botswana
 study~\autocite{novitsky2013phylogenetic}, the authors noted that their sample
 was gender-biased, being composed of approximately 75\% women. Our estimate of
-\gls{alpha} for these data was 
+$\alpha$ for these data was 
     \Sexpr{d[m_min == 1 & dataset == "novitsky2014" & parameter == "alpha", round(mean, 2)]}
         or 
     \Sexpr{d[m_min == 2 & dataset == "novitsky2014" & parameter == "alpha", round(mean, 2)]},
-depending on the prior on \gls{m}. Similarly, \textcite{de2007preferential}
+depending on the prior on $m$. Similarly, \textcite{de2007preferential}
 estimated 0.54, 0.57, and 0.29 for 3-year, 5-year, and lifetime partnership
 networks respectively for the female portion of their sample.}
 
-\add{For both choices of prior on \gls{m}, the datasets derived from \gls{IDU}
-populations had a higher estimated \acrlong{PA} power than the other datasets
-(\cref{fig:abchpd,fig:abchpdm2}). This finding is in line with
-\textcite{dombrowski2013topological}, who reanalyzed a network of \glspl{IDU}
-in Brooklyn, USA, collected between 1991 and
-1993~\autocite{friedman2006social}. They found that the \gls{IDU} network
-resembled a \gls{BA} network much more closely than other social and sexual 
-networks, and offered sociological explanations for the apparent \acrlong{PA}
-dynamics in this population. Importantly, from a public health perspective,
-the authors asserted that the removal of \emph{random} individuals from
-\gls{IDU} networks may have the paradoxical effect of increasing the network's
-epidemic susceptibility. When low-degree nodes are removed, as would occur
-during a police crackdown, their network neighbours may turn to well-known
-community members for advice or supplies, thus increasing the connectivity of
-these high-degree nodes.}
+\add{For both choices of prior on $m$, the datasets derived from \gls{IDU}
+populations had a higher estimated preferential attachment power than the other
+datasets (\cref{fig:abchpd,fig:abchpdm2}). This finding is in line with
+\textcite{dombrowski2013topological}, who reanalyzed a network of IDUs in
+Brooklyn, USA, collected between 1991 and 1993~\autocite{friedman2006social}.
+They found that the IDU network resembled a BA network much more closely than
+other social and sexual networks, and offered sociological explanations for the
+apparent preferential attachment dynamics in this population. Importantly, from
+a public health perspective, the authors asserted that the removal of
+\emph{random} individuals from IDU networks may have the paradoxical effect of
+increasing the network's epidemic susceptibility. When low-degree nodes are
+removed, as would occur during a police crackdown, their network neighbours may
+turn to well-known community members for advice or supplies, thus increasing
+the connectivity of these high-degree nodes.}
 
-\add{Unfortunately, the sub-linear region for \gls{alpha} identified by both
-\textcite{de2007preferential} and \software{netabc} is also the region of
-poorest identifiability (\cref{fig:gridest,fig:abcptm2}). This was reflected in
-the high level of uncertainty in the estimates, with most 95\% \gls{HPD}
-intervals covering the majority of the range [0, 1]. The value $\gls{alpha} =
-0.5$ was contained in the 95\% \gls{HPD} interval for every dataset;
-consequently, it is not possible to say with high confidence that any of the
-\gls{alpha} values are different from each other. In synthetic data, the
-confidence intervals around \gls{alpha} narrowed when other parameters were
-marginalized out (\cref{fig:marginal}). Thus, it is possible that estimates of
-\gls{alpha} could be made more precise by specifying either exact values or
-informative priors on the other \gls{BA} parameters. We argued informally in
-\cref{subsec:whyba} that \gls{I}, \gls{m}, and \gls{N} can sometimes be
-estimated by standard epidemiological methods, although the difficulty may
-depend on the specific epidemic under consideration.}
+\add{Unfortunately, the sub-linear region for $\alpha$ identified by both
+    \textcite{de2007preferential} and \textit{netabc} is also the region of
+poorest identifiability (\cref{fig:abcptm2,fig:abcptm3,fig:abcptm4}). This was
+reflected in the high level of uncertainty in the estimates, with most 95\%
+HPD intervals covering the majority of the range [0, 1]. The value $\alpha =
+0.5$ was contained in the 95\% HPD interval for every dataset; consequently, it
+is not possible to say with high confidence that any of the $\alpha$ values are
+different from each other. In synthetic data, the confidence intervals around
+$\alpha$ narrowed when other parameters were marginalized out
+(\cref{fig:marginal}). Thus, it is possible that estimates of $\alpha$ could be
+made more precise by specifying either exact values or informative priors on
+the other BA parameters when these are known.}
 
 \add{I is underestimated in some cases and overestimated in others. Some of the
-datasets have bost of the posteriormass on m = 1. Estimates of N are
+datasets have most of the posterior mass on m = 1. Estimates of N are
 meaningless.}
 
 \subsubsection{Modelling assumptions}
@@ -1523,7 +1531,7 @@ which to perform phylodynamic inference.
 \section*{Acknowledgements}
 
 \add{We are grateful to Dr. Sally Otto, Dr. Alexandre Bouchard-C\^ot\'e, 
-Dr. Richard Harrigan, and the anonymous reviewers for many helpful
+Dr. Richard Harrigan, and the two anonymous reviewers for many helpful
 suggestions.} This work was supported by grants from the Canadian Institutes of
 Health Research (CIHR, operating grant HOP-111406), and the Bill \& Melinda
 Gates Foundation (award number OPP1110049). R.M.M. was supported by a
@@ -1552,9 +1560,11 @@ Hospital Foundation.
     Reproduction of Figure 1A from Leventhal \textit{et al.} (2012) used to
     check the accuracy of our implementation of Gillespie simulation.
     Transmission trees were simulated over three types of network, with
-    pathogen transmissibility varying from 0 to 1. Sackin's index was
-    calculated for each simulated transmission tree.
-  }
+    pathogen transmissibility varying from 0 to 1 (1000 trees per
+    transmissibility value). Sackin's index was calculated for each simulated
+    transmission tree. Lines are means, light shaded areas are 95\% quantile
+    range, and dark shaded areas are interquartile ranges. 
+    }
   \label{fig:leventhal}
 \end{figure}
 

@@ -1,7 +1,9 @@
 .INTERMEDIATE: paper.tex
 
 #all: main.pdf supp.pdf coverletter.pdf
-all: paper.pdf
+#all: paper.pdf
+
+all: changes.pdf
 
 clean:
 	rm -f *.aux *.pdf *.log *.acn *.bbl *.bcf *.blg *.glo *.idx *.ist *.xml *.bak *.dvi
@@ -33,3 +35,6 @@ paper.tex: paper.Rnw
 
 papers.bib:
 	ln -s ../../reading/papers.bib .
+
+changes.pdf: changes.tex
+	pdflatex $^
