@@ -102,7 +102,11 @@ estimates was improved about 50\% in marginal estimation.
 
 Second, we examined the possible Monte Carlo error by increasing the resolution
 of the ABC approximation (more particles, more simulated datasets per particle,
-and more iterations). The results were nearly identical, TODO
+and more iterations). The results were similar; surprisingly, increased
+settings made the estimation about 10\% worse. We suspect this may be simply
+due to stochastic effects. In any event, this result demonstrates that Monte
+Carlo error from the SMC algorithm is likely not responsible for the observed
+estimation errors.
 
 Finally, three of the newly included HIV datasets included both \textit{gag}
 and \textit{env} sequences which we analysed separately. The estimates of
@@ -194,7 +198,13 @@ obvious correlations among the other parameters.
   intuitive-level discussion of why the results were what they were.
 \end{quote}
 
-  TODO
+We have substantially expanded the discussion of the synthetic data results,
+including this point about $m$. The weaker identifiability in lower $\alpha$
+values is related to the degree distributions of the networks, and the upward
+biases in $I$ and $N$ are discussed in relation to the epidemic trajectory of
+the SI model. Our intuition about $m$ is weaker, but we include this point by
+the reviewer and hypothesize that $m$ may be more readily estimable from the
+speed of epidemic expansion rather than the shape of the transmission tree.
 
 \begin{quote}
   \itshape
@@ -496,7 +506,10 @@ show 95\% highest posterior density intervals.''
 \end{quote}
 
 We struggled with the phrasing of this particular point and are happy to have
-recieved some guidance. TODO
+recieved some guidance. The statement now reads as follows: ``If $I$ is small
+relative to $N$, very few of the infected nodes will gain any new neighbours.
+Thus, the outcome of a second simulation on the same network will likely be
+very similar.''
 
 \begin{quote}
   \itshape

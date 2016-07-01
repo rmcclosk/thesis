@@ -479,6 +479,14 @@ BEAST~\autocite{drummond2007beast}) as described
 previously~\autocite{poon2015phylodynamic}. \add{Due to the removal of
 duplicated sequences, all estimated transmission trees were fully binary.}
 
+\add{To check that our results were robust to the choice of phylogenetic
+method, we constructed phylogenies for two of the datasets (mixed/Spain and
+IDU/Estonia) with BEAST~\autocite{drummond2007beast}. We used the TN93 model of
+sequence evolution~\autocite{tamura1993estimation}, a strict molecular clock,
+and constant population size. The chains were run for $10^7$ steps and sampled
+every $10^3$ steps. Maximum clade credibility (MCC) trees were constructed from
+the sampled trees after discarding the first 10\% as burn-in.}
+
 \del{Two} \add{Four} of the datasets \del{\autocite{li2015hiv,novitsky2014impact}}
 (MSM/Shanghai, HET/Botswana, HET/Uganda, and MSM/USA)
 were initially much larger than the others, containing 1265, 1299,
@@ -904,7 +912,7 @@ high posterior density.}
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=\textwidth]{{\Sexpr{file.path("abc-posterior", middle.plot)}}.pdf}
+    \includegraphics[width=0.6\textwidth]{{\Sexpr{file.path("abc-posterior", middle.plot)}}.pdf}
     \caption[
         One-dimensional marginal posterior distributions of BA model
         parameters estimated by \textit{netabc} from a simulated transmission
@@ -1015,20 +1023,43 @@ of peer-driven sampling for $\alpha$ was somewhat lower than typical.
 
     joint.I <- d[is.na(fixed), abs(I-true_I)]
     marginal.I <- d[fixed == "N+alpha+m", abs(I-true_I)]
+
+    d <- setDT(collect.data("../../simulations/abc-better-smc/point-estimate/*"))
+
+    base.alpha <- d[nparticle == 1000, abs(alpha - true_alpha)]
+    better.alpha <- d[nparticle == 2000, abs(alpha - true_alpha)]
+
+    base.I <- d[nparticle == 1000, abs(I - true_I)]
+    better.I <- d[nparticle == 2000, abs(I - true_I)]
+
+    base.N <- d[nparticle == 1000, abs(N - true_N)]
+    better.N <- d[nparticle == 2000, abs(N - true_N)]
 @
 
 \add{\Cref{fig:marginal} shows the effect of performing marginal ABC estimation
 of each of the BA parameters on the same simulated transmission tree. The
-estimates of $m$ are apparently unaffected by marginalizing out the other
+estimates of $m$ were apparently unaffected by marginalizing out the other
 parameters, corroborating the previous experiments' findings that $m$ is not an
 identifiable parameter from scaled tree shapes. Compared to allowing all
 parameters to vary, estimates of $\alpha$, $I$, and $N$ were improved by
     \Sexpr{ round((joint.alpha - marginal.alpha) * 100 / joint.alpha) }\%,
     \Sexpr{ round((joint.I - marginal.I) * 100 / joint.I) }\%, and
     \Sexpr{ round((joint.N - marginal.N) * 100 / joint.N) }\%
-when all other parameters were fixed. Neither the accuracy nor the precision of
-any parameter estimates appeared to improve when more computing power was used
-for SMC (\cref{fig:moresmc}).}
+when all other parameters were fixed. \Cref{fig:moresmc} shows the impact of
+increasing the number of particles, simulated datasets, and
+$\alpha_{\text{ESS}}$ parameter on the accuracy of a single simulation. The
+results of the two simulations were similar, but surprisingly, the results with
+higher SMC settings were slightly worse (by
+    \Sexpr{ round((better.alpha - base.alpha) * 100 / better.alpha) }\%,
+    \Sexpr{ round((better.I - base.I) * 100 / better.I) }\%, and
+    \Sexpr{ round((better.N - base.N) * 100 / better.N) }\%
+for $\alpha$, $I$, and $N$ respectively). However, the 50\% HPD interval for
+$I$ was slightly closer to the true value of 2000 with the improved settings
+    (\Sexpr{ d[nparticle == 2000, round(I.lower.50)] } - 
+     \Sexpr{ d[nparticle == 2000, round(I.upper.50)] }, vs.
+     \Sexpr{ d[nparticle == 1000, round(I.lower.50)] } - 
+     \Sexpr{ d[nparticle == 1000, round(I.upper.50)] } with basic settings).
+The estimate of $m$, 3 in both cases, was unaffected by the settings.}
 
 \subsection*{Real data}
 
@@ -1363,39 +1394,19 @@ exponential growth phase, producing many short branches near the root of the
 tree. As the epidemic gets closer to saturating the network, the number of
 discordant edges decays, causing longer waiting times.}
 
-% OLD STUFF
- Since the
-prior on $N$ and $I$ is jointly uniform on a non-rectangular region ($I \leq
-N$), there is more prior mass on high $N$ values. 
-
-This can be
-illustrated by imagining that we add a small number of nodes to a network after
-the epidemic simulation has already been completed. It is possible that none of
-these new nodes attains a connection to any infected node. Thus, running the
-simulation again on the new, larger network could produce the exact same
-transmission tree as before. We note also that \del{our accurate estimates of
-$I$ may have been influenced by} this prior\del{, which} places more mass on
-low $I$ values. However, the estimate of $I$ was very high for the HET/Botswana
-data, suggesting that a strong enough signal in the data can
-overcome the prior. \add{Furthermore, when $I$ was estimated marginally with
-fixed $N$, the accuracy of the estimate improved even though there was no
-longer any extra prior mass on low $I$ values.}
-
-% END OLD STUFF
-
 \add{The number of nodes in the network, $N$, exhibited the most variation in
 terms of its effect on tree shape. There was almost no measurable difference
 between trees simulated under different $N$ values when the number of infected
-nodes $I$ was small (\cref{fig:Ncrossv}).} $N$ was always significantly
-over-estimated using ABC (\cref{fig:abcpt2}).
-
-In retrospect, it is unreasonable to expect good estimation of $N$, because
-adding additional nodes does not change the edge density or overall shape of a
-BA network. This can be illustrated by imagining that we add a small number of
-nodes to a network after the epidemic simulation has already been completed. It
-is possible that none of these new nodes attains a connection to any infected
-node. Thus, running the simulation again on the
-new, larger network could produce the exact same transmission tree as before.
+nodes $I$ was small (\cref{fig:Ncrossv}).} In retrospect, it is unreasonable to
+expect good estimation of $N$, in many cases, because adding additional nodes
+does not change the edge density or overall shape of a BA network. This can be
+illustrated by imagining that we add a small number of nodes to a network after
+the epidemic simulation has already been completed. \add{If $I$ is small
+relative to $N$, very few of the infected nodes will gain any new neighbours.
+Thus, the outcome of a second simulation on the same network will likely be
+very similar.} \del{It is possible that none of these new nodes attains a
+connection to any infected node. Thus, running the simulation again on the new,
+larger network could produce the exact same transmission tree as before.}
 On the other hand, when $I$ is large relative to $N$, the coalescent dynamics
 discussed above also apply. The waiting times until the next infection
 increase, resulting in longer coalescence times toward the tips. The relative
@@ -1403,10 +1414,16 @@ accuracy of the nLTT in these situations (\cref{fig:rsquared,fig:Ncrossv})
 corroborates this hypothesis, as the nLTT uses only information about the
 coalescence times. When all BA parameters were simultaneously estimated with
 ABC, $N$ was nearly always over-estimated by approximately a factor of two
-(\cref{fig:abcptm2,tab:abchpd}). One factor which may have contributed to this
+(\cref{fig:abcpt2,tab:abchpd}). One factor which may have contributed to this
 bias was our choice of prior distribution. Since the prior for $I$ and $N$ was
 jointly uniform on a region where $I \leq N$, more prior weight was assigned to
-higher $N$ values.
+higher $N$ values. We note also that \del{our accurate estimates of $I$ may
+have been influenced by} this prior\del{, which} places more mass on low $I$
+values. However, the estimate of $I$ was very high for the HET/Botswana data,
+suggesting that a strong enough signal in the data can overcome the prior.
+\add{Furthermore, when $I$ was estimated marginally with fixed $N$, the
+accuracy of the estimate improved even though there was no longer any extra
+prior mass on low $I$ values.}
 
 \add{Another possible contributing factor to the overestimation of $I$ and $N$
 relates to the dynamics of the SI model and the coalescent process. The number
@@ -1445,8 +1462,6 @@ $I$, an infected node may only end up transmitting along a fraction of its
 outgoing edges, which could mask the presence of the extra edges associated
 with higher $m$.}
 
-\end{document}
-
 As noted by \textcite{lintusaari2016identifiability}, uniform priors on model
 parameters may translate to highly informative priors on quantities of
 interest. We observed a non-linear relationship between the preferential
@@ -1462,6 +1477,8 @@ schneeberger2004scale, colgate1989risk, brown2011transmission}. We note however
 that \textcite{jones2003assessment} estimated $\gamma$ values greater than
 four for some datasets, in one case as high as 17, indicating that a wider
 range of permitted $\gamma$ values may be warranted.
+
+\end{document}
 
 \subsection*{Analysis of real world HIV datasets}
 
@@ -1482,6 +1499,8 @@ between priors, and the estimates of $I$ were robust to the choice of prior for
 all datasets studied (compare \cref{fig:abchpd,fig:abchpdm2}). More
 sophisticated models, for example models incorporating heterogeneity in node
 behaviour, are likely to provide a better fit to these data.
+
+\end{document}
 
 <<disc, include=FALSE>>=
     source("../thesis/global.R")
