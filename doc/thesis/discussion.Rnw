@@ -381,7 +381,7 @@ both priors, as were the estimates for the MSM/Beijing data and the BC data
 when $\gls{m} = 1$ was disallowed by the prior. The dataset investigated by
 \textcite{de2007preferential} was derived from a survey of a random sample of
 the Norwegian population, whereas our investigation focused on datasets from
-known phylogenetic or geographic clusters of \gls{HIV} infected persons. It is
+known phylogenetic or geographic clusters of \gls{HIV}-infected persons. It is
 therefore unsurprising that we detected stronger \acrlong{PA} dynamics in some
 cases. For instance, random sampling is much less likely to discover the
 high-degree nodes characterizing the tail of the degree distribution, simply
@@ -590,7 +590,7 @@ epidemiologically estimated prevalence. The study focused exclusively on newly
 diagnosed individuals. On the other hand, our estimated prevalence for the
 MSM/USA data
     (\Sexpr{d1[dataset == "little2014" & parameter == "I", round(mean)]})
-was clearly an underestimate. The study enrolled almost 648 \gls{HIV} infected 
+was clearly an underestimate. The study enrolled almost 648 \gls{HIV}-infected 
 individuals, which should have been a lower bound on \gls{I}, although the
 value was contained in the 95\% \gls{HPD} interval
     (\Sexpr{d1[dataset == "little2014" & parameter == "I", round(hpd.min.95)]} -
@@ -601,7 +601,7 @@ populations in sub-Saharan Africa, where the dominant mode of transmission is
 believed to be heterosexual. The HET/Uganda study population included
 1434 seropositive individuals. Since the majority of inhabitants of the study
 district were enrolled in the study, it is likely that this number represents
-the majority of \gls{HIV} infected persons. Our estimate was slightly lower
+the majority of \gls{HIV}-infected persons. Our estimate was slightly lower
     (\Sexpr{d1[dataset == "grabowski2014" & parameter == "I", round(mean)]}),
 but the value 1434 was contained within the 95\% \gls{HPD} interval
     (\Sexpr{d1[dataset == "grabowski2014" & parameter == "I", round(hpd.min.95)]} -

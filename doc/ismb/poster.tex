@@ -15,6 +15,19 @@
 
 \addbibresource{papers.bib}
 \setlength{\bibhang}{0pt}
+\DeclareBibliographyCategory{ignore}
+\addtocategory{ignore}{zetterberg2004two}
+\addtocategory{ignore}{niculescu2015recent}
+\addtocategory{ignore}{novitsky2013phylogenetic}
+\addtocategory{ignore}{novitsky2014impact}
+\addtocategory{ignore}{mccormack2002early}
+\addtocategory{ignore}{grabowski2014role}
+\addtocategory{ignore}{wang2015targeting}
+\addtocategory{ignore}{kao2011surveillance}
+\addtocategory{ignore}{little2014using}
+\addtocategory{ignore}{li2015hiv}
+\addtocategory{ignore}{cuevas2009hiv}
+
 \tikzposterlatexaffectionproofoff
 \settitle{ \vbox{ \centering \color{titlefgcolor}
 {\fontsize{2.5cm}{2cm}\selectfont \@title}
@@ -39,12 +52,12 @@
 \node [text width=6in] at ($ (current page.west) + (-0.42\paperwidth, -1.5in) $)
   { \LARGE ISMB \\ July 8-12, 2016 \\ Orlando, USA};
 \node [text width=6in, align=right] at ($ (current page.west) + (0.42\paperwidth, -1.5in) $)
-  { \LARGE rmccloskey@cfenet.ubc.ca \\ (604) 682-6344 ext. 63266 };
+  { \LARGE rmccloskey@cfenet.ubc.ca \\ (604) 558-8865 };
 
 \begin{columns}
   \column{0.25}
   \block{Contact networks shape viral transmission trees}{
-    \centerline{\includegraphics[width=0.2\textwidth]{contactnet}}
+    \centerline{\includegraphics[width=0.22\textwidth]{contactnet}}
       Network structure can change the speed and pattern of epidemic spread,
       potentially informing public health interventions.
   }
@@ -59,11 +72,18 @@
     Nodes are added one at a time until there are $N$ total. Each time a node
     is added, $m$ new edges are connected to it. Each new edge is attached to
     an existing node of degree $d$ with probability proportional to
-    $d^\alpha$. 
+    $d^\alpha + 1$. 
 
-    \vspace{1cm}
-    \centerline{\includegraphics[width=0.2\textwidth]{pa-example}}
-    \vspace{1cm}
+    %\node at (0, 0) {sub-linear $\alpha$};
+    %\node at (14, 6.5) {linear $\alpha$};
+    %\node at (23, 7.5) {super-linear $\alpha$};
+
+    \begin{center}
+      \begin{tikzpicture}
+        \node (a) {\includegraphics[width=0.22\textwidth]{pa-example}};
+        \node at (a.south) [anchor=north] {sub-linear $\alpha$ $\qquad\qquad\qquad$ linear $\alpha$ $\qquad\qquad\qquad$ super-linear $\alpha$};
+      \end{tikzpicture}
+    \end{center}
 
     \begin{center}
       \begin{tabular}{cl}
@@ -76,8 +96,6 @@
         \hline
       \end{tabular}
     \end{center}
-    \node at (1, 10) {low $\alpha$};
-    \node at (14, 10) {high $\alpha$};
   }
 
   \block{}{
@@ -104,7 +122,7 @@
   }
 
   \block{Varying $\alpha$ and $I$ affects tree shape, but not $m$ and $N$}{
-    \centerline{\includegraphics[width=0.18\textwidth]{kernel-kpca}}
+    \centerline{\includegraphics[width=0.16\textwidth]{kernel-kpca}}
 
       We simulated 100 trees of size 500 under each parameter value. Parameters
       not being tested were fixed at $\alpha$ = 1.0, $m$ = 2, $I$ = 1000, $N$ =
@@ -139,13 +157,14 @@
     little information about these parameters in the trees.
   }
   \block{Narrow dispersion of $\alpha$, $I$ compared to $m$, $N$}{
-    \centerline{\includegraphics[width=0.16\textwidth]{abc-posterior-example}}
+    \centerline{\includegraphics[width=0.15\textwidth]{abc-posterior-example}}
   }
 
   \column{0.3}
 
   \block{Real data: phylogenetic and geographic clusters}{
     \centering
+    \normalsize
     \input{\tablepath/realdata}
     \captionof{table}{
       Characteristics of HIV datasets analysed with kernel-ABC. Abbreviations:
@@ -163,9 +182,9 @@
     \nocite{drummond2003inference}
   }
 
-  \block{Parameter heterogeneity among real datasets}{
-    \vspace{1cm}
-    \centerline{\includegraphics[width=0.25\textwidth]{realdata-hpd}}
+  \block{Stronger preferential attachment in IDU networks}{
+    \includegraphics[trim=0 3.5in 3.3in 0, clip, width=0.12\textwidth]{realdata-hpd}
+    \includegraphics[trim=3.4in 1.5in 0 2.0in, clip, width=0.12\textwidth]{realdata-hpd}
     \vspace{1cm}
   }
 \end{columns}
@@ -191,40 +210,49 @@
       useful tool for phylodynamic research on contact networks.
     \end{multicols}
   }
-  \block{}{
-    \begin{minipage}{0.55\linewidth}
-      \vspace{1cm}
-      \includegraphics[width=3in]{logos/btp}
-      \includegraphics[width=3in]{logos/cfe}
-      \includegraphics[width=1.5in]{logos/cihr}
-      \includegraphics[width=3in]{logos/msfhr}
-      \includegraphics[width=2in]{logos/phc}
-      \includegraphics[width=0.9in]{logos/ubc}
-      \vspace{0.5cm}
-    \end{minipage}
-    \begin{adjustbox}{valign=t}
-      \begin{minipage}[t]{0.45\linewidth}
-        \small
-        This work was supported by a grant from the Canadian Institutes for
-        Health Research (CIHR HOP-111406 to AFYP) and a scholarship from the 
-        Canadian Institutes for Health Research  Strategic Training Program in
-        Bioinformatics (to RMM). AFYP is the recipient of a Scholar Award from
-        the MSFHR/St. Paul’s Hospital Foundation - Providence Health Care
-        Research Institute Career Investigator program, and a CIHR New
-        Investigator Award.
-      \end{minipage}
-    \end{adjustbox}
-  }
-
   \column{0.35}
   \block{References} {
     \renewcommand*{\bibfont}{\footnotesize}
-    \printbibliography[heading=none]
+    \printbibliography[notcategory=ignore, heading=none]
     \small
     \includegraphics[height=1cm]{logos/westgrid} Analyses were run in the
     Westgrid high performance computing environment.
   }
-
 \end{columns}
+\block{}{
+  \begin{minipage}{0.6\linewidth}
+    \vspace{1cm}
+    \includegraphics[width=4in]{logos/btp}
+    \quad
+    \includegraphics[width=4in]{logos/cfe}
+    \quad
+    \includegraphics[width=2in]{logos/cihr}
+    \quad
+    \includegraphics[width=3in]{logos/msfhr}
+    \quad
+    \includegraphics[width=3in]{logos/phc}
+    \quad
+    \includegraphics[width=1in]{logos/ubc}
+    \quad
+    \includegraphics[width=1.8in]{logos/genomecanada}
+    \quad
+    \includegraphics[width=2.2in]{logos/genomebc}
+    \quad
+    \includegraphics[width=1.8in]{logos/genomequebec}
+    \vspace{0.5cm}
+  \end{minipage}
+  \begin{adjustbox}{valign=t}
+    \begin{minipage}[t]{0.4\linewidth}
+      \small
+      This work was supported by a grant from the Canadian Institutes for
+      Health Research (CIHR HOP-111406 to AFYP) and a scholarship from the 
+      Canadian Institutes for Health Research  Strategic Training Program in
+      Bioinformatics (to RMM). AFYP is the recipient of a Scholar Award from
+      the MSFHR/St. Paul’s Hospital Foundation - Providence Health Care
+      Research Institute Career Investigator program, and a CIHR New
+      Investigator Award.
+    \end{minipage}
+  \end{adjustbox}
+}
 
 \end{document}

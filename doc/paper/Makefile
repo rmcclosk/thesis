@@ -1,9 +1,7 @@
 .INTERMEDIATE: paper.tex
 
 #all: main.pdf supp.pdf coverletter.pdf
-#all: paper.pdf
-
-all: changes.pdf
+all: paper.pdf changes.pdf
 
 clean:
 	rm -f *.aux *.pdf *.log *.acn *.bbl *.bcf *.blg *.glo *.idx *.ist *.xml *.bak *.dvi

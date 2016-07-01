@@ -137,6 +137,8 @@ all: dirs \
 	homophily.pdf \
 	vaccinate.pdf \
 	nettypes.pdf \
+	abc-boxplot.pdf \
+	abc-boxplot-mN.pdf \
 	$(ABC_POSTERIOR_TARGETS) \
 	$(ABC_POSTERIOR_2D_TARGETS)
 
@@ -203,7 +205,7 @@ realdata-hpd-bc-m2.pdf:
 	$(call FINALIZE_PDF,$@)
 
 realdata-hpd.pdf:
-	cp ../../simulations/`echo "SELECT path FROM data WHERE step == 'hpd-plot' AND parameter == 'bctree' AND value == 0 INTERSECT SELECT path FROM data WHERE step == 'hpd-plot' AND parameter == 'm_min' AND value == 1;" | sqlite3 ../../simulations/aggregates.sqlite` $@
+	cp ../../simulations/`echo "SELECT path FROM data WHERE step = 'hpd-plot' AND parameter = 'bctree' AND value = 0 INTERSECT SELECT path FROM data WHERE step = 'hpd-plot' AND parameter = 'm_min' AND value = 1 INTERSECT SELECT path FROM data WHERE step = 'hpd-plot' AND parameter = 'agg_gene' AND value = 'gag';" | sqlite3 ../../simulations/aggregates.sqlite` $@
 	$(call FINALIZE_PDF,$@)
 
 realdata-genes.pdf:
@@ -276,4 +278,12 @@ powerlaw.pdf:
 
 abc-marginal.pdf:
 	cp ../../simulations/abc-marginal/point-estimate-plot/* $@
+	$(call FINALIZE_PDF,$@)
+
+abc-boxplot.pdf:
+	cp ../../simulations/`echo "SELECT path FROM data WHERE step == 'boxplot' AND parameter == 'params' AND value == 'alpha+I';" | sqlite3 ../../simulations/abc-pa-free-m.sqlite` $@
+	$(call FINALIZE_PDF,$@)
+
+abc-boxplot-mN.pdf:
+	cp ../../simulations/`echo "SELECT path FROM data WHERE step == 'boxplot' AND parameter == 'params' AND value == 'm+N';" | sqlite3 ../../simulations/abc-pa-free-m.sqlite` $@
 	$(call FINALIZE_PDF,$@)

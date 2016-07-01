@@ -1,5 +1,5 @@
 \documentclass{article}
-\usepackage{mathptmx}
+\usepackage[default]{gillius}
 \usepackage{tikz}
 
 \usetikzlibrary{positioning}
@@ -10,7 +10,8 @@
 
 \begin{tikzpicture}
   [every node/.style={rectangle, draw, text width=4cm, align=center, rounded corners},
-   every path/.style={->, >=stealth, thick}]
+   every path/.style={->, >=stealth, thick},
+   node distance=0.5 and 1]
   \node (dl) {download sequences \\ from GenBank};
   \node (align) [below=of dl] {multiple sequence alignment with MUSCLE};
   \node (clip) [below=of align, dashed] {remove hypervariable regions};
