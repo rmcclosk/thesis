@@ -1478,8 +1478,6 @@ that \textcite{jones2003assessment} estimated $\gamma$ values greater than
 four for some datasets, in one case as high as 17, indicating that a wider
 range of permitted $\gamma$ values may be warranted.
 
-\end{document}
-
 \subsection*{Analysis of real world HIV datasets}
 
 Our investigation of published HIV datasets indicated heterogeneity in the
@@ -1498,9 +1496,9 @@ majority} of the datasets, the estimated values of $\alpha$ did not change much
 between priors, and the estimates of $I$ were robust to the choice of prior for
 all datasets studied (compare \cref{fig:abchpd,fig:abchpdm2}). More
 sophisticated models, for example models incorporating heterogeneity in node
-behaviour, are likely to provide a better fit to these data.
-
-\end{document}
+behaviour, are likely to provide a better fit to these data. \add{For example,
+rather than using the same $m$ for all nodes, we could specify a distribution
+from which each individual node's $m$ value would be drawn.}
 
 <<disc, include=FALSE>>=
     source("../thesis/global.R")
@@ -1611,20 +1609,70 @@ the connectivity of these high-degree nodes.}
 
 \add{Unfortunately, the sub-linear region for $\alpha$ identified by both
 \textcite{de2007preferential} and \textit{netabc} is also the region of
-poorest identifiability (\cref{fig:abcptm2,fig:abcptm3,fig:abcptm4}). This was
-reflected in the high level of uncertainty in the estimates, with most 95\%
-HPD intervals covering the majority of the range [0, 1]. The value $\alpha =
-0.5$ was contained in the 95\% HPD interval for every dataset; consequently, it
-is not possible to say with high confidence that any of the $\alpha$ values are
-different from each other. In synthetic data, the confidence intervals around
-$\alpha$ narrowed when other parameters were marginalized out
-(\cref{fig:marginal}). Thus, it is possible that estimates of $\alpha$ could be
-made more precise by specifying either exact values or informative priors on
-the other BA parameters when these are known.}
+poorest identifiability (\cref{fig:abcpt}). This was reflected in the high
+level of uncertainty in the estimates, with most 95\% HPD intervals covering
+the majority of the range [0, 1]. The value $\alpha = 0.5$ was contained in the
+95\% HPD interval for every dataset; consequently, it is not possible to say
+with high confidence that any of the $\alpha$ values are different from each
+other. In synthetic data, the confidence intervals around $\alpha$ narrowed
+when other parameters were marginalized out (\cref{fig:marginal}). Thus, it is
+possible that estimates of $\alpha$ could be made more precise by specifying
+either exact values or informative priors on the other BA parameters when these
+are known.}
 
-\add{I is underestimated in some cases and overestimated in others. Some of the
-datasets have most of the posterior mass on m = 1. Estimates of N are
-meaningless.}
+\subsubsection{Other BA parameters}
+
+\add{The true HIV prevalence in a population can be difficult to estimate for
+several reasons. HIV-infected individuals may be asymptomatic for months or
+years, possibly delaying their awareness of their status. In many contexts, the
+risk factors for acquisition of HIV are illegal or stigmatized, which may
+represent a barrier to testing, treatment, and/or disclosure of status.
+Our simulation study showed that $I$ is weakly identifiable from tree shapes,
+however, the estimates of $I$ obtained with \textit{netabc} were upwardly
+biased (\cref{fig:abcpt}). In addition, our initial exploratory analysis showed
+that the identifiability of $I$ decreases with the number of sampled tips
+(\cref{fig:Icrossv}); in real world studies, the proportion of infected
+individuals sampled is usually low. The estimated $I$ values for the HIV
+datasets ranged from
+    X (D)
+to
+    X (D).}
+
+\add{We were not able to discern and trends toward over- or underestimation of
+$I$ from available prevalence data. For example, the authors of the
+HET/Botswana data~\autocite{novitsky2013phylogenetic, novitsky2014impact}
+estimated that there were 1731 \gls{HIV}-positive individuals in the study
+area. \gls{HIV} sequences were obtained from approximately 70\% of these
+individuals. The estimated prevalence we obtained was much higher 
+    (\Sexpr{d1[dataset == "novitsky2014" & parameter == "I", round(mean)]}),
+with a 95\% \gls{HPD} interval spanning nearly the entire prior region. On the
+other hand, the study which produced the MSM/USA
+data~\autocite{little2014using} enrolled 648 HIV-positive MSM; thus, our
+estimate of $I$
+    (\Sexpr{d1[dataset == "little2014" & parameter == "I", round(mean)]})
+was clearly an underestimate. Post-hoc explanations can be imagined for both of
+these results. The HET/Botswana data were collected from a town located
+proximally to the country's capital city; the authors suggested that frequent
+travel between the two locations may have facilitated linking of their sexual
+networks. Thus, the high estimate of \gls{I} we obtained for these data may
+include a larger network component based in the capital city. The MSM/USA
+result may indicate that the individuals genotyped for the study are members of
+a smaller subnetwork which does not include the entire local MSM population.
+Unfortunately, none of these hypotheses can be easily tested.}
+
+\add{Over half of the datasets were estimated to have $m = 1$, which produces
+tree-like networks without cycles. Since the average degree of a
+Barab\'asi-Albert network is $2m$, this value may simply reflect the fact that
+most people have a small number of sexual partners, especially when only
+recent partnerships are considered~\autocite{liljeros2001web}. In fact, in one
+survey, the most common number of partnerships in the past twelve months was
+one~\autocite{liljeros2001web}; the BA model does not allow any nodes with
+degree 1 when $m \geq 2$. For this reason, the choice of whether to allow $m =
+1$ in the prior is problematic, as we must choose between an unrealistic
+topology (no cycles) and an unrealistic minimum degree. Extensions to the BA
+model which relax this constraint can be imagined and may offer improved
+parameter resolution. Estimates of $N$ were not informative for any of the
+datasets under either choice of prior, consistent with our simulation results.}
 
 \subsubsection{Modelling assumptions}
 
@@ -1656,14 +1704,16 @@ approximation~\autocite[e.g.][]{leitner1996accurate}, and is frequently used in
 practice~\autocite[e.g.][]{stadler2013uncovering}, the topologies of a viral
 phylogeny and transmission tree can differ
 significantly~\autocite{ypma2013relating} due to within-host evolution and the
-sampling process. In addition, the ABC-SMC algorithm is
+sampling process. Progress has very recently been made on this front by
+\textcite{giardina2016inference}, who have concurrently developed an ABC-based
+method incorporating within-host evolution. The ABC-SMC algorithm is
 computationally intensive, taking about a day when run on 20 cores in parallel
 with the settings we described in the methods. Nevertheless, our method is
 potentially useful to epidemiological researchers interested in the general
 characteristics of the network structure underlying disease outbreaks. This
 work, and previous work by our group~\autocite{poon2015phylodynamic}, has
-demonstrated that ABC is a broadly applicable and effective framework in
-which to perform phylodynamic inference.
+demonstrated that ABC is a broadly applicable and effective framework in which
+to perform phylodynamic inference.
 
 \section*{Acknowledgements}
 

@@ -271,7 +271,6 @@ as effective as ABC, and will certainly be faster. The justification for our
 method comes in overcoming the curse of dimensionality when jointly estimating
 multiple parameters of a network model. The text added to address the previous
 point makes it clearer that the classifier experiments were marginal in nature.
-(TODO: We have emphasized this point in the discussion as well: ).
 
 \textbf{Reviewer 2}
 
@@ -482,7 +481,7 @@ in the last paragraph of the discussion.
 As per Reviewer 1's suggestion we have replaced Figure 2 with a boxplot showing
 posterior means stratified by the true parameter values. We agree that the
 sloped lines were misleading and have replaced them with horizontal line
-segments. 
+segments.
 
 \begin{quote}
   \itshape
@@ -562,11 +561,19 @@ approach we considered when we were performing this work. However, since this
 is our first attempt to fit network models, we thought it best to stick with
 a simple, well-known model rather than defining our own parameters. We did
 perform a small experiment allowing heterogeneity among nodes, but in $\alpha$
-rather than in $m$, and recovered the average of the two $\alpha$ values.
+rather than in $m$, and recovered the average of the two $\alpha$ values. We
+have suggested the possibility of drawing $m$ from a distribution in the
+discussion (emphasis is new text): ``More sophisticated models, for example
+models incorporating heterogeneity in node behaviour, are likely to provide a
+better fit to these data. \emph{For example, rather than using the same $m$ for
+all nodes, we could specify a distribution from which each individual
+node's $m$ value would be drawn}.''
 
-(TODO: We
-have added to the discussion the point that this binary choice is sub-optimal
-and suggested this enhancement for future work.)
+In addition, we have outlined the difficulties of the binary choice of $m$ in
+the discussion of the real data results: ``\ldots the BA model does not allow
+any nodes with degree 1 when $m \geq 2$. For this reason, the choice of whether
+to allow $m = 1$ in the prior is problematic, as we must choose between an
+unrealistic topology (no cycles) and an unrealistic minimum degree.''
 
 \begin{quote}
   Supplement:
