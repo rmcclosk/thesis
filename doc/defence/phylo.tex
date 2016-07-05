@@ -1,0 +1,56 @@
+\begin{frame}{Viral phylogenies relate individuals' viral genotypes}
+  \begin{center}
+    \begin{tikzpicture}[
+        every node/.style = {inner sep=0pt},
+        every path/.style = {-, very thick},
+        label/.style = {anchor=south, color=white, inner sep=4pt}
+      ]
+      \def\pht{1cm}
+
+      \coordinate (abcd);
+      \coordinate [below right=1 and 1 of abcd] (b);
+      \coordinate [above left=1 and 0.25 of abcd] (acd);
+      \coordinate [above left=1 and 0.25 of acd] (a);
+      \coordinate [right=of acd] (cd);
+      \coordinate [right=1.5 of cd] (c);
+      \coordinate [above right=of cd] (d);
+
+      \node (x) [right=0.5 of b, anchor=west, opacity=0.4] {\includegraphics[height=\pht]{stock/person}}; 
+      \node (v) at (x.south west) {\includegraphics[height=\pht]{stock/virus}}; 
+      \node at (v.center) {\large b};
+
+      \draw (abcd) -- (acd);
+      \draw (abcd) -- (b);
+
+      \node (x) [above=0.7 of a, anchor=south west, opacity=0.4] {\includegraphics[height=\pht]{stock/person}};
+      \node (va) at (x.south west) {\includegraphics[height=\pht]{stock/virus}};
+      \node at (va.center) {\large a};
+      
+      \draw (acd) -- (cd);
+      \draw (acd) -- (a);
+
+      \node (x) [above right=0 and 0.8 of c, opacity=0.4] {\includegraphics[height=\pht]{stock/person}};
+      \node (v) at (x.south west) {\includegraphics[height=\pht]{stock/virus}};
+      \node at (v.center) {\large c};
+
+      \node (x) [above right=0.8 of d, opacity=0.4] {\includegraphics[height=\pht]{stock/person}};
+      \node (v) at (x.south west) {\includegraphics[height=\pht]{stock/virus}};
+      \node at (v.center) {\large d};
+      
+      \draw (cd) -- (c);
+      \draw (cd) -- (d);
+
+      \uncover<2->{
+        \node (t1) [below left=of a, inner ysep=6pt] {viruses within individuals};
+        \draw [->, >=stealth] (t1.north) -- (va.south west);
+      }
+
+      \uncover<3->{
+        \node (t2) [below=of t1, inner ysep=6pt] {evolutionary relationships};
+        \coordinate [left=0.5 of abcd] (tmp);
+        \draw [->, >=stealth] (t2.north) -- (tmp);
+      }
+
+    \end{tikzpicture}
+  \end{center}
+\end{frame}

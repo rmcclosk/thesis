@@ -1,11 +1,13 @@
-all: presentation.pdf
+LATEX=$(shell ls *.tex)
+
+all: test.pdf presentation.pdf
 
 #pdflatex $* && \
 #biber $* && \
 #pdflatex $* && \
 #pdflatex $* && \
 #R -e "extrafont::embed_fonts('$@')"
-%.pdf: %.tex papers.bib
+%.pdf: %.tex $(LATEX)
 	pdflatex $*
 
 papers.bib:

@@ -1,0 +1,25 @@
+\begin{frame}{Contact networks affect population-level viral diversity}
+    \begin{tikzpicture}
+      [
+        every path/.style={very thick, ->, >=stealth}
+      ]
+      \uncover<2->{
+        \node at (0, 0) [anchor=center] {\includegraphics[width=\textwidth]{objects}};
+        \draw (-3.5, 2) to [bend left=75] (-1.5, 2);
+      }
+      \only<2>{ 
+        \fill [white] (0, 2) rectangle (6, -1.5); 
+      }
+      \only<3>{
+        \fill [white] (2.8, 2) rectangle (6, -1.5); 
+      }
+      \uncover<3->{
+        \draw (-1, 2) to [bend left=75] (1, 2);
+      }
+
+      \uncover<4->{
+        \draw (1.5, 2) to [bend left=75] (3.5, 2);
+      }
+    \end{tikzpicture}
+\end{frame}
+

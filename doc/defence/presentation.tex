@@ -5,7 +5,6 @@
 \usepackage{etex}
 \usepackage{array}
 \usepackage{multirow}
-\usepackage{qrcode}
 \usepackage[backend=biber, style=numeric-comp, sorting=none]{biblatex}
 \usepackage{hyperref}
 
@@ -45,59 +44,39 @@
 \definecolor{purple}{RGB}{152,78,163}
 
 \maketitle
-\input{contactnet}
-\input{netmodel}
-\input{why}
-\input{ba}
-\input{phylonet}
-\input{transtree}
-\input{virusphylo}
-\input{inference}
-\input{identifiable}
-\input{kpca}
-\input{smc}
+
+%\begin{frame}{Outline}
+%    \tableofcontents
+%\end{frame}
+
+%\section{Background and Motivation}
+%\input{contactnet}
+%\input{phylo}
+%\input{objects}
+%\input{transtree}
+%\input{virusphylo}
+%\input{inference}
+%%\input{netmodel}
+%\input{why}
+
+%\section{The Barab\'asi-Albert (BA) Contact Network Model}
+%\input{ba}
+%\input{identifiable}
+%\input{kpca}
+
+%\section{\textit{Netabc}: Phylogenetic Reconstruction of Contact Network Parameters with Approximate Bayesian Computation}
+%\input{smc}
+%\input{posterior1}
+%\input{posterior2}
+%\input{pointest}
+%\input{pointest2}
+
+\section{Application to real HIV epidemics}
+\input{data}
+
+\section{Conclusions}
 
 \end{document}
-
-\begin{frame}{Posterior mean estimates are more accurate for $\alpha$ and $I$}
-  \begin{minipage}[p][\textheight][t]{\textwidth}
-    \vspace{-0.5cm}
-    preferential attachment power \hfill \uncover<2>{edges per vertex}
-
-    \hspace{0.75cm}\only<1>{\includegraphics[height=0.8\textheight, trim=0 0 3.4in 0, clip]{abc-point-estimate-m3.pdf}}
-    \only<2>{\includegraphics[height=0.8\textheight]{abc-point-estimate-m3.pdf}}
-
-    prevalence \hfill \uncover<2>{total nodes}
-  \end{minipage}
-\end{frame}
-
-\begin{frame}{Example simulation\ldots}
-  1d posterior goes here
-  \pause
-%  \begin{minipage}[p][\textheight][t]{\textwidth}
-%    \begin{center}
-%    preferential attachment power \hfill prevalence
-%    \only<1>{
-%      \includegraphics[width=0.8\textwidth, trim=0 2.5in 0 0, clip]{abc-posterior-example.pdf}
-%    }
-%    \only<2>{
-%      \includegraphics[width=0.8\textwidth]{abc-posterior-example.pdf}
-%
-%      \vspace{-0.25cm}
-%      edges per vertex \hfill total nodes
-%    }
-%    \end{center}
-%  \end{minipage}
-\end{frame}
-
-\begin{frame}{Example simulation continued, $N$ and $I$ confounded}
-  2d posterior goes here
-  %\includegraphics[width=\textwidth]{{abc-posterior-2d/1.0_1000_3_5000_0}.pdf}
-\end{frame}
-
-\begin{frame}{Application to real world HIV datasets}
-  \centerline{\input{\tablepath/realdata-bc-short}}
-\end{frame}
 
 \begin{frame}{HIV networks have sub-linear preferential attachment}
     Also, higher PA for IDU networks.

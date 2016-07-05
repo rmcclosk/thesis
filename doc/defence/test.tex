@@ -1,0 +1,48 @@
+\documentclass{beamer}
+\usepackage{tikz}
+\usepackage{gillius}
+\usepackage{abraces}
+\usepackage{etex}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage[backend=biber, style=numeric-comp, sorting=none]{biblatex}
+\usepackage{hyperref}
+
+% http://tex.stackexchange.com/questions/12703/how-to-create-fixed-width-table-columns-with-text-raggedright-centered-raggedlef
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
+\usetikzlibrary{external}
+\usetikzlibrary{shapes}
+\usetikzlibrary{arrows}
+\usetikzlibrary{positioning}
+\usetikzlibrary{decorations.pathreplacing}
+\usetikzlibrary{calc}
+
+\usetheme[everytitleformat=regular]{m}
+%\setbeamertemplate{navigation symbols}{}
+
+\graphicspath{{../figures/}}
+\newcommand{\tablepath}{../tables}
+
+\title{Phylogenetic inference of contact network parameters with approximate Bayesian computation}
+\author[RMM \& AFYP]{Rosemary M McCloskey$^1$ \and Bioinformatics Training Program \\ Supervisor: Art FY Poon$^{1,2}$}
+\institute[UBC \& BCCfE]{$^1$BC Centre for Excellence in HIV/AIDS, Vancouver, Canada \\ $^2$Department of Medicine, University of British Columbia, Vancouver, Canada}
+\date{M.Sc. Defence, July 26, 2016}
+
+\newcommand{\dd}[2]{\frac{\text{d}\,#1}{\text{d}\,#2}}
+
+\addbibresource{papers.bib}
+
+\begin{document}
+\setbeamercolor{background canvas}{bg=white}
+\renewcommand{\footnotesize}{\tiny}
+\definecolor{red}{RGB}{228,26,28}
+\definecolor{blue}{RGB}{55,126,184}
+\definecolor{green}{RGB}{77,175,74}
+\definecolor{purple}{RGB}{152,78,163}
+
+\input{objects2}
+
+\end{document}
