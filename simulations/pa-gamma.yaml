@@ -84,6 +84,6 @@ Steps:
         Rule: | 
             d <- fread("{gamma}")
             d <- d[m == {m} & N == {N}]
-            pdf("{alpha-gamma-plot}", family="Gillius ADF", width=4, height=4)
+            pdf("{alpha-gamma-plot}", width=4, height=4)
             d[,plot(alpha, gamma, type="l", xlab=expression(alpha), ylab=expression(gamma))]
             dev.off()

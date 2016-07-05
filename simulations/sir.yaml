@@ -8,6 +8,7 @@ Steps:
         Walltime: 00:00:30
         Parameters:
             net_type: ["full", "pa"]
+            model: ["si", "sir"]
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: | 
@@ -17,7 +18,11 @@ Steps:
             }} else {{
                 g <- make_full_graph(1000, directed=FALSE)
             }}
-            g <- SIR.net(g, transmit.rate=2.0/ecount(g), remove.rate=1.0/vcount(g))
+            if ("{model}" == "sir") {{
+                g <- SIR.net(g, transmit.rate=2.0/ecount(g), remove.rate=1.0/vcount(g))
+            }} else {{
+                g <- SIR.net(g, transmit.rate=2.0/ecount(g))
+            }}
             graph_attr(g, "comment") <- "{yaml}"
             write.graph(g, "{network}", format="gml")
 
@@ -26,6 +31,7 @@ Steps:
         Walltime: 00:00:30
         Parameters:
             net_type: ["full", "pa"]
+            model: ["si", "sir"]
             replicate: "range(100)"
         Depends: network
         Interpreter: bash
@@ -43,6 +49,7 @@ Steps:
         Extension: tsv
         Parameters:
             net_type: ["full", "pa"]
+            model: ["si", "sir"]
             replicate: "range(100)"
         Depends: network tree
         Interpreter: R --silent --vanilla
@@ -60,38 +67,72 @@ Steps:
 
             for (i in tail(time.order, -1)) {{
                 # removal
-                if (i <= Ntip(t)) {{
+                if (i <= Ntip(t) & "{model}" == "sir") {{
                     S <- c(S, tail(S, 1))
                     I <- c(I, tail(I, 1)-1)
                     R <- c(R, tail(R, 1)+1)
                 }}
 
                 # infection
-                else {{
+                else if (i > Ntip(t)) {{
                     S <- c(S, tail(S, 1)-1)
                     I <- c(I, tail(I, 1)+1)
                     R <- c(R, tail(R, 1))
                 }}
+
+                else {{
+                    S <- c(S, tail(S, 1))
+                    I <- c(I, tail(I, 1))
+                    R <- c(R, tail(R, 1))
+                }}
             }}
 
-            df <- data.frame(t=times, S=S, I=I, R=R)
+            if ("{model}" == "sir") {{
+                df <- data.frame(t=times, S=S, I=I, R=R)
+            }} else {{
+                df <- unique(data.frame(t=times, S=S, I=I))
+            }}
             cat("#{yaml}\n", file="{trajectory}")
             write.tsv(df, "{trajectory}", append=TRUE)
 
     trajectory-plot:
         Extension: pdf
         Parameters:
-            placeholder: 0
+            model: ["si", "sir"]
+            orientation: ["horizontal", "vertical"]
         Depends: trajectory
         Interpreter: R --silent --vanilla
-        Startup: suppressPackageStartupMessages(library(netabc))
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(ggthemes))
         Rule: |
             d <- setDT(collect.data(strsplit("{trajectory}", " ")[[1]]))
-            d <- melt(d, id.vars=c("t", "net_type", "replicate"), 
+            d <- melt(d, id.vars=c("t", "net_type", "replicate", "model"),
                       variable.name="compartment", value.name="population")
-            d[,net_type := ifelse(net_type == "full", "full graph", "preferential attachment")]
-            ggplot(d, aes(x=t, y=population, color=compartment)) + stat_smooth() +
-                theme_bw() + facet_grid(~net_type) + xlim(0, 7500) +
-                theme(text=element_text(size=18, family="Gillius ADF"),
-                      legend.position="bottom")
-            ggsave("{trajectory-plot}", height=5)
+            d[,net_type := factor(net_type, levels=c("full", "pa"), 
+                                  labels=c("random contacts", "structured contacts"))]
+            d[,compartment := factor(compartment, levels=c("S", "I", "R"), 
+                                     labels=c("susceptible", "infected", "recovered"))]
+            xmax <- ifelse("{model}" == "si", 3000, 7500)
+            p <- ggplot(d, aes(x=t, y=population, color=compartment)) + 
+                stat_smooth() +
+                theme_classic() 
+            if ("{orientation}" == "horizontal") {{
+                p <- p + facet_grid(~net_type)
+            }} else {{
+                p <- p + facet_grid(net_type~.)
+            }}
+            p + xlim(0, xmax) +
+                labs(x="time") +
+                theme(text=element_text(size=18),
+                      legend.position="top",
+                      axis.text=element_blank(),
+                      axis.ticks=element_blank(),
+                      panel.border=element_rect(colour="black", fill=NA),
+                      legend.direction="vertical",
+                      legend.title=element_blank()) +
+            if ("{orientation}" == "horizontal") {{
+                ggsave("{trajectory-plot}", height=5)
+            }} else {{
+                ggsave("{trajectory-plot}", width=3, height=6)
+            }}

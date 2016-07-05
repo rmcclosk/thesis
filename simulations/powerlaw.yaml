@@ -1,6 +1,6 @@
 Name: powerlaw
 Description: Degree distributions in preferential attachment networks
-Processes: 1
+Processes: 6
 Sleep: 5
 Steps:
     fits:
@@ -58,6 +58,7 @@ Steps:
             setnames(d, "frequency", "actual")
             d <- melt(d, measure.vars=c("actual", "pl", "se"),
                       variable.name="method", value.name="frequency")
+            d[method != "actual", method := ifelse(method == "pl", "power law", "stretched exponential")]
             ggplot(d, aes(x=degree, y=frequency)) + 
                 geom_point(data=subset(d, method == "actual"), size=0.5) +
                 geom_line(data=subset(d, method != "actual"), 
@@ -66,7 +67,7 @@ Steps:
                 scale_x_log10() +
                 scale_y_log10(limits=c(1, NA)) +
                 theme_bw()
-            ggsave("{fit-plot}", height=5, width=6)
+            ggsave("{fit-plot}", height=5, width=7)
 
     tests:
         Extension: tsv

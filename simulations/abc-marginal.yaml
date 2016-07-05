@@ -1,0 +1,245 @@
+Name: abc-marginal
+Description: ABC inference with some parameters fixed/known
+Processes: 1
+Sleep: 5
+Steps:
+    network:
+        Extension: gml
+        Walltime: 00:00:30
+        Parameters:
+            true_N: 5000
+            true_m: 2
+            true_alpha: 0.0
+            true_I: 2000
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: | 
+            set.seed({seed})
+            g <- sample_pa({true_N}, m={true_m}, power={true_alpha}, directed=FALSE)
+            graph_attr(g, "comment") <- "{yaml}"
+            write.graph(SIR.net(g), "{network}", format="gml")
+
+    tree:
+        Extension: nwk
+        Walltime: 00:00:30
+        Parameters:
+            true_m: 2
+            true_alpha: 0.0
+            true_I: 2000
+            ntip: 500
+        Depends: network
+        Interpreter: bash
+        Rule: |
+            echo "#{yaml}" > {tree}
+            nettree --sim-nodes {true_I} --tree-tips {ntip} --seed {seed} {network} >> {tree}
+
+    abc-config:
+        Extension: yaml
+        Walltime: 00:00:30
+        Parameters:
+            true_N: 5000
+            true_I: 2000
+            true_m: 2
+            true_alpha: 0.0
+            N_min: 500
+            N_max: 15000
+            I_min: 500
+            I_max: 5000
+            m_min: 1
+            m_max: 5
+            alpha_min: 0
+            alpha_max: 2
+            fixed: ["", "alpha", "I", "m", "N", "I+alpha", "alpha+m", "I+m", "N+alpha", "N+m", "N+I", "N+alpha+m", "I+alpha+m", "alpha+N+I", "m+N+I"]
+        Interpreter: bash
+        Rule: |
+            if [[ "{fixed}" == *"N"* ]]; then
+                echo "N: [\"delta\", {true_N}]" > {abc-config}
+            else
+                echo "N: [\"uniform\", {N_min}, {N_max}]" > {abc-config}
+            fi
+
+            if [[ "{fixed}" == *"I"* ]]; then
+                echo "I: [\"delta\", {true_I}]" >> {abc-config}
+            else
+                echo "I: [\"uniform\", {I_min}, {I_max}]" >> {abc-config}
+            fi
+            echo "time: 0" >> {abc-config}
+            echo "transmit_rate: 1" >> {abc-config}
+            echo "remove_rate: 0" >> {abc-config}
+
+            if [[ "{fixed}" == *"m"* ]]; then
+                echo "m: [\"delta\", {true_m}]" >> {abc-config}
+            else
+                echo "m: [\"discrete_uniform\", {m_min}, {m_max}]" >> {abc-config}
+            fi
+
+            if [[ "{fixed}" == *"alpha"* ]]; then
+                echo "alpha: [\"delta\", {true_alpha}]" >> {abc-config}
+            else
+                echo "alpha: [\"uniform\", {alpha_min}, {alpha_max}]" >> {abc-config}
+            fi
+
+    abc:
+        Extension: tsv.bz2
+        Processes: 0
+        Threads: 12
+        Walltime: 08:00:00
+        Sleep: 600
+        Parameters:
+            true_N: 5000
+            true_m: 2
+            true_alpha: 0.0
+            true_I: 2000
+            ntip: 500
+            N_min: 500
+            N_max: 15000
+            I_min: 500
+            I_max: 5000
+            m_min: 1
+            m_max: 5
+            alpha_min: 0
+            alpha_max: 2
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+            nparticle: 1000
+            nsample: 5
+            quality: 0.95
+            final_epsilon: 0.0
+            final_accept: 0.015
+            fixed: ["", "alpha", "I", "m", "N", "I+alpha", "alpha+m", "I+m", "N+alpha", "N+m", "N+I", "N+alpha+m", "I+alpha+m", "alpha+N+I", "m+N+I"]
+        Depends: tree abc-config
+        Interpreter: bash
+        Rule: |
+            TSVFILE=`echo {abc} | sed s/'.bz2'//`
+            echo "#{yaml}" > $TSVFILE
+            if [[ "{nltt}" == "1" ]]; then
+                NLTT=--nltt
+            else
+                NLTT=""
+            fi
+            netabc --num-threads 12 --decay-factor {decay_factor} \
+                   --rbf-variance {rbf_variance} --num-particles {nparticle} \
+                   --num-samples {nsample} --quality {quality} --seed {seed} \
+                   --final-epsilon {final_epsilon} --final-accept {final_accept} \
+                   $NLTT --net-type pa --trace $TSVFILE --seed {seed} {tree} {abc-config}
+            echo "EOF" >> $TSVFILE
+            bzip2 $TSVFILE
+
+    point-estimate:
+        Processes: 1
+        Extension: tsv
+        Walltime: 00:30:00
+        Memory: 2048m
+        Parameters:
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+            nparticle: 1000
+            fixed: ["", "alpha", "I", "m", "N", "I+alpha", "alpha+m", "I+m", "N+alpha", "N+m", "N+I", "N+alpha+m", "I+alpha+m", "alpha+N+I", "m+N+I"]
+        Depends: abc
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(Hmisc))
+            suppressPackageStartupMessages(library(coda))
+        Rule: |
+            trace.files <- strsplit("{abc}", " ")[[1]]
+            lines <- sapply(paste("bzcat", trace.files, "| wc -l"), system, intern=TRUE)
+            end <- as.integer(lines)-1
+            start <- end - {nparticle} + 1
+            cmd <- paste0("bzcat ", trace.files, " | sed -n -e 1,2p -e ", start, ",", end, "p")
+            d <- lapply(cmd, fread)
+            md <- collect.metadata(trace.files)
+            d <- rbindlist(mapply(cbind, by(md, 1:nrow(md), as.data.table), d, SIMPLIFY=FALSE))
+            params <- c("N", "I", "alpha", "m")
+
+            by.cols <- c("ntip", paste0("true_", params))
+            d <- d[,.SD[iter == max(iter),], by=by.cols]
+
+            fix.params <- strsplit("{fixed}", "+", fixed=TRUE)[[1]]
+            for (p in setdiff(params, fix.params)) {{
+                d[,paste0(p, c(".lower.95", ".upper.95")) := as.list(wtd.hpd(.SD[[p]], weight, conf=0.95)), by=by.cols]
+                d[,paste0(p, c(".lower.50", ".upper.50")) := as.list(wtd.hpd(.SD[[p]], weight, conf=0.50)), by=by.cols]
+                d[,p := wtd.mean(.SD[[p]], weight), by=by.cols, with=FALSE]
+            }}
+
+            for (p in fix.params) {{
+                d[,paste0(p, c(".lower.95", ".upper.95")) := .SD[[p]]]
+                d[,paste0(p, c(".lower.50", ".upper.50")) := .SD[[p]]]
+            }}
+
+            d <- setkeyv(d, by.cols)
+            d <- unique(d)
+            cat("#{yaml}\n", file="{point-estimate}")
+            write.tsv(d, "{point-estimate}", append=TRUE)
+
+    point-estimate-plot:
+        Processes: 0
+        Extension: pdf
+        Walltime: 00:30:00
+        Memory: 2048m
+        Parameters:
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+            nparticle: 1000
+            true_N: 5000
+            true_m: 2
+            true_alpha: 0.0
+            true_I: 2000
+        Depends: point-estimate
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            d <- setDT(collect.data(strsplit("{point-estimate}", " ")[[1]], sep="\t"))
+            f <- d[,levels(fixed)[fixed]]
+            f[is.na(f)] <- "none"
+            f <- sapply(lapply(strsplit(f, "+", fixed=TRUE), sort), paste, collapse="+")
+
+            lv <- c("none", "alpha", "I", "m", "N", "alpha+I", "alpha+m", "alpha+N", "I+m",
+                    "I+N", "m+N", "alpha+I+m", "alpha+I+N", "alpha+m+N", "I+m+N")
+            lab <- c("none", expression(alpha), "I", "m", "N", 
+                     expression(alpha+I), expression(alpha+m), expression(alpha+N),
+                     "I+m", "I+N", "m+N", expression(alpha+I+m), expression(alpha+I+N), 
+                     expression(alpha+m+N), "I+m+N")
+            d[,fixed := factor(f, levels=lv)]
+
+            plot.theme <- theme_bw() + 
+                theme(text=element_text(size=14),
+                      axis.text.x=element_text(angle=45, vjust=1, hjust=1))
+            palpha <- ggplot(d[!grepl("alpha", fixed)], aes(x=fixed, y=alpha)) +
+                geom_pointrange(aes(ymin=alpha.lower.95, ymax=alpha.upper.95)) +
+                geom_errorbar(aes(ymin=alpha.lower.50, ymax=alpha.upper.50), width=0.3) +
+                scale_x_discrete(labels=lab[!grepl("alpha", lv)]) +
+                geom_hline(yintercept={true_alpha}, linetype="dashed") +
+                labs(y=expression(alpha), x="fixed parameters") +
+                ylim(0, 2) +
+                plot.theme
+            pI <- ggplot(d[!grepl("I", fixed)], aes(x=fixed, y=I)) +
+                geom_pointrange(aes(ymin=I.lower.95, ymax=I.upper.95)) +
+                geom_errorbar(aes(ymin=I.lower.50, ymax=I.upper.50), width=0.3) +
+                scale_x_discrete(labels=lab[!grepl("I", lv)]) +
+                geom_hline(yintercept={true_I}, linetype="dashed") +
+                ylim(500, 5000) +
+                labs(x="fixed parameters") +
+                plot.theme
+            pm <- ggplot(d[!grepl("m", fixed)], aes(x=fixed, y=m)) +
+                geom_pointrange(aes(ymin=m.lower.95, ymax=m.upper.95)) +
+                geom_errorbar(aes(ymin=m.lower.50, ymax=m.upper.50), width=0.3) +
+                scale_x_discrete(labels=lab[!grepl("m", lv)]) +
+                geom_hline(yintercept={true_m}, linetype="dashed") +
+                ylim(1, 5) +
+                labs(x="fixed parameters") +
+                plot.theme
+            pN <- ggplot(d[!grepl("N", fixed)], aes(x=fixed, y=N)) +
+                geom_pointrange(aes(ymin=N.lower.95, ymax=N.upper.95)) +
+                geom_errorbar(aes(ymin=N.lower.50, ymax=N.upper.50), width=0.3) +
+                scale_x_discrete(labels=lab[!grepl("N", lv)]) +
+                geom_hline(yintercept={true_N}, linetype="dashed") +
+                ylim(500, 15000) +
+                labs(x="fixed parameters") +
+                plot.theme
+            pdf("{point-estimate-plot}")
+            grid.arrange(palpha, pI, pm, pN, nrow=2)
+            dev.off()

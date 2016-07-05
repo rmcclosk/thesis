@@ -21,7 +21,7 @@ Steps:
         Extension: nwk
         Depends: tree metadata
         Parameters:
-            cluster: 0
+            cluster: [0, 7]
         Interpreter: R --silent --vanilla
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
@@ -30,6 +30,14 @@ Steps:
 
             tip.ids <- sapply(strsplit(t$tip.label, "_"), "[[", 1)
             keep.ids <- d[cluster == {cluster}, anonid]
+            if ({cluster} == 0) {{
+                keep.ids <- d[cluster == {cluster} & idu == "True", anonid]
+            }} else if ({cluster} == 7) {{
+                keep.ids <- d[cluster == {cluster} & msm == "True", anonid]
+            }} else {{
+                keep.ids <- d[cluster == {cluster}, anonid]
+            }}
+
             if ({cluster} == 155) {{
                 keep.ids <- c(keep.ids, d[cluster == 203, anonid])
             }}
@@ -41,7 +49,7 @@ Steps:
         Extension: yaml
         Walltime: 00:00:30
         Parameters:
-            cluster: 0
+            cluster: [0, 7]
             m_min: [1, 2]
             m_max: 5
             N_max: 10000
@@ -62,12 +70,13 @@ Steps:
     abc:
         Extension: tsv
         Sleep: 600
+        Processes: 1
         Parameters:
-            cluster: 0
+            cluster: [0, 7]
             decay_factor: 0.3
             rbf_variance: 4
             nltt: 0
-            nparticle: 1000
+            nparticle: 10000
             nsample: 5
             quality: 0.95
             final_epsilon: 0.0
@@ -87,7 +96,7 @@ Steps:
             else
                 NLTT=""
             fi
-            netabc --num-threads 30 --decay-factor {decay_factor} \
+            netabc --num-threads 32 --decay-factor {decay_factor} \
                    --rbf-variance {rbf_variance} --num-particles {nparticle} \
                    --num-samples {nsample} --quality {quality} --seed {seed} \
                    --final-epsilon {final_epsilon} --final-accept {final_accept} \
@@ -101,7 +110,7 @@ Steps:
             decay_factor: 0.3
             rbf_variance: 4
             nltt: 0
-            nparticle: 1000
+            nparticle: 10000
             nsample: 5
             quality: 0.95
             final_epsilon: 0.0
@@ -112,6 +121,7 @@ Steps:
             I_max: 10000
             alpha_min: 0
             alpha_max: 2
+            cluster: [0, 7]
         Depends: abc subtree
         Interpreter: R --vanilla --silent
         Startup: |
@@ -122,5 +132,142 @@ Steps:
             d <- fread("{abc}")[iter == max(iter)]
             p <- posterior.plot.pa(d, alpha_min={alpha_min}, 
                     alpha_max={alpha_max}, I_min=ntip, I_max={I_max},
-                    N_min=ntip, N_max={N_max}, m_min={m_min}, m_max={m_max})
+                    N_min=ntip, N_max={N_max}, m_min={m_min}, m_max={m_max},
+                    show.map=FALSE, show.mean=TRUE)
             ggsave(p, file="{posterior-plot}", height=5, width=6)
+
+    gamma:
+        Extension: tsv
+        Walltime: 00:30:00
+        Parameters:
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+            nparticle: 10000
+            nsample: 5
+            quality: 0.95
+            final_epsilon: 0.0
+            final_accept: 0.015
+            m_min: [1, 2]
+            m_max: 5
+            N_max: 10000
+            I_max: 10000
+            alpha_min: 0
+            alpha_max: 2
+            cluster: [0, 7]
+        Depends: abc
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(stats4))
+            suppressPackageStartupMessages(library(Hmisc))
+        Rule: |
+            d <- fread("{abc}")[iter == max(iter)]
+            alpha <- d[,wtd.mean(alpha, weight)]
+            m <- d[,floor(wtd.mean(m, weight))]
+            N <- d[,floor(wtd.mean(N, weight))]
+            I <- d[,floor(wtd.mean(I, weight))]
+
+            get.gamma <- function (i) {{
+                g <- sample_pa(N, m=m, power=alpha, directed=FALSE)
+                gamma.all <- coef(fit_power_law(degree(g), implementation="R.mle"))
+                fit <- fit_power_law(degree(g))
+
+                g.I <- sample_pa(I, m=m, power=alpha, directed=FALSE)
+                gamma.all.I <- coef(fit_power_law(degree(g.I), implementation="R.mle"))
+                fit.I <- fit_power_law(degree(g.I))
+
+                data.table(gamma.all=gamma.all, xmin=fit$xmin, gamma.tail=fit$alpha, ks.p=fit$KS.p,
+                           gamma.all.I=gamma.all.I, xmin.I=fit.I$xmin, gamma.tail.I=fit.I$alpha, ks.p.I=fit.I$KS.p)
+            }}
+            d <- rbindlist(lapply(1:100, get.gamma))
+            cat("#{yaml}\n", file="{gamma}")
+            write.tsv(d, file="{gamma}", append=TRUE)
+
+    hpd-plot:
+        Extension: pdf
+        Parameters:
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+            nparticle: 10000
+            nsample: 5
+            quality: 0.95
+            m_min: 1
+            m_max: 5
+            N_max: 10000
+            I_max: 10000
+            alpha_min: 0
+            alpha_max: 2
+        Depends: abc subtree
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(coda))
+        Rule: |
+            d <- setDT(collect.data(strsplit("{abc}", " ")[[1]], fill=TRUE))
+            d <- d[iter != "EOF"]
+            d[,cluster := as.factor(cluster)]
+            d[,iter := as.integer(levels(iter))[iter]]
+            d <- d[,.SD[iter == max(iter)],by=cluster]
+            d <- melt(d, measure.vars=c("alpha", "I", "N", "m"), variable.name="parameter")
+            d[,mean := wtd.mean(value, weight), by=list(parameter, cluster)]
+            d[,hpd.min.95 := wtd.hpd(value, weight, 0.95)[1], by=list(parameter, cluster)]
+            d[,hpd.max.95 := wtd.hpd(value, weight, 0.95)[2], by=list(parameter, cluster)]
+            d[,hpd.min.50 := wtd.hpd(value, weight, 0.50)[1], by=list(parameter, cluster)]
+            d[,hpd.max.50 := wtd.hpd(value, weight, 0.50)[2], by=list(parameter, cluster)]
+            setkey(d, parameter, cluster)
+            d <- unique(d)
+
+            ntip <- min(sapply(lapply(strsplit("{subtree}", " ")[[1]], read.tree), Ntip))
+
+            # https://github.com/hadley/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
+            g_legend <- function(a.gplot) {{
+                tmp <- ggplot_gtable(ggplot_build(a.gplot))
+                leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+                tmp$grobs[[leg]]
+            }}
+            plot.aes <- aes(x=mean, y=cluster, color=cluster, shape=cluster)
+            plot.theme <- theme(legend.position="none",
+                                axis.text.y=element_blank(), 
+                                axis.ticks.y=element_blank(),
+                                axis.title.y=element_text(angle=0),
+                                plot.margin=unit(c(0, 0.5, 0, 0.5), "line"),
+                                text=element_text(size=14))
+            palpha <- ggplot(d[parameter == 'alpha'], plot.aes) + 
+                        geom_point(size=3) + 
+                        geom_errorbarh(height=0, aes(xmax=hpd.max.95, xmin=hpd.min.95)) + 
+                        geom_errorbarh(height=0.8, aes(xmax=hpd.max.50, xmin=hpd.min.50)) + 
+                        theme_bw() +
+                        labs(y=expression(alpha), x="") +
+                        xlim({alpha_min}, {alpha_max}) + plot.theme
+            pI <- ggplot(d[parameter == 'I'], plot.aes) +
+                    geom_point(size=3) + 
+                    geom_errorbarh(height=0, aes(xmax=hpd.max.95, xmin=hpd.min.95)) + 
+                    geom_errorbarh(height=0.8, aes(xmax=hpd.max.50, xmin=hpd.min.50)) + 
+                    theme_bw() +
+                    labs(y="I", x="") + xlim(ntip, {I_max}) +
+                    plot.theme
+            pm <- ggplot(d[parameter == 'm'], plot.aes) +
+                    geom_point(size=3) + 
+                    geom_errorbarh(height=0, aes(xmax=hpd.max.95, xmin=hpd.min.95)) + 
+                    geom_errorbarh(height=0.8, aes(xmax=hpd.max.50, xmin=hpd.min.50)) + 
+                    theme_bw() +
+                    labs(y="m", x="") + xlim({m_min}, {m_max}) +
+                    theme(axis.text.y=element_blank(), 
+                          axis.ticks.y=element_blank(),
+                          axis.title.y=element_text(angle=0),
+                          text=element_text(size=14)) +
+                    scale_color_discrete(guide = guide_legend(reverse=TRUE)) +
+                    scale_shape_discrete(guide = guide_legend(reverse=TRUE))
+            pN <- ggplot(d[parameter == 'N'], plot.aes) +
+                    geom_point(size=3) + 
+                    geom_errorbarh(height=0, aes(xmax=hpd.max.95, xmin=hpd.min.95)) + 
+                    geom_errorbarh(height=0.8, aes(xmax=hpd.max.50, xmin=hpd.min.50)) + 
+                    theme_bw() +
+                    labs(y="N", x="") + xlim(ntip, {N_max}) +
+                    plot.theme
+            layout <- rbind(c(1,1,2,2), c(3,3,4,4), c(5,5,5,5))
+            g <- arrangeGrob(palpha, pI, pm + theme(legend.position="none"),
+                 pN, g_legend(pm), layout_matrix=layout)
+            ggsave(g, file="{hpd-plot}", width=6, height=5)

@@ -125,7 +125,7 @@ Steps:
             #RTTJAR=`locate RLRootToTip.jar | head -n 1`
             RTTJAR=/home/rmcclosk/bin/RLRootToTip.jar
             FastTreeMP -nt -gtr -quiet -nosupport < {align} | nw_reroot - > $UNROOTED
-            java -jar $RTTJAR -writetree $ROOTED -newick $UNROOTED
+            java -jar $RTTJAR -timetree $ROOTED -newick $UNROOTED
             python3 -c "from Bio import Phylo; Phylo.convert('$ROOTED', 'nexus', '{subtree}', 'newick')"
             rm $ROOTED $UNROOTED
 

@@ -2,81 +2,86 @@ Name: leventhal2012-fig1
 Description: Recreating figure 1A from Leventhal et al. 2012
 Processes: 1
 Steps:
-    network:
-        Extension: gml.bz2
-        Parameters:
-            nnode: 5000
-            mean_degree: 8
-            net_type: ["BA", "ER", "WS", "FG"]
-            ws_prob: 0.01
-            transmissibility: "[i/20 for i in range(1, 20)]"
-            replicate: "range(100)"
-        Interpreter: R --vanilla --silent
-        Startup: |
-            suppressPackageStartupMessages(library(netabc))
-            suppressPackageStartupMessages(library(igraph))
-        Rule: | 
-            set.seed({seed})
-            if ("{net_type}" == "BA") {{
-                g <- sample_pa({nnode}, m={mean_degree}/2, directed=F)
-            }} else if ("{net_type}" == "WS") {{
-                g <- sample_smallworld(1, {nnode}, {mean_degree}/2, {ws_prob})
-            }} else if ("{net_type}" == "ER") {{
-                g <- sample_gnp({nnode}, {mean_degree}/{nnode})
-            }} else if ("{net_type}" == "FG") {{
-                g <- make_full_graph({nnode}, directed=FALSE)
-            }}
-            graph_attr(g, "comment") <- "{yaml}"
-            f <- bzfile("{network}", open="wb")
-            write.graph(SIR.net(g, transmit.rate=1, remove.rate=(1-{transmissibility})/{transmissibility}), f, format="gml")
-            close(f)
-
-    tree:
-        Extension: nwk
-        Parameters:
-            nnode: 5000
-            mean_degree: 8
-            net_type: ["BA", "ER", "WS"]
-            ws_prob: 0.01
-            transmissibility: "[i/20 for i in range(1, 20)]"
-            replicate: "range(100)"
-        Depends: network
-        Interpreter: bash
-        Rule: |
-            echo "#{yaml}" > {tree}
-            bzcat {network} | nettree --seed {seed} >> {tree}
-
     sackin:
         Extension: tsv
         Parameters:
-            placeholder: 0
-        Depends: tree
-        Interpreter: bash
+            N: 5000
+            mean_degree: 8
+            ws_prob: 0.01
+            steps: [20, 50]
+            replicates: 1000
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(ape))
+            suppressPackageStartupMessages(library(apTreeshape))
         Rule: |
-            echo -e "\tsackin" > {sackin}
-            for T in {tree}; do
-                echo $T$'\t'`treestat -i -s sackin $T` >> {sackin}
-            done
+            set.seed({seed})
+
+            make.net <- function (net.type, T) {{
+                if (net.type == "BA") {{
+                    g <- sample_pa({N}, m={mean_degree}/2, directed=F)
+                }} else if (net.type == "WS") {{
+                    g <- sample_smallworld(1, {N}, {mean_degree}/2, {ws_prob}/2)
+                }} else if (net.type == "ER") {{
+                    g <- sample_gnp({N}, {mean_degree}/{N})
+                }} 
+                SIR.net(g, transmit.rate=1, remove.rate=(1-T)/T)
+            }}
+            
+            net.types <- c("BA", "WS", "ER")
+            T.values <- seq(0, 1, length.out={steps})[2:({steps}-1)]
+
+            pb <- txtProgressBar(0, 3*{replicates}*{steps}, style=3)
+            d <- rbindlist(lapply(net.types, function (nt) {{
+                rbindlist(lapply(T.values, function (T) {{
+                    rbindlist(mclapply(1:{replicates}, function (i) {{
+                        tmpg <- tempfile()
+                        tmpt <- tempfile()
+                        s <- tryCatch({{
+                            g <- make.net(nt, T)
+                            write.graph(g, tmpg, "gml")
+                            system(paste("nettree <", tmpg, ">", tmpt))
+                            t <- read.tree(tmpt)
+                            sackin(as.treeshape(t))
+                        }}, error = function (e) 0)
+                        unlink(c(tmpg, tmpt))
+                        setTxtProgressBar(pb, getTxtProgressBar(pb)+1)
+                        data.table(net.type=nt, transmissibility=T, sackin=s)
+                    }}, mc.cores=8))
+                }}))
+            }}))
+
+            close(pb)
+            cat("#{yaml}\n", file="{sackin}")
+            write.tsv(d, file="{sackin}", append=TRUE)
 
     sackin-plot:
         Extension: pdf
         Parameters:
-            placeholder: 0
-        Depends: tree sackin
+            N: 5000
+            mean_degree: 8
+            ws_prob: 0.01
+            steps: 50
+            replicates: 1000
+        Depends: sackin
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
-            d <- read.table("{sackin}", row.names=1, header=TRUE)
-            d <- merge(d, collect.metadata(strsplit("{tree}", " ")[[1]]), by=0)
+            d <- fread("{sackin}")
             q25 <- function (x) quantile(x, 0.25)
             q75 <- function (x) quantile(x, 0.75)
-            ggplot(d, aes(x=transmissibility, y=sackin, fill=net_type)) +
+            q025 <- function (x) quantile(x, 0.025)
+            q975 <- function (x) quantile(x, 0.975)
+            ggplot(d, aes(x=transmissibility, y=sackin, fill=net.type)) +
+                stat_summary(fun.ymin=q025, fun.ymax=q975, geom='ribbon', alpha=0.25) +
                 stat_summary(fun.ymin=q25, fun.ymax=q75, geom='ribbon', alpha=0.5) +
-                stat_summary(fun.y=median, geom='line', aes(color=net_type)) +
+                stat_summary(fun.y=median, geom='line', aes(color=net.type)) +
                 theme(legend.position=c(1, 0), legend.justification=c(0, 1)) +
                 theme_bw() +
                 scale_fill_discrete(name="network type") +
                 scale_color_discrete(name="network type") +
                 labs(y="Sackin's index") +
-                theme(text=element_text(size=14, family="Gillius ADF"))
+                ylim(c(0, 6e5)) +
+                theme(text=element_text(size=14))
             ggsave("{sackin-plot}", width=5, height=4)

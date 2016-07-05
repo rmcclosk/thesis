@@ -188,7 +188,7 @@ Steps:
                 labs(x="simulated I", y="normalized kernel score") +
                 scale_x_continuous(breaks=c(1000, 3000, 5000)) +
                 theme_bw() +
-                theme(text=element_text(size=14, family="Gillius ADF"),
+                theme(text=element_text(size=14),
                       axis.text.y=element_blank(), axis.ticks.y=element_blank())
             ggsave("{kernel-plot}", height=5, width=6)
 
@@ -244,11 +244,32 @@ Steps:
                     }})
                 }}
             }}
-            hpd.lower <- function (x, y) {{ hpd(icdf(x, y))[1] }}
-            hpd.upper <- function (x, y) {{ hpd(icdf(x, y))[2] }}
+            hpd.lower <- function (x, y, conf=0.95) {{ hpd(icdf(x, y), conf=conf)[1] }}
+            hpd.upper <- function (x, y, conf=0.95) {{ hpd(icdf(x, y), conf=conf)[2] }}
 
             d <- d[,list(point.est=point.est(I, score), 
-                         lower=hpd.lower(I, score), 
-                         upper=hpd.upper(I, score)), by=test.cols]
+                         upper.95=hpd.upper(I, score),
+                         lower.95=hpd.lower(I, score),
+                         lower.50=hpd.lower(I, score, 0.50),
+                         upper.50=hpd.upper(I, score, 0.50)),
+                    by=test.cols]
             cat("#{yaml}\n", file="{point-estimate}")
             write.tsv(d, "{point-estimate}", append=TRUE)
+
+    point-estimate-plot:
+        Extension: pdf
+        Parameters:
+            m: 2
+            ntip: 500
+        Depends: point-estimate
+        Interpreter: R --quiet --vanilla
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            d <- fread("{point-estimate}")
+            ggplot(d, aes(x=true_I, y=point.est)) + geom_point() +
+                geom_abline(slope=1, intercept=0, linetype="dashed") +
+                labs(x=expression(paste( "true ", I)), 
+                     y=expression(paste( "estimated ", I))) +
+                theme_bw() +
+                theme(text=element_text(size=14))
+            ggsave("{point-estimate-plot}", width=4, height=4)

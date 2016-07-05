@@ -8,7 +8,7 @@ define RUN
 	./expt.py -vv $(1).yaml
 endef
 
-.PHONY: bulbasaur breezy.westgrid.ca jasper.westgrid.ca local
+.PHONY: bulbasaur octomore breezy.westgrid.ca jasper.westgrid.ca local
 
 all: bctree novitsky2014 cuevas2009 li2015 wang2015 niculescu2015 \
 	kao2011 abc-pa-free-m abc-pa-mixed-alpha abc-pa-peerdriven \
@@ -31,7 +31,7 @@ gridsearch-%: local
 
 # ABC simulation experiments
 
-abc-pa-free-m: breezy.westgrid.ca
+abc-pa-free-m: jasper.westgrid.ca
 	$(call FETCH,$^,$@)
 	$(call RUN,$@)
 
@@ -47,9 +47,16 @@ abc-marginal: jasper.westgrid.ca
 	$(call FETCH,$^,$@)
 	$(call RUN,$@)
 
+abc-better-smc: local
+	$(call RUN,$@)
+
 # real data
 
 bctree: bulbasaur
+	$(call FETCH,$^,$@)
+	$(call RUN,$@)
+
+bctree-new: bulbasaur
 	$(call FETCH,$^,$@)
 	$(call RUN,$@)
 

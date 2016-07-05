@@ -1,7 +1,7 @@
 Name: kernel-I
 Description: Testing if the tree kernel can recover the number of infected nodes in a Barabasi-Albert graph
-Processes: 4
-Hostname: Brannigan
+Processes: 1
+Hostname: ".*"
 Steps:
     network:
         Extension: gml.bz2
@@ -59,7 +59,7 @@ Steps:
             t <- t[order(y)]
             y <- y[order(y)]
 
-            pdf("{tree-plot}", family="Gillius ADF", height=4)
+            pdf("{tree-plot}", height=4)
             par(mar=c(0, 0, 2, 0) + 0.1, mfrow=c(1, 3), cex=1)
             lapply(1:length(t), function (i)
                 plot(t[[i]], show.tip.label=FALSE, main=paste( "I =", y[i]))
@@ -116,7 +116,7 @@ Steps:
             ggplot(d, aes(x=I, y={statistic})) + geom_violin() +
                 facet_grid(tips~., labeller="label_both") + theme_bw() +
                 labs(x="I", y=ylab) +
-                theme(text=element_text(size=18, family="Gillius ADF"))
+                theme(text=element_text(size=18))
             ggsave("{stats-plot}")
 
     stats-classifier:
@@ -132,9 +132,11 @@ Steps:
         Interpreter: R --vanilla --silent
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
-            x <- fread("{statistics}")[,sackin]
+            x <- fread("{statistics}")[,.(sackin)]
             y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"I"]
-            results <- lm.cv(x, y, n.cv=1000, stats=c("rsquared"))
+            results.svr <- fsvm.cv(x, y, n.cv=1000, stats=c("rsquared"), nthread=8)
+            results.svm <- fsvm.cv(x, factor(y), n.cv=1000, stats=c("accuracy"), nthread=8)
+            results <- cbind(results.svr, results.svm)
             f <- bzfile("{stats-classifier}", "wb")
             cat("#{yaml}\n", file=f)
             write.tsv(results, f, append=TRUE)
@@ -210,6 +212,8 @@ Steps:
         Extension: tsv.bz2
         Walltime: 00:20:00
         Sleep: 60
+        Threads: 8
+        Processes: 1
         Parameters:
             m: 2
             N: 5000
@@ -221,7 +225,9 @@ Steps:
         Rule: |
             d <- read.mm("{nltt-matrix}")
             y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"I"]
-            results <- dsvm.cv(d, y, n.cv=1000, stats=c("rsquared"))
+            results.svr <- dsvm.cv(d, y, n.cv=1000, stats=c("rsquared"), nthread=8)
+            results.svm <- dsvm.cv(d, factor(y), n.cv=1000, stats=c("accuracy"), nthread=8)
+            results <- cbind(results.svr, results.svm)
             f <- bzfile("{nltt-classifier}", "wb")
             cat("#{yaml}\n", file=f)
             write.tsv(results, f, append=TRUE)
@@ -273,7 +279,7 @@ Steps:
                 facet_grid(tips~., scales="free", labeller="label_both") +
                 labs(x="first principal component", y="second principal component") +
                 theme_bw() +
-                theme(text=element_text(size=14, family="Gillius ADF"),
+                theme(text=element_text(size=14),
                       axis.ticks=element_blank(),
                       axis.text=element_blank()) +
                 scale_color_discrete(name="I")
@@ -297,8 +303,11 @@ Steps:
         Rule: |
             k <- read.mm("{kernel-matrix}")
             y <- collect.metadata(strsplit("{tree}", " ")[[1]])[,"I"]
-            results <- tryCatch({{ksvm.cv(k, y, n.cv=1000, stats=c("rsquared"))}},
+            results.svm <- tryCatch({{ksvm.cv(k, y, n.cv=1000, stats=c("rsquared"), nthread=8)}},
                 error = function (e) {{data.frame(rsquared = rep(0, 1000))}})
+            results.svr <- tryCatch({{ksvm.cv(k, factor(y), n.cv=1000, stats=c("accuracy"), nthread=8)}},
+                error = function (e) {{data.frame(rsquared = rep(0, 1000))}})
+            results <- cbind(results.svm, results.svr)
             f <- bzfile("{classifier}", "wb")
             cat("#{yaml}\n", file=f)
             write.tsv(results, f, append=TRUE)
@@ -321,9 +330,9 @@ Steps:
             d2 <- setDT(collect.data(strsplit("{stats-classifier}", " ")[[1]]))
             d3 <- setDT(collect.data(strsplit("{nltt-classifier}", " ")[[1]]))
             by.cols <- c("ntip", "decay_factor", "rbf_variance", "nltt")
-            d <- setnames(d[,mean(rsquared), by=by.cols], "V1", "rsquared")
-            d2 <- setnames(d2[,mean(rsquared), by=c("ntip")], "V1", "rsquared")
-            d3 <- setnames(d3[,mean(rsquared), by=c("ntip")], "V1", "rsquared")
+            d <- setnames(d[,mean(accuracy), by=by.cols], "V1", "accuracy")
+            d2 <- setnames(d2[,mean(accuracy), by=c("ntip")], "V1", "accuracy")
+            d3 <- setnames(d3[,mean(accuracy), by=c("ntip")], "V1", "accuracy")
             setnames(d, "ntip", "tips")
             setnames(d2, "ntip", "tips")
             setnames(d3, "ntip", "tips")
@@ -333,18 +342,18 @@ Steps:
             d2 <- rbind(d2, d3)
             d[,decay_factor := as.factor(decay_factor)]
             d[,rbf_variance := as.factor(rbf_variance)]
-            plot.aes <- aes(x=rbf_variance, y=rsquared, color=decay_factor,
+            plot.aes <- aes(x=rbf_variance, y=accuracy, color=decay_factor,
                             shape=decay_factor, group=decay_factor,
                             linetype=classifier)
             ggplot(d) +
                 geom_point(size=3, plot.aes) + geom_line(plot.aes) +
-                geom_hline(data=d2, aes(yintercept=rsquared, linetype=classifier), color="black") +
+                geom_hline(data=d2, aes(yintercept=accuracy, linetype=classifier), color="black") +
                 theme_bw() +
                 facet_grid(tips~., labeller="label_both") +
-                labs(x="radial basis function variance", y=expression(R^2)) +
+                labs(x="radial basis function variance", y="accuracy") +
                 scale_color_discrete(name="decay factor") +
                 scale_shape_discrete(name="decay factor") +
-                theme(text=element_text(size=14, family="Gillius ADF"),
+                theme(text=element_text(size=14),
                       axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
             ggsave("{crossv-plot}", height=4, width=4)
 

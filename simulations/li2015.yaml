@@ -188,7 +188,8 @@ Steps:
             d <- fread("{abc}")[iter == max(iter)]
             p <- posterior.plot.pa(d, alpha_min={alpha_min}, 
                     alpha_max={alpha_max}, I_min=ntip, I_max={I_max},
-                    N_min=ntip, N_max={N_max}, m_min={m_min}, m_max={m_max})
+                    N_min=ntip, N_max={N_max}, m_min={m_min}, m_max={m_max},
+                    show.map=FALSE, show.mean=TRUE)
             ggsave(p, file="{posterior-plot}", height=5, width=6)
 
     gamma:

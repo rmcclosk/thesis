@@ -1,0 +1,252 @@
+Name: bctree-new
+Description: ABC inference on the BC HIV tree (new version June 2016)
+Processes: 1
+Sleep: 5
+Steps:
+    tree:
+        Extension: nwk
+        Parameters:
+            cluster: [0, 7]
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            t <- read.tree("../data/cluster{cluster}.tree")
+            tip.label <- strsplit(t$tip.label, "_")
+            tip.date <- as.POSIXct(sapply(tip.label, "[[", 2))
+            tip.days <- floor(unclass(tip.date)/86400)
+            tip.id <- sapply(tip.label, "[[", 1)
+            t$tip.label <- paste(tip.id, tip.days, sep="_")
+            write.tree(multi2di(t), "{tree}")
+
+    subtree:
+        Extension: nwk
+        Parameters:
+            cluster: [0, 7]
+        Depends: tree
+        Interpreter: bash
+        Rule: |
+            RTTJAR=`locate RLRootToTip.jar | head -n 1`
+            ROOTED=`mktemp`
+            java -jar $RTTJAR -timetree $ROOTED -newick {tree}
+            python3 -c "from Bio import Phylo; Phylo.convert('$ROOTED', 'nexus', '{subtree}', 'newick')"
+            rm $ROOTED
+
+    abc-config:
+        Extension: yaml
+        Walltime: 00:00:30
+        Parameters:
+            cluster: [0, 7]
+            m_min: [1, 2]
+            m_max: 5
+            N_max: 10000
+            I_max: 10000
+            alpha_min: 0
+            alpha_max: 2
+        Depends: subtree
+        Interpreter: bash
+        Rule: |
+            echo "N: [\"uniform\", `treestat -s ntip {subtree}`, {N_max}]" > {abc-config}
+            echo "I: [\"uniform\", `treestat -s ntip {subtree}`, {I_max}]" >> {abc-config}
+            echo "time: 0" >> {abc-config}
+            echo "transmit_rate: 1" >> {abc-config}
+            echo "remove_rate: 0" >> {abc-config}
+            echo "m: [\"discrete_uniform\", {m_min}, {m_max}]" >> {abc-config}
+            echo "alpha: [\"uniform\", {alpha_min}, {alpha_max}]" >> {abc-config}
+
+    abc:
+        Extension: tsv
+        Sleep: 600
+        Processes: 1
+        Parameters:
+            cluster: [0, 7]
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+            nparticle: 10000
+            nsample: 5
+            quality: 0.95
+            final_epsilon: 0.0
+            final_accept: 0.015
+            m_min: [1, 2]
+            m_max: 5
+            N_max: 10000
+            I_max: 10000
+            alpha_min: 0
+            alpha_max: 2
+        Depends: subtree abc-config
+        Interpreter: bash
+        Rule: |
+            echo "#{yaml}" > {abc}
+            if [[ {nltt} -eq 1 ]]; then
+                NLTT=--nltt
+            else
+                NLTT=""
+            fi
+            netabc --num-threads 20 --decay-factor {decay_factor} \
+                   --rbf-variance {rbf_variance} --num-particles {nparticle} \
+                   --num-samples {nsample} --quality {quality} --seed {seed} \
+                   --final-epsilon {final_epsilon} --final-accept {final_accept} \
+                   $NLTT --net-type pa --trace {abc} --seed {seed} {subtree} {abc-config}
+            echo "EOF" >> {abc}
+
+    posterior-plot:
+        Extension: pdf
+        Walltime: 00:30:00
+        Parameters:
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+            nparticle: 10000
+            nsample: 5
+            quality: 0.95
+            final_epsilon: 0.0
+            final_accept: 0.015
+            m_min: [1, 2]
+            m_max: 5
+            N_max: 10000
+            I_max: 10000
+            alpha_min: 0
+            alpha_max: 2
+            cluster: [0, 7]
+        Depends: abc subtree
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(grid))
+        Rule: |
+            ntip <- Ntip(read.tree("{subtree}"))
+            d <- fread("{abc}")[iter == max(iter)]
+            p <- posterior.plot.pa(d, alpha_min={alpha_min}, 
+                    alpha_max={alpha_max}, I_min=ntip, I_max={I_max},
+                    N_min=ntip, N_max={N_max}, m_min={m_min}, m_max={m_max},
+                    show.map=FALSE, show.mean=TRUE)
+            ggsave(p, file="{posterior-plot}", height=5, width=6)
+
+    gamma:
+        Extension: tsv
+        Walltime: 00:30:00
+        Parameters:
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+            nparticle: 10000
+            nsample: 5
+            quality: 0.95
+            final_epsilon: 0.0
+            final_accept: 0.015
+            m_min: [1, 2]
+            m_max: 5
+            N_max: 10000
+            I_max: 10000
+            alpha_min: 0
+            alpha_max: 2
+            cluster: [0, 7]
+        Depends: abc
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(stats4))
+            suppressPackageStartupMessages(library(Hmisc))
+        Rule: |
+            d <- fread("{abc}")[iter == max(iter)]
+            alpha <- d[,wtd.mean(alpha, weight)]
+            m <- d[,floor(wtd.mean(m, weight))]
+            N <- d[,floor(wtd.mean(N, weight))]
+
+            get.gamma <- function (i) {{
+                g <- sample_pa(N, m=m, power=alpha, directed=FALSE)
+                gamma.all <- coef(fit_power_law(degree(g), implementation="R.mle"))
+                fit <- fit_power_law(degree(g))
+                data.table(gamma.all=gamma.all, xmin=fit$xmin, gamma.tail=fit$alpha, ks.p=fit$KS.p)
+            }}
+            d <- rbindlist(lapply(1:100, get.gamma))
+            cat("#{yaml}\n", file="{gamma}")
+            write.tsv(d, file="{gamma}", append=TRUE)
+
+    hpd-plot:
+        Extension: pdf
+        Parameters:
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+            nparticle: 10000
+            nsample: 5
+            quality: 0.95
+            m_min: 1
+            m_max: 5
+            N_max: 10000
+            I_max: 10000
+            alpha_min: 0
+            alpha_max: 2
+        Depends: abc subtree
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(coda))
+        Rule: |
+            d <- setDT(collect.data(strsplit("{abc}", " ")[[1]], fill=TRUE))
+            d <- d[iter != "EOF"]
+            d[,cluster := as.factor(cluster)]
+            d[,iter := as.integer(levels(iter))[iter]]
+            d <- d[,.SD[iter == max(iter)],by=cluster]
+            d <- melt(d, measure.vars=c("alpha", "I", "N", "m"), variable.name="parameter")
+            d[,mean := wtd.mean(value, weight), by=list(parameter, cluster)]
+            d[,hpd.min.95 := wtd.hpd(value, weight, 0.95)[1], by=list(parameter, cluster)]
+            d[,hpd.max.95 := wtd.hpd(value, weight, 0.95)[2], by=list(parameter, cluster)]
+            d[,hpd.min.50 := wtd.hpd(value, weight, 0.50)[1], by=list(parameter, cluster)]
+            d[,hpd.max.50 := wtd.hpd(value, weight, 0.50)[2], by=list(parameter, cluster)]
+            setkey(d, parameter, cluster)
+            d <- unique(d)
+
+            ntip <- min(sapply(lapply(strsplit("{subtree}", " ")[[1]], read.tree), Ntip))
+
+            # https://github.com/hadley/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
+            g_legend <- function(a.gplot) {{
+                tmp <- ggplot_gtable(ggplot_build(a.gplot))
+                leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+                tmp$grobs[[leg]]
+            }}
+            plot.aes <- aes(x=mean, y=cluster, color=cluster, shape=cluster)
+            plot.theme <- theme(legend.position="none",
+                                axis.text.y=element_blank(), 
+                                axis.ticks.y=element_blank(),
+                                axis.title.y=element_text(angle=0),
+                                plot.margin=unit(c(0, 0.5, 0, 0.5), "line"),
+                                text=element_text(size=14))
+            palpha <- ggplot(d[parameter == 'alpha'], plot.aes) + 
+                        geom_point(size=3) + 
+                        geom_errorbarh(height=0, aes(xmax=hpd.max.95, xmin=hpd.min.95)) + 
+                        geom_errorbarh(height=0.8, aes(xmax=hpd.max.50, xmin=hpd.min.50)) + 
+                        theme_bw() +
+                        labs(y=expression(alpha), x="") +
+                        xlim({alpha_min}, {alpha_max}) + plot.theme
+            pI <- ggplot(d[parameter == 'I'], plot.aes) +
+                    geom_point(size=3) + 
+                    geom_errorbarh(height=0, aes(xmax=hpd.max.95, xmin=hpd.min.95)) + 
+                    geom_errorbarh(height=0.8, aes(xmax=hpd.max.50, xmin=hpd.min.50)) + 
+                    theme_bw() +
+                    labs(y="I", x="") + xlim(ntip, {I_max}) +
+                    plot.theme
+            pm <- ggplot(d[parameter == 'm'], plot.aes) +
+                    geom_point(size=3) + 
+                    geom_errorbarh(height=0, aes(xmax=hpd.max.95, xmin=hpd.min.95)) + 
+                    geom_errorbarh(height=0.8, aes(xmax=hpd.max.50, xmin=hpd.min.50)) + 
+                    theme_bw() +
+                    labs(y="m", x="") + xlim({m_min}, {m_max}) +
+                    theme(axis.text.y=element_blank(), 
+                          axis.ticks.y=element_blank(),
+                          axis.title.y=element_text(angle=0),
+                          text=element_text(size=14)) +
+                    scale_color_discrete(guide = guide_legend(reverse=TRUE)) +
+                    scale_shape_discrete(guide = guide_legend(reverse=TRUE))
+            pN <- ggplot(d[parameter == 'N'], plot.aes) +
+                    geom_point(size=3) + 
+                    geom_errorbarh(height=0, aes(xmax=hpd.max.95, xmin=hpd.min.95)) + 
+                    geom_errorbarh(height=0.8, aes(xmax=hpd.max.50, xmin=hpd.min.50)) + 
+                    theme_bw() +
+                    labs(y="N", x="") + xlim(ntip, {N_max}) +
+                    plot.theme
+            layout <- rbind(c(1,1,2,2), c(3,3,4,4), c(5,5,5,5))
+            g <- arrangeGrob(palpha, pI, pm + theme(legend.position="none"),
+                 pN, g_legend(pm), layout_matrix=layout)
+            ggsave(g, file="{hpd-plot}", width=6, height=5)

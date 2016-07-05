@@ -1,0 +1,265 @@
+Name: abc-better-smc
+Description: ABC inference with better SMC settings
+Processes: 1
+Sleep: 5
+Steps:
+    network:
+        Extension: gml
+        Walltime: 00:00:30
+        Parameters:
+            true_N: 5000
+            true_m: 3
+            true_alpha: 0.5
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: | 
+            set.seed({seed})
+            g <- sample_pa({true_N}, m={true_m}, power={true_alpha}, directed=FALSE)
+            graph_attr(g, "comment") <- "{yaml}"
+            write.graph(SIR.net(g), "{network}", format="gml")
+
+    tree:
+        Extension: nwk
+        Walltime: 00:00:30
+        Parameters:
+            true_m: 3
+            true_alpha: 0.5
+            true_I: 2000
+            ntip: 500
+        Depends: network
+        Interpreter: bash
+        Rule: |
+            echo "#{yaml}" > {tree}
+            nettree --sim-nodes {true_I} --tree-tips {ntip} --seed {seed} {network} >> {tree}
+
+    abc-config:
+        Extension: yaml
+        Walltime: 00:00:30
+        Parameters:
+            N_min: 500
+            N_max: 15000
+            I_min: 500
+            I_max: 5000
+            m_min: 1
+            m_max: 5
+            alpha_min: 0
+            alpha_max: 2
+        Interpreter: bash
+        Rule: |
+            echo "N: [\"uniform\", {N_min}, {N_max}]" > {abc-config}
+            echo "I: [\"uniform\", {I_min}, {I_max}]" >> {abc-config}
+            echo "time: 0" >> {abc-config}
+            echo "transmit_rate: 1" >> {abc-config}
+            echo "remove_rate: 0" >> {abc-config}
+            echo "m: [\"discrete_uniform\", {m_min}, {m_max}]" >> {abc-config}
+            echo "alpha: [\"uniform\", {alpha_min}, {alpha_max}]" >> {abc-config}
+
+    abc:
+        Extension: tsv.bz2
+        Processes: 1
+        Threads: 12
+        Walltime: 072:00:00
+        Sleep: 600
+        Parameters:
+            true_N: 5000
+            true_m: 3
+            true_alpha: 0.5
+            true_I: 2000
+            ntip: 500
+            N_min: 500
+            N_max: 15000
+            I_min: 500
+            I_max: 5000
+            m_min: 1
+            m_max: 5
+            alpha_min: 0
+            alpha_max: 2
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+            nparticle: [1000, 2000]
+            nsample: [5, 10]
+            quality: [0.95, 0.97]
+            final_epsilon: 0.0
+            final_accept: 0.015
+        Exclusions:
+            -
+                nparticle: 1000
+                nsample: 10
+            -
+                nparticle: 1000
+                quality: 0.97
+            -
+                nsample: 5
+                quality: 0.97
+            -
+                nparticle: 2000
+                nsample: 5
+            -
+                nparticle: 2000
+                quality: 0.95
+        Depends: tree abc-config
+        Interpreter: bash
+        Rule: |
+            TSVFILE=`echo {abc} | sed s/'.bz2'//`
+            echo "#{yaml}" > $TSVFILE
+            if [[ "{nltt}" == "1" ]]; then
+                NLTT=--nltt
+            else
+                NLTT=""
+            fi
+            netabc --num-threads 30 --decay-factor {decay_factor} \
+                   --rbf-variance {rbf_variance} --num-particles {nparticle} \
+                   --num-samples {nsample} --quality {quality} --seed {seed} \
+                   --final-epsilon {final_epsilon} --final-accept {final_accept} \
+                   $NLTT --net-type pa --trace $TSVFILE --seed {seed} {tree} {abc-config}
+            echo "EOF" >> $TSVFILE
+            bzip2 $TSVFILE
+
+    point-estimate:
+        Processes: 0
+        Extension: tsv
+        Walltime: 00:30:00
+        Memory: 2048m
+        Parameters:
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+            nparticle: [1000, 2000]
+        Depends: abc
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(Hmisc))
+            suppressPackageStartupMessages(library(coda))
+        Rule: |
+            trace.files <- strsplit("{abc}", " ")[[1]]
+            lines <- sapply(paste("bzcat", trace.files, "| wc -l"), system, intern=TRUE)
+            end <- as.integer(lines)-1
+            start <- end - {nparticle} + 1
+            cmd <- paste0("bzcat ", trace.files, " | sed -n -e 1,2p -e ", start, ",", end, "p")
+            d <- lapply(cmd, fread)
+            md <- collect.metadata(trace.files)
+            d <- rbindlist(mapply(cbind, by(md, 1:nrow(md), as.data.table), d, SIMPLIFY=FALSE))
+            params <- c("N", "I", "alpha", "m")
+
+            by.cols <- c("ntip", paste0("true_", params))
+            d <- d[,.SD[iter == max(iter),], by=by.cols]
+
+            for (p in params) {{
+                d[,paste0(p, c(".lower.95", ".upper.95")) := as.list(wtd.hpd(.SD[[p]], weight, conf=0.95)), by=by.cols]
+                d[,paste0(p, c(".lower.50", ".upper.50")) := as.list(wtd.hpd(.SD[[p]], weight, conf=0.50)), by=by.cols]
+                d[,p := wtd.mean(.SD[[p]], weight), by=by.cols, with=FALSE]
+            }}
+
+            d <- setkeyv(d, by.cols)
+            d <- unique(d)
+            cat("#{yaml}\n", file="{point-estimate}")
+            write.tsv(d, "{point-estimate}", append=TRUE)
+
+    point-estimate-plot:
+        Extension: pdf
+        Walltime: 00:30:00
+        Parameters:
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+        Depends: point-estimate
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(grid))
+        Rule: |
+            d <- collect.data(strsplit("{point-estimate}", " ")[[1]])
+            plot.theme <- theme(axis.text.y=element_blank(), 
+                                axis.ticks.y=element_blank(),
+                                axis.title.x=element_blank(),
+                                text=element_text(size=14))
+
+            # https://github.com/hadley/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
+            g_legend <- function(a.gplot) {{
+                tmp <- ggplot_gtable(ggplot_build(a.gplot))
+                leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+                tmp$grobs[[leg]]
+            }}
+
+            # http://stackoverflow.com/questions/8197559/emulate-ggplot2-default-color-palette
+            gg_color_hue <- function(n) {{
+                hues = seq(15, 375, length = n + 1)
+                hcl(h = hues, l = 65, c = 100)[1:n]
+            }}
+
+            palpha <- ggplot(d, aes(x=alpha,
+                                    y=factor(nparticle, levels=c(2000, 1000)),
+                                    color=factor(nparticle), 
+                                    fill=factor(nparticle))) +
+                geom_point(size=3, shape=21) + 
+                geom_errorbarh(aes(xmin=alpha.lower.95, xmax=alpha.upper.95), height=0) + 
+                geom_errorbarh(aes(xmin=alpha.lower.50, xmax=alpha.upper.50), height=0.8) + 
+                geom_vline(aes(xintercept=true_alpha), linetype=2) +
+                scale_fill_manual(name="SMC settings", values=c(NA, gg_color_hue(2)[2]),
+                                  labels=c("low", "high")) +
+                scale_color_discrete(name="SMC settings", labels=c("low", "high")) +
+                theme_bw() +
+                labs(y=expression(alpha)) +
+                xlim(0, 2) +
+                plot.theme
+            pI <- ggplot(d, aes(x=I,
+                                y=factor(nparticle, levels=c(2000, 1000)),
+                                color=factor(nparticle), 
+                                fill=factor(nparticle))) +
+                geom_point(size=3, shape=21) + 
+                geom_errorbarh(aes(xmin=I.lower.95, xmax=I.upper.95), height=0) + 
+                geom_errorbarh(aes(xmin=I.lower.50, xmax=I.upper.50), height=0.8) + 
+                geom_vline(aes(xintercept=true_I), linetype=2) +
+                scale_fill_manual(name="SMC settings", values=c(NA, gg_color_hue(2)[2]),
+                                  labels=c("low", "high")) +
+                scale_color_discrete(name="SMC settings", labels=c("low", "high")) +
+                theme_bw() +
+                labs(y="I") +
+                xlim(500, 5000) +
+                plot.theme +
+                theme(legend.position="none")
+            pm <- ggplot(d, aes(x=m,
+                                y=factor(nparticle, levels=c(2000, 1000)),
+                                color=factor(nparticle), 
+                                fill=factor(nparticle))) +
+                geom_point(size=3, shape=21) + 
+                geom_errorbarh(aes(xmin=m.lower.95, xmax=m.upper.95), height=0) + 
+                geom_errorbarh(aes(xmin=m.lower.50, xmax=m.upper.50), height=0.8) + 
+                geom_vline(aes(xintercept=true_m), linetype=2) +
+                scale_fill_manual(name="SMC settings", values=c(NA, gg_color_hue(2)[2]),
+                                  labels=c("low", "high")) +
+                scale_color_discrete(name="SMC settings", labels=c("low", "high")) +
+                theme_bw() +
+                labs(y="m") +
+                xlim(1, 5) +
+                plot.theme +
+                theme(legend.position="none")
+            pN <- ggplot(d, aes(x=N,
+                                y=factor(nparticle, levels=c(2000, 1000)),
+                                color=factor(nparticle), 
+                                fill=factor(nparticle))) +
+                geom_point(size=3, shape=21) + 
+                geom_errorbarh(aes(xmin=N.lower.95, xmax=N.upper.95), height=0) + 
+                geom_errorbarh(aes(xmin=N.lower.50, xmax=N.upper.50), height=0.8) + 
+                geom_vline(aes(xintercept=true_N), linetype=2) +
+                scale_fill_manual(name="SMC settings", values=c(NA, gg_color_hue(2)[2]),
+                                  labels=c("low", "high")) +
+                scale_color_discrete(name="SMC settings", labels=c("low", "high")) +
+                theme_bw() +
+                labs(y="N") +
+                xlim(500, 15000) +
+                plot.theme +
+                theme(legend.position="none")
+
+            mtx <- rbind(c(1, 1, 1, 5),
+                         c(2, 2, 2, 5),
+                         c(3, 3, 3, 5),
+                         c(4, 4, 4, 5))
+
+            legend <- g_legend(palpha)
+            palpha <- palpha + theme(legend.position="none")
+            p <- arrangeGrob(palpha, pI, pm, pN, legend, layout_matrix=mtx)
+            ggsave(p, file="{point-estimate-plot}", height=4, width=5)
+            dev.off()

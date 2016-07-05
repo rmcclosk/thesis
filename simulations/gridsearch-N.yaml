@@ -185,7 +185,8 @@ Steps:
                 scale_color_discrete(name="number of tips") +
                 labs(x="simulated N", y="normalized kernel score") +
                 theme_bw() +
-                theme(text=element_text(size=14, family="Gillius ADF"),
+                scale_x_continuous(breaks=c(3000, 8000, 13000)) +
+                theme(text=element_text(size=14),
                       axis.text.y=element_blank(), axis.ticks.y=element_blank())
             ggsave("{kernel-plot}", height=5, width=6)
 
@@ -242,11 +243,68 @@ Steps:
                     }})
                 }}
             }}
-            hpd.lower <- function (x, y) {{ hpd(icdf(x, y))[1] }}
-            hpd.upper <- function (x, y) {{ hpd(icdf(x, y))[2] }}
+            hpd.lower <- function (x, y, conf=0.95) {{ hpd(icdf(x, y), conf=conf)[1] }}
+            hpd.upper <- function (x, y, conf=0.95) {{ hpd(icdf(x, y), conf=conf)[2] }}
 
             d <- d[,list(point.est=point.est(N, score), 
-                         lower=hpd.lower(N, score), 
-                         upper=hpd.upper(N, score)), by=test.cols]
+                         lower.95=hpd.lower(N, score), 
+                         upper.95=hpd.upper(N, score),
+                         lower.50=hpd.lower(N, score, 0.50),
+                         upper.50=hpd.upper(N, score, 0.50)),
+                    by=test.cols]
             cat("#{yaml}\n", file="{point-estimate}")
             write.tsv(d, "{point-estimate}", append=TRUE)
+
+    point-estimate-plot:
+        Extension: pdf
+        Parameters:
+            m: 2
+            alpha: 1.0
+            ntip: 500
+        Depends: point-estimate
+        Interpreter: R --quiet --vanilla
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            d <- fread("{point-estimate}")
+            ggplot(d, aes(x=true_N, y=point.est)) + geom_point() +
+                geom_abline(slope=1, intercept=0, linetype="dashed") +
+                labs(x=expression(paste( "true ", N)), 
+                     y=expression(paste( "estimated ", N))) +
+                theme_bw() +
+                theme(text=element_text(size=14))
+            ggsave("{point-estimate-plot}", width=4, height=4)
+
+    gamma-plot:
+        Extension: pdf
+        Parameters:
+            m: 2
+            ntip: 500
+        Depends: point-estimate test-network test-gamma train-network train-gamma
+        Interpreter: R --quiet --vanilla
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            d <- fread("{point-estimate}")
+
+            train.gamma <- setNames(fread("bzcat {train-gamma}"), c("net", "gamma"))
+            mtrain <- collect.metadata(strsplit("{train-network}", " ")[[1]])
+            mtrain$net <- rownames(mtrain)
+            mtrain <- merge(setDT(mtrain), train.gamma, by="net")
+
+            test.gamma <- setNames(fread("bzcat {test-gamma}"), c("net", "true_gamma"))
+            mtest <- collect.metadata(strsplit("{test-network}", " ")[[1]])
+            mtest$net <- rownames(mtest)
+            mtest <- merge(setDT(mtest), test.gamma, by="net")
+
+            d <- merge(d, mtrain[,list(gamma=median(gamma)),by=N], by.x="point.est", by.y="N")
+            d <- merge(d, mtest, by=c("true_N", "test_replicate"))
+
+                #scale_y_log10(breaks=1:20, limits=c(2, NA)) + 
+                #scale_x_log10(breaks=1:20, limits=c(2, NA)) +
+            ggplot(d, aes(x=true_gamma, y=gamma, color=factor(true_N))) + 
+                geom_point() + theme_bw() + 
+                geom_abline(slope=1, intercept=0, linetype="dashed") + 
+                scale_color_discrete(name=expression(paste("true ", N))) +
+                labs(x=expression(paste( "true ", gamma)), 
+                     y=expression(paste( "estimated ", gamma))) +
+                theme(text=element_text(size=14))
+            ggsave("{gamma-plot}", width=5, height=4)

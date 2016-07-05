@@ -116,33 +116,33 @@ Steps:
         Depends: abc
         Interpreter: R --vanilla --silent
         Startup: |
-            suppressPackageStartupMessages(library(netabc))
-            suppressPackageStartupMessages(library(Hmisc))
-            suppressPackageStartupMessages(library(coda))
+            suppresspackagestartupmessages(library(netabc))
+            suppresspackagestartupmessages(library(hmisc))
+            suppresspackagestartupmessages(library(coda))
         Rule: |
             trace.files <- strsplit("{abc}", " ")[[1]]
-            lines <- sapply(paste("bzcat", trace.files, "| wc -l"), system, intern=TRUE)
+            lines <- sapply(paste("bzcat", trace.files, "| wc -l"), system, intern=true)
             end <- as.integer(lines)-1
             start <- end - {nparticle} + 1
             cmd <- paste0("bzcat ", trace.files, " | sed -n -e 1,2p -e ", start, ",", end, "p")
             d <- lapply(cmd, fread)
             md <- collect.metadata(trace.files)
-            d <- rbindlist(mapply(cbind, by(md, 1:nrow(md), as.data.table), d, SIMPLIFY=FALSE))
-            params <- c("N", "I", "alpha", "m")
+            d <- rbindlist(mapply(cbind, by(md, 1:nrow(md), as.data.table), d, simplify=false))
+            params <- c("n", "i", "alpha", "m")
 
             by.cols <- c("ntip", paste0("true_", params), "replicate")
-            d <- d[,.SD[iter == max(iter),], by=by.cols]
+            d <- d[,.sd[iter == max(iter),], by=by.cols]
 
             for (p in params) {{
-                d[,paste0(p, c(".lower.95", ".upper.95")) := as.list(wtd.hpd(.SD[[p]], weight, conf=0.95)), by=by.cols]
-                d[,paste0(p, c(".lower.50", ".upper.50")) := as.list(wtd.hpd(.SD[[p]], weight, conf=0.50)), by=by.cols]
-                d[,p := wtd.mean(.SD[[p]], weight), by=by.cols, with=FALSE]
+                d[,paste0(p, c(".lower.95", ".upper.95")) := as.list(wtd.hpd(.sd[[p]], weight, conf=0.95)), by=by.cols]
+                d[,paste0(p, c(".lower.50", ".upper.50")) := as.list(wtd.hpd(.sd[[p]], weight, conf=0.50)), by=by.cols]
+                d[,p := wtd.mean(.sd[[p]], weight), by=by.cols, with=false]
             }}
 
             d <- setkeyv(d, by.cols)
             d <- unique(d)
             cat("#{yaml}\n", file="{point-estimate}")
-            write.tsv(d, "{point-estimate}", append=TRUE)
+            write.tsv(d, "{point-estimate}", append=true)
 
     point-estimate-plot:
         Extension: pdf
@@ -170,7 +170,10 @@ Steps:
                         scale_color_discrete(name= "true I") +
                         scale_shape_discrete(name= "true I") +
                         coord_fixed(ratio=1.8/2) + ylim(0, 2) +
-                        geom_abline(intercept=0, slope=1, linetype=2) +
+                        geom_segment(x=-0.25, xend=0.25, y=0, yend=0, linetype=2, col="black") +
+                        geom_segment(x=0.25, xend=0.75, y=0.5, yend=0.5, linetype=2, col="black") +
+                        geom_segment(x=0.75, xend=1.25, y=1, yend=1, linetype=2, col="black") +
+                        geom_segment(x=1.25, xend=1.75, y=1.5, yend=1.5, linetype=2, col="black") +
                         theme(text=element_text(size=font.size),
                               plot.margin=unit(c(2, 0, 0, 0), "lines"))
             d[,grp := paste0(true_I, true_alpha)]
@@ -182,7 +185,8 @@ Steps:
                     scale_color_discrete(name=expression(paste( "true ", alpha))) +
                     scale_shape_discrete(name=expression(paste( "true ", alpha))) +
                     ylim(500, 5000) + coord_fixed(ratio=2/4500) +
-                    geom_abline(intercept=0, slope=1000, linetype=2) +
+                    geom_segment(x=0.5, xend=1.5, y=1000, yend=1000, linetype=2, col="black") +
+                    geom_segment(x=1.5, xend=2.5, y=2000, yend=2000, linetype=2, col="black") +
                     theme(text=element_text(size=font.size),
                           plot.margin=unit(c(2, 0, 0, 0), "lines"))
             pm <- ggplot(d, aes(x=factor(true_alpha), y=m+0.5,
@@ -221,6 +225,117 @@ Steps:
             grid.text("A", x=unit(0.05, "npc"), y=unit(0.95, "npc"), draw=TRUE, gp=gpar(fontsize=18))
             grid.text("B", x=unit(0.55, "npc"), y=unit(0.95, "npc"), draw=TRUE, gp=gpar(fontsize=18))
             grid.lines(x=unit(c(0.5, 0.5), "npc"), gp=gpar(lty=3))
+            dev.off()
+
+    boxplot:
+        Extension: pdf
+        Walltime: 00:30:00
+        Parameters:
+            decay_factor: 0.3
+            rbf_variance: 4
+            nltt: 0
+            nparticle: 1000
+            params: ["alpha+I", "m+N"]
+        Depends: point-estimate
+        Interpreter: R --vanilla --silent
+        Startup: |
+            suppressPackageStartupMessages(library(netabc))
+            suppressPackageStartupMessages(library(grid))
+        Rule: |
+            d <- fread("{point-estimate}")
+            d[,I := I / 1000]
+            d[,N := N / 1000]
+
+            paa <- ggplot(d, aes(x=factor(true_alpha), y=alpha, color=factor(true_alpha)))
+            paI <- ggplot(d, aes(x=factor(true_alpha), y=alpha, color=factor(true_I)))
+            pam <- ggplot(d, aes(x=factor(true_alpha), y=alpha, color=factor(true_m)))
+
+            pIa <- ggplot(d, aes(x=factor(true_I), y=I, color=factor(true_alpha)))
+            pII <- ggplot(d, aes(x=factor(true_I), y=I, color=factor(true_I)))
+            pIm <- ggplot(d, aes(x=factor(true_I), y=I, color=factor(true_m)))
+
+            pma <- ggplot(d, aes(x=factor(true_m), y=m, color=factor(true_alpha)))
+            pmI <- ggplot(d, aes(x=factor(true_m), y=m, color=factor(true_I)))
+            pmm <- ggplot(d, aes(x=factor(true_m), y=m, color=factor(true_m)))
+
+            pNa <- ggplot(d, aes(x=factor(true_N), y=N, color=factor(true_alpha)))
+            pNI <- ggplot(d, aes(x=factor(true_N), y=N, color=factor(true_I)))
+            pNm <- ggplot(d, aes(x=factor(true_N), y=N, color=factor(true_m)))
+
+            plots <- list(paa, paI, pam, pIa, pII, pIm, pma, pmI, pmm, pNa, pNI, pNm)
+
+            g_legend <- function(a.gplot) {{
+                tmp <- ggplot_gtable(ggplot_build(a.gplot))
+                leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+                tmp$grobs[[leg]]
+            }}
+
+            legend.title <- as.list(rep(c(expression(alpha), "I", "m"), 4))
+            plots <- mapply(function (p, title) p + scale_color_discrete(name=title),
+                            plots, legend.title, SIMPLIFY=FALSE)
+
+            # get legends for stratification
+            plots <- lapply(plots, function (p) p + geom_boxplot() + theme_bw() +
+                        theme(legend.direction="horizontal"))
+            legends <- lapply(plots[1:3], g_legend)
+            plots <- lapply(plots, function (p) p + theme(legend.position="none"))
+            
+            # axis ticks on leftmost column only
+            cols.23 <- c(2, 3, 5, 6, 8, 9, 11, 12)
+            plots[cols.23] <- lapply(plots[cols.23], function (p) 
+                p + theme(axis.text.y=element_blank(), 
+                          axis.ticks.y=element_blank(), 
+                          axis.title.y=element_blank()))
+
+            plots <- lapply(plots, function (p) 
+                        p + theme(axis.text.x=element_blank(),
+                                  axis.ticks.x=element_blank(),
+                                  axis.title.x=element_blank(),
+                                  text=element_text(size=14)))
+
+            # y-axis labels
+            ylab <- as.list(c(rep(expression(alpha), 3), rep("I (thousands)", 3),
+                              rep("m", 3), rep("N (thousands)", 3)))
+            plots <- mapply(function (p, ylab) p + labs(y=ylab), 
+                            plots, ylab, SIMPLIFY=FALSE)
+
+            # limits
+            axis.min <- as.list(rep(c(0, 0.5, 1, 0.5), each=3))
+            axis.max <- as.list(rep(c(2, 5, 5, 15), each=3))
+            plots <- mapply(function (p, min, max) p + ylim(min, max),
+                            plots, axis.min, axis.max, SIMPLIFY=FALSE)
+
+            # line segments for true values
+            y <- c(rep(list(c(0, 0.5, 1, 1.5)), 3),
+                   rep(list(c(1, 2)), 3),
+                   rep(list(c(2, 3, 4)), 3),
+                   rep(list(5), 3))
+            x <- c(rep(list(c(0.5, 1.5, 2.5, 3.5)), 3),
+                   rep(list(c(0.5, 1.5)), 3),
+                   rep(list(c(0.5, 1.5, 2.5)), 3),
+                   rep(list(0.5), 3))
+            xend <- c(rep(list(c(1.5, 2.5, 3.5, 4.5)), 3),
+                      rep(list(c(1.5, 2.5)), 3),
+                      rep(list(c(1.5, 2.5, 3.5)), 3),
+                      rep(list(1.5), 3))
+            plots <- mapply(function (p, x, xend, y, yend) {{
+                        for (i in 1:length(x)) {{
+                            p <- p + geom_segment(x=x[i], xend=xend[i], y=y[i], 
+                                    yend=yend[i], linetype=2, colour="black")
+                        }}
+                        p
+                     }}, plots, x, xend, y, y, SIMPLIFY=FALSE)
+                            
+
+            if ("{params}" == "alpha+I") {{
+                plots <- plots[1:6]
+            }} else {{
+                plots <- plots[7:12]
+            }}
+            pdf("{boxplot}", height=5)
+            grid.arrange(grobs=c(plots, legends), ncol=3, 
+                         heights=c(1, 1, 0.25),
+                         widths=c(1.2, 1, 1))
             dev.off()
 
     posterior-plot:
@@ -303,11 +418,13 @@ Steps:
             first <- setdiff(1:6, last)
             pairs <- pairs[,c(first, last)]
 
+            d[,N := N / 1000]
+            d[,I := I / 1000]
             limits <- data.table(parameter=params,
-                                 min=c({alpha_min}, {I_min}, {N_min}, {m_min}-0.5),
-                                 max=c({alpha_max}, {I_max}, {N_max}, {m_max}+0.5))
+                                 min=c({alpha_min}, {I_min}/1000, {N_min}/1000, {m_min}-0.5),
+                                 max=c({alpha_max}, {I_max}/1000, {N_max}/1000, {m_max}+0.5))
             truth <- data.table(parameter=params,
-                                value=c({true_alpha}, {true_I}, {true_N}, {true_m}))
+                                value=c({true_alpha}, {true_I}/1000, {true_N}/1000, {true_m}))
             pmean <- melt(d[,c(params, "weight"), with=F], id.vars="weight", 
                           variable.name="parameter", value.name="value")
             pmean <- pmean[,list(mean=wtd.mean(value, weight)), by=parameter]
@@ -315,9 +432,19 @@ Steps:
             setkey(truth, parameter)
             setkey(pmean, parameter)
 
+            lab <- function (p) {{
+                if (p == "alpha") {{
+                    expression(alpha)
+                }} else if (p != "m") {{
+                    paste(p, "(thousands)")
+                }} else {{
+                    p
+                }}
+            }}
+
             plots <- apply(pairs, 2, function(p) 
                 do.plot(d[[p[1]]], d[[p[2]]], d[,weight], 
-                        labs=ifelse(p == "alpha", expression(alpha), p),
+                        labs=sapply(p, lab),
                         xlim=limits[p[1], c(min, max)],
                         ylim=limits[p[2], c(min, max)],
                         truth=truth[p, value],
@@ -365,6 +492,15 @@ Steps:
             tbl[,true.value := ifelse(parameter == "alpha", 
                                       sprintf("%.1f", true.value), 
                                       sprintf("%d", true.value))]
+            tbl[,mean.est := ifelse(parameter %in% c("alpha", "m"),
+                                    sprintf("%.2f", mean.est), 
+                                    sprintf("%d", as.integer(mean.est)))]
+            tbl[,mean.lower := ifelse(parameter %in% c("alpha", "m"),
+                                    sprintf("%.2f", mean.lower), 
+                                    sprintf("%d", as.integer(mean.lower)))]
+            tbl[,mean.upper := ifelse(parameter %in% c("alpha", "m"),
+                                    sprintf("%.2f", mean.upper), 
+                                    sprintf("%d", as.integer(mean.upper)))]
             tbl[parameter == "alpha", parameter := "\\alpha"]
             tbl[,parameter := paste0("$", parameter, "$")]
             tbl[duplicated(parameter), parameter := ""]

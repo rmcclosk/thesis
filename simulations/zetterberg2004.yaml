@@ -114,6 +114,58 @@ Steps:
             trimal -in $TMP -automated1 | filter_duplicates > {align}
             rm $TMP
 
+    beast-xml:
+        Extension: xml
+        Parameters:
+            clock: "strict"
+            model: "tn93"
+            popsize: "constant"
+            gene: ["gag", "env"]
+        Depends: align
+        Interpreter: bash
+        Rule: |
+            BEASTGEN=`dirname $(dirname $(locate beastgen.jar | grep $(whoami) | head -n 1))`
+            DATASET=`dirname $(dirname {beast-xml})`
+            TEMPLATE={clock}_{model}_{popsize}.xml
+            TMP=`mktemp`
+
+            $BEASTGEN/bin/beastgen to_nexus.template {align} > $TMP
+            $BEASTGEN/bin/beastgen -date_order 2 -D filename=$DATASET $TEMPLATE $TMP > {beast-xml}
+            rm $TMP
+
+    beast:
+        Extension: tar
+        Parameters:
+            clock: "strict"
+            model: "tn93"
+            popsize: "constant"
+            gene: ["gag", "env"]
+        Depends: beast-xml
+        Interpreter: bash
+        Rule: |
+            #BEAST=`dirname $(dirname $(locate beast.jar | grep $(whoami) | head -n 1))`
+            BEAST=/home/rmcclosk/packages/BEASTv1.8.3
+            DATASET=`dirname $(dirname {beast})`
+            $BEAST/bin/beast -overwrite -threads 6 {beast-xml}
+            tar cf {beast} $DATASET.log $DATASET.ops $DATASET.\(time\).trees $DATASET.\(subst\).trees
+
+    beast-subtree:
+        Extension: nwk
+        Parameters:
+            clock: "strict"
+            model: "tn93"
+            popsize: "constant"
+            gene: ["gag", "env"]
+        Depends: beast
+        Interpreter: bash
+        Rule: |
+            BEAST=/home/rmcclosk/packages/BEASTv1.8.3
+            DATASET=`dirname $(dirname {beast})`
+            TMP=`mktemp`
+            $BEAST/bin/treeannotator -burnin 1000 -burnintrees 1000 $DATASET.\(time\).trees $TMP
+            R -e "library(ape); write.tree(read.nexus('$TMP'), '{beast-subtree}')"
+            rm $TMP
+
     subtree:
         Extension: nwk
         Parameters:
@@ -126,7 +178,7 @@ Steps:
             #RTTJAR=`locate RLRootToTip.jar | head -n 1`
             RTTJAR=/home/rmcclosk/bin/RLRootToTip.jar
             FastTreeMP -nt -gtr -quiet -nosupport < {align} | nw_reroot - > $UNROOTED
-            java -jar $RTTJAR -writetree $ROOTED -newick $UNROOTED
+            java -jar $RTTJAR -timetree $ROOTED -newick $UNROOTED
             python3 -c "from Bio import Phylo; Phylo.convert('$ROOTED', 'nexus', '{subtree}', 'newick')"
             rm $ROOTED $UNROOTED
 
@@ -155,11 +207,11 @@ Steps:
     abc:
         Extension: tsv
         Sleep: 600
-        Walltime: 024:00:00
+        Walltime: 036:00:00
         Threads: 12
         Processes: 0
         Parameters:
-            gene: ["gag", "env"]
+            gene: "env"
             decay_factor: 0.3
             rbf_variance: 4
             nltt: 0

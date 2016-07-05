@@ -23,6 +23,27 @@ Steps:
             write.graph(SIR.net(g), f, format="gml")
             close(f)
 
+    train-gamma:
+        Extension: tsv.bz2
+        Parameters:
+            nnode: 5000
+            alpha: 1.0
+        Depends: train-network
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            files <- strsplit("{train-network}", " ")[[1]]
+            gamma <- function (f) {{
+                g <- read.graph(bzfile(f), "gml")
+                attr(fit_power_law(degree(g), implementation="R.mle"), "coef")
+            }}
+            df <- data.frame(file=files, gamma=sapply(files, gamma))
+            f <- bzfile("{train-gamma}", "w")
+            cat("#{yaml}\n", file=f)
+            write.table(df, file=f, row.names=FALSE, col.names=FALSE, sep="\t", 
+                        quote=FALSE)
+            close(f)
+
     train-tree:
         Extension: nwk.bz2
         Walltime: 00:00:30
@@ -56,6 +77,27 @@ Steps:
             graph_attr(g, "comment") <- "{yaml}"
             f <- bzfile("{test-network}", "wb")
             write.graph(SIR.net(g), f, format="gml")
+            close(f)
+
+    test-gamma:
+        Extension: tsv.bz2
+        Parameters:
+            nnode: 5000
+            alpha: 1.0
+        Depends: test-network
+        Interpreter: R --vanilla --silent
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            files <- strsplit("{test-network}", " ")[[1]]
+            gamma <- function (f) {{
+                g <- read.graph(bzfile(f), "gml")
+                attr(fit_power_law(degree(g), implementation="R.mle"), "coef")
+            }}
+            df <- data.frame(file=files, gamma=sapply(files, gamma))
+            f <- bzfile("{test-gamma}", "w")
+            cat("#{yaml}\n", file=f)
+            write.table(df, file=f, row.names=FALSE, col.names=FALSE, sep="\t", 
+                        quote=FALSE)
             close(f)
 
     test-tree:
@@ -142,7 +184,7 @@ Steps:
                 labs(x="simulated m", y="normalized kernel score") +
                 stat_summary(fun.y=median, geom="line") +
                 theme_bw() +
-                theme(text=element_text(size=14, family="Gillius ADF"),
+                theme(text=element_text(size=14),
                       axis.text.y=element_blank(), axis.ticks.y=element_blank())
             ggsave("{kernel-plot}", height=5, width=6)
 
@@ -154,7 +196,7 @@ Steps:
         Startup: |
             suppressPackageStartupMessages(library(netabc))
             suppressPackageStartupMessages(library(coda))
-            suppressPackageStartupMessages(library(TeachingDemos))
+            suppressPackageStartupMessages(library(BEST))
         Interpreter: R --quiet --vanilla
         Depends: kernel test-tree train-tree
         Rule: |
@@ -184,26 +226,18 @@ Steps:
             setkeyv(d, c(test.cols, "m"))
 
             # normalize scores so AUC = 1
-            normconst <- function (x, y) integrate(splinefun(x, y), min(x), max(x), subdivisions=1000)$value
-            d[,score := score / normconst(m, score), by=test.cols]
+            d[,score := score / sum(score), by=test.cols]
 
             point.est <- function (x, y) {{ x[which.max(y)] }}
-            icdf <- function (x, y) {{
-                pdf <- splinefun(x, y)
-                cdf <- function (z) sapply(z, function (zi) integrate(pdf, min(x), zi, subdivisions=1000)$value)
-                function (p) {{
-                    sapply(p, function (pi) {{
-                        optfun <- function (z) abs(cdf(z) - pi)
-                        optimize(optfun, interval=c(min(x), max(x)))$minimum
-                    }})
-                }}
-            }}
-            hpd.lower <- function (x, y) {{ hpd(icdf(x, y))[1] }}
-            hpd.upper <- function (x, y) {{ hpd(icdf(x, y))[2] }}
+            hpd.lower <- function (x, y, conf=0.95) {{ wtd.hpd(x, y, conf=conf)[1] }}
+            hpd.upper <- function (x, y, conf=0.95) {{ wtd.hpd(x, y, conf=conf)[2] }}
 
             d <- d[,list(point.est=point.est(m, score), 
-                         lower=hpd.lower(m, score), 
-                         upper=hpd.upper(m, score)), by=test.cols]
+                         lower.95=hpd.lower(m, score, 0.95), 
+                         upper.95=hpd.upper(m, score, 0.95),
+                         lower.50=hpd.lower(m, score, 0.5),
+                         upper.50=hpd.upper(m, score, 0.5)),
+                    by=test.cols]
             cat("#{yaml}\n", file="{point-estimate}")
             write.tsv(d, "{point-estimate}", append=TRUE)
 
@@ -224,6 +258,39 @@ Steps:
                 geom_dotplot(binaxis="y", stackdir="center", binwidth=0.05) +
                 geom_abline(slope=1, intercept=0, linetype="dashed") +
                 theme_bw() +
-                labs(x="true m", y="simulated m") +
-                theme(text=element_text(size=18, family="Gillius ADF"))
-            ggsave("{point-estimate-plot}")
+                labs(x="true m", y="estimated m") +
+                theme(text=element_text(size=14))
+            ggsave("{point-estimate-plot}", width=4, height=4)
+
+    gamma-plot:
+        Extension: pdf
+        Parameters:
+            alpha: 1.0
+            ntip: 500
+        Depends: point-estimate test-network test-gamma train-network train-gamma
+        Interpreter: R --quiet --vanilla
+        Startup: suppressPackageStartupMessages(library(netabc))
+        Rule: |
+            d <- fread("{point-estimate}")
+
+            train.gamma <- setNames(fread("bzcat {train-gamma}"), c("net", "gamma"))
+            mtrain <- collect.metadata(strsplit("{train-network}", " ")[[1]])
+            mtrain$net <- rownames(mtrain)
+            mtrain <- merge(setDT(mtrain), train.gamma, by="net")
+
+            test.gamma <- setNames(fread("bzcat {test-gamma}"), c("net", "true_gamma"))
+            mtest <- collect.metadata(strsplit("{test-network}", " ")[[1]])
+            mtest$net <- rownames(mtest)
+            mtest <- merge(setDT(mtest), test.gamma, by="net")
+
+            d <- merge(d, mtrain[,list(gamma=median(gamma)),by=m], by.x="point.est", by.y="m")
+            d <- merge(d, mtest, by=c("true_m", "test_replicate"))
+
+            p <- ggplot(d, aes(x=true_gamma, y=gamma, color=factor(true_m))) + 
+                geom_point() + theme_bw() + 
+                geom_abline(slope=1, intercept=0, linetype="dashed") + 
+                scale_color_discrete(name=expression(paste("true ", m))) +
+                labs(x=expression(paste( "true ", gamma)), 
+                     y=expression(paste( "estimated ", gamma))) +
+                theme(text=element_text(size=14))
+            ggsave("{gamma-plot}", width=5, height=4)

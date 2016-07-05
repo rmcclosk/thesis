@@ -177,7 +177,7 @@ Steps:
                 scale_color_discrete(name="number of tips") +
                 labs(x=expression(paste("simulated ", alpha)), y="normalized kernel score") +
                 theme_bw() +
-                theme(text=element_text(size=14, family="Gillius ADF"),
+                theme(text=element_text(size=14),
                       axis.ticks.y=element_blank(), axis.text.y=element_blank())
             ggsave("{kernel-plot}", height=5, width=6)
 
@@ -222,22 +222,15 @@ Steps:
             d[,score := score / normconst(alpha, score), by=test.cols]
 
             point.est <- function (x, y) {{ x[which.max(y)] }}
-            icdf <- function (x, y) {{
-                pdf <- splinefun(x, y)
-                cdf <- function (z) sapply(z, function (zi) integrate(pdf, min(x), zi, subdivisions=1000)$value)
-                function (p) {{
-                    sapply(p, function (pi) {{
-                        optfun <- function (z) abs(cdf(z) - pi)
-                        optimize(optfun, interval=c(min(x), max(x)))$minimum
-                    }})
-                }}
-            }}
-            hpd.lower <- function (x, y) {{ hpd(icdf(x, y))[1] }}
-            hpd.upper <- function (x, y) {{ hpd(icdf(x, y))[2] }}
+            hpd.lower <- function (x, y, conf=0.95) {{ wtd.hpd(x, y, conf=conf)[1] }}
+            hpd.upper <- function (x, y, conf=0.95) {{ wtd.hpd(x, y, conf=conf)[2] }}
 
             d <- d[,list(point.est=point.est(alpha, score), 
-                         lower=hpd.lower(alpha, score), 
-                         upper=hpd.upper(alpha, score)), by=test.cols]
+                         lower.95=hpd.lower(alpha, score), 
+                         upper.95=hpd.upper(alpha, score),
+                         lower.50=hpd.lower(alpha, score, 0.5),
+                         upper.50=hpd.upper(alpha, score, 0.5)),
+                    by=test.cols]
             cat("#{yaml}\n", file="{point-estimate}")
             write.tsv(d, "{point-estimate}", append=TRUE)
 
@@ -251,30 +244,13 @@ Steps:
         Startup: suppressPackageStartupMessages(library(netabc))
         Rule: |
             d <- fread("{point-estimate}")
-            ggplot(d, aes(x=factor(true_alpha), y=alpha)) + geom_point() +
-                geom_abline(slope=2/8, intercept=-2/8, linetype="dashed") +
+            ggplot(d, aes(x=true_alpha, y=point.est)) + geom_point() +
+                geom_abline(slope=1, intercept=0, linetype="dashed") +
                 labs(x=expression(paste( "true ", alpha)), 
-                     y=expression(paste( "simulated ", alpha))) +
+                     y=expression(paste( "estimated ", alpha))) +
                 theme_bw() +
-                theme(text=element_text(size=18, family="Gillius ADF"))
-            ggsave("{point-estimate-plot}")
-
-    gamma-alpha-plot:
-        Extension: pdf
-        Parameters:
-            m: 2
-        Depends: train-network train-gamma
-        Interpreter: R --quiet --vanilla
-        Startup: suppressPackageStartupMessages(library(netabc))
-        Rule: |
-            gamma <- setNames(fread("bzcat {train-gamma}"), c("net", "gamma"))
-            d <- collect.metadata(strsplit("{train-network}", " ")[[1]])
-            d$net <- rownames(d)
-            d <- merge(setDT(d), gamma, by="net")
-            ggplot(d, aes(x=alpha, y=gamma)) + geom_point() + theme_bw() + 
-                labs(x=expression(alpha), y=expression(gamma)) +
-                theme(text=element_text(size=18, family="Gillius ADF"))
-            ggsave("{gamma-alpha-plot}")
+                theme(text=element_text(size=14))
+            ggsave("{point-estimate-plot}", width=4, height=4)
 
     gamma-plot:
         Extension: pdf
@@ -297,10 +273,17 @@ Steps:
             mtest$net <- rownames(mtest)
             mtest <- merge(setDT(mtest), test.gamma, by="net")
 
-            d <- merge(d, mtrain[,list(gamma=median(gamma)),by=alpha], by="alpha")
+            d <- merge(d, mtrain[,list(gamma=median(gamma)),by=alpha], by.x="point.est", by.y="alpha")
             d <- merge(d, mtest, by=c("true_alpha", "test_replicate"))
-            ggplot(d, aes(x=true_gamma, y=gamma)) + geom_point() + theme_bw() +
+            d <- d[true_alpha <= 1.5]
+
+            ggplot(d, aes(x=true_gamma, y=gamma, color=factor(true_alpha))) + 
+                geom_point() + theme_bw() + 
+                geom_abline(slope=1, intercept=0, linetype="dashed") + 
+                scale_y_log10(breaks=1:20, limits=c(2, NA)) + 
+                scale_x_log10(breaks=1:20, limits=c(2, NA)) +
+                scale_color_discrete(name=expression(paste("true ", alpha))) +
                 labs(x=expression(paste( "true ", gamma)), 
                      y=expression(paste( "estimated ", gamma))) +
-                scale_y_log10() + scale_x_log10()
-            ggsave("{gamma-plot}")
+                theme(text=element_text(size=14))
+            ggsave("{gamma-plot}", width=5, height=4)
