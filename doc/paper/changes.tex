@@ -4,7 +4,7 @@
 \usepackage[garamondx,cmbraces]{newtxmath}
 
 \signature{Rosemary M. McCloskey}
-\address{Centre for Excellence in HIV/AIDS \\ 608-1081 Burrard Street \\ Vancouver, BC, Canada V6Z 1Y6}
+\address{BC Centre for Excellence in HIV/AIDS \\ 608-1081 Burrard Street \\ Vancouver, BC, Canada V6Z 1Y6}
 \begin{document}
 \begin{letter}{ }
 
@@ -21,39 +21,40 @@ the reviewers to consider.
     more conventionally used Bayesian estimator than the maximum \textit{a
     posteriori} (MAP) value. Therefore, we have replaced the MAP point
     estimates by posterior means. Qualitatively, the results are not much
-    different, except that it is more obvious that $m$ and $N$ are not
-    identifiable with this method. 
+    different.
   \item We have replaced some ad hoc statistical tests in the analysis of the
-    simulation results with a $p$-value corrected generalized linear model, and
-    rewritten the relevant section of the results accordingly.
+    simulation results with a multiple test corrected generalized linear model,
+    and revised the relevant section of the results accordingly.
   \item We have found an analysis of the Barab\'asi-Albert model in the physics
     literature (Krapivsky et al. 2000) which demonstrates that the degree
-    distribution is only a power law when $\alpha = 1$. We acknowledge this but
-    do not believe it detracts from the validity of our results, especially in
-    light of a paper by de Blasio et al. (2007) which found sub-linear
-    preferential attachment through a population-level survey. We have added to
-    the supplemental materials a series of power law fits to the degree
-    distributions of BA networks with $\alpha \neq 1$ (Figure TODO), which
-    shows that, although the power law is cleary an imperfect fit, the slope
-    is still reasonably representative of the true distribution.
+    distribution is only a power law when $\alpha = 1$. We acknowledge this in
+    the revised manuscript but do not believe it detracts from the validity of
+    our results, especially in light of a paper by de Blasio et al. (2007)
+    which found sub-linear preferential attachment through a population-level
+    survey. We have added to the supplemental materials a series of power law
+    fits to the degree distributions of BA networks with $\alpha \neq 1$
+    (Figure S11), which shows that, although the power law is clearly an
+    imperfect fit, the slope is still reasonably representative of the true
+    distribution.
   \item We did some additional literature searching and found five more
     published HIV datasets that seemed to be appropriate for our method. For
     clarity, the real HIV datasets are now referred to by risk group and
     geographic location, rather than by author (eg. MSM/Beijing instead of Wang
     et al.). The highest $\alpha$ values were associated with IDU networks,
-    coroborating the assertion of Dombrowski et al. (2013) that IDU networks
+    corroborating the assertion of Dombrowski et al. (2013) that IDU networks
     exhibit the scale-free property more strongly than sexual networks do. 
-  \item Three of these new datasets had sequenced two HIV genes, which we
-    analysed separately. We found that estimates of $\alpha$ were very robust
-    to the choice of gene; $I$ was less robust, with \textit{env} genes tending
-    to lead to higher estimated values.
-  \item Figure 5 (formerly Figure 4) now shows 50\% HPD intervals (similar to
-    interquartile ranges) in addition to 95\% HPD intervals.
+  \item Two of these new datasets had sequenced two different HIV genes
+    (\textit{gag} and \textit{env}), which we analysed separately. We found
+    that estimates of $\alpha$ were very robust to the choice of gene. $I$ was
+    less robust -- in one of the two datasets, the \textit{env} sequences led
+    to a noticably higher estimated value than the \textit{gag} sequences.
   \item We discovered that our use of the term ``kernel-ABC'' to refer to ABC 
     with a kernel for the distance function is in conflict with another usage,
     namely an expression of Bayes' rule in terms of kernel means (Fukumizu et
     al. ``Kernel Bayes' rule.'' 2011). We therefore simply use the term ``ABC''
     to refer to our method.
+  \item Figure 5 (formerly Figure 4) now shows 50\% HPD intervals (similar to
+    interquartile ranges) in addition to 95\% HPD intervals.
   \item The discussion has been divided into subsections to make it easier to
     follow.
 \end{itemize}
@@ -85,33 +86,49 @@ brought up by Reviewer 1.
   resolution?
 \end{quote}
 
-We are grateful that the reviewer finds our work to be of some interest, and we
-acknowledge that our ability to precisely resolve numerical values of the BA
-parameters is limited. We believe that our simulation results show that some
-network parameters (specifically $\alpha$ in our case) can be at least roughly
-estimated from the information contained in tree shapes.
+We are grateful that the reviewer finds our work to be of some interest. Even
+in the relatively simple scenario we studied (susceptible-infected epidemics
+over Barab\'asi-Albert networks), the process leading from a network model to a
+transmission tree is complex. To calculate the likelihood of an observed
+transmission tree exactly, it would be necessary to sum over all possible
+contact networks the model could generate \emph{and} all possible epidemics
+over each contact network. It is therefore unsurprising that the posterior
+distributions are diffuse. In light of this, the level of parameter
+identifiability we observed is better than one might expect \textit{a priori}.
+We are confident that our parameter estimates, especially of $\alpha$, are
+truly representative of the posterior distributions and not simply artifacts of
+a poor ABC approximation. Several new analyses have been included to
+demonstrate this.
 
-We have included several new analyses that attempt to disambiguate true
-features of the posterior distribution from artefacts of a poor ABC
-approximation. First, we used ABC to estimate marginal posterior distributions
-when some combinations of parameters were held fixed to known values.
-Estimation error which is removed during marginal estimation is likely to be
-due to confounding between model parameters; error which remains may be due to
-either poor resolution or truely diffuse posteriors. The accuracy of the
-estimates was improved about 50\% in marginal estimation.
+First, we used ABC to estimate marginal posterior distributions when some
+combinations of parameters were held fixed to known values. Estimation error
+which is removed during marginal estimation is likely to be due to confounding
+between model parameters. The accuracy of the estimates was improved about 50\%
+in marginal estimation (Figure S8), implying that at least half of the observed
+inaccuracy stems from parameter correlations in the posterior. Although we have
+no way to prove it, it seems highly likely that even the marginal posterior
+distributions are diffuse given the complexity of the simulation process noted
+above. If that is the case, even more of the error may be attributed to true
+posterior features.
 
 Second, we examined the possible Monte Carlo error by increasing the resolution
-of the ABC approximation (more particles, more simulated datasets per particle,
-and more iterations). The results were similar; surprisingly, increased
-settings made the estimation about 10\% worse. We suspect this may be simply
-due to stochastic effects. In any event, this result demonstrates that Monte
-Carlo error from the SMC algorithm is likely not responsible for the observed
-estimation errors.
+of the ABC approximation (twice as many particles, twice as many simulated
+datasets per particle, and roughly 1.5 times as many iterations). The results
+were comparable (Figure S9), which demonstrates that Monte Carlo error from the
+SMC algorithm is likely not responsible for observed estimation errors.
 
-Finally, three of the newly included HIV datasets included both \textit{gag}
+Finally, two of the newly included HIV datasets included both \textit{gag}
 and \textit{env} sequences which we analysed separately. The estimates of
-$\alpha$ for the two genes were nearly identical for each of the datasets,
-which seems unlikely if the ABC approximations were very poor.
+$\alpha$ for the two genes were very similar for each of the datasets (Figure
+S12), which seems unlikely if the ABC approximations were very poor. We also
+reanalyzed two of the datasets with a different phylogenetic reconstruction
+method, and again found very similar estimates of $\alpha$ (Figure S13). The
+estimates of $I$ were less robust to both of these variables, but remained in
+same sub-2000 region of the range in both cases. In the revised discussio, we
+acknowledge that $I$ was overestimated in simulations and offer the possible
+explanation that $I$ is only identifiable up to the epidemic phase it
+represents (\textit{i.e.} exponential growth vs. linear expansion vs. slow
+growth, Figure S15).
 
 \begin{quote}
   \itshape
@@ -124,7 +141,7 @@ which seems unlikely if the ABC approximations were very poor.
   behind $R^2$ impact the quality of the reported results?
 \end{quote}
 
-We apologise for this misunderstanding due to our poor choice of words. An SVR
+We apologize for this misunderstanding due to our poor choice of words. An SVR
 is in fact a regressor, not a classifier, so the reported $R^2$ were of true
 values against predictions. However, given that the point of this experiment
 was to demonstrate identifiability by categorizing tree shapes into
@@ -132,8 +149,7 @@ predetermined values, we redid the analysis using SVMs (which are true
 classifiers) instead of SVRs and linear regression. We now report the accuracy
 of the categorical classification, and figures 1 and S3-S6 have been revised
 accordingly. Some additional variation among meta-parameters and epidemic
-scenarios is observed, but the overall results are similar and the best choice
-of meta-parameters is the same.
+scenarios is observed, but the overall results are very similar.
 
 \begin{quote}
   \itshape
@@ -160,7 +176,7 @@ The method we used to estimate transmission trees simply reroots and adjusts
 the branch lengths of an estimated viral phylogeny, which is always binary as
 long as there are no duplicated sequences. We have added the following
 clarifications in the methods section: (1) ``Duplicated sequences were removed
-with BioPython'' (2) ``Due to the removal of duplicated sequences, all
+with BioPython''; and (2) ``Due to the removal of duplicated sequences, all
 estimated transmission trees were fully binary.''
 
 \begin{quote}
@@ -200,11 +216,11 @@ obvious correlations among the other parameters.
 
 We have substantially expanded the discussion of the synthetic data results,
 including this point about $m$. The weaker identifiability in lower $\alpha$
-values is related to the degree distributions of the networks, and the upward
-biases in $I$ and $N$ are discussed in relation to the epidemic trajectory of
-the SI model. Our intuition about $m$ is weaker, but we include this point by
-the reviewer and hypothesize that $m$ may be more readily estimable from the
-speed of epidemic expansion rather than the shape of the transmission tree.
+values may be related to the degree distributions of the networks, and the
+upward biases in $I$ and $N$ are discussed in relation to the epidemic
+trajectory of the SI model. Our intuition about $m$ is weaker, but we include
+this point by the reviewer and hypothesize that, as reviewer 2 suggests, a
+model which allows heterogeneity in $m$ may offer better identifiability.
 
 \begin{quote}
   \itshape
@@ -217,17 +233,17 @@ speed of epidemic expansion rather than the shape of the transmission tree.
 \end{quote}
 
 We agree with this assessment of our visual presentation of the results. We
-have reduced the number of posterior plots shown to one in the text and two in
-the supplemental materials. Figure 2, which formerly represented each
-simulation by an individual point, has been replaced by a box plot showing the
-$\alpha$ and $I$ estimates stratified by each of the other parameters. A
-similar boxplot for $m$ and $N$, which were not identifiable with ABC, has been
-added to the supplemental materials.
+now only show a single set of marginal posterior distributions in the text.
+Figure 2, which formerly represented each simulation by an individual point,
+has been replaced by a box plot showing the $\alpha$ and $I$ estimates
+stratified by each of the other parameters. A similar boxplot for $m$ and $N$,
+which were non- and weakly-identifiable respectively with ABC, has been added
+to the supplemental materials (Figure S7).
 
 \begin{quote}
   \itshape
 
-  The Discussion focusses around model mis-specification, which is very
+  The Discussion focuses around model mis-specification, which is very
   relevant (and to which the inference isn't that robust, suggesting that it
   might also not be robust to other things like dynamics, clustering,
   age-related mixing etc). But another question is how much of the signal you
@@ -240,7 +256,7 @@ added to the supplemental materials.
 
 The identifiability of the BA parameters is of course a critical prerequisite
 to the kind of inference we are trying to perform. Indeed, the objective of the 
-analysis with classifiers was to investigate identifiability, and we apologise
+analysis with classifiers was to investigate identifiability, and we apologize
 for not making this clearer. The reviewer's intuition is correct -- we do
 expect imbalance to be sensitive to the degree distribution (related to
 $\alpha$) and the nLTT to be sensitive to the epidemic curves (related to $I$
@@ -359,12 +375,12 @@ tree.''
 \begin{quote}
   \itshape
 
-  L45-46: “…and in epidemics of differing size (500, 1000 and 2000)”. Unless
-  I’m missing something this is just a restatement of what’s already in this
-  paragraph about I, hence repetitive. 
+  L45-46: ``\ldots and in epidemics of differing size (500, 1000 and 2000)''.
+  Unless I'm missing something this is just a restatement of what's already in
+  this paragraph about I, hence repetitive. 
 \end{quote}
 
-We apologise for the misunderstanding. Because $I$ is not a structural
+We apologize for the misunderstanding. Because $I$ is not a structural
 parameter of the network, we attempted to classify each of $\alpha$, $N$, and
 $m$ under several different fixed values of $I$. We have rephrased this as
 follows: ``For the structural parameters $\alpha$, $m$, and $N$, the
@@ -375,8 +391,8 @@ and 2000).''
   \itshape
 
   P7 \\
-  L20-24: It’s slightly surprising to me that the time trees were constructed
-  using “fast” methods when the datasets are not especially large. Were there
+  L20-24: It's slightly surprising to me that the time trees were constructed
+  using ``fast'' methods when the datasets are not especially large. Were there
   problems in obtaining trees with other algorithms? While I do not insist that
   every analysis be redone using alternative methods, it would be reassuring to
   know that the results were consistent, in at least one example, if
@@ -388,14 +404,15 @@ and 2000).''
 Although they are very approximate methods, our experience has been that using
 approximate maximum likelihood phylogeny reconstruction with root-to-tip
 regression does not result in large errors in phylodynamic inference (Poon
-2015). We reanalysed the datasets with the highest and lowest estimated
-$\alpha$ (Zetterberg et al. 2004 and Cuevas et al. 2009) using a BEAST MCC tree
-from a run with simple models of evolution and population size. The results
-were TODO
+2015). We reanalysed two datasets (Niculescu et al. 2015 and Cuevas et al.
+2009) using RAxML and LSD. The results for $\alpha$ were nearly identical, but
+$I$ was not robust to the reconstruction method -- RAxML+LSD produced higher
+$I$ estimates for both datasets (Figure S13). This result has been added to the
+discussion of both parameters.
 
-With respect to the suggestion to analyse bootstrap replicates, we believe that
-the three new datasets containing both \textit{gag} and \textit{env} data fill
-the need for within-dataset replication.
+Rather than analyze bootstrap replicates, we used the two new datasets
+containing both \textit{gag} and \textit{env} sequences for within-dataset
+replication.
 
 \begin{quote}
   \itshape
@@ -442,7 +459,7 @@ The figure is now in color.
 \begin{quote}
   \itshape
 
-  L32: “Estimated correctly” – i.e. the posterior mode was correct?
+  L32: ``Estimated correctly'' -- i.e. the posterior mode was correct?
 \end{quote}
 
 The reviewer's interpretation is correct, but this statement has been removed
@@ -487,8 +504,8 @@ segments.
   \itshape
 
   P13 \\
-  Figure 3, legend: I’m guessing that the shaded polygon is the HPD region,
-  rather than the “true value”?
+  Figure 3, legend: I'm guessing that the shaded polygon is the HPD region,
+  rather than the ``true value''?
 \end{quote}
 
 This is correct and the caption has been updated as follows: ``shaded areas
@@ -498,14 +515,14 @@ show 95\% highest posterior density intervals.''
   \itshape
 
   P15 \\
-  L38-40: While I understand the point, it’s surely quite unlikely that the
+  L38-40: While I understand the point, it's surely quite unlikely that the
   network will be identical. Better to say that the number of infected nodes
   with new children is small, and hence there is little difference in the
   outcomes of the simulations.
 \end{quote}
 
 We struggled with the phrasing of this particular point and are happy to have
-recieved some guidance. The statement now reads as follows: ``If $I$ is small
+received some guidance. The statement now reads as follows: ``If $I$ is small
 relative to $N$, very few of the infected nodes will gain any new neighbours.
 Thus, the outcome of a second simulation on the same network will likely be
 very similar.''
@@ -513,16 +530,16 @@ very similar.''
 \begin{quote}
   \itshape
 
-  L41-42: “We note also that our accurate estimates of I may have been
-  influenced by this prior”. Couldn’t you check?
+  L41-42: ``We note also that our accurate estimates of I may have been
+  influenced by this prior''. Couldn't you check?
 \end{quote}
 
-This issue was also addressed by performing marginal estimation. If the
-accurate estimates of $I$ were solely due to the prior, they would have gotten
-worse, not better, when $N$ was fixed and the prior on $I$ was truly uniform.
-We make this point in the discussion: ``when $I$ was estimated marginally with
-fixed $N$, the accuarcy of the estimate improved even though there was no
-longer any extra prior mass on low $I$ values.''
+This issue was addressed by performing marginal estimation. If the accurate
+estimates of $I$ were solely due to the prior, they would have gotten worse,
+not better, when $N$ was fixed and the prior on $I$ was truly uniform. We make
+this point in the discussion: ``when $I$ was estimated marginally with fixed
+$N$, the accuracy of the estimate improved even though there was no longer any
+extra prior mass on low $I$ values.''
 
 \begin{quote}
   \itshape
@@ -542,16 +559,16 @@ $m = 1$ contained most of the posterior mass.
   L1: Presumably by estimated prevalence you mean just I/N?
 \end{quote}
 
-We had been using the term ``prevalence'' interchangably with $I$, but since
+We had been using the term ``prevalence'' interchangeably with $I$, but since
 this is ambiguous we have replaced all instances of ``prevalence'' with $I$
 except for those which do not refer to $I$ explicitly.
 
 \begin{quote}
   \itshape
 
-  A point I’d like to see at least discussed – presumably if some iterations
-  add nodes with one connection and others add them with two, you’d get cycles,
-  but not as many as you’d expect with m=2. Is this worth considering in the
+  A point I'd like to see at least discussed -- presumably if some iterations
+  add nodes with one connection and others add them with two, you'd get cycles,
+  but not as many as you'd expect with m=2. Is this worth considering in the
   question of why the binary choice to include m=1 is so problematic? Would it
   be better if m was drawn from a discrete distribution at every step?
 \end{quote}
@@ -562,21 +579,16 @@ is our first attempt to fit network models, we thought it best to stick with
 a simple, well-known model rather than defining our own parameters. We did
 perform a small experiment allowing heterogeneity among nodes, but in $\alpha$
 rather than in $m$, and recovered the average of the two $\alpha$ values. We
-have suggested the possibility of drawing $m$ from a distribution in the
-discussion (emphasis is new text): ``More sophisticated models, for example
-models incorporating heterogeneity in node behaviour, are likely to provide a
-better fit to these data. \emph{For example, rather than using the same $m$ for
-all nodes, we could specify a distribution from which each individual
-node's $m$ value would be drawn}.''
-
-In addition, we have outlined the difficulties of the binary choice of $m$ in
-the discussion of the real data results: ``\ldots the BA model does not allow
-any nodes with degree 1 when $m \geq 2$. For this reason, the choice of whether
-to allow $m = 1$ in the prior is problematic, as we must choose between an
-unrealistic topology (no cycles) and an unrealistic minimum degree.''
+have outlined the difficulties of the binary choice of $m$ in the discussion of
+the real data results: ``\ldots the BA model does not allow any nodes with
+degree 1 when $m \geq 2$. For this reason, the choice of whether to allow $m =
+1$ in the prior is problematic, as we must choose between an unrealistic
+topology (no cycles) and an unrealistic minimum degree.''
 
 \begin{quote}
-  Supplement:
+  \itshape
+
+  Supplement: \\
   Figure S1 legend: What is the shaded area?
 \end{quote}
 
