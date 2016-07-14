@@ -1,3 +1,8 @@
 \begin{frame}{$m$ and $N$ are not identifiable with ABC}
-    \includegraphics[width=\textwidth]{abc-boxplot-mN}
+  \vspace{-0.5cm}
+  \begin{tikzpicture}
+    \node at (0, 0) [anchor=center] {\includegraphics[width=\textwidth]{abc-boxplot-mN}};
+    \only<1>{ \fill [white] (-5.5, -3) rectangle (6, 0.5); }
+    \only<2>{ }
+  \end{tikzpicture}
 \end{frame}

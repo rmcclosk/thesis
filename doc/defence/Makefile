@@ -2,13 +2,13 @@ LATEX=$(shell ls *.tex)
 
 all: test.pdf presentation.pdf
 
-#pdflatex $* && \
-#biber $* && \
-#pdflatex $* && \
-#pdflatex $* && \
-#R -e "extrafont::embed_fonts('$@')"
 %.pdf: %.tex $(LATEX)
+	$(eval TMP := $(shell mktemp))
 	pdflatex $*
+
+#R -e "extrafont::embed_fonts('$@')"
+#pdf2ps $@ - | ps2pdf - $(TMP)
+#mv $(TMP) $@
 
 papers.bib:
 	ln -s ../../reading/$@ .

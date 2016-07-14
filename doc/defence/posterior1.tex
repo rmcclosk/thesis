@@ -1,11 +1,15 @@
 \begin{frame}{Marginal posterior distributions for $\alpha$ show least spread}
-  \begin{minipage}[p][\textheight][t]{\textwidth}
-    \begin{center}
-    preferential attachment power \hfill prevalence
-      \includegraphics[width=0.8\textwidth]{abc-posterior-example.pdf}
+  \vspace{-0.5cm}
+  \begin{tikzpicture}
+    \node at (0, 0) [anchor=center] {\includegraphics[trim=1cm 0 0 0, clip, width=0.8\textwidth]{{abc-posterior/1.0_1000_3_5000_0}.pdf}};
+    \node at (-4, 3) [anchor=center, text width=2cm, fill=white, inner sep=2pt] {preferential attachment};
+    \node at (4.5, 3) [anchor=center, text width=2cm, fill=white, inner sep=2pt] {number infected};
+    \node at (-4.2, -1) [anchor=center, text width=2cm, align=center, fill=white, inner ysep=2pt, inner xsep=0pt] {edges per vertex};
+    \node at (4.2, -0.7) [anchor=center, text width=1.5cm, align=center, fill=white, inner sep=2pt] {total nodes};
 
-      \vspace{-0.25cm}
-      edges per vertex \hfill total nodes
-    \end{center}
-  \end{minipage}
+    \only<1>{ \fill [white] (0, 0) rectangle (4.8, 3.8);}
+    \only<1-2>{ \fill [white] (0, 0) rectangle (-5, -3.8);}
+    \only<1-3>{ \fill [white] (0, 0) rectangle (4.8, -3.8);}
+    \only<4>{ }
+  \end{tikzpicture}
 \end{frame}

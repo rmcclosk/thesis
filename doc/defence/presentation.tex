@@ -21,7 +21,7 @@
 \usetikzlibrary{calc}
 
 \usetheme[everytitleformat=regular]{m}
-%\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{navigation symbols}{}
 
 \graphicspath{{../figures/}}
 \newcommand{\tablepath}{../tables}
@@ -45,106 +45,41 @@
 
 \maketitle
 
-%\begin{frame}{Outline}
-%    \tableofcontents
-%\end{frame}
+\begin{frame}{Outline}
+    \tableofcontents
+\end{frame}
 
-%\section{Background and Motivation}
-%\input{contactnet}
-%\input{phylo}
-%\input{objects}
-%\input{transtree}
-%\input{virusphylo}
-%\input{inference}
-%%\input{netmodel}
-%\input{why}
+\section{Background and motivation}
+\input{contactnet}
+\input{phylo}
+\input{objects}
+\input{transtree}
+\input{virusphylo}
+\input{inference}
+%\input{netmodel}
+\input{why}
 
-%\section{The Barab\'asi-Albert (BA) Contact Network Model}
-%\input{ba}
-%\input{identifiable}
-%\input{kpca}
+\section{The Barab\'asi-Albert (BA) contact network model}
+\input{ba}
+\input{identifiable}
+\input{kpca}
 
-%\section{\textit{Netabc}: Phylogenetic Reconstruction of Contact Network Parameters with Approximate Bayesian Computation}
-%\input{smc}
-%\input{posterior1}
-%\input{posterior2}
-%\input{pointest}
-%\input{pointest2}
+\section{Our inference method: \itshape{netabc}}
+\input{abc}
+\input{smc}
+\input{posterior1}
+\input{posterior2}
+\input{pointest}
+\input{pointest2}
 
 \section{Application to real HIV epidemics}
-\input{data}
+\input{map}
+\input{realdata}
 
 \section{Conclusions}
+\input{conclusions}
 
-\end{document}
+\input{acknowledgements}
 
-\begin{frame}{HIV networks have sub-linear preferential attachment}
-    Also, higher PA for IDU networks.
-
-    \includegraphics[trim=0 3.5in 3.3in 0, clip, width=0.5\textwidth]{realdata-hpd-bc}
-    \includegraphics[trim=3.4in 1.5in 0 2.0in, clip, width=0.5\textwidth]{realdata-hpd-bc}
-\end{frame}
-
-\begin{frame}{Conclusions}
-  \begin{itemize}
-    \item We developed a phylodynamic method to fit contact network models to
-      phylogenetic data.
-      \pause
-    \item The preferential attachment power of the Barab\'asi-Albert network
-      model, which is challenging to estimate by traditional epidemiological
-      methods, can be estimated with ABC.
-      \pause
-    \item The networks underlying real epidemics are heterogeneous,
-      underscoring the importance of considering network structure in
-      phylodynamic analyses.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Acknowledgements}
-  \begin{columns}
-    \begin{column}{0.6\textwidth}
-
-      \textbf{BC Centre for Excellence in HIV/AIDS}
-
-      Art Poon
-
-      Jeff Joy
-
-      Richard Liang
-
-      Thuy Nguyen
-
-      P. Richard Harrigan
-
-      \hfill\\
-      \textbf{University of British Columbia}
-
-      Sarah Otto
-
-      Alexandre Bouchard-C\^ot\'e
-
-      \vfill
-      \vspace{0.5cm}
-      $\qquad\qquad$\includegraphics[width=2cm]{logos/genomecanada}
-      $\qquad$
-      \includegraphics[width=2cm]{logos/genomequebec}
-    \end{column}
-    \begin{column}{0.4\textwidth}
-      \centering 
-
-      \includegraphics[width=3cm]{logos/cfe}
-      \vspace{0.5cm}
-
-      \includegraphics[width=3cm]{logos/cihr}
-
-      \includegraphics[width=3cm]{logos/genomebc}
-
-      \includegraphics[width=3cm]{logos/bmgf}
-      \vspace{0.5cm}
-
-      \includegraphics[width=3cm]{logos/btp}
-    \end{column}
-  \end{columns}
-\end{frame}
-
+\input{supp}
 \end{document}

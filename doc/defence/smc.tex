@@ -1,6 +1,24 @@
-\begin{frame}{Simulated trees can be used to fit network models}
-    \only<1>{\includegraphics[scale=0.75, trim=0 4cm 10cm 0, clip]{abc-smc}}
-    \only<2>{\includegraphics[scale=0.75, trim=0 0 10cm 0, clip]{abc-smc}}
-    \only<3>{\includegraphics[scale=0.75, trim=0 0 5cm 0, clip]{abc-smc}}
-    \only<4>{\includegraphics[scale=0.75]{abc-smc}}
+\begin{frame}{Simulated ``particles'' evolve to approximate posterior}
+  \vspace{-0.2cm}
+  \begin{tikzpicture}
+    \node (a) {\includegraphics[width=\textwidth]{abc-smc}};
+    \only<1>{
+      \fill [white] (-5, -3.5) rectangle (-1.8, 0);
+    }
+    \only<1-2>{
+      \fill [white] (-1.8, -3) rectangle (5.5, 3.3);
+    }
+    \only<3-4>{
+      \fill [white] (1.8, -3) rectangle (5.5, 3.3);
+    }
+    \only<3>{
+      \fill [white] (-1.8, 0) rectangle (2, 3.3);
+    }
+    \only<5>{
+      \fill [white] (1.8, 0) rectangle (5.5, 3.3);
+    }
+    \uncover<7>{
+      \node [below=0.2 of a] {\Large sequential Monte Carlo};
+    }
+  \end{tikzpicture}
 \end{frame}
