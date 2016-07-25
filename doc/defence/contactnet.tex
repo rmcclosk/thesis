@@ -4,12 +4,12 @@
     \node (c) {\includegraphics[width=4cm]{contactnet-empty}};
 
     \uncover<2->{
-    \node (a) [right=of c.north east, anchor=west] {nodes = individuals};
+    \node (a) [right=of c.north east, anchor=west] {individuals};
     \draw [->, thick, >=stealth] (c.north east) ++(-1.5cm, -0.5cm) -- (a.west);
     }
 
     \uncover<3->{
-    \node (b) [below=0.5 of a] {edges = contacts};
+    \node (b) [below=0.5 of a] {contacts};
     \draw [->, thick, >=stealth] (c.north east) ++(-0.75cm, -1.25cm) -- (b.west);
     }
   \end{tikzpicture}

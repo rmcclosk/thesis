@@ -1,0 +1,49 @@
+\begin{frame}{Transmission trees record the progress of an epidemic}
+  \vspace{-1cm}
+  \begin{center}
+    \begin{tikzpicture}
+      [every node/.style = {inner sep=0pt},
+       every path/.style = {->, >=stealth, very thick},
+       label/.style = {anchor=south, color=white, inner sep=4pt},
+       time/.style = {anchor=north west, inner sep=2pt}]
+      \def\pht{1cm}
+      \node (abcd) {\includegraphics[height=\pht]{stock/person}};
+      \node at (abcd.south) [label] {\Large a};
+
+      \node (b) [below right=1 and 0.75 of abcd] {\includegraphics[height=\pht]{stock/person}};
+      \node at (b.south) [label] {\Large b};
+      \node (acd) [below left=1 and 0.5 of abcd] {\includegraphics[height=\pht]{stock/person}};
+      \node at (acd.south) [label] {\Large a};
+      \draw [red] (abcd) -- (b);
+      \draw [-, dashed] (abcd) -- (acd);
+
+      \node (cd) [below right=0.5 and 0.5 of acd] {\includegraphics[height=\pht]{stock/person}};
+      \node at (cd.south) [label] {\Large c};
+      \node (a) [below left=0.25 and 0.25 of acd] {\includegraphics[height=\pht]{stock/person}};
+      \node at (a.south) [label] {\Large a};
+      \draw [blue] (acd) -- (cd);
+      \draw [-, dashed] (acd) -- (a);
+
+      \node (c) [below left=0.25 and 0.25 of cd] {\includegraphics[height=\pht]{stock/person}};
+      \node at (c.south) [label] {\Large c};
+      \node (d) [below right=0.4 and 0.4 of cd] {\includegraphics[height=\pht]{stock/person}};
+      \node at (d.south) [label] {\Large d};
+      \draw [-, dashed] (cd) -- (c);
+      \draw [green!80!black] (cd) -- (d);
+
+      \coordinate [above right=0 and 2.5cm of abcd] (top);
+      \draw (top) -- ++ (0, -6cm) node [anchor=west, inner xsep=4pt] {time};
+
+      \uncover<2->{
+      \node (t) [above left=0 and 2 of acd, inner xsep=4pt] {transmission};
+      \draw [thin] (t.east) -- (acd);
+      }
+
+      \uncover<3->{
+      \node (t) [below left=0 and 1 of a, inner xsep=4pt] {sampling/removal};
+      \draw [thin, shorten >=4pt] (t.east) -- (a);
+      }
+
+    \end{tikzpicture}
+  \end{center}
+\end{frame}
