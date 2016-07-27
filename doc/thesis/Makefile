@@ -1,13 +1,16 @@
 #.INTERMEDIATE: results.tex
 
-all: main.pdf
+all: changes.pdf main.pdf
+
+changes.pdf: changes.tex
+	pdflatex $^
 
 clean:
 	rm -f *.acn *.acr *.alg *.aux *.bbl *.bcf *.blg *.glg *.glo *.gls *.ist \
 		  *.lof *.log *.out *.pdf *.xml *.toc 
 	rm -f results.tex discussion.tex abstract.tex
 
-check: main.tex preamble.tex abstract.Rnw preface.tex intro.tex objective.tex methods_results.Rnw appendix.Rnw discussion.Rnw conclusion.tex
+check: main.tex preamble.tex abstract.Rnw preface.tex intro.tex objective.tex methods_results.Rnw appendix.Rnw discussion.Rnw conclusion.tex acknowledgements.tex
 	for FILE in $^; do \
 		aspell check $$FILE --add-tex-command="autocite op" --add-tex-command="textcite op"; \
 	done

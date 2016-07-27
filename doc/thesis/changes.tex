@@ -1,0 +1,498 @@
+\documentclass[12pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{mathptmx}
+\usepackage{fullpage}
+\usepackage{amsmath,amssymb}
+\usepackage[garamondx,cmbraces]{newtxmath}
+\usepackage{setspace}
+\usepackage{parskip}
+\begin{document}
+
+\onehalfspacing
+
+In the time since circulating the draft thesis, and submitting the paper, I
+have undertaken some additional work and restructuring. \\
+
+\begin{itemize}
+  \item I have done some more literature searching and found five additional
+    published datasets to which my method could be applied. Out of these
+    emerged an interesting trend: IDU networks seem to have higher $\alpha$
+    than others. This is in line with the findings of a paper of Drombowski et
+    al. 2013, who found that IDU networks are much to typical BA networks than
+    sexual networks are.
+  \item Two of these new datasets had sequenced two HIV genes, which we
+    analysed separately. I found that estimates of $\alpha$ were very robust
+    to the choice of gene. $I$ was less robust, with \textit{env} genes tending
+    leading to higher estimated values.
+  \item There is another study (de Blasio et al. 2007) which estimates $\alpha$
+    from partner count data and I compare my estimates to theirs. They are
+    similar.
+  \item Prompted by one of Alex's comments, I found that the posterior mean is
+    a more conventional estimator than the maximum \textit{a posteriori} (MAP)
+    value, and have replaced MAP estimates with posterior means throughout the
+    thesis.
+  \item I searched the literature for estimated power law exponent ($\gamma$)
+    values from real datasets (Table 2.9). Unfortunately, no pattern could be
+    observed in the published estimates with respect to risk groups, genders,
+    or time durations. 
+  \item There are only two example posterior distributions now, instead of
+    many in the text.
+  \item The ``basic'' Bayesian statistics material (ie. what a posterior
+    distribution is, what a parametric model is) have been moved into Appendix
+    A instead of the introduction section on ABC.
+  \item I found an analysis of the Barab\'asi-Albert model in the physics
+    literature (Krapivsky et al. 2000) which demonstrates that the degree
+    distribution is only a power law when $\alpha = 1$. I acknowledge this but
+    do not believe it detracts from the validity of teh results, especially in
+    light of the above mentioned de Blasio et al. paper. I added to the
+    supplemental materials a series of power law fits to the degree
+    distributions of BA networks with $\alpha \neq 1$ (Figure A.25), which
+    shows that, although the power law is cleary an imperfect fit, the slope
+    is still reasonably representative of the true distribution.
+\end{itemize}
+
+The following changes have been made at the request of the anonymous reviewers 
+of the paper based on this work. \\
+
+\begin{itemize}
+  \item I repeated two of the real data analyses with trees created with RAxML
+    and LSD rather than FastTree and root-to-tip regression. The results for
+    $\alpha$ are very similar, but the estimates of $I$ are not very robust to
+    the change of methods. This indicates weaker identifiability of $I$ than of
+    $\alpha$.
+  \item Figure 2.9 (formerly 2.8), which previously showed each simulation as
+    an individual point, has been replaced by a set of stratified box plots
+    showing the point estimates against true values.
+  \item I had evaluated the ``classifiers'' for different parameter values
+    using $R^2$, which doisn't make sense for classifiers. In fact, an SVR is a
+    regressor, not a classifier, so the $R^2$ were for predicted against actual
+    values. In any event, I have redone the analyses using SVMs instead of SVRs
+    and regressions. The results are qualitatively very similar.
+  \item I show two-dimensinal marginal posterior distributions in addition to
+    the 1-dimensional ones, which provide evidence of parameter correlations
+    (specifically, between $I$ and $N$).
+  \item The reviewers pointed out that there are two sources of error: bad ABC
+    approximation, and a noisy posterior. To disambiguate these, I performed
+    marginal ABC estimation by fixing some parameters to known values. The
+    estimates of all but $m$ improved by about 50\%.
+  \item I also tried increasing the SMC settings to get better posterior
+    resolution. It didn't make much difference (Figure 2.15). In fact it made
+    the estimates slightly worse.
+\end{itemize}
+
+Changes that I have made in response to your specific comments are outlined
+below. Minor grammatical and phrasing changes have been omitted. \\
+
+\subsubsection*{Sally}
+
+\begin{quote}
+  \itshape
+  In general (and partly suggested by Alex), I would highly recommend that you
+  make minor revisions throughout to sign post to the reader why you are about
+  to launch into, as you introduce a new topic.  You are strong on the
+  technical details, but I often found myself wondering what the broader
+  context was.  I think maybe you credit your reader for being super smart and
+  not wanting to spell out the motivation for each section, but we aren’t that
+  smart!
+\end{quote}
+
+Significantly more exposition has been added throughout the thesis. In
+particular, each section of Chapter 2 now has some introductory material.
+Sections 2.2.1 and 2.2.2 serve as motivation and a road map, respectively, for
+the synthetic data experiments.
+
+\begin{quote}
+  \itshape
+  For example:
+
+  * How does sequential Monte Carlo (section 1.4) an ABC (section 1.5) fit into
+  your overall thesis goals?  How do the ``particles'' introduced on page 13
+  relate to the network structure and transmission trees just discussed?
+  Basically, link the previous sections to sections 1.4 and 1.5.
+\end{quote}
+
+Several additional explanatory paragraphs have been prepended to both of these
+sections. In particular, for SMC, ``In this work, the distribution of interest
+is the posterior distribution 1.3. The particles are particular values of the
+parameters $\theta$ of the contact network model being studied.'' For ABC,
+``the observed data y is an estimated transmission tree for a viral epidemic
+under investigation. The model in question is a contact network model with
+parameters $\theta$ . The simulated dataset $z$ is a transmission tree,
+obtained by first generating a contact network under the model, and then
+simulating the spread of an epidemic over that network.''
+
+\begin{quote}
+  \itshape
+
+  * Chapter 2 ends abruptly and needs a connecting paragraph.  How does this overview prepare you (and the reader) to develop the methods in Chapter 3?
+\end{quote}
+
+I think you are referring to Chapter 1 (Introduction) not Chapter 2. In any
+case, I have added both an introductory paragraph (the last in the Objective
+section) and a concluding paragraph to this chapter.
+
+\begin{quote}
+  \itshape
+
+  * Similarly, Chapter 3 needs an introductory paragraph or two.  Late in your
+  thesis, you note that netabc is the first attempt to use phylogenetic data
+  (-> transmission trees) to infer network properties.  Remind the reader of
+  this here and give them an overview of how you will proceed with the
+  inference -- at a very broad-scale level.
+\end{quote}
+
+An introductory paragraph has been added which broadly describes the contents
+of the chapter.
+
+\begin{quote}
+  \itshape
+  
+  * I really needed a road map for section 2.1.2.  Tell the reader why you are
+  using different approaches for inference and what you expect their strengths
+  and weaknesses to be.  I had to dig to tell what the differences were between
+  the Classifiers subsection and the Grid search subsection.  Did the first
+  co-estimate all parameters while the second focused on one at a time?  Were
+  different methods use (yes - several versus only kernel)?  [Say so]
+\end{quote}
+
+Section 2.2.2 now motivates and describes, at a high level, each of the
+synthetic data experiments and why they were done. In addition, the sections
+describing each of the experiments (headings under 2.2.3) now contain one or
+two introductory paragraphs each.
+
+\begin{quote}
+  \itshape
+
+  * I found the discussion of the HIV datasets could also have used some
+  greater interpretation.  For these datasets, what has been estimated as the
+  likely (or at least known) number of infections?  How does this relate to the
+  inferred I values?
+\end{quote}
+
+I have carefully read each of the studies for any available information about
+the HIV prevalence in the study populations. In the case of the Chinese
+datasets, I also consulted an article which reported the results of a
+nationwide prevalence survey by city. Unfortunately, no general conclusions
+could be drawn about how our estimates compare to values estimated with other
+means. For some datasets (eg. IDU/Canada), $I$ was apparently overestimated,
+while for some (MSM/USA) it was most likely underestimated.
+
+
+\begin{quote}
+  \itshape
+  
+  In addition, other more major comments are:
+
+  * In the grid search, you held all of the other unknown parameters to their
+  true values (if I understand correctly from Table 2.2), right?  You really
+  have to make this explicit in the methods and discuss both there and in the
+  results that this will give an overly confident view of the parameter values,
+  compared with performing a grid search but allowing the other parameters to
+  be inferred.  [Unless the latter is what you actually did.]
+\end{quote}
+
+This has been made much clearer both in section 2.2.2, and in the subsections
+of both the methods and results where the grid search estimates are reported.
+Figure captions emphasize this point as well.
+
+\begin{quote}
+  \itshape
+  
+  * I would consider adding box plots with interquartile ranges in places like
+  Figure 2.7.  The 95\% CI are simply too broad to be able to compare the
+  accuracy of the inferences.
+\end{quote}
+
+I felt that box plots would be confusing, since we do not report the median and
+quantiles, but rather the posterior mean and highest density intervals.
+However, I have added notches each plot of this type to indicate the 50\%
+highest density intervals, which are similar to the interquartile range.
+
+\begin{quote}
+  \itshape
+
+  * When you say that alpha is the most accurately estimated parameter (p. 37
+  and elsewhere), I think that this is unfair because it is based on absolute
+  differences and alpha, by definition, is a smaller number than I and N, say.
+  Visually inspecting Figure 2.7, ``I'' is much better estimated (hugging the
+  line more closely).  I think it would be better to discuss the proportional
+  deviation (or $R^2$)  rather than absolute errors in this section.  Similarly,
+  you compared some data points as being easier to estimate than others (e.g.,
+  alpha = 1 and 1.5) but I do not see a trend that justifies picking out the
+  best fitting two points and singling them out as ``special''.  In other words,
+  your p value needs to be corrected for the fact that you might take any
+  combination of the alpha values that seemed, by eye, to hug the regression
+  line most closely.  Similarly, on p. 39 you note that the errors for I were
+  higher when alpha was at least 1, but this is not at all visible and I doubt
+  it is true (based on the bottom left panel in Figure 2.8), even before
+  correcting for the fact that you’ve arbitrarily chosen one of several
+  possible comparisons to make.
+\end{quote}
+
+Figure 2.7 shows only one out of ten replicate simulations for each parameter
+value, so it may be somewhat visually misleading with respect to which
+parameter is estimated best overall. I elected to represent the data this way,
+instead of using box plots with all the simulations, in order to show the 95\%
+and 50\% highest density intervals. I have noted this in the text. 
+
+In any event, $I$ and $\alpha$ were in fact estimated with comparable accuracy. 
+I now simply report the accuracy rates for each parameter and make some
+qualitative observations about the distributions without claiming any
+statistical significance.
+
+With respect to $p$-value correction, I have also removed the ad-hoc
+statistical tests in the analysis of the ABC experiments and replaced them with
+two $p$-value corrected GLMs (Tables 2.5 and 2.6). \\
+
+\subsubsection*{Alex}
+
+\begin{quote}
+  \itshape
+  
+  High-level comments:
+
+  - Terminology: 'kernel ABC' in the way you use it ('ABC with epsilon
+  threshold where the distance happens to be computed using the kernel trick')
+  might be confusing to the ABC folks, since there is already some work on
+  'kernel ABC' used for a different meaning ('ABC where there is not a hard
+  threshold on the distance, instead, a kernel is used to weigh the generated
+  hypotheses', see for example http://arxiv.org/abs/1009.5736). 
+\end{quote}
+
+I have replaced ``kernel-ABC'' with either ``ABC'' or \textit{netabc}
+throughout the thesis.
+
+\begin{quote}
+  \itshape
+
+  - The material in section 2 is all there and good, but I feel it could be
+  reorganized a little bit to make it easier to follow. I would suggest making
+  one section with only the description of the method. Then another section for
+  the experiments on synthetic data. And then one more for real data analysis.
+  The section on synthetic data would also benefit from a short introductory
+  paragraph explaining that you first present exploratory data analysis
+  (without SMC-ABC) to assess the strength of the signal, and then do the
+  SMC-ABC analysis (and subdivide the section into corresponding subsection). 
+\end{quote}
+
+The chapter is now divided into four sections: description of the method,
+sythetic data analyses, real data analyses, and discussion.
+
+\begin{quote}
+  \itshape
+  Detailed comments:
+
+  ``were not estimable with kernel-ABC'' -> ''appeared to be weakly or
+  non-identifiable with kernel-ABC''. Estimable is typically reserved for the
+  more specialized cases of linear models.
+\end{quote}
+
+I have replaced all instances of ``estimable'' with either ``identifiable'' or
+another term appropriate to the context (ie. parameters were estimable $\to$
+classifiers were accurate, etc.).
+
+\begin{quote}
+  \itshape
+
+  Argument at bottom of page 14/132 and top of page 15/132: I didn't fully
+  understand why you needed labelling---I suspect it will become clearer later
+  in the manuscript but in terms of exposition it is a bit hard to follow.
+  Perhaps move this section to later, i.e. after having introduced more
+  notation? Also, note that showing that ML/Bayes requires a search over an
+  exponential space does not necessarily rules out ML/Bayes. For example
+  searching over tree is NP hard yet ML/Bayes are still good options in
+  practice. A more convincing argument would be that the natural formulation of
+  the problem falls in what is called a 'doubly-intractable problem', i.e. a
+  search problem over an intractable space where evaluation of the likelihood
+  of individual candidates is also computationally hard.
+\end{quote}
+
+I have moved that argument down into Chapter 2 (section 2.1.4), and instead
+focus on a higher level discussion for the objective. Section 2.1.4 also
+contains some explanation of the idea of doubly-intractable problems, and a new
+figure showing that a transmission tree topology has several possible internal
+node labellings.
+
+\begin{quote}
+  \itshape
+
+  ``The tips of a phylogeny, that is, the nodes without any descendants,
+  correspond to extant, or observed, taxa.'' -> in a phylodynamics context,
+  this is not so accurate of a characterization of the tips.
+\end{quote}
+
+I have changed the sentance to read as follows: ``The \emph{internal nodes}            
+correspond to their common ancestors, usually extinct (although occasionally
+the internal nodes may be observed as well, eg. Jombart et al. 2011).''
+
+\begin{quote}
+  \itshape
+  Same page: "large matches " -> what does that mean?
+
+  A question, perhaps stupid, on the tree kernel, more specifically on the
+  parts of the definition comparing branch lengths: won't that be sensitive to
+  the order in which the branch lengths are enumerated? Since the children in a
+  tree are unordered, do you need to sort them or something like that?
+\end{quote}
+
+Two paragraphs have been added to section 1.2.4 describing each of the terms in
+more detail. The paragraphs also clarify that we usually ladderize the tree
+before applying the tree kernel.
+
+\begin{quote}
+  \itshape
+
+  ``Sequential importance sampling (SIS) [113] is one type of SMC method,'' ->
+  it is rather a precursor of, technically.
+\end{quote}
+
+This is mentioned both in the section describing SIS and in the introductory
+paragraphs at the beginning of the section.
+
+\begin{quote}
+  \itshape
+
+  Equation on top of page 27/132, although technically correct, is not quite
+  what is the basis for IS; note that the form used would have weights at the
+  top and bottom (top for weighting, bottom for self-normalizing).
+\end{quote}
+
+When trying to understand IS, I found the formulation I had previously written
+to be more intuitive. However, I have replaced it with the expression
+\[
+  \int f(x) \pi(x) dx = \frac{1}{Z} \int w(x) \eta(x) f(x) dx,
+\]
+which I think is more conventional. Here, $\pi$ is the distribution of interest,
+$Z$ is its (unknown) normalizing constant, $f$ is an integrable function whose
+expectation we want to calculate under $\pi$, $w$ is the importance weight, and
+$\eta$ is the importance distribution.
+
+\begin{quote}
+  \itshape
+
+  ``then $\eta(x)$ can be approximated by a Monte Carlo estimate.'' : in IS we
+  do not approximate the importance distribution, rather we pick a simple one
+  and sample from it exactly.
+\end{quote}
+
+This was a poor choice of words on my part. I have edited the statement as
+follows: ``Since $\eta$ can be sampled from exactly, and $\gamma$ and $f$ can
+both be evaluated pointwise, the integral $\int w(x) \eta(x) f(x) \d x$ can be
+approximated by a Monte Carlo estimate.''
+
+\begin{quote}
+  \itshape
+
+  ``The recursive definition eq. (1.3) suggests an algorithm for obtaining a
+  sample from $\pi$ (algorithm 1).'' -> note that this algorithm does not
+  create an exact sample from $\pi$, but rater an approximate sample, an
+  important distinction to make.
+\end{quote}
+
+The sentence now reads as follows: ``The recursive definition 1.3 suggests an
+algorithm for obtaining a sample from $\eta$ and using it to obtain an
+approximate sample from $\pi$ by IS.''
+
+\begin{quote}
+  \itshape
+
+  In SIS, you only need to normalize the weights in the final step, and ideally
+  you shouldn't do resampling in the last iteration. (similarly, in SMC, you
+  should not do resampling in the final iteration. Technically, you still get a
+  consistent algorithm if you do resampling in the last step, but for
+  efficiency reasons it should be avoided if possible, this is motivated by a
+  theoretical analysis of the variance of the weights, described for example in
+  the book by Del Moral, 'Feynman-Kac Formulae, Genealogical and Interacting
+  Particle Systems with Applications')
+\end{quote}
+
+I'm glad you brought this to my attention, as I was making this mistake in all
+the experiments. Fortunately it only affected post-processing, so I didn't have
+to rerun everything. I have removed the final resampling step from all the
+algorithms in this section, and from my analyses as well. When discussing this
+point, you mentioned that the posterior expectation is a commonly used
+estimator, which prompted me to replace my MAP estimates with posterior means
+throughout.
+
+\begin{quote}
+  \itshape
+
+  Your background on SMC is currently organized as follows:
+  - IS
+  - SIS
+  - SMC samplers
+  Note that a perhaps more natural organization of these ideas (in the sense
+  that each in this progression introduces one fundamental new thing at the
+  time) would be:
+  - IS
+  - SIS (which adds online capability)
+  - SMC (which introduces the resampling operator to fight degeneracy)
+  - 'SMC samplers' (which introduces the capacity to approach spaces that
+  cannot be expressed as product spaces)
+  Note that confusingly, 'SMC' and 'SMC samplers' are used for different ideas
+  (the latter builds on the former). 
+\end{quote}
+
+I did not initially realize that the resampling was introduced as part of SMC
+and is not part of SIS. I have moved resampling into a separate subsection
+about only SMC, so the section now has the suggested structure.
+
+\begin{quote}
+  \itshape
+
+  Related comment: one important idea missing in the background is the notion
+  of particle degeneracy, which is the fundamental reason why resampling is
+  theoretically justified.
+\end{quote}
+
+This point has been added to the section describing SMC: ``\ldots the
+cumulative errors at each sequential step tend to push many of the weights to
+very low values. This results in a poor approximation to $\pi$, since only a
+few particles retain high importance weights after all $d$ sequential steps, a
+problem known as \emph{particle degeneracy}.''
+
+\begin{quote}
+  \itshape
+  
+  ``data, x and outcomes y'' -> `outcome' seems a weird terminology name here.
+  Perhaps covariate would be better.
+\end{quote}
+
+I had actually intended $y$ to be the data and $x$ to be the covariates: I was
+thinking of covariates as ``inputs'' and data as ``outputs''. This text has
+been moved into Appendix A and changed to read ``observed data $y$ and
+covariates $x$.''
+
+\begin{quote}
+  \itshape
+
+  ``suitably chosen distance $\rho$'' -> It might be good to include a short
+  paragraph expending on this, since these conditions are not only for
+  theoretical analysis but also have a big impact in practice. 
+\end{quote}
+
+There is now a subheading ``Distance functions and summary statistics in ABC''
+which describes sufficient statistics and references some methods to choose
+optimal summary statistics.
+
+\begin{quote}
+  \itshape
+
+  ``We use the variable x'' -> point out that this definition is unrelated to
+  the definition of x used earlier in this section
+\end{quote}
+
+Rather than change the wording, the previous usage has been moved into Appendix
+A.
+
+\begin{quote}
+  \itshape
+
+  ``Classifiers for BA model parameters based on tree shape'' -> specify
+  explicitly here that you are doing synthetic data experiments. 
+\end{quote}
+
+This is now emphasized in both the new section 2.2.2 and the introductory
+paragraphs below the relevant subheading in section 2.2.3.
+
+\end{document}

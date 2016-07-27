@@ -476,43 +476,60 @@ algorithm~\autocite{metropolis1953equation,hastings1970monte} (\cref{alg:mh}).
 
 \clearpage
 
-\begin{figure}[ht]
-    \centering
-    \includegraphics{abc-point-estimate-m3.pdf}
+\begin{figure}
+    \includegraphics[width=\textwidth]{abc-boxplot-mN}
     \caption[
-        Posterior mean point estimates for \gls{BA} model parameters obtained
-        by running \software{netabc} on simulated data, for simulations with
-        \gls{m} = 3. 
+        Posterior mean point estimates for BA model parameters $m$ and $N$
+        obtained by running \textit{netabc} on simulated data, stratified by
+        true parameter values.
     ]{
-        Posterior mean point estimates for \gls{BA} model parameters obtained
-        by running \software{netabc} on simulated data, for simulations with
-        \gls{m} = 3. Dashed lines indicate true values. (A) Estimates of
-        \gls{alpha} and \gls{I} which were varied in these simulations against
-        known values. (B) Estimates of \gls{m} and \gls{N} which were held
-        fixed in these simulations at the values \gls{m} = 3 and \gls{N} =
-        5000.
-    }        
-    \label{fig:abcptm3}
+        Posterior mean point estimates for BA model parameters $m$ and $N$
+        obtained by running \textit{netabc} on simulated data, stratified by
+        true parameter values. First row of plots contains true versus
+        estimated values of $m$; second row contains true versus estimated
+        values of $N$. Columns are stratified by $\alpha$, $I$, and $m$
+        respectively. Dashed lines indicate true values. 
+    }
+    \label{fig:abcpt2}
 \end{figure}
 
-\begin{figure}[ht]
-    \centering
-    \includegraphics{abc-point-estimate-m4.pdf}
-    \caption[
-        Posterior mean point estimates for \gls{BA} model parameters obtained
-        by running \software{netabc} on simulated data, for simulations with
-        \gls{m} = 3.
-    ]{
-        Posterior mean point estimates for \gls{BA} model parameters obtained
-        by running \software{netabc} on simulated data, for simulations with
-        \gls{m} = 4. Dashed lines indicate true values. (A) Estimates of
-        \gls{alpha} and \gls{I} which were varied in these simulations against
-        known values. (B) Estimates of \gls{m} and \gls{N} which were held
-        fixed in these simulations at the values \gls{m} = 4 and \gls{N} =
-        5000.
-    }        
-    \label{fig:abcptm4}
-\end{figure}
+%\begin{figure}[ht]
+%    \centering
+%    \includegraphics{abc-point-estimate-m3.pdf}
+%    \caption[
+%        Posterior mean point estimates for \gls{BA} model parameters obtained
+%        by running \software{netabc} on simulated data, for simulations with
+%        \gls{m} = 3. 
+%    ]{
+%        Posterior mean point estimates for \gls{BA} model parameters obtained
+%        by running \software{netabc} on simulated data, for simulations with
+%        \gls{m} = 3. Dashed lines indicate true values. (A) Estimates of
+%        \gls{alpha} and \gls{I} which were varied in these simulations against
+%        known values. (B) Estimates of \gls{m} and \gls{N} which were held
+%        fixed in these simulations at the values \gls{m} = 3 and \gls{N} =
+%        5000.
+%    }        
+%    \label{fig:abcptm3}
+%\end{figure}
+%
+%\begin{figure}[ht]
+%    \centering
+%    \includegraphics{abc-point-estimate-m4.pdf}
+%    \caption[
+%        Posterior mean point estimates for \gls{BA} model parameters obtained
+%        by running \software{netabc} on simulated data, for simulations with
+%        \gls{m} = 3.
+%    ]{
+%        Posterior mean point estimates for \gls{BA} model parameters obtained
+%        by running \software{netabc} on simulated data, for simulations with
+%        \gls{m} = 4. Dashed lines indicate true values. (A) Estimates of
+%        \gls{alpha} and \gls{I} which were varied in these simulations against
+%        known values. (B) Estimates of \gls{m} and \gls{N} which were held
+%        fixed in these simulations at the values \gls{m} = 4 and \gls{N} =
+%        5000.
+%    }        
+%    \label{fig:abcptm4}
+%\end{figure}
 
 \begin{figure}[ht]
     \centering
@@ -537,46 +554,46 @@ algorithm~\autocite{metropolis1953equation,hastings1970monte} (\cref{alg:mh}).
     \label{fig:powerlaw}
 \end{figure}
 
-\begin{figure}[ht]
-    \centering
-    \includegraphics{mixed-posterior}
-    \caption[
-        Approximate marginal posterior distributions of \gls{BA} model
-        parameters obtained with \software{netabc} for a network with
-        heterogeneous node behaviour.
-    ]{
-        Approximate marginal posterior distributions of \gls{BA} model
-        parameters obtained with \software{netabc} for a network with
-        heterogeneous node behaviour. Half of the nodes were attached with
-        $\gls{alpha} = 0.5$, and the other half with $\gls{alpha} = 1.5$
-        (vertical dashed lines, top left). Other parameter values were $m = 2$,
-        $\gls{I} = 1000$, and $\gls{N} = 5000$ (vertical dashed lines, other
-        than top left). Shaded areas indicate 95\% highest posterior density
-        intervals.
-    }
-    \label{fig:mixed}
-\end{figure}
-
-\begin{figure}[ht]
-    \centering
-    \includegraphics{peerdriven-posterior}
-    \caption[
-        Approximate marginal posterior distributions of \gls{BA}
-        model parameters obtained with \software{netabc} for a network with
-        peer-driven sampling.
-    ]{
-        Approximate marginal posterior distributions of \gls{BA}
-        model parameters obtained with \software{netabc} for a network with
-        peer-driven sampling. An epidemic was simulated in the usual fashion,
-        but rather than being sampled at random, infected nodes were sampled
-        with a probability two times higher if they had any sampled neighbours
-        in the contact network. Vertical dashed lines indicate true parameter
-        values, and shaded areas indicate 95\% highest posterior density
-        intervals.
-    }
-    \label{fig:peerdriven}
-\end{figure}
-
+%\begin{figure}[ht]
+%    \centering
+%    \includegraphics{mixed-posterior}
+%    \caption[
+%        Approximate marginal posterior distributions of \gls{BA} model
+%        parameters obtained with \software{netabc} for a network with
+%        heterogeneous node behaviour.
+%    ]{
+%        Approximate marginal posterior distributions of \gls{BA} model
+%        parameters obtained with \software{netabc} for a network with
+%        heterogeneous node behaviour. Half of the nodes were attached with
+%        $\gls{alpha} = 0.5$, and the other half with $\gls{alpha} = 1.5$
+%        (vertical dashed lines, top left). Other parameter values were $m = 2$,
+%        $\gls{I} = 1000$, and $\gls{N} = 5000$ (vertical dashed lines, other
+%        than top left). Shaded areas indicate 95\% highest posterior density
+%        intervals.
+%    }
+%    \label{fig:mixed}
+%\end{figure}
+%
+%%\begin{figure}[ht]
+%%    \centering
+%%    \includegraphics{peerdriven-posterior}
+%%    \caption[
+%%        Approximate marginal posterior distributions of \gls{BA}
+%%        model parameters obtained with \software{netabc} for a network with
+%%        peer-driven sampling.
+%%    ]{
+%%        Approximate marginal posterior distributions of \gls{BA}
+%%        model parameters obtained with \software{netabc} for a network with
+%%        peer-driven sampling. An epidemic was simulated in the usual fashion,
+%%        but rather than being sampled at random, infected nodes were sampled
+%%        with a probability two times higher if they had any sampled neighbours
+%%        in the contact network. Vertical dashed lines indicate true parameter
+%%        values, and shaded areas indicate 95\% highest posterior density
+%%        intervals.
+%%    }
+%%    \label{fig:peerdriven}
+%%\end{figure}
+%
 \begin{figure}[ht]
     \includegraphics{realdata-hpd-bc-m2}
     \caption[

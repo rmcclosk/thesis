@@ -4,23 +4,23 @@
 \defcounter {refsection}{0}\relax 
 \addvspace {10\p@ }
 \defcounter {refsection}{0}\relax 
-\contentsline {table}{\numberline {2.1}{\ignorespaces Values of parameters and meta-parameters used in classifier experiments to investigate identifiability of BA model parameters from tree shapes. }}{43}{table.2.1}
+\contentsline {table}{\numberline {2.1}{\ignorespaces Values of parameters and meta-parameters used in classifier experiments to investigate identifiability of BA model parameters from tree shapes. }}{42}{table.2.1}
 \defcounter {refsection}{0}\relax 
-\contentsline {table}{\numberline {2.2}{\ignorespaces Values of parameters and meta-parameters used in grid search experiments to further investigate identifiability of BA model parameters. }}{43}{table.2.2}
+\contentsline {table}{\numberline {2.2}{\ignorespaces Values of parameters and meta-parameters used in grid search experiments to further investigate identifiability of BA model parameters. }}{42}{table.2.2}
 \defcounter {refsection}{0}\relax 
-\contentsline {table}{\numberline {2.3}{\ignorespaces Parameter values used in simulation experiments to test accuracy of \gls {BA} model fitting with \textit {netabc}. }}{46}{table.2.3}
+\contentsline {table}{\numberline {2.3}{\ignorespaces Parameter values used in simulation experiments to test accuracy of \gls {BA} model fitting with \textit {netabc}. }}{45}{table.2.3}
 \defcounter {refsection}{0}\relax 
 \contentsline {table}{\numberline {2.4}{\ignorespaces Average posterior mean point estimates and 95\% \gls {HPD} interval widths for \gls {BA} model parameter estimates obtained with \textit {netabc} on simulated data. }}{51}{table.2.4}
 \defcounter {refsection}{0}\relax 
-\contentsline {table}{\numberline {2.5}{\ignorespaces Parameters of a fitted \gls {GLM} relating error in estimated \gls {alpha} to true values of \gls {BA} parameters.}}{53}{table.2.5}
+\contentsline {table}{\numberline {2.5}{\ignorespaces Parameters of a fitted \gls {GLM} relating error in estimated \gls {alpha} to true values of \gls {BA} parameters.}}{51}{table.2.5}
 \defcounter {refsection}{0}\relax 
-\contentsline {table}{\numberline {2.6}{\ignorespaces Parameters of a fitted \gls {GLM} relating error in estimated \gls {I} to true values of \gls {BA} parameters.}}{53}{table.2.6}
+\contentsline {table}{\numberline {2.6}{\ignorespaces Parameters of a fitted \gls {GLM} relating error in estimated \gls {I} to true values of \gls {BA} parameters.}}{52}{table.2.6}
 \defcounter {refsection}{0}\relax 
-\contentsline {table}{\numberline {2.7}{\ignorespaces Characteristics of published \gls {HIV} datasets analyzed with \textit {netabc}. }}{58}{table.2.7}
+\contentsline {table}{\numberline {2.7}{\ignorespaces Characteristics of published \gls {HIV} datasets analyzed with \textit {netabc}. }}{57}{table.2.7}
 \defcounter {refsection}{0}\relax 
-\contentsline {table}{\numberline {2.8}{\ignorespaces Estimated power law exponents for six \gls {HIV} datasets based on posterior mean point estimates of \gls {BA} model parameters. }}{61}{table.2.8}
+\contentsline {table}{\numberline {2.8}{\ignorespaces Estimated power law exponents for six \gls {HIV} datasets based on posterior mean point estimates of \gls {BA} model parameters. }}{59}{table.2.8}
 \defcounter {refsection}{0}\relax 
-\contentsline {table}{\numberline {2.9}{\ignorespaces Values of power law exponent \gls {gamma} previously reported in the literature. }}{74}{table.2.9}
+\contentsline {table}{\numberline {2.9}{\ignorespaces Values of power law exponent \gls {gamma} previously reported in the literature. }}{71}{table.2.9}
 \defcounter {refsection}{0}\relax 
 \addvspace {10\p@ }
 \defcounter {refsection}{0}\relax 

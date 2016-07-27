@@ -110,7 +110,7 @@ highly unbalanced ladder-like tree structure (\cref{fig:alphatrees}).
 \software{netabc}, however the variation in these estimates
 was higher for $\alpha < 1$ than for $\alpha \geq 1$} \add{There appeared to be
 weaker identifiability for \gls{alpha} $<$ 1 than for \gls{alpha} $\geq$ 1}
-(\cref{fig:abcptm2,tab:abchpd}), which may be partially explained by the
+(\cref{fig:abcpt,tab:abchpd}), which may be partially explained by the
 relationship between \gls{alpha} and the power law exponent \gls{gamma}
 (\cref{fig:gamma}). \add{Although the degree distributions do not truly follow
 a power law for $\gls{alpha} \neq 1$, the fitted exponent still captures the
@@ -168,7 +168,7 @@ accuracy of the \gls{nltt} in these situations
 \gls{nltt} uses only information about the coalescence times. When all \gls{BA}
 parameters were simultaneously estimated with \gls{ABC}, \gls{N} was nearly
 always over-estimated by approximately a factor of two
-(\cref{fig:abcptm2,tab:abchpd}). One factor which may have contributed to this
+(\cref{fig:abcpt2,tab:abchpd}). One factor which may have contributed to this
 bias was our choice of prior distribution. Since the prior for \gls{I} and
 \gls{N} was jointly uniform on a region where $I \leq N$, more prior weight was
 assigned to higher \gls{N} values. Another contributing factor relates to the
@@ -295,13 +295,13 @@ The combination of method, model, and priors we employed did not produce
 perfect estimates of any of the parameters. The estimates of \gls{alpha} were
 the most accurate, although the variance of the estimates was high and the
 confidence intervals were wide for $\gls{alpha} < 1$
-(\cref{tab:abchpd,fig:abcptm2,fig:abcptm3,fig:abcptm4}). The estimates of
-\gls{N} and \gls{I} were both upwardly biased, and the estimates of \gls{m}
-were largely uninformative. Despite these limitations, a major result of our
-investigation is that some contact network parameters have a measurable impact
-on tree shape which can be used to perform statistical inference. Further
-refinements to \software{netabc}, as well as the use of more sophisticated
-network models, may improve the accuracy and precision of these estimates.
+(\cref{fig:abcpt,tab:abchpd}). The estimates of \gls{N} and \gls{I} were both
+upwardly biased, and the estimates of \gls{m} were largely uninformative.
+Despite these limitations, a major result of our investigation is that some
+contact network parameters have a measurable impact on tree shape which can be
+used to perform statistical inference. Further refinements to
+\software{netabc}, as well as the use of more sophisticated network models, may
+improve the accuracy and precision of these estimates.
 
 \subsection{Application to real world HIV data}
 
@@ -361,7 +361,7 @@ Although the MAP estimate of $\alpha$ was almost unchanged when the value $m =
 were sub-linear, ranging from 
     0.27
 to 
-    0.9.
+    0.81.
 The sub-linearity is consistent with the results of
 \textcite{de2007preferential}, who developed a statistical inference method to
 estimate the parameters of a more sophisticated \acrlong{PA} model
@@ -373,7 +373,7 @@ both priors, as were the estimates for the MSM/Beijing data and the BC data
 when $\gls{m} = 1$ was disallowed by the prior. The dataset investigated by
 \textcite{de2007preferential} was derived from a survey of a random sample of
 the Norwegian population, whereas our investigation focused on datasets from
-known phylogenetic or geographic clusters of \gls{HIV} infected persons. It is
+known phylogenetic or geographic clusters of \gls{HIV}-infected persons. It is
 therefore unsurprising that we detected stronger \acrlong{PA} dynamics in some
 cases. For instance, random sampling is much less likely to discover the
 high-degree nodes characterizing the tail of the degree distribution, simply
@@ -416,7 +416,7 @@ these high-degree nodes.}
 
 \add{Unfortunately, the sub-linear region for \gls{alpha} identified by both
 \textcite{de2007preferential} and \software{netabc} is also the region of
-poorest identifiability (\cref{fig:gridest,fig:abcptm2}). This was reflected in
+poorest identifiability (\cref{fig:gridest,fig:abcpt}). This was reflected in
 the high level of uncertainty in the estimates, with most 95\% \gls{HPD}
 intervals covering the majority of the range [0, 1]. The value $\gls{alpha} =
 0.5$ was contained in the 95\% \gls{HPD} interval for every dataset;
@@ -516,7 +516,7 @@ with the prior $\gls{m} \sim \DiscreteUniform(1, 5)$.}
 \add{The prevalence estimates for two \gls{IDU} epidemics in Eastern Europe,
 IDU/Romania and IDU/Estonia, were 
     747 and 
-    372.
+    465.
 The authors of the IDU/Romania study~\autocite{niculescu2015recent} reported
 that 494 new \gls{HIV} infections were diagnosed among the studied population
 (\glspl{IDU} in Bucharest) during the study period, and this value was
@@ -527,8 +527,8 @@ On the other hand, the IDU/Estonia data were collected from several locations
 in the country. Using their reported incidence estimates, there were
 approximately 2000 new infections in the country during the study period, a
 value outside our 95\% \gls{HPD} interval
-    (188 -
-    834).
+    (171 -
+    1343).
 The authors indicated that their sample was ``convenience based''; it is
 possible that other, harder-to-reach individuals had no contacts with those
 sampled, reducing the apparent network size. In contrast, the IDU/Canada data
@@ -539,10 +539,10 @@ all new \gls{HIV} infections, it is not unreasonable to suppose that the
 sampled individuals (399) comprise the majority of \gls{HIV}-positive network
 members. This value was the lower bound of our estimated 95\% \gls{HPD}
 interval
-    (399 -
-    2862),
+    (384 -
+    3484),
 but it seems likely that the posterior mean of
-    1481
+    1356
 is an overestimate.}
 
 \add{The prevalence estimates for two \gls{MSM} populations in major Chinese
@@ -573,16 +573,16 @@ study~\autocite{kao2011surveillance} stated that there were 18,378
 \gls{HIV}-infected individuals in Taiwan, of which approximately 44\% (8086
 individuals) were \gls{MSM}. This value is well outside of our 95\% \gls{HPD} 
     (268 -
-    772),
+    607),
 suggesting that the entire \gls{MSM} population does not comprise a single
 network. In fact, our estimate of \gls{I} for these data
-    (524),
+    (410),
 was closer to the number of \gls{MSM} enrolled in the study (301) than to the
 epidemiologically estimated prevalence. The study focused exclusively on newly
 diagnosed individuals. On the other hand, our estimated prevalence for the
 MSM/USA data
     (482)
-was clearly an underestimate. The study enrolled almost 648 \gls{HIV} infected 
+was clearly an underestimate. The study enrolled almost 648 \gls{HIV}-infected 
 individuals, which should have been a lower bound on \gls{I}, although the
 value was contained in the 95\% \gls{HPD} interval
     (180 -
@@ -593,7 +593,7 @@ populations in sub-Saharan Africa, where the dominant mode of transmission is
 believed to be heterosexual. The HET/Uganda study population included
 1434 seropositive individuals. Since the majority of inhabitants of the study
 district were enrolled in the study, it is likely that this number represents
-the majority of \gls{HIV} infected persons. Our estimate was slightly lower
+the majority of \gls{HIV}-infected persons. Our estimate was slightly lower
     (939),
 but the value 1434 was contained within the 95\% \gls{HPD} interval
     (226 -
@@ -604,18 +604,17 @@ sequencing effort, carried out on samples collected for other purposes between
 a total of 200 were \gls{HIV}-positive. Although the HET/Malawi data had the
 lowest estimated \gls{I} value among the heterosexual datasets, 
 the posterior mean
-    (919),
+    (724),
 was much higher than this value. Due to the thorough population-level
 screening, it is most likely that the posterior mean represents an
-overestimate, especially considering the observed upward bias of \gls{ABC}
-estimates of \gls{I} observed on simulated data (\cref{fig:abcptm2}).
-It is also possible that the true sexual network extended outside the study's
-geographic area to include a larger number of infected individuals. The authors
-of the HET/Botswana data~\autocite{novitsky2013phylogenetic,
-novitsky2014impact} estimated that there were 1731 \gls{HIV}-positive
-individuals in the study area. \gls{HIV} sequences were obtained from
-approximately 70\% of these individuals. The estimated prevalence we obtained
-was much higher 
+overestimate, especially considering the upward bias of \gls{ABC} estimates of
+\gls{I} observed on simulated data (\cref{fig:abcpt2}). It is also possible
+that the true sexual network extended outside the study's geographic area to
+include a larger number of infected individuals. The authors of the
+HET/Botswana data~\autocite{novitsky2013phylogenetic, novitsky2014impact}
+estimated that there were 1731 \gls{HIV}-positive individuals in the study
+area. \gls{HIV} sequences were obtained from approximately 70\% of these
+individuals. The estimated prevalence we obtained was much higher 
     (5432),
 with a 95\% \gls{HPD} interval spanning nearly the entire prior region. The
 authors noted that the town where the study took place was located proximally

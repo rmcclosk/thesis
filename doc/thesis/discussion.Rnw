@@ -112,7 +112,7 @@ highly unbalanced ladder-like tree structure (\cref{fig:alphatrees}).
 \software{netabc}, however the variation in these estimates
 was higher for $\alpha < 1$ than for $\alpha \geq 1$} \add{There appeared to be
 weaker identifiability for \gls{alpha} $<$ 1 than for \gls{alpha} $\geq$ 1}
-(\cref{fig:abcptm2,tab:abchpd}), which may be partially explained by the
+(\cref{fig:abcpt,tab:abchpd}), which may be partially explained by the
 relationship between \gls{alpha} and the power law exponent \gls{gamma}
 (\cref{fig:gamma}). \add{Although the degree distributions do not truly follow
 a power law for $\gls{alpha} \neq 1$, the fitted exponent still captures the
@@ -170,7 +170,7 @@ accuracy of the \gls{nltt} in these situations
 \gls{nltt} uses only information about the coalescence times. When all \gls{BA}
 parameters were simultaneously estimated with \gls{ABC}, \gls{N} was nearly
 always over-estimated by approximately a factor of two
-(\cref{fig:abcptm2,tab:abchpd}). One factor which may have contributed to this
+(\cref{fig:abcpt2,tab:abchpd}). One factor which may have contributed to this
 bias was our choice of prior distribution. Since the prior for \gls{I} and
 \gls{N} was jointly uniform on a region where $I \leq N$, more prior weight was
 assigned to higher \gls{N} values. Another contributing factor relates to the
@@ -297,13 +297,13 @@ The combination of method, model, and priors we employed did not produce
 perfect estimates of any of the parameters. The estimates of \gls{alpha} were
 the most accurate, although the variance of the estimates was high and the
 confidence intervals were wide for $\gls{alpha} < 1$
-(\cref{tab:abchpd,fig:abcptm2,fig:abcptm3,fig:abcptm4}). The estimates of
-\gls{N} and \gls{I} were both upwardly biased, and the estimates of \gls{m}
-were largely uninformative. Despite these limitations, a major result of our
-investigation is that some contact network parameters have a measurable impact
-on tree shape which can be used to perform statistical inference. Further
-refinements to \software{netabc}, as well as the use of more sophisticated
-network models, may improve the accuracy and precision of these estimates.
+(\cref{fig:abcpt,tab:abchpd}). The estimates of \gls{N} and \gls{I} were both
+upwardly biased, and the estimates of \gls{m} were largely uninformative.
+Despite these limitations, a major result of our investigation is that some
+contact network parameters have a measurable impact on tree shape which can be
+used to perform statistical inference. Further refinements to
+\software{netabc}, as well as the use of more sophisticated network models, may
+improve the accuracy and precision of these estimates.
 
 \subsection{Application to real world HIV data}
 
@@ -424,7 +424,7 @@ these high-degree nodes.}
 
 \add{Unfortunately, the sub-linear region for \gls{alpha} identified by both
 \textcite{de2007preferential} and \software{netabc} is also the region of
-poorest identifiability (\cref{fig:gridest,fig:abcptm2}). This was reflected in
+poorest identifiability (\cref{fig:gridest,fig:abcpt}). This was reflected in
 the high level of uncertainty in the estimates, with most 95\% \gls{HPD}
 intervals covering the majority of the range [0, 1]. The value $\gls{alpha} =
 0.5$ was contained in the 95\% \gls{HPD} interval for every dataset;
@@ -615,15 +615,14 @@ the posterior mean
     (\Sexpr{d1[dataset == "mccormack2002" & parameter == "I", round(mean)]}),
 was much higher than this value. Due to the thorough population-level
 screening, it is most likely that the posterior mean represents an
-overestimate, especially considering the observed upward bias of \gls{ABC}
-estimates of \gls{I} observed on simulated data (\cref{fig:abcptm2}).
-It is also possible that the true sexual network extended outside the study's
-geographic area to include a larger number of infected individuals. The authors
-of the HET/Botswana data~\autocite{novitsky2013phylogenetic,
-novitsky2014impact} estimated that there were 1731 \gls{HIV}-positive
-individuals in the study area. \gls{HIV} sequences were obtained from
-approximately 70\% of these individuals. The estimated prevalence we obtained
-was much higher 
+overestimate, especially considering the upward bias of \gls{ABC} estimates of
+\gls{I} observed on simulated data (\cref{fig:abcpt2}). It is also possible
+that the true sexual network extended outside the study's geographic area to
+include a larger number of infected individuals. The authors of the
+HET/Botswana data~\autocite{novitsky2013phylogenetic, novitsky2014impact}
+estimated that there were 1731 \gls{HIV}-positive individuals in the study
+area. \gls{HIV} sequences were obtained from approximately 70\% of these
+individuals. The estimated prevalence we obtained was much higher 
     (\Sexpr{d1[dataset == "novitsky2014" & parameter == "I", round(mean)]}),
 with a 95\% \gls{HPD} interval spanning nearly the entire prior region. The
 authors noted that the town where the study took place was located proximally
